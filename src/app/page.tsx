@@ -1,103 +1,82 @@
+"use client";
+import { Button } from "@/components/Button";
+import Card from "@/components/Card";
+import { ManageUserTable } from "@/components/tables/ManageUserTable";
 import Image from "next/image";
+import { BiDotsVerticalRounded } from "react-icons/bi";
+import { FaPlus } from "react-icons/fa";
 
+const tableContent = [
+  {
+    id: "1",
+    fullName: "John Doe",
+    email: "johndoe@example.com",
+    image: "/images/Ellipse 118.png",
+    location: "California",
+    profession: "Agent" as "Agent" | "Farmer",
+    mobileNumber: "+1 234 567 890",
+    status: "Active" as "Active" | "Suspended" | "All",
+    date: "23/12/2023",
+    actionIcon: <BiDotsVerticalRounded />,
+  },
+  {
+    id: "2",
+    fullName: "Jane Smith",
+    email: "janesmith@example.com",
+    image: "/images/Ellipse 118.png",
+    location: "Texas",
+    profession: "Farmer" as "Agent" | "Farmer",
+    mobileNumber: "+1 987 654 321",
+    status: "Suspended" as "Active" | "Suspended" | "All",
+    date: "24/12/2023",
+    actionIcon: <BiDotsVerticalRounded />,
+  },
+  // Other data...
+];
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div>
+      <h1>Hello Agric Tech</h1>
+      <Button
+        icon={<FaPlus />}
+        text="Custom Button"
+        iconClass="text-md text-white"
+        textClass="font-bold text-lg"
+        onClick={() => alert("Button clicked!")}
+        disabled={false}
+      />
+      <Card
+        image="/images/Rectangle 19.png"
+        title="Corn"
+        description="Introducing the humble and delig..."
+        amount="₦5,000"
+        discountPrice="₦3,800"
+        quantity="Moq: 50 Bags"
+        className="bg-gray-100 p-6"
+        imageClass="rounded-lg shadow"
+        titleClass="text-xl text-red-500"
+        descriptionClass="text-sm italic"
+        discountPriceClass="!text-gray-700 text-lg font-bold"
+        amountClass="text-gray-400"
+        quantityClass="text-blue-400"
+      />
+      <div className="p-8">
+        {/* Replace `<` with the correct component name, e.g., `ManageUserTable` */}
+        <ManageUserTable
+          data={tableContent}
+          className="border-collapse"
+          checkboxClassName="px-4 py-2"
+          imageClassName="border-2 border-gray-300"
+          nameClassName="text-xl font-bold"
+          emailClassName="text-sm text-gray-500"
+          locationClassName="text-gray-700"
+          professionClassName="font-semibold"
+          mobileClassName="text-blue-500"
+          statusClassName="text-green-500"
+          dateClassName="text-gray-400"
+          actionClassName="text-gray-600 cursor-pointer"
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
