@@ -5,7 +5,7 @@ import { RegisteredUser } from "@/components/Homecomponents/Home/RegisteredUser"
 
 export default function Home() {
   return (
-    <div className="bg-[#f1f1f1] w-full h-screen">
+    <div className="bg-[#f1f1f1] w-full">
       <Navbar />
       <HomeHeader />
       <RegisteredUser />
