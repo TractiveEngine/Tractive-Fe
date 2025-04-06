@@ -53,9 +53,9 @@ export const OpportAgric = () => {
           </div>
           <Link href="/signup" className="flex items-center gap-2 mt-7">
             <p className="font-montserrat text-[20px] font-normal text-[#538E53]">
-              Register as a buyer
+              Register as a uyer
             </p>
-            <span className="w-[30px] h-[30px] bg-[#CCE5CC] rounded-full flex items-center justify-center">
+            <span className="w-[24px] h-[24px] bg-[#CCE5CC] rounded-full flex items-center justify-center">
               <GoArrowRight className="text-[#538E53] w-[24px] h-[24px]" />
             </span>
           </Link>
