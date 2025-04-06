@@ -16,7 +16,7 @@ export const HomeHeader = () => {
           </span>
           <Link
             href="/signup"
-            className="w-[217px] flex mt-[2.0625rem] p-[10px] justify-center items-center gap-[10px] rounded-[4px] border-2 border-[#f9f9f9] bg-[#538e53] text-[#f9f9f9] font-montserrat font-normal text-md"
+            className="w-[217px] flex mt-[2.0625rem] p-[10px] justify-center items-center gap-[10px] rounded-[4px] border-2 border-[#f9f9f9] bg-[#538e53] transition hover:bg-[#CCE5CC] hover:text-[#538E53] text-[#f9f9f9] font-montserrat font-normal text-md"
           >
             Register For Free
           </Link>
