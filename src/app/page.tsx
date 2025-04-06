@@ -1,3 +1,5 @@
+import { AgricLog } from "@/components/Homecomponents/Home/AgricLog";
+import { FarmTech } from "@/components/Homecomponents/Home/FarmTech";
 import { HomeHeader } from "@/components/Homecomponents/Home/HomeHeader";
 import { MTF } from "@/components/Homecomponents/Home/MTF";
 import { Navbar } from "@/components/Homecomponents/Home/Navbar";
@@ -13,6 +15,8 @@ export default function Home() {
       <div className="bg-[#f1f1f1]">
         <MTF />
         <OpportAgric />
+        <FarmTech />
+        <AgricLog />
       </div>
     </div>
   );
