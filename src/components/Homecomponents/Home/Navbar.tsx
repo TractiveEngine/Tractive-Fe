@@ -16,14 +16,14 @@ export const Navbar = () => {
   return (
     <div className="w-[90%] mx-auto py-2 flex justify-between font-montserrat items-center bg-[#F1F1F1]">
       {/* Logo */}
-      <div className="flex items-center">
+      <Link href="/" className="flex items-center">
         <Image
           src="/images/logo.png"
           alt="Agrictech Logo"
           width={50}
           height={50}
         />
-      </div>
+      </Link>
 
       {/* Main Links */}
       <ul className="hidden md:flex gap-6 text-gray-700 font-normal">
@@ -31,8 +31,8 @@ export const Navbar = () => {
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`transition hover:text-[#538E53] ${
-                pathname === item.href ? "text-[#538E53]" : ""
+              className={`transition hover:text-[#538E53] text-[0.89rem] font-montserrat ${
+                pathname === item.href ? "text-[#538E53] font-montserrat" : ""
               }`}
             >
               {item.label}
@@ -46,7 +46,7 @@ export const Navbar = () => {
         <li>
           <a
             href="/login"
-            className="text-[#538E53] text-[1rem] font-medium transition"
+            className="text-[#538E53] hover:text-[#214821] text-[0.89rem] font-medium transition"
           >
             Login
           </a>
@@ -54,7 +54,7 @@ export const Navbar = () => {
         <li>
           <a
             href="/signup"
-            className="bg-[#CCE5CC] text-[#538E53] p-[10px] rounded-[4px] flex items-center justify-center gap-[10px] transition text-center text-[1rem] font-normal"
+            className="bg-[#CCE5CC] text-[#538E53] hover:text-[#214821] p-[10px] rounded-[4px] flex items-center justify-center gap-[10px] transition text-center text-[0.89rem] font-normal"
           >
             Get Started
           </a>

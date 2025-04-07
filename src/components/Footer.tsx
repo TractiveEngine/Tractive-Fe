@@ -31,7 +31,7 @@ export const Footer = () => {
         </div>
 
         <div className="flex flex-col gap-[80px] mt-10 w-[90%] justify-center mx-auto lg:flex-row ">
-          <div className="flex flex-col gap-[80px] mt-10 lg:flex-row">
+          <div className="flex md:flex-row md:justify-between gap-[80px] mt-10 lg:flex-row">
             <div>
               <p className="text-[#f9f9f9] font-montserrat text-[17px] font-medium">
                 Need our support?
@@ -113,7 +113,7 @@ export const Footer = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-[80px] lg:flex-row">
+          <div className="flex flex-col sm:flex-col md:flex-row md:justify-between gap-[80px] lg:flex-row">
             <div className="flex flex-col gap-2 mt-10">
               <p className="text-[#f9f9f9] font-montserrat text-[17px] text-left font-medium">
                 Payment method
