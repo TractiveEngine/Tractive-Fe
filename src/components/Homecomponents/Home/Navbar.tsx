@@ -14,7 +14,7 @@ export const Navbar = () => {
   ];
 
   return (
-    <nav className="w-full px-[64px] py-2 flex justify-between font-montserrat items-center bg-[#F1F1F1]">
+    <div className="w-[90%] mx-auto py-2 flex justify-between font-montserrat items-center bg-[#F1F1F1]">
       {/* Logo */}
       <div className="flex items-center">
         <Image
@@ -60,6 +60,6 @@ export const Navbar = () => {
           </a>
         </li>
       </ul>
-    </nav>
+    </div>
   );
 };

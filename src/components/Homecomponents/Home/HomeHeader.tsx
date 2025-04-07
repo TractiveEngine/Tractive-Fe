@@ -5,13 +5,13 @@ import React from "react";
 export const HomeHeader = () => {
   return (
     <section className="w-[100%] h-[433px] bg-[#C3E3C34D]">
-      <div className="relative mx-auto w-[100%] flex">
-        <div className="relative z-10 flex flex-col w-[85%] gap-[0.6rem] pt-20 pl-28">
-          <p className="text-[1.5rem] w-[519px] font-medium text-[#2B2B2B] font-montserrat">
+      <div className="relative mx-auto w-[90%] flex">
+        <div className="relative z-10 flex flex-col w-[85%] gap-[0.6rem] pt-20">
+          <p className="text-[1.3rem] w-[440px] font-medium text-[#2B2B2B] font-montserrat">
             Empowering Farmers, Buyers, and Transporters with Cutting-Edge
             Technology for a Sustainable Agricultural Ecosystem
           </p>
-          <span className="text-[1.25rem] font-normal font-montserrat text-[#538e53]">
+          <span className="text-[1.035rem] font-normal font-montserrat text-[#538e53]">
             Connect ,Grow, Strive.
           </span>
           <Link
@@ -21,7 +21,7 @@ export const HomeHeader = () => {
             Register For Free
           </Link>
         </div>
-        <div className="w-[857px] h-auto absolute right-6 top-4 flex justify-center items-center">
+        <div className="w-[857px] h-auto absolute -right-10 top-5 flex justify-center items-center">
           <Image
             src="/images/homeheader.png"
             alt="home image"

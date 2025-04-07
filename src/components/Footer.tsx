@@ -21,13 +21,16 @@ export const Footer = () => {
               className=" bg-[#fefefe] w-[100%] px-4 py-[0.7rem] rounded-tl-[5px] rounded-bl-[5px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[14px] placeholder:font-montserrat placeholder:font-normal"
               required
             />
-            <button className="bg-[#CCE5CC] flex items-center justify-center font-montserrat text-[#2b2b2b] text-[14px] font-normal p-[0.8rem] rounded-tr-[5px] rounded-br-[5px]">
+            <button
+              type="submit"
+              className="bg-[#CCE5CC] flex items-center justify-center font-montserrat text-[#2b2b2b] text-[14px] font-normal p-[0.8rem] rounded-tr-[5px] rounded-br-[5px] cursor-pointer"
+            >
               Subscribe
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-[80px] mt-10 w-[90%] mx-auto lg:flex-row ">
+        <div className="flex flex-col gap-[80px] mt-10 w-[90%] justify-center mx-auto lg:flex-row ">
           <div className="flex flex-col gap-[80px] mt-10 lg:flex-row">
             <div>
               <p className="text-[#f9f9f9] font-montserrat text-[17px] font-medium">
