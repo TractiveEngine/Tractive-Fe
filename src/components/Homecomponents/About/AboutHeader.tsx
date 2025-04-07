@@ -4,7 +4,7 @@ import React from "react";
 export const AboutHeader = () => {
   return (
     <div className="bg-[#D9D9D994] w-full">
-      <div className="w-[90%] mx-auto py-10 flex flex-col gap-[25px] items-center justify-center">
+      <div className="w-[90%] mx-auto py-10 pb-16 flex flex-col gap-[25px] items-center justify-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <h1 className="text-[#538e53] text-[1.5rem] font-montserrat font-normal text-center">
             About Us
@@ -26,7 +26,7 @@ export const AboutHeader = () => {
         <div className="relative w-full flex flex-col items-center">
           <Image
             src="/images/aboutimage.png"
-            alt=""
+            alt="About Us"
             width={1591}
             height={408}
           />

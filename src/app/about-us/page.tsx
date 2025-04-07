@@ -1,5 +1,6 @@
 import { AboutHeader } from '@/components/Homecomponents/About/AboutHeader'
 import { Mission } from '@/components/Homecomponents/About/Mission'
+import { Team } from '@/components/Homecomponents/About/Team'
 import React from 'react'
 
 export default function page (){
@@ -7,6 +8,7 @@ export default function page (){
     <div className='w-full bg-[#f1f1f1]'>
       <AboutHeader />
       <Mission /> 
+      <Team />
   </div>
   )
 }
