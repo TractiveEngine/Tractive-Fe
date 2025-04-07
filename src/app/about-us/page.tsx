@@ -1,4 +1,5 @@
 import { AboutHeader } from '@/components/Homecomponents/About/AboutHeader'
+import { LSAction } from '@/components/Homecomponents/About/LSAction'
 import { Mission } from '@/components/Homecomponents/About/Mission'
 import { Team } from '@/components/Homecomponents/About/Team'
 import React from 'react'
@@ -9,6 +10,7 @@ export default function page (){
       <AboutHeader />
       <Mission /> 
       <Team />
+      <LSAction />
   </div>
   )
 }
