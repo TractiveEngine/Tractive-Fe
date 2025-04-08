@@ -4,7 +4,7 @@ import React from "react";
 export const Mission = () => {
   return (
     <div className="w-full bg-[#fefefe]">
-      <div className="w-[90%] mx-auto flex flex-col gap-10 pb-16 items-center justify-center lg:flex-row lg:gap-[72px]">
+      <div className="w-[90%] mx-auto flex flex-col gap-10 py-16 items-center justify-center lg:flex-row lg:gap-[72px]">
         {/* Image */}
         <div className="w-full flex justify-center">
           <Image
