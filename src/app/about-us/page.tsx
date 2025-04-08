@@ -1,4 +1,5 @@
 import { AboutHeader } from '@/components/Homecomponents/About/AboutHeader'
+import { FAQs } from '@/components/Homecomponents/About/FAQs'
 import { LSAction } from '@/components/Homecomponents/About/LSAction'
 import { Mission } from '@/components/Homecomponents/About/Mission'
 import { Team } from '@/components/Homecomponents/About/Team'
@@ -11,6 +12,7 @@ export default function page (){
       <Mission /> 
       <Team />
       <LSAction />
+      <FAQs />
   </div>
   )
 }
