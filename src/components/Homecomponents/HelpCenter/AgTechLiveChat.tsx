@@ -1,9 +1,15 @@
+"use client";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import { LiveChat } from "../LiveChat";
 import { RiSearch2Line } from "react-icons/ri";
 
-export const AgTechLiveChat = () => {
+interface Props {
+  onOpen: () => void;
+}
+
+export const AgTechLiveChat = ({ onOpen }: Props) => {
+
   return (
     <div className="relative bg-[#538e53] w-full h-[504px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
       <div className="flex gap-[128px] w-[100%]">
@@ -25,7 +31,7 @@ export const AgTechLiveChat = () => {
             />
           </div>
         </div>
-        <LiveChat />
+        <LiveChat onOpen={onOpen} />
       </div>
       <div className="flex items-center justify-center w-[100%] max-w-[500px] z-10 mx-auto pt-[1rem]">
         <input

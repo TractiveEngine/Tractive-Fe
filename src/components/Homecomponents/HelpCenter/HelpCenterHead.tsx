@@ -1,7 +1,13 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { AgTechLiveChat } from "./AgTechLiveChat";
 
+import { motion, AnimatePresence } from "framer-motion";
+import { AgTechCustomerService } from "../AgTechCustomerService";
+
 export const HelpCenterHead = () => {
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <div className="bg-[#f1f1f1] w-full">
       <div className="w-[100%] max-w-[1200px] mx-auto py-10 pb-16 flex flex-col gap-[25px] justify-center">
@@ -16,8 +22,23 @@ export const HelpCenterHead = () => {
             ensuring your Agrictech experience is seamless and successful. Let's
             grow together!
           </p>
-              </div>
-              <AgTechLiveChat />
+        </div>
+        <AgTechLiveChat onOpen={() => setShowModal(true)} />
+
+        {/* MODAL */}
+        <AnimatePresence>
+          {showModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "tween", duration: 0.4 }}
+              className="absolute rounded-[16.5px] -bottom-13 right-16 h-[490px] w-[499px] bg-white shadow-xl z-50"
+            >
+              <AgTechCustomerService onClose={() => setShowModal(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

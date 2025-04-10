@@ -31,7 +31,11 @@ const chatMessages = [
   },
 ];
 
-export const LiveChat = () => {
+interface Props {
+  onOpen: () => void;
+}
+
+export const LiveChat = ({ onOpen }: Props) => {
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
@@ -48,7 +52,10 @@ export const LiveChat = () => {
         Live Chat
       </h1>
 
-      <div className="bg-[#f9f9f9] w-[580px] h-[300px] flex flex-col gap-[0.5rem] rounded-[10px] cursor-pointer pt-[49px]">
+      <div
+        onClick={onOpen}
+        className="bg-[#f9f9f9] w-[580px] h-[300px] flex flex-col gap-[0.5rem] rounded-[10px] cursor-pointer pt-[49px]"
+      >
         <AnimatePresence>
           {chatMessages.slice(0, visibleCount).map((msg) => (
             <motion.div
@@ -71,7 +78,13 @@ export const LiveChat = () => {
                   height={40}
                 />
               </div>
-              <div className="flex w-[33%] h-[30px] items-center pt-[18px] pr-[26px] pb-[18px] pl-[21px] bg-[#f1f1f1] rounded-t-[10px] rounded-br-[10px]">
+              <div
+                className={`flex w-[33%] h-[30px] items-center pt-[18px] pr-[26px] pb-[18px] pl-[21px] bg-[#f1f1f1] rounded-t-[10px] ${
+                  msg.direction === "right"
+                    ? "rounded-bl-[10px]"
+                    : "rounded-br-[10px]"
+                }`}
+              >
                 <div
                   className={`flex flex-col ${
                     msg.direction === "right" ? "items-end" : "items-start"
