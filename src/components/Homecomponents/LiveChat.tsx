@@ -36,7 +36,7 @@ export const LiveChat = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setVisibleCount((prev) => (prev < chatMessages.length ? prev + 1 : 0));
+      setVisibleCount((prev) => (prev < chatMessages.length ? prev + 1 : 1));
     }, 1000);
 
     return () => clearInterval(interval);
@@ -53,8 +53,8 @@ export const LiveChat = () => {
           {chatMessages.slice(0, visibleCount).map((msg) => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
               className={`flex ${
