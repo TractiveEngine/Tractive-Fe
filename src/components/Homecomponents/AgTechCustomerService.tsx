@@ -8,6 +8,7 @@ import { RiSearch2Line } from "react-icons/ri";
 
 interface Props {
   onClose: () => void;
+  onChatWithRep: () => void;
 }
 
 const faqData = [
@@ -24,7 +25,7 @@ const faqData = [
 const answer =
   "Go to the top right corner on your home screen and click On the image, once you click on it, you will be required to register as a buyer, seller or transporter.";
 
-export const AgTechCustomerService = ({ onClose }: Props) => {
+export const AgTechCustomerService = ({ onClose, onChatWithRep }: Props) => {
   const [openIndex, setOpenIndex] = useState<string | null>(null);
 
   const toggleQuestion = (id: string) => {
@@ -44,7 +45,7 @@ export const AgTechCustomerService = ({ onClose }: Props) => {
             textClass="text-[13px] font-montserrat font-normal text-[#f9f9f9]"
           />
         </div>
-        <div className='flex flex-col items-center gap-[1rem] justify-center'>
+        <div className="flex flex-col items-center gap-[1rem] justify-center">
           <div className="w-[41px] h-[41px] rounded-full flex items-center justify-center">
             <Image
               src="/images/customerServiceProfile.png"
@@ -58,11 +59,12 @@ export const AgTechCustomerService = ({ onClose }: Props) => {
           </p>
           <Button
             text="Chat with a customer representative"
-            onClick={() => {}}
+            onClick={onChatWithRep}
             className=" flex p-[8.23px] justify-center items-center gap-[8.23px] !rounded-tr-[16.461px]  !rounded-bl-[16.461px] !rounded-tl-[0px]  !rounded-br-[0px]  hover:bg-[#538e53]"
             textClass="text-[13px] font-montserrat font-normal text-[#f9f9f9"
           />
         </div>
+
         <div className="flex flex-col justify-center items-center gap-4 bg-[#538e53] px-[53px] pt-[13px] pb-[20.6px] rounded-[12.346px] w-[90%] mx-auto">
           <h1 className="text-[#fefefe] text-center font-montserrat font-normal text-[16px]">
             Frequently asked questions
@@ -91,10 +93,7 @@ export const AgTechCustomerService = ({ onClose }: Props) => {
                     const isOpen = openIndex === id;
 
                     return (
-                      <div
-                        key={id}
-                        className="flex flex-col w-full"
-                      >
+                      <div key={id} className="flex flex-col w-full">
                         <div
                           className="flex items-center justify-between py-1.5 cursor-pointer"
                           onClick={() => toggleQuestion(id)}
@@ -133,6 +132,7 @@ export const AgTechCustomerService = ({ onClose }: Props) => {
             ))}
           </div>
         </div>
+
       </div>
     </div>
   );

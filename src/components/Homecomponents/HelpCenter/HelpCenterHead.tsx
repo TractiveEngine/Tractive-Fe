@@ -4,9 +4,17 @@ import { AgTechLiveChat } from "./AgTechLiveChat";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AgTechCustomerService } from "../AgTechCustomerService";
+import { CustomerRepresentativeChatBox } from "../CustomerRepresentativeChatBox";
 
 export const HelpCenterHead = () => {
   const [showModal, setShowModal] = useState(false);
+
+  const [showRepChatModal, setShowRepChatModal] = useState(false);
+
+  const handleCloseAll = () => {
+    setShowModal(false);
+    setShowRepChatModal(false);
+  };
 
   return (
     <div className="bg-[#f1f1f1] w-full">
@@ -33,9 +41,26 @@ export const HelpCenterHead = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "tween", duration: 0.4 }}
-              className="absolute rounded-[16.5px] -bottom-13 right-16 h-[490px] w-[499px] bg-white shadow-xl z-50"
+              className="absolute rounded-[16.5px] -bottom-13 right-16 h-[490px] w-[499px] bg-[#fefefe] shadow-xl z-50"
             >
-              <AgTechCustomerService onClose={() => setShowModal(false)} />
+              <AgTechCustomerService
+                onClose={handleCloseAll}
+                onChatWithRep={() => {
+                  setShowRepChatModal(true);
+                }}
+              />
+            </motion.div>
+          )}
+
+          {showRepChatModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "tween", duration: 0.4 }}
+              className="absolute -bottom-13 right-16 h-[490px] w-[499px] bg-[#fefefe] rounded-[16.5px] shadow-xl z-50"
+            >
+              <CustomerRepresentativeChatBox onClose={handleCloseAll} />
             </motion.div>
           )}
         </AnimatePresence>
