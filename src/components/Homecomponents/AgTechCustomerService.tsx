@@ -73,7 +73,7 @@ export const AgTechCustomerService = ({ onClose, onChatWithRep }: Props) => {
             <input
               type="text"
               placeholder="Search"
-              className=" relative bg-[#fefefe] w-[100%] px-4 py-[0.5rem] rounded-[4.115px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[14px] placeholder:font-montserrat placeholder:pl-[22.232px] placeholder:font-normal"
+              className=" relative bg-[#fefefe] w-[100%] pl-10 pr-4 py-[0.7rem] text-[13px] text-[#808080] rounded-[4.115px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[14px] placeholder:font-montserrat placeholder:font-normal"
               required
             />
             <RiSearch2Line className="absolute left-24 text-[#808080] cursor-pointer" />
@@ -132,7 +132,6 @@ export const AgTechCustomerService = ({ onClose, onChatWithRep }: Props) => {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

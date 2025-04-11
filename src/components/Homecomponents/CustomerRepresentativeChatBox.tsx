@@ -122,22 +122,22 @@ export const CustomerRepresentativeChatBox = ({ onClose }: Props) => {
             ))}
           </div>
 
-          <div className="fixed bottom-0 flex items-center justify-center gap-[1rem] w-[37%]">
+          <div className="absolute -bottom-19 flex items-center justify-center gap-[1rem] w-[100%]">
             <div className="flex items-center justify-center w-[80%] max-w-[500px] z-10">
               <input
                 type="text"
                 placeholder="Write here"
-                className=" relative bg-[#e2e2e2] w-[100%] px-4 py-[0.7rem] rounded-[79.115px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[11px] placeholder:font-montserrat placeholder:pl-[22.232px] placeholder:font-normal"
+                className=" relative bg-[#e2e2e2] w-[100%] pl-10 pr-4 py-[0.8rem] text-[11px] text-[#808080] rounded-[79.115px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[11px] placeholder:font-montserrat placeholder:font-normal"
                 required
               />
-              <BsFolder className="absolute left-24 text-[#808080] cursor-pointer" />
+              <BsFolder className="absolute top-4 left-8 text-[#808080] cursor-pointer" />
             </div>
             <button
               type="submit"
               title="Send Message"
               className="bg-[#538E53] w-[46px] h-[46px] flex items-center justify-center p-2 rounded-full cursor-pointer"
             >
-              <RiTelegram2Line className="text-[#fefefe]  w-[16px] h-[16px]" />
+              <RiTelegram2Line className="text-[#fefefe] cursor-pointer w-[16px] h-[16px]" />
             </button>
           </div>
         </form>
