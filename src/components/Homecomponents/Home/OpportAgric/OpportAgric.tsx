@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { GoArrowRight } from "react-icons/go";
+import { MobileOpportAgric } from "./MobileOpportAgric";
 
 export const OpportAgric = () => {
   return (
     <section className="w-full bg-[#f1f1f1] py-6">
-      <div className="w-[90%] mx-auto flex flex-col gap-20 lg:flex-row lg:items-center">
-        <div className="w-[100%]">
+      <div className="w-[90%] mx-auto hidden sm:flex flex-col gap-20 lg:flex-row lg:items-center ">
+        <div className="w-[100%] flex items-center justify-center">
           <Image
             src="/images/opportAgric.png"
             alt="opportunities"
@@ -61,6 +62,10 @@ export const OpportAgric = () => {
           </Link>
         </div>
       </div>
+      <div className="sm:hidden">
+        
+      <MobileOpportAgric />
+</div>
     </section>
   );
 };

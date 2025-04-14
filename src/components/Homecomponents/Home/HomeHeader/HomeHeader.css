@@ -1,0 +1,139 @@
+.sectionHeader {
+  @apply w-[100%] h-[370px] bg-[#E3EDE3] flex items-center justify-center;
+}
+
+.HeaderContainer {
+  @apply w-[90%] h-[100%] mx-auto flex flex-col items-center justify-center;
+}
+
+.HeaderTextContainer {
+  @apply flex flex-col items-center mt-[4rem] gap-[13px] justify-center w-[100%];
+}
+
+.HeaderTitle {
+  @apply w-[100%] text-[16px] text-[#2b2b2b] text-center;
+}
+
+.HeaderDescription {
+  @apply text-[13px] text-[#538e53] text-center;
+}
+
+.MobileHeaderButton {
+  @apply flex items-center justify-center mb-[2.5rem] py-[10px] px-[24px] bg-[#538e53] rounded-[4px] gap-[8px] w-[100%] text-[#f9f9f9] text-[13px] font-[400] cursor-pointer;
+}
+.HeaderButton {
+  @apply hidden items-center justify-center py-[10px] px-[24px] bg-[#538e53] rounded-[4px] gap-[8px] w-[100%] text-[#f9f9f9] text-[13px] font-[400] cursor-pointer;
+}
+
+.HeaderImageContainer {
+  @apply flex items-center justify-center relative bottom-[1rem];
+}
+
+.HeaderImage {
+  @apply w-[370.762px] h-[200px];
+}
+
+@media screen and (min-width: 768px) {
+  .HeaderContainer {
+    @apply flex-row justify-between;
+  }
+
+  .HeaderTextContainer {
+    @apply items-start w-[78%] -mt-[2rem];
+  }
+  .HeaderTitle {
+    @apply text-left text-[1.1rem];
+  }
+  .HeaderImageContainer {
+    @apply -bottom-[4rem];
+  }
+
+  .HeaderImage {
+    @apply w-[882.226px] h-[295px];
+  }
+  .MobileHeaderButton {
+    @apply w-[173px] text-[14px];
+  }
+}
+
+@media screen and (min-width: 830px) {
+  .HeaderContainer {
+    @apply flex-row justify-between;
+  }
+
+  .HeaderTextContainer {
+    @apply items-start w-[48%];
+  }
+  .HeaderTitle {
+    @apply text-left text-[1.2rem];
+  }
+  .HeaderImageContainer {
+    @apply -bottom-[3rem];
+  }
+
+  .HeaderImage {
+    @apply w-[660.226px] h-[330px];
+  }
+  .MobileHeaderButton {
+    @apply w-[173px] text-[14px];
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .HeaderContainer {
+    @apply w-[90%] h-[100%] mx-auto flex-row justify-between;
+  }
+
+  .HeaderTextContainer {
+    @apply items-start w-[48%];
+  }
+  .HeaderTitle {
+    @apply text-left px-[0px] text-[1.2rem];
+  }
+
+  .HeaderDescription {
+  @apply text-[16px] font-[400];
+}
+
+  .HeaderImageContainer {
+    @apply -bottom-[2.3rem];
+  }
+  .HeaderImage {
+    @apply w-[700.226px] h-[360px];
+  }
+  .MobileHeaderButton {
+    @apply w-[173px] text-[14px];
+  }
+}
+
+@media screen and (min-width: 1130px) {
+  .HeaderContainer {
+    @apply w-[90%] h-[100%] mx-auto flex-row justify-between;
+  }
+
+  .HeaderTextContainer {
+    @apply items-start w-[48%];
+  }
+  .HeaderTitle {
+    @apply text-left px-[0px] text-[1.3rem];
+  }
+
+  .HeaderImageContainer {
+    @apply flex items-center justify-center relative -bottom-[20px];
+  }
+  .HeaderImage {
+    @apply w-[974.226px] h-[404px];
+  }
+  .MobileHeaderButton {
+    @apply hidden;
+  }
+  .HeaderButton {
+    @apply flex w-[173px] text-[14px];
+  }
+}
+
+@media screen and (min-width: 1366px) {
+  .HeaderTitle {
+    @apply text-[1.31rem];
+  }
+}

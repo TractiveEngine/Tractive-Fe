@@ -1,0 +1,13 @@
+@media screen and (max-width: 486px){
+     .OpportAgricTitle{
+        @apply text-[15px];
+     }
+}
+@media screen and (min-width: 230px) and (max-width: 440px) {
+ .ContentDirection{
+    @apply flex-col-reverse;
+ }
+ .CurveImage{
+    @apply w-[230px] h-[100px];
+ }
+}

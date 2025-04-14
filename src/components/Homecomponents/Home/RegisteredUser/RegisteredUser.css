@@ -1,0 +1,105 @@
+.RegisteredUserContainer {
+  @apply w-[100%] pt-[1rem] bg-[#fefefe];
+}
+
+.RegisteredUserContent {
+  @apply w-[100%] bg-[#fefefe] py-[1rem] px-[1.3rem] mx-auto flex flex-col-reverse items-center justify-center;
+}
+
+.userCardsContainer {
+  @apply w-[100%] flex items-center justify-between;
+}
+
+.RegisteredUserCard {
+  @apply flex items-center gap-[0.8rem];
+}
+
+.RegisteredUserContent h1,
+.RegisteredUserContent p {
+  @apply text-[#2b2b2b];
+}
+
+.RegisteredUserCardText {
+  @apply text-[14px];
+}
+
+.RegisteredUserCardSubText {
+  @apply text-[12px];
+}
+
+.RegisteredUserCardIconContainer {
+  @apply flex items-center justify-center p-[0.5rem];
+}
+
+.RegisteredUserLine {
+  @apply w-[2.5rem] text-[#2b2b2b] rotate-90;
+}
+
+@media screen and (min-width: 768) {
+  .RegisteredUserContainer {
+    @apply bg-[#2b2b2b];
+  }
+
+  .RegisteredUserContent {
+    @apply flex bg-[#2b2b2b] flex-row-reverse text-[#f9f9f9] items-center justify-between w-[90%] px-[0rem] py-[1rem] mx-auto;
+  }
+
+  .userCardsContainer {
+    @apply w-[60%];
+  }
+  .RegisteredUserContent h1,
+  .RegisteredUserContent p {
+    @apply text-[#f9f9f9];
+  }
+
+  .RegisteredUserLine {
+    @apply text-[#f9f9f9];
+  }
+
+  .RegisteredUserCardText {
+    @apply text-[18px];
+  }
+
+  .RegisteredUserCardSubText {
+    @apply text-[14px];
+  }
+
+  .RegisteredUserText {
+    @apply text-[20px];
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .RegisteredUserContainer {
+    @apply bg-[#538e53] py-[1re];
+  }
+
+  .RegisteredUserContent {
+    @apply flex bg-[#538e53] flex-row;
+  }
+
+  .userCardsContainer {
+    width: 50%;
+  }
+
+  .RegisteredUserText {
+    font-size: 32px;
+  }
+
+  .RegisteredUserCardText {
+  @apply text-[20px];
+}
+
+.RegisteredUserCardSubText {
+  @apply text-[18px];
+}
+
+.RegisteredUserCardIconContainer {
+  @apply w-[60px] h-[54px] p-[0rem] bg-[#fefefe] rounded-[4px];
+}
+
+.RegisteredUserCardIcon{
+    @apply w-[38px] h-[38px];
+}
+
+}
