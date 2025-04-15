@@ -23,12 +23,49 @@ export const AboutHeader = () => {
             with every order.
           </p>
         </div>
-        <div className="relative w-full flex flex-col items-center">
+
+        {/* Large screen image (visible from lg and above) */}
+        <div className="relative w-full flex flex-col items-center hidden lg:flex">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"
             width={1591}
             height={408}
+          />
+          <Image
+            src="/images/playimage.png"
+            alt=""
+            width={46}
+            height={46}
+            className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] cursor-pointer"
+          />
+        </div>
+
+        {/* Medium screen image (visible from md to lg) */}
+        <div className="relative w-full flex flex-col items-center hidden md:flex lg:hidden">
+          <Image
+            src="/images/aboutimage.png"
+            alt="About Us"
+            width={767}
+            height={368}
+          />
+          <Image
+            src="/images/playimage.png"
+            alt=""
+            width={46}
+            height={46}
+            className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] cursor-pointer"
+          />
+        </div>
+
+        {/* Small screen image (visible below md) */}
+        <div className="relative w-full flex flex-col items-center flex md:hidden">
+          <Image
+            src="/images/aboutimage.png"
+            alt="About Us"
+            width={400}
+            height={408}
+            className="w-[420px] h-[200px]"
           />
           <Image
             src="/images/playimage.png"

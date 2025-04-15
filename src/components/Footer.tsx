@@ -14,7 +14,7 @@ export const Footer = () => {
           <p className="text-[#f9f9f9] font-montserrat text-[14px] font-normal text-center">
             Subscribe to our newsletter
           </p>
-          <div className="flex items-center justify-center w-[100%] max-w-[500px]">
+          <div className="flex items-center justify-center w-[90%] max-w-[500px]">
             <input
               type="email"
               placeholder="Chikeziekelvin24@gmail.com"
@@ -118,7 +118,7 @@ export const Footer = () => {
               <p className="text-[#f9f9f9] font-montserrat text-[17px] text-left font-medium">
                 Payment method
               </p>
-              <ul className="flex gap-[2.5rem] mt-4">
+              <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-[2.5rem] mt-4">
                 <li className="flex flex-col items-center gap-2 text-[#f9f9f9]">
                   <LuWarehouse className="text-[1.5rem]" />
                   <span className="font-montserrat font-normal text-[#f9f9f9] text-[14px]">

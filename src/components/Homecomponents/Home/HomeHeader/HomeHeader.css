@@ -1,5 +1,5 @@
 .sectionHeader {
-  @apply w-[100%] h-[370px] bg-[#E3EDE3] flex items-center justify-center;
+  @apply w-[100%] bg-[#E3EDE3] flex items-center justify-center;
 }
 
 .HeaderContainer {
@@ -26,7 +26,7 @@
 }
 
 .HeaderImageContainer {
-  @apply flex items-center justify-center relative bottom-[1rem];
+  @apply flex items-center justify-center relative -bottom-[1rem];
 }
 
 .HeaderImage {
@@ -39,13 +39,13 @@
   }
 
   .HeaderTextContainer {
-    @apply items-start w-[78%] -mt-[2rem];
+    @apply items-start w-[78%] mt-[2rem];
   }
   .HeaderTitle {
     @apply text-left text-[1.1rem];
   }
   .HeaderImageContainer {
-    @apply -bottom-[4rem];
+    @apply -bottom-[1.5rem];
   }
 
   .HeaderImage {
@@ -68,7 +68,7 @@
     @apply text-left text-[1.2rem];
   }
   .HeaderImageContainer {
-    @apply -bottom-[3rem];
+    @apply -bottom-[1.75rem];
   }
 
   .HeaderImage {
@@ -96,7 +96,7 @@
 }
 
   .HeaderImageContainer {
-    @apply -bottom-[2.3rem];
+    @apply -bottom-[1.9rem];
   }
   .HeaderImage {
     @apply w-[700.226px] h-[360px];
@@ -112,14 +112,14 @@
   }
 
   .HeaderTextContainer {
-    @apply items-start w-[48%];
+    @apply items-start w-[48%] mt-[0rem];
   }
   .HeaderTitle {
     @apply text-left px-[0px] text-[1.3rem];
   }
 
   .HeaderImageContainer {
-    @apply flex items-center justify-center relative -bottom-[20px];
+    @apply flex items-center justify-center relative -bottom-[34px];
   }
   .HeaderImage {
     @apply w-[974.226px] h-[404px];

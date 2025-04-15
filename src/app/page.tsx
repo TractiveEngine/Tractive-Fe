@@ -1,5 +1,5 @@
-import { AgricLog } from "@/components/Homecomponents/Home/AgricLog";
-import { FarmTech } from "@/components/Homecomponents/Home/FramTech/FarmTech";
+import { AgricLog } from "@/components/Homecomponents/Home/Agriclog/AgricLog";
+import { FarmTech } from "@/components/Homecomponents/Home/FarmTech/FarmTech";
 import { HomeHeader } from "@/components/Homecomponents/Home/HomeHeader/HomeHeader";
 import { MTF } from "@/components/Homecomponents/Home/MTF";
 import { OpportAgric } from "@/components/Homecomponents/Home/OpportAgric/OpportAgric";

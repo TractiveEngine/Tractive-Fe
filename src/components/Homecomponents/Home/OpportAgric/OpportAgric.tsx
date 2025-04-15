@@ -63,9 +63,8 @@ export const OpportAgric = () => {
         </div>
       </div>
       <div className="sm:hidden">
-        
-      <MobileOpportAgric />
-</div>
+        <MobileOpportAgric />
+      </div>
     </section>
   );
 };

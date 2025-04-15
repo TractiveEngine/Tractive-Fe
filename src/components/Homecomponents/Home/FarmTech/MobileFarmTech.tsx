@@ -2,40 +2,30 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { GoArrowRight } from "react-icons/go";
-import "./OpportAgric.css"
+import "./FarmTech.css";
 
-export const MobileOpportAgric = () => {
+export const MobileFarmTech = () => {
   return (
     <section className="w-full bg-[#f1f1f1] py-6">
       <div className="relative z-[999] w-[90%] mx-auto flex flex-col gap-20 lg:flex-row lg:items-center">
-        <div className='relative top-[6.5rem] left-[0rem] flex items-center justify-center CurveContainerImage'>
-          <Image
-            src="/images/curve.png"
-            alt="opportunities"
-            width={276}
-            height={203.983}
-            className="w-[345px] h-[145.983px] CurveImage"
-          />
-        </div>
-        <div className=" ContentDirection overflow-hidden z-[999] flex items-center bg-[#cce5cc] px-[26px] pt-[52px] rounded-[64px] justify-between gap-[26px] w-[100%]">
+        <div className=" ContentDirection overflow-hidden z-[999] flex items-center flex-row-reverse bg-[#FDCED980] px-[26px] pt-[52px] rounded-[64px] justify-between gap-[26px] w-[100%]">
           <div className="relative top-[1rem] PhoneImageContainer">
             <Image
-              src="/images/Home.png"
+              src="/images/Home (1).png"
               alt="opportunities"
               width={118.956}
               height={257}
-              className="w-[720.956px] h-[230px] PhoneImage"
+              className="w-[727.956px] h-[257px] PhoneImage"
             />
           </div>
           <div>
             <h1 className=" OpportAgricTitle text-black font-montserrat text-center text-[17px] font-medium">
-              Unlock Fresh Opportunities in Agriculture
+              Supercharge Your Farming with Technology
             </h1>
             <p className="text-black font-montserrat text-[13px] leading-6 font-normal">
-              Discover a world of possibilities in agriculture. Whether you're
-              looking for the finest produce or unique agricultural products,
-              our platform connects you with trusted sellers, ensuring quality
-              and freshness with every order.
+              Take your farming operations to the next level. Our platform
+              empowers you with cutting-edge tools and a thriving marketplace to
+              showcase your produce to a wide audience.
             </p>
           </div>
         </div>
@@ -47,28 +37,31 @@ export const MobileOpportAgric = () => {
             </span>
             <ul
               role="list"
-              className="text-[#2b2b2b] ml-[1.6rem] mr-[0rem] w-[94%] list-disc"
+              className="gap-3 text-[#2b2b2b] ml-[1.6rem] mr-[0rem] w-[94%] list-disc"
             >
               <li className="text-[#2b2b2b] text-[14px] leading-6">
-                Wide Selection: Access a diverse range of agricultural products,
-                from farm-fresh produce to artisanal goods
+                Farm Management: Monitor crops and livestock, receive weather
+                alerts, and optimize your operations.
               </li>
               <li className="text-[#2b2b2b] text-[14px] leading-6">
-                Direct Access: Connect directly with farmers and sellers,
-                eliminating middlemen and ensuring fair prices
+                Market Reach: List your products in our marketplace, attracting
+                buyers from far and wide.
               </li>
               <li className="text-[#2b2b2b] text-[14px] leading-6">
-                Secure Transactions: Enjoy safe and transparent transactions,
-                with payment options that suit your preferences.
+                Transportation Made Simple: Secure reliable transporters for
+                safe and timely deliveries of your goods
               </li>
               <li className="text-[#2b2b2b] text-[14px] leading-6">
-                Efficient Delivery: Get your orders delivered to your doorstep,
-                hassle-free.
+                Community and Support: Connect with fellow farmers and experts,
+                gaining knowledge and insights.
               </li>
             </ul>
           </div>
 
-          <Link href="/signup" className="flex items-center justify-end gap-2 mt-7">
+          <Link
+            href="/signup"
+            className="flex items-center justify-end gap-2 mt-7"
+          >
             <p className="font-montserrat text-[20px] font-normal text-[#538E53]">
               Register as a Buyer
             </p>
