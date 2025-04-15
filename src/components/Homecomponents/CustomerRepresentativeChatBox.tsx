@@ -50,96 +50,80 @@ interface Props {
 export const CustomerRepresentativeChatBox = ({ onClose }: Props) => {
   return (
     <div>
-      <div className="flex flex-col items-center justify-center gap-[12px]">
-        <div className="bg-[#538e53] w-[100%] flex items-center justify-between gap-[59.23px] px-6 py-3.5 rounded-t-[16.5px]">
-          <div className="flex items-center gap-[10px]">
-            <div className="w-[35px] h-[35px] flex items-center justify-center">
-              <Image
-                src="/images/RepProfile.png"
-                alt=" Representative profile"
-                width={41.18}
-                height={41.18}
-              />
-            </div>
-            <h1 className="text-[#f9f9f9] text-[13px] font-montserrat font-normal text-center">
+      <div className="flex flex-col h-[500px] w-full max-w-[90%] md:max-w-[100%] mx-auto md:mx-0 rounded-[16.5px] overflow-hidden shadow-lg">
+        {/* Header */}
+        <div className="bg-[#538e53] flex items-center justify-between px-6 py-3.5">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/images/RepProfile.png"
+              alt="Representative profile"
+              width={35}
+              height={35}
+            />
+            <h1 className="text-white text-[13px] font-montserrat">
               AgricTech Customer Service
             </h1>
           </div>
           <Button
             text="End Chat"
             onClick={onClose}
-            className="bg-transparent hover:bg-transparent border-[0.823px] !px-3 !py-1.5 !rounded-[3.292px] border-[#f9f9f9] "
-            textClass="text-[13px] font-montserrat font-normal text-[#f9f9f9]"
+            className="bg-transparent border border-white text-white text-[13px] px-3 py-1.5 rounded"
           />
         </div>
 
-        <form className="relative w-[100%] flex flex-col items-center justify-center gap-[0.7rem]">
-          <small className="font-montserrat text-[#808080] text-[8px] font-normal">
+        {/* Chat Messages (Scrollable) */}
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 bg-white">
+          <small className="text-[#808080] text-[8px] font-montserrat block text-center mb-2">
             Wed, 27, November
           </small>
-
-          <div className=" w-[100%] flex flex-col gap-[1.2rem] rounded-[10px] pt-[5px]">
-            {chatMessages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${
-                  msg.direction === "right"
-                    ? "flex-row-reverse pr-[16px]"
-                    : "pl-[16px]"
-                } items-center gap-[20px]`}
-              >
-                <div className="w-[30px] h-[30px]">
-                  <Image
-                    src={msg.image}
-                    alt="Chat Profile"
-                    width={40}
-                    height={40}
-                  />
-                </div>
-                <div
-                  className={`flex w-[55%] items-center px-2 py-1.5 rounded-t-[10px] ${
-                    msg.direction === "right"
-                      ? "rounded-bl-[10px] bg-[#538E53] text-[#fefefe]"
-                      : "rounded-br-[10px] bg-[#f1f1f1] "
-                  }`}
-                >
-                  <div
-                    className={`flex flex-col ${
-                      msg.direction === "right"
-                        ? "items-end text-[#fefefe]"
-                        : "items-start text-[#000000]"
-                    } gap-[3px] w-[100%]`}
-                  >
-                    <p className="font-normal font-montserrat text-[10.4px] w-[100%]">
-                      {msg.message}
-                    </p>
-                    <small className="font-normal flex items-end justify-end text-left font-montserrat text-[9px] w-[100%]">
-                      {msg.msgTime}
-                    </small>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="absolute -bottom-19 flex items-center justify-center gap-[1rem] w-[100%]">
-            <div className="flex items-center justify-center w-[80%] max-w-[500px] z-10">
-              <input
-                type="text"
-                placeholder="Write here"
-                className=" relative bg-[#e2e2e2] w-[100%] pl-10 pr-4 py-[0.8rem] text-[11px] text-[#808080] rounded-[79.115px] focus:outline-none focus:border-[#538E53] placeholder:text-[#808080] placeholder:text-[11px] placeholder:font-montserrat placeholder:font-normal"
-                required
-              />
-              <BsFolder className="absolute top-4 left-8 text-[#808080] cursor-pointer" />
-            </div>
-            <button
-              type="submit"
-              title="Send Message"
-              className="bg-[#538E53] w-[46px] h-[46px] flex items-center justify-center p-2 rounded-full cursor-pointer"
+          {chatMessages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${
+                msg.direction === "right" ? "flex-row-reverse pr-4" : "pl-4"
+              } items-start gap-3`}
             >
-              <RiTelegram2Line className="text-[#fefefe] cursor-pointer w-[16px] h-[16px]" />
-            </button>
+              <Image
+                src={msg.image}
+                alt="Chat Profile"
+                width={30}
+                height={30}
+                className="rounded-full"
+              />
+              <div
+                className={`w-[55%] px-3 py-2 rounded-t-[10px] ${
+                  msg.direction === "right"
+                    ? "rounded-bl-[10px] bg-[#538E53] text-white"
+                    : "rounded-br-[10px] bg-[#f1f1f1] text-black"
+                }`}
+              >
+                <p className="text-[10.4px] font-montserrat">{msg.message}</p>
+                <small className="text-[9px] block text-right font-montserrat">
+                  {msg.msgTime}
+                </small>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Fixed Input Area */}
+        <form className="bg-[#fefefe] px-4 py-3 flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Write here"
+              className="w-full pl-10 pr-4 py-4 bg-[#e2e2e2] text-[11px] rounded-full focus:outline-none placeholder:text-[#808080] placeholder:font-montserrat"
+              required
+            />
+            <BsFolder className="absolute top-[1.1rem] left-3 text-[#808080]" />
           </div>
+          <button
+            type="submit"
+            title="Send Message"
+            className="w-[46px] h-[46px] bg-[#538E53] flex items-center justify-center rounded-full"
+          >
+            <RiTelegram2Line className="text-white w-4 h-4" />
+          </button>
         </form>
       </div>
     </div>

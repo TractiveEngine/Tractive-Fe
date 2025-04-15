@@ -5,6 +5,8 @@ import { AgTechLiveChat } from "./AgTechLiveChat";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgTechCustomerService } from "../AgTechCustomerService";
 import { CustomerRepresentativeChatBox } from "../CustomerRepresentativeChatBox";
+import { MobileAgTechLiveChat } from "./MobileAgTechLiveChat";
+import { AgTechLiveChatIpad } from "./AgTechLiveChatIpad";
 
 export const HelpCenterHead = () => {
   const [showModal, setShowModal] = useState(false);
@@ -31,7 +33,17 @@ export const HelpCenterHead = () => {
             grow together!
           </p>
         </div>
-        <AgTechLiveChat onOpen={() => setShowModal(true)} />
+        <div className="hidden md:hidden lg:block">
+          <AgTechLiveChat onOpen={() => setShowModal(true)} />
+        </div>
+        <div className="hidden md:block lg:hidden">
+          <AgTechLiveChatIpad onOpen={() => setShowModal(true)} />
+        </div>
+
+        {/* Mobile only */}
+        <div className="block md:hidden">
+          <MobileAgTechLiveChat onOpen={() => setShowModal(true)} />
+        </div>
 
         {/* MODAL */}
         <AnimatePresence>
@@ -41,7 +53,7 @@ export const HelpCenterHead = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "tween", duration: 0.4 }}
-              className="absolute rounded-[16.5px] -bottom-13 right-16 h-[490px] w-[499px] bg-[#fefefe] shadow-xl z-50"
+              className="absolute rounded-[16.5px] -bottom-13 right-0 left-0 md:right-16 h-[490px] w-[90%] mx-auto md:mx-0 md:w-[499px] bg-[#fefefe] shadow-xl z-50"
             >
               <AgTechCustomerService
                 onClose={handleCloseAll}
@@ -58,7 +70,7 @@ export const HelpCenterHead = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "tween", duration: 0.4 }}
-              className="absolute -bottom-13 right-16 h-[490px] w-[499px] bg-[#fefefe] rounded-[16.5px] shadow-xl z-50"
+              className="absolute -bottom-13 right-0 left-0 md:right-16  md:h-[490px] md:w-[499px] rounded-[16.5px] shadow-xl z-50"
             >
               <CustomerRepresentativeChatBox onClose={handleCloseAll} />
             </motion.div>

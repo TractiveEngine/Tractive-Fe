@@ -33,7 +33,7 @@ export const AgTechCustomerService = ({ onClose, onChatWithRep }: Props) => {
   };
   return (
     <div>
-      <div className="flex flex-col items-center justify-center gap-[17px]">
+      <div className="flex flex-col items-center justify-center gap-[17px] relative z-[10]">
         <div className="bg-[#538e53] w-[100%] flex items-center justify-end gap-[59.23px] pr-6 py-3.5 rounded-t-[16.5px]">
           <h1 className="text-[#f9f9f9] text-[13px] font-montserrat font-normal text-center">
             AgricTech Customer Service
