@@ -19,8 +19,8 @@ export const HelpCenterHead = () => {
   };
 
   return (
-    <div className="bg-[#f1f1f1] w-full">
-      <div className="w-[100%] max-w-[1200px] mx-auto py-10 pb-16 flex flex-col gap-[25px] justify-center">
+    <div className="bg-[#fefefe] w-full">
+      <div className="w-[90%] mx-auto py-10 pb-8 flex flex-col gap-[25px] justify-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <h1 className="text-[1.5rem] font-montserrat font-normal text-center  bg-gradient-to-b from-[#16FF16] to-[#8E8E8E] bg-clip-text text-transparent">
             Help Center
@@ -53,7 +53,7 @@ export const HelpCenterHead = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "tween", duration: 0.4 }}
-              className="absolute rounded-[16.5px] -bottom-13 right-0 left-0 md:right-16 h-[490px] w-[90%] mx-auto md:mx-0 md:w-[499px] bg-[#fefefe] shadow-xl z-50"
+              className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 h-[490px] w-[90%] md:w-[499px] bg-[#fefefe] shadow-xl rounded-[16.5px] z-50"
             >
               <AgTechCustomerService
                 onClose={handleCloseAll}
@@ -70,7 +70,7 @@ export const HelpCenterHead = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "tween", duration: 0.4 }}
-              className="absolute -bottom-13 right-0 left-0 md:right-16  md:h-[490px] md:w-[499px] rounded-[16.5px] shadow-xl z-50"
+              className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 md:h-[490px] w-[90%] md:w-[499px] rounded-[16.5px] shadow-xl z-50"
             >
               <CustomerRepresentativeChatBox onClose={handleCloseAll} />
             </motion.div>

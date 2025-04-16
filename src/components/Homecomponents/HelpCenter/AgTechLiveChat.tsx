@@ -11,8 +11,8 @@ interface Props {
 export const AgTechLiveChat = ({ onOpen }: Props) => {
 
   return (
-    <div className="relative bg-[#538e53] w-[100%] mx-auto h-[504px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
-      <div className="flex gap-[128px] w-[100%]">
+    <div className="relative bg-[#538e53] w-[100%] h-[504px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
+      <div className="flex gap-[140px] w-[100%]">
         <div className="flex flex-col ">
           <div className="flex flex-col items-start justify-start w-[100%] pl-32 py-16">
             <h1 className="text-[1.7rem] font-montserrat font-normal text-left bg-gradient-to-b from-[#06AD06] to-[#ffffff] bg-clip-text text-transparent">

@@ -50,7 +50,7 @@ interface Props {
 export const CustomerRepresentativeChatBox = ({ onClose }: Props) => {
   return (
     <div>
-      <div className="flex flex-col h-[500px] w-full max-w-[90%] md:max-w-[100%] mx-auto md:mx-0 rounded-[16.5px] overflow-hidden shadow-lg">
+      <div className="flex flex-col h-[500px] w-[100%] max-w-[100%] md:max-w-[100%] mx-auto md:mx-0 rounded-[16.5px] overflow-hidden shadow-lg">
         {/* Header */}
         <div className="bg-[#538e53] flex items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export const CustomerRepresentativeChatBox = ({ onClose }: Props) => {
             <input
               type="text"
               placeholder="Write here"
-              className="w-full pl-10 pr-4 py-4 bg-[#e2e2e2] text-[11px] rounded-full focus:outline-none placeholder:text-[#808080] placeholder:font-montserrat"
+              className="w-full pl-10 pr-4 py-4 bg-[#e2e2e2] text-[11px] rounded-full focus:outline-none text-[#808080] placeholder:text-[#808080] placeholder:font-montserrat"
               required
             />
             <BsFolder className="absolute top-[1.1rem] left-3 text-[#808080]" />
@@ -120,7 +120,7 @@ export const CustomerRepresentativeChatBox = ({ onClose }: Props) => {
           <button
             type="submit"
             title="Send Message"
-            className="w-[46px] h-[46px] bg-[#538E53] flex items-center justify-center rounded-full"
+            className="w-[46px] h-[46px] bg-[#538E53] flex items-center justify-center rounded-full cursor-pointer"
           >
             <RiTelegram2Line className="text-white w-4 h-4" />
           </button>

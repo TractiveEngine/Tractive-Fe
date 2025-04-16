@@ -54,7 +54,7 @@ export const LiveChat = ({ onOpen }: Props) => {
 
       <div
         onClick={onOpen}
-        className="bg-[#f9f9f9] w-[580px] h-[300px] flex flex-col gap-[0.5rem] rounded-[10px] cursor-pointer pt-[49px]"
+        className="bg-[#f9f9f9] w-[500px] h-[280px] flex flex-col gap-[0.5rem] rounded-[10px] cursor-pointer pt-[49px]"
       >
         <AnimatePresence>
           {chatMessages.slice(0, visibleCount).map((msg) => (

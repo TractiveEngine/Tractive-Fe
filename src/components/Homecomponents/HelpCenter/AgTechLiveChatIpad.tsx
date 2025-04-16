@@ -12,10 +12,10 @@ interface Props {
 export const AgTechLiveChatIpad = ({ onOpen }: Props) => {
 
   return (
-    <div className="relative bg-[#538e53] w-[90%] mx-auto h-[340px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
+    <div className="relative bg-[#538e53] w-[100%] mx-auto h-[340px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
       <div className="flex gap-[128px] w-[100%]">
         <div className="flex flex-col ">
-          <div className="flex flex-col items-start justify-start w-[100%] pl-12 py-6 z-[9]">
+          <div className="flex flex-col items-start justify-start w-[100%] pl-12 py-6 z-[999]">
             <h1 className="text-[1.5rem] font-montserrat font-normal text-left bg-gradient-to-b from-[#06AD06] to-[#ffffff] bg-clip-text text-transparent">
               AGRICTECH
             </h1>

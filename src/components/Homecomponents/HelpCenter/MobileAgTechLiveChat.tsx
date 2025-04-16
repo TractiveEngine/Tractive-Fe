@@ -8,7 +8,7 @@ interface Props {
 
 export const MobileAgTechLiveChat = ({ onOpen }: Props) => {
   return (
-    <div className="relative bg-[#538e53] w-[90%] mx-auto h-[220px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
+    <div className="relative bg-[#538e53] w-[100%] mx-auto h-[220px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
       <div className="flex justify-end items-start w-[100%]">
         <div className="flex flex-col ">
           <div className="flex flex-col justify-start w-[100%] gap-[55px] pr-2 pt-6">
