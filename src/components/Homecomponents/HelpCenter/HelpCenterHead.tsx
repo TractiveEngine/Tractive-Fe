@@ -8,16 +8,10 @@ import { CustomerRepresentativeChatBox } from "../CustomerRepresentativeChatBox"
 import { MobileAgTechLiveChat } from "./MobileAgTechLiveChat";
 import { AgTechLiveChatIpad } from "./AgTechLiveChatIpad";
 
-export const HelpCenterHead = () => {
-  const [showModal, setShowModal] = useState(false);
-
-  const [showRepChatModal, setShowRepChatModal] = useState(false);
-
-  const handleCloseAll = () => {
-    setShowModal(false);
-    setShowRepChatModal(false);
-  };
-
+interface Props {
+  onOpenLiveChat: () => void;
+}
+export const HelpCenterHead = ({ onOpenLiveChat }: Props) => {
   return (
     <div className="bg-[#fefefe] w-full">
       <div className="w-[90%] mx-auto py-10 pb-8 flex flex-col gap-[25px] justify-center">
@@ -33,49 +27,15 @@ export const HelpCenterHead = () => {
             grow together!
           </p>
         </div>
-        <div className="hidden md:hidden lg:block">
-          <AgTechLiveChat onOpen={() => setShowModal(true)} />
+     <div className="hidden md:hidden lg:block">
+          <AgTechLiveChat onOpen={onOpenLiveChat} />
         </div>
         <div className="hidden md:block lg:hidden">
-          <AgTechLiveChatIpad onOpen={() => setShowModal(true)} />
+          <AgTechLiveChatIpad onOpen={onOpenLiveChat} />
         </div>
-
-        {/* Mobile only */}
         <div className="block md:hidden">
-          <MobileAgTechLiveChat onOpen={() => setShowModal(true)} />
+          <MobileAgTechLiveChat onOpen={onOpenLiveChat} />
         </div>
-
-        {/* MODAL */}
-        <AnimatePresence>
-          {showModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "tween", duration: 0.4 }}
-              className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 h-[490px] w-[90%] md:w-[499px] bg-[#fefefe] shadow-xl rounded-[16.5px] z-50"
-            >
-              <AgTechCustomerService
-                onClose={handleCloseAll}
-                onChatWithRep={() => {
-                  setShowRepChatModal(true);
-                }}
-              />
-            </motion.div>
-          )}
-
-          {showRepChatModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "tween", duration: 0.4 }}
-              className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 md:h-[490px] w-[90%] md:w-[499px] rounded-[16.5px] shadow-xl z-50"
-            >
-              <CustomerRepresentativeChatBox onClose={handleCloseAll} />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
