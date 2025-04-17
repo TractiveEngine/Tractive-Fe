@@ -61,9 +61,18 @@ export const Footer = () => {
                     Hot-line: +2349034145971 +2349034145971
                   </Link>
                 </li>
+
                 <li className="flex items-center gap-2">
                   <Link
-                    href="/how-to-purchase-an-item"
+                    href="/report"
+                    className="font-montserrat font-normal text-[#f9f9f9] text-[14px]"
+                  >
+                    Report Someone
+                  </Link>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Link
+                    href="/help-center/how-to-buy-on-agric-tech"
                     className="font-montserrat font-normal text-[#f9f9f9] text-[14px]"
                   >
                     How to purchase an item
@@ -71,7 +80,7 @@ export const Footer = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Link
-                    href="/how-to-sell-on-agrictech"
+                    href="/help-center/how-to-sell-on-agrictech"
                     className="font-montserrat font-normal text-[#f9f9f9] text-[14px]"
                   >
                     How to sell on Agrictech
