@@ -5,7 +5,7 @@ export const HowToRegisterASATransporter = () => {
   return (
     <div className="w-full py-10">
       <div className="w-[90%] mx-auto">
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-col md:flex-row">
           <div className="w-full">
             <Image
               src="/images/transporterReg.png"

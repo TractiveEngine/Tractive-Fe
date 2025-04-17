@@ -43,7 +43,7 @@ export const FAQs = () => {
   return (
     <div className="w-full bg-[#fefefe] py-2">
       <div className="w-full max-w-[1200px] mx-auto">
-        <div className="w-full flex flex-col justify-center py-[3rem] gap-[14px] mx-auto px-4">
+        <div className="w-full flex flex-col justify-center py-[1.5rem] gap-[14px] mx-auto px-4">
           <h1 className="text-[#2b2b2b] font-montserrat text-[20px] font-normal text-left">
             Frequently asked questions
           </h1>
