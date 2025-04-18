@@ -6,7 +6,7 @@ interface Props {
   onOpen: () => void;
 }
 
-export const MobileAgTechLiveChat = ({ onOpen }: Props) => {
+export const MobilePPAgTechLiveChat = ({ onOpen }: Props) => {
   return (
     <div className="relative bg-[#538e53] w-[100%] mx-auto h-[220px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
       <div className="flex justify-end items-start w-[100%]">

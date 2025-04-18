@@ -1,17 +1,14 @@
 "use client";
-import React, { useState } from "react";
-import { AgTechLiveChat } from "./PPAgTechLiveChat";
+import React from "react";
+import { PPAgTechLiveChat } from "./PPAgTechLiveChat";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { AgTechCustomerService } from "../AgTechCustomerService";
-import { CustomerRepresentativeChatBox } from "../CustomerRepresentativeChatBox";
-import { MobileAgTechLiveChat } from "./MobilePPAgTechLiveChat";
-import { AgTechLiveChatIpad } from "./PPAgTechLiveChatIpad";
+import { MobilePPAgTechLiveChat } from "./MobilePPAgTechLiveChat";
+import { PPAgTechLiveChatIpad } from "./PPAgTechLiveChatIpad";
 
 interface Props {
   onOpenLiveChat: () => void;
 }
-export const HelpCenterHead = ({ onOpenLiveChat }: Props) => {
+export const PPHelpCenterHead = ({ onOpenLiveChat }: Props) => {
   return (
     <div className="bg-[#fefefe] w-full">
       <div className="w-[90%] mx-auto py-10 pb-8 flex flex-col gap-[25px] justify-center">
@@ -28,13 +25,13 @@ export const HelpCenterHead = ({ onOpenLiveChat }: Props) => {
           </p>
         </div>
      <div className="hidden md:hidden lg:block">
-          <AgTechLiveChat onOpen={onOpenLiveChat} />
+          <PPAgTechLiveChat onOpen={onOpenLiveChat} />
         </div>
         <div className="hidden md:block lg:hidden">
-          <AgTechLiveChatIpad onOpen={onOpenLiveChat} />
+          <PPAgTechLiveChatIpad onOpen={onOpenLiveChat} />
         </div>
         <div className="block md:hidden">
-          <MobileAgTechLiveChat onOpen={onOpenLiveChat} />
+          <MobilePPAgTechLiveChat onOpen={onOpenLiveChat} />
         </div>
       </div>
     </div>

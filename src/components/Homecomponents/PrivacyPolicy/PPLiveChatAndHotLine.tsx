@@ -5,7 +5,7 @@ interface Props {
   onOpen: () => void;
 }
 
-export const LiveChatAndHotLine = ({ onOpen }: Props) => {
+export const PPLiveChatAndHotLine = ({ onOpen }: Props) => {
   return (
     <div className="w-full flex flex-col">
       <div className="w-[90%] mx-auto flex gap-4 justify-start lg:justify-center p-2">

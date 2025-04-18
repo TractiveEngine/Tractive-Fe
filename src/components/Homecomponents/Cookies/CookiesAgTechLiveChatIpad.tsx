@@ -9,8 +9,7 @@ interface Props {
   onOpen: () => void;
 }
 
-export const AgTechLiveChatIpad = ({ onOpen }: Props) => {
-
+export const CookiesAgTechLiveChatIpad = ({ onOpen }: Props) => {
   return (
     <div className="relative bg-[#538e53] w-[100%] mx-auto h-[340px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
       <div className="flex gap-[128px] w-[100%]">

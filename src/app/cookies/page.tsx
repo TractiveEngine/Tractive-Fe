@@ -1,11 +1,11 @@
-"use client"
-import { AgTechCustomerService } from '@/components/Homecomponents/AgTechCustomerService';
-import { CustomerRepresentativeChatBox } from '@/components/Homecomponents/CustomerRepresentativeChatBox';
-import { PPHelpCenterHead } from '@/components/Homecomponents/PrivacyPolicy/PPHelpCenterHead';
-import { PPLiveChatAndHotLine } from '@/components/Homecomponents/PrivacyPolicy/PPLiveChatAndHotLine';
-import { PrivacyPolicy } from '@/components/Homecomponents/PrivacyPolicy/PrivacyPolicy';
-import { AnimatePresence, motion } from 'framer-motion'
-import React, { useState } from 'react'
+"use client";
+import { AgTechCustomerService } from "@/components/Homecomponents/AgTechCustomerService";
+import { Cookies } from "@/components/Homecomponents/Cookies/Cookies";
+import { CookiesHelpCenterHead } from "@/components/Homecomponents/Cookies/CookiesHelpCenterHead";
+import { CookiesLiveChatAndHotLine } from "@/components/Homecomponents/Cookies/CookiesLiveChatAndHotLine";
+import { CustomerRepresentativeChatBox } from "@/components/Homecomponents/CustomerRepresentativeChatBox";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useState } from "react";
 
 export default function page() {
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +15,7 @@ export default function page() {
     setShowModal(false);
     setShowRepChatModal(false);
   };
-  
+
   return (
     <div className="w-full bg-[#fefefe]">
       <AnimatePresence>
@@ -50,9 +50,9 @@ export default function page() {
         )}
       </AnimatePresence>
 
-      <PPHelpCenterHead onOpenLiveChat={() => setShowModal(true)} />
-      <PPLiveChatAndHotLine onOpen={() => setShowModal(true)} />
-      <PrivacyPolicy />
+      <CookiesHelpCenterHead onOpenLiveChat={() => setShowModal(true)} />
+      <CookiesLiveChatAndHotLine onOpen={() => setShowModal(true)} />
+      <Cookies />
     </div>
   );
 }

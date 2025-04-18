@@ -8,7 +8,7 @@ interface Props {
   onOpen: () => void;
 }
 
-export const AgTechLiveChat = ({ onOpen }: Props) => {
+export const PPAgTechLiveChat = ({ onOpen }: Props) => {
 
   return (
     <div className="relative bg-[#538e53] w-[100%] h-[504px] flex flex-col gap-[25px] rounded-[10px] overflow-hidden">
