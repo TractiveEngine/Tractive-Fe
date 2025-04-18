@@ -1,9 +1,10 @@
 "use client"
-import { AgTechCustomerService } from '@/components/Homecomponents/AgTechCustomerService';
-import { CustomerRepresentativeChatBox } from '@/components/Homecomponents/CustomerRepresentativeChatBox';
-import { FAQs } from '@/components/Homecomponents/FAQs/FAQs';
-import { HelpCenterHead } from '@/components/Homecomponents/FAQs/FaqsHelpCenterHead';
-import { LiveChatAndHotLine } from '@/components/Homecomponents/FAQs/FaqsLiveChatAndHotLine';
+import { AgTechCustomerService } from '@/components/Homecomponents/AgTechCustomerService'
+import { CustomerRepresentativeChatBox } from '@/components/Homecomponents/CustomerRepresentativeChatBox'
+import { FAQs } from '@/components/Homecomponents/HelpCenter/FAQs'
+import { HelpCenterHead } from '@/components/Homecomponents/HelpCenter/HelpCenterHead'
+import { LiveChatAndHotLine } from '@/components/Homecomponents/HelpCenter/LiveChatAndHotLine'
+import { PrivacyPolicy } from '@/components/Homecomponents/PrivasyPolicy/PrivacyPolicy'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
@@ -52,7 +53,7 @@ export default function page() {
 
       <HelpCenterHead onOpenLiveChat={() => setShowModal(true)} />
       <LiveChatAndHotLine onOpen={() => setShowModal(true)} />
-      <FAQs />
+      <PrivacyPolicy />
     </div>
   );
 }
