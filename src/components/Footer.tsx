@@ -80,7 +80,7 @@ export const Footer = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Link
-                    href="/help-center/how-to-sell-on-agrictech"
+                    href="/help-center/how-to-sell-on-agric-tech"
                     className="font-montserrat font-normal text-[#f9f9f9] text-[14px]"
                   >
                     How to sell on Agrictech

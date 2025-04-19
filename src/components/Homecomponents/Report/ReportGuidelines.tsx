@@ -83,6 +83,7 @@ export const ReportGuidelines = () => {
           </ol>
         </div>
       </div>
+      div
     </div>
   );
 };
