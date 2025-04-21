@@ -3,7 +3,7 @@ import React from "react";
 
 export const ReportGuidelines = () => {
   return (
-    <div className="w-[100%] bg-[#f1f1f1] pt-4 pb-16">
+    <div className="w-[100%] bg-[#f1f1f1] pt-4">
       <div className="w-[90%] mx-auto bg-[#fefefe] rounded-[10px]">
         <div className="flex flex-col items-center justify-center py-[20px]">
           <h2 className="text-[17px] font-montserrat text-[#2b2b2b] font-normal">
