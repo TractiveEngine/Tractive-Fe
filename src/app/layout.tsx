@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     "Farmers app is an application which it’s main purpose is to help farmers  market there product online with the help of an agent/middle man, Making it easier for buyers to locate farmers that are living in rural area’s.",
 };
 
+// LAyout 
+
 export default function RootLayout({
   children,
 }: Readonly<{
