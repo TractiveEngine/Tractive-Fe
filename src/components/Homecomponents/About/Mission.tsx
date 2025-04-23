@@ -21,17 +21,17 @@ export const Mission = () => {
             Mission
           </h1>
           <p className="text-[#000000] text-center lg:text-left font-montserrat font-normal text-[15.3px] leading-[25px]">
-            Discover a world of possibilities in agriculture. Whether you're
-            looking for the finest produce or unique agricultural products, our
-            platform connects you with trusted sellers, ensuring quality and
-            freshness with every order. Discover a world of possibilities in
-            agriculture. Whether you're looking for the finest produce or unique
-            agricultural products, our platform connects you with trusted
-            sellers, ensuring quality and freshness with every order. Discover a
-            world of possibilities in agriculture. Whether you're looking for
-            the finest produce or unique agricultural products, our platform
+            Discover a world of possibilities in agriculture. Whether
+            you$apos;re looking for the finest produce or unique agricultural
+            products, our platform connects you with trusted sellers, ensuring
+            quality and freshness with every order. Discover a world of
+            possibilities in agriculture. Whether you$apos;re looking for the
+            finest produce or unique agricultural products, our platform
             connects you with trusted sellers, ensuring quality and freshness
-            with every order.
+            with every order. Discover a world of possibilities in agriculture.
+            Whether you$apos;re looking for the finest produce or unique
+            agricultural products, our platform connects you with trusted
+            sellers, ensuring quality and freshness with every order.
           </p>
         </div>
       </div>

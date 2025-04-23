@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
-import { LiveChat } from "../LiveChat";
+import React from "react";
 import { RiSearch2Line } from "react-icons/ri";
 import { LiveChatIpad } from "../LiveChatIpad";
 

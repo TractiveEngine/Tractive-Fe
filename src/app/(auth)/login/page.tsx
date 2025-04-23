@@ -2,12 +2,12 @@
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export default function page() {
+export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
@@ -75,10 +75,10 @@ export default function page() {
                 className="absolute top-[36px] right-3 cursor-pointer text-[#808080]"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? <FaEye /> : <FaEyeSlash />}
               </div>
             </div>
-
+            <Link href="/"></Link>
             {/* Submit Button */}
             <div className="">
               <Button
@@ -110,10 +110,10 @@ export default function page() {
 
               <div className="mt-2 mb-10">
                 <p className="font-montserrat text-[13px] text-center text-[#2b2b2b]">
-                  Don't have an account?
+                  Don$apos;t have an account?{" "}
                   <Link
                     className="font-montserrat text-[#538e53]"
-                    href="/login"
+                    href="/signup"
                   >
                     Sign up
                   </Link>

@@ -7,11 +7,10 @@ import { HelpCenterHead } from "@/components/Homecomponents/HelpCenter/HelpCente
 import { HowToRegisterASATransporter } from "@/components/Homecomponents/HelpCenter/HowToRegisterASATransporter";
 import { LiveChatAndHotLine } from "@/components/Homecomponents/HelpCenter/LiveChatAndHotLine";
 import { OurLocations } from "@/components/Homecomponents/HelpCenter/OurLocations";
-import { PaymentAndOrder } from "@/components/Homecomponents/HelpCenter/PaymentAndOrder";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useState } from "react";
 
-export default function page() {
+export default function Page() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 

@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "../Button";
 import { BsFolder } from "react-icons/bs";
 import { RiTelegram2Line } from "react-icons/ri";

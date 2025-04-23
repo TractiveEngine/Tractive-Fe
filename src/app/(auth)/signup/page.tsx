@@ -3,12 +3,12 @@ import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export default function page() {
+export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -53,7 +53,7 @@ export default function page() {
                 type="text"
                 id="full-name"
                 placeholder=""
-                className="font-montserrat w-full py-2 px-3 rounded-md border border-[#ccc] text-[#2b2b2b] placeholder-[#808080] placeholder:text-[12px] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                className="font-montserrat w-full py-2 px-3 rounded-md border border-[#ccc] text-[12px] text-[#808080] placeholder-[#808080] placeholder:text-[12px] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
                 required
               />
             </div>
@@ -70,7 +70,7 @@ export default function page() {
                 type="email"
                 id="email"
                 placeholder="example@gmail.com"
-                className="font-montserrat w-full py-2 px-3 rounded-md  border border-[#ccc] text-[#2b2b2b] placeholder-[#808080] placeholder:text-[12px] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                className="font-montserrat w-full py-2 px-3 rounded-md  border border-[#ccc] text-[12px] text-[#808080] placeholder-[#808080] placeholder:text-[12px] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
                 required
               />
             </div>
@@ -87,14 +87,14 @@ export default function page() {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 placeholder="xxxxxxxxx"
-                className="font-montserrat w-full py-2 px-3 pr-10 rounded-md border border-[#ccc] text-[#2b2b2b] placeholder-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                className="font-montserrat w-full py-2 px-3 pr-10 rounded-md border border-[#ccc] text-[12px] text-[#808080] placeholder-[#808080] placeholder:text-[12px] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
                 required
               />
               <div
                 className="absolute top-[36px] right-3 cursor-pointer text-[#808080]"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? <FaEye /> : <FaEyeSlash />}
               </div>
             </div>
 
@@ -144,10 +144,4 @@ export default function page() {
       </div>
     </div>
   );
-}
-{
-  /* <FaFacebook />; */
-}
-{
-  /* <FcGoogle /> */
 }
