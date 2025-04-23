@@ -7,7 +7,7 @@ import { PrivacyPolicy } from '@/components/Homecomponents/PrivacyPolicy/Privacy
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-export default function Page() {
+export default function PrivacyAndPolicy() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 
@@ -15,7 +15,7 @@ export default function Page() {
     setShowModal(false);
     setShowRepChatModal(false);
   };
-  
+
   return (
     <div className="w-full bg-[#fefefe]">
       <AnimatePresence>

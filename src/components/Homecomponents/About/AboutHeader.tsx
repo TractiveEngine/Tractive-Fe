@@ -25,7 +25,7 @@ export const AboutHeader = () => {
         </div>
 
         {/* Large screen image (visible from lg and above) */}
-        <div className="relative w-full flex flex-col items-center hidden lg:flex">
+        <div className="relative w-full flex-col items-center hidden lg:flex">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"
@@ -42,7 +42,7 @@ export const AboutHeader = () => {
         </div>
 
         {/* Medium screen image (visible from md to lg) */}
-        <div className="relative w-full flex flex-col items-center hidden md:flex lg:hidden">
+        <div className="relative w-full flex-col items-center hidden md:flex lg:hidden">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"
@@ -59,7 +59,7 @@ export const AboutHeader = () => {
         </div>
 
         {/* Small screen image (visible below md) */}
-        <div className="relative w-full flex flex-col items-center flex md:hidden">
+        <div className="relative w-full flex flex-col items-center md:hidden">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"

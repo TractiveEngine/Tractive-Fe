@@ -7,7 +7,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export default function Page() {
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
@@ -78,7 +78,7 @@ export default function Page() {
                 {showPassword ? <FaEye /> : <FaEyeSlash />}
               </div>
             </div>
-            <Link href="/"></Link>
+            <Link href="/reset-password" className="flex justify-end-safe w-[100%] text-[#538e53] font-montserrat font-normal text-[12px]">Forget password</Link>
             {/* Submit Button */}
             <div className="">
               <Button

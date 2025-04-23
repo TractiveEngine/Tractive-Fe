@@ -8,7 +8,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export default function Page() {
+export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (

@@ -10,7 +10,7 @@ import { OurLocations } from '@/components/Homecomponents/HelpCenter/OurLocation
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-export default function Page() {
+export default function HowTobuyOnAgricTech() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 

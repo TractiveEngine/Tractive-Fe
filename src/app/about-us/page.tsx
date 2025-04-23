@@ -7,7 +7,7 @@ import { OurLocations } from '@/components/Homecomponents/About/OurLocations'
 import { Team } from '@/components/Homecomponents/About/Team'
 import React from 'react'
 
-export default function Page (){
+export default function AboutUs (){
   return (
     <div className='w-full bg-[#f1f1f1]'>
       <AboutHeader />
