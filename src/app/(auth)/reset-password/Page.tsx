@@ -53,13 +53,13 @@ export default function ForgetPassword() {
 
                   </div>
                     {/* Submit Button */}
-                    <Link href="/email-confirmation" className="mt-6">
+                    <div className="mt-6">
                       <Button
                         text="Continue"
                         onClick={() => {}}
                         className="w-full justify-center mt-6"
                       />
-                    </Link>
+                    </div>
                 </form>
               </div>
             </div>
