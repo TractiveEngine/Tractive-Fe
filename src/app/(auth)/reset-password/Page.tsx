@@ -2,10 +2,7 @@
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { FaFacebook } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
+import React from "react";
 
 export default function ForgetPassword() {
         return (
@@ -54,15 +51,15 @@ export default function ForgetPassword() {
                       required
                     />
 
+                  </div>
                     {/* Submit Button */}
-                    <div className="mt-6">
+                    <Link href="/email-confirmation" className="mt-6">
                       <Button
                         text="Continue"
                         onClick={() => {}}
-                        className="w-full justify-center"
+                        className="w-full justify-center mt-6"
                       />
-                    </div>
-                  </div>
+                    </Link>
                 </form>
               </div>
             </div>
