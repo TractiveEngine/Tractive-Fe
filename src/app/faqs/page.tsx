@@ -7,7 +7,7 @@ import { LiveChatAndHotLine } from '@/components/Homecomponents/FAQs/FaqsLiveCha
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-export default function page() {
+export default function Faqs() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 

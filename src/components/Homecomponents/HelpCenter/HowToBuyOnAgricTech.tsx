@@ -38,7 +38,7 @@ export const HowToBuyOnAgricTech = () => {
                 Receive an order confirmation with details.
               </li>
               <li className="text-[#2b2b2b] font-montserrat text-[13px] font-normal">
-                Track your order's progress if available.
+                Track your order$apos;s progress if available.
               </li>
               <li className="text-[#2b2b2b] font-montserrat text-[13px] font-normal">
                 Receive your purchased items and enjoy!

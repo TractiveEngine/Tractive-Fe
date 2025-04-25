@@ -17,14 +17,14 @@ export const PPHelpCenterHead = ({ onOpenLiveChat }: Props) => {
             Help Center
           </h1>
           <p className="text-[#000000] w-[83%] text-center font-montserrat font-normal text-[12px] leading-[25px]">
-            Welcome to the Agrictech Help Center! We're here to support you
+            Welcome to the Agrictech Help Center! We$apos;re here to support you
             every step of the way. Find answers to your questions, explore
-            helpful guides, and get the assistance you need. We're dedicated to
-            ensuring your Agrictech experience is seamless and successful. Let's
-            grow together!
+            helpful guides, and get the assistance you need. We$apos;re
+            dedicated to ensuring your Agrictech experience is seamless and
+            successful. Let$apos;s grow together!
           </p>
         </div>
-     <div className="hidden md:hidden lg:block">
+        <div className="hidden md:hidden lg:block">
           <PPAgTechLiveChat onOpen={onOpenLiveChat} />
         </div>
         <div className="hidden md:block lg:hidden">

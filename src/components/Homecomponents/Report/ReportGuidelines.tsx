@@ -54,15 +54,15 @@ export const ReportGuidelines = () => {
             </li>
             <li className="text-[#2b2b2b] font-montserrat text-[11.6px] md:text-[12.6px] font-normal">
               Follow Platform Guidelines: Familiarize yourself with the
-              platform's specific guidelines and policies regarding reporting.
-              Ensure that your report aligns with these guidelines to maximize
-              its effectiveness.
+              platform$apos;s specific guidelines and policies regarding
+              reporting. Ensure that your report aligns with these guidelines to
+              maximize its effectiveness.
             </li>
             <li className="text-[#2b2b2b] font-montserrat text-[11.6px] md:text-[12.6px] font-normal">
               Submit Only Relevant Reports: Report items or users that violate
-              the platform's policies or terms of service. Avoid reporting based
-              on personal disputes or unrelated matters that do not align with
-              the reporting criteria.
+              the platform$apos;s policies or terms of service. Avoid reporting
+              based on personal disputes or unrelated matters that do not align
+              with the reporting criteria.
             </li>
             <li className="text-[#2b2b2b] font-montserrat text-[11.6px] md:text-[12.6px] font-normal">
               Report in a Timely Manner: Submit your report as soon as possible

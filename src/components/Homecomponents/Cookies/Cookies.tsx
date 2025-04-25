@@ -10,7 +10,7 @@ export const Cookies = () => {
           </h1>
           <p className="text-[12.6px] font-montserrat text-[#2b2b2b] font-normal">
             In AgricTech, we use cookies to enhance your browsing experience and
-            provide personalized services. Here's how we use cookies on our
+            provide personalized services. Here$apos;s how we use cookies on our
             platform.
           </p>
         </div>
@@ -31,7 +31,7 @@ export const Cookies = () => {
               Analytical Cookies: We utilize analytical cookies to gather
               information about how users interact with our platform. These
               cookies help us understand user behavior, identify areas for
-              improvement, and optimize our website's performance. The data
+              improvement, and optimize our website$apos;s performance. The data
               collected is aggregated and anonymized, ensuring your privacy is
               protected.
             </li>
@@ -62,7 +62,7 @@ export const Cookies = () => {
           our Privacy Policy. For more information about how we handle s data,
           please refer to our Privacy Policy.
           <br /> If you have any further questions or concerns about our use of
-          cookies, please don't hesitate to contact our support team.
+          cookies, please don$apos;t hesitate to contact our support team.
         </p>
       </div>
     </div>

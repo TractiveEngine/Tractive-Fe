@@ -10,22 +10,22 @@ export const AboutHeader = () => {
             About Us
           </h1>
           <p className="text-[#000000] text-center font-montserrat font-normal text-[15.3px] leading-[25px]">
-            Discover a world of possibilities in agriculture. Whether you're
-            looking for the finest produce or unique agricultural products, our
-            platform connects you with trusted sellers, ensuring quality and
-            freshness with every order.,Discover a world of possibilities in
-            agriculture. Whether you're looking for the finest produce or unique
-            agricultural products, our platform connects you with trusted
-            sellers, ensuring quality and freshness with every order., Discover
-            a world of possibilities in agriculture. Whether you're looking for
-            the finest produce or unique agricultural products, our platform
+            Discover a world of possibilities in agriculture. Whether
+            you$apos;re looking for the finest produce or unique agricultural
+            products, our platform connects you with trusted sellers, ensuring
+            quality and freshness with every order.,Discover a world of
+            possibilities in agriculture. Whether you$apos;re looking for the
+            finest produce or unique agricultural products, our platform
             connects you with trusted sellers, ensuring quality and freshness
-            with every order.
+            with every order., Discover a world of possibilities in agriculture.
+            Whether you$apos;re looking for the finest produce or unique
+            agricultural products, our platform connects you with trusted
+            sellers, ensuring quality and freshness with every order.
           </p>
         </div>
 
         {/* Large screen image (visible from lg and above) */}
-        <div className="relative w-full flex flex-col items-center hidden lg:flex">
+        <div className="relative w-full flex-col items-center hidden lg:flex">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"
@@ -42,7 +42,7 @@ export const AboutHeader = () => {
         </div>
 
         {/* Medium screen image (visible from md to lg) */}
-        <div className="relative w-full flex flex-col items-center hidden md:flex lg:hidden">
+        <div className="relative w-full flex-col items-center hidden md:flex lg:hidden">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"
@@ -59,7 +59,7 @@ export const AboutHeader = () => {
         </div>
 
         {/* Small screen image (visible below md) */}
-        <div className="relative w-full flex flex-col items-center flex md:hidden">
+        <div className="relative w-full flex flex-col items-center md:hidden">
           <Image
             src="/images/aboutimage.png"
             alt="About Us"

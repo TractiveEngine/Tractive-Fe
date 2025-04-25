@@ -21,10 +21,10 @@ export const OpportAgric = () => {
             Unlock Fresh Opportunities in Agriculture
           </h1>
           <p className="text-black font-montserrat text-[13px] leading-8 font-medium">
-            Discover a world of possibilities in agriculture. Whether you're
-            looking for the finest produce or unique agricultural products, our
-            platform connects you with trusted sellers, ensuring quality and
-            freshness with every order.
+            Discover a world of possibilities in agriculture. Whether
+            you$apos;re looking for the finest produce or unique agricultural
+            products, our platform connects you with trusted sellers, ensuring
+            quality and freshness with every order.
           </p>
           <div className="flex flex-col gap-[4px] mt-[0.7rem] w-[100%]">
             <span className="text-[#2b2b2b] font-montserrat text-[15px] font-medium ">

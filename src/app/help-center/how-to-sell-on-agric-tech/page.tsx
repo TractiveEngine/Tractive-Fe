@@ -4,14 +4,13 @@ import { CustomerRepresentativeChatBox } from '@/components/Homecomponents/Custo
 import { BankAccount } from '@/components/Homecomponents/HelpCenter/BankAccount'
 import { FAQs } from '@/components/Homecomponents/HelpCenter/FAQs'
 import { HelpCenterHead } from '@/components/Homecomponents/HelpCenter/HelpCenterHead'
-import { HowTo } from '@/components/Homecomponents/HelpCenter/HowTo'
 import { HowToSellOnAgricTech } from '@/components/Homecomponents/HelpCenter/HowToSellOnAgricTech'
 import { LiveChatAndHotLine } from '@/components/Homecomponents/HelpCenter/LiveChatAndHotLine'
 import { OurLocations } from '@/components/Homecomponents/HelpCenter/OurLocations'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-export default function page() {
+export default function HowTosellOnAgricTech() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 
@@ -19,7 +18,7 @@ export default function page() {
     setShowModal(false);
     setShowRepChatModal(false);
   };
-  
+
   return (
     <div className="w-full bg-[#fefefe]">
       <AnimatePresence>

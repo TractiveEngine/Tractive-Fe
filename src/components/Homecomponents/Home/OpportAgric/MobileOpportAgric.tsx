@@ -8,7 +8,7 @@ export const MobileOpportAgric = () => {
   return (
     <section className="w-full bg-[#f1f1f1] py-6">
       <div className="relative z-[999] w-[90%] mx-auto flex flex-col lg:flex-row lg:items-center">
-        <div className='relative top-[2rem] left-[0rem] flex items-center justify-center CurveContainerImage'>
+        <div className="relative top-[2rem] left-[0rem] flex items-center justify-center CurveContainerImage">
           <Image
             src="/images/curve.png"
             alt="opportunities"
@@ -32,10 +32,10 @@ export const MobileOpportAgric = () => {
               Unlock Fresh Opportunities in Agriculture
             </h1>
             <p className="text-black font-montserrat text-[13px] leading-6 font-normal">
-              Discover a world of possibilities in agriculture. Whether you're
-              looking for the finest produce or unique agricultural products,
-              our platform connects you with trusted sellers, ensuring quality
-              and freshness with every order.
+              Discover a world of possibilities in agriculture. Whether
+              you$apos;re looking for the finest produce or unique agricultural
+              products, our platform connects you with trusted sellers, ensuring
+              quality and freshness with every order.
             </p>
           </div>
         </div>
@@ -68,7 +68,10 @@ export const MobileOpportAgric = () => {
             </ul>
           </div>
 
-          <Link href="/signup" className="flex items-center justify-center gap-2 mt-7">
+          <Link
+            href="/signup"
+            className="flex items-center justify-center gap-2 mt-7"
+          >
             <p className="font-montserrat text-[15px] font-normal text-[#538E53]">
               Register as a Buyer
             </p>

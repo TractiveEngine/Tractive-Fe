@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface Table1Props {
@@ -96,10 +97,12 @@ export const ManageUserTable: React.FC<Table1Props> = ({
             {/* Full Name with Image and Email */}
             <td className="px-4 py-2">
               <div className="flex items-center">
-                <img
-                  src={item.image}
-                  alt={item.fullName}
+                <Image
+                  src={item.image || "/images/CustomerServiceProfile.png"}
+                  alt={item.fullName || "User image"}
                   className={imageClassName}
+                  width={100}
+                  height={100}
                 />
                 <div className="ml-2">
                   <div className={nameClassName}>{item.fullName}</div>

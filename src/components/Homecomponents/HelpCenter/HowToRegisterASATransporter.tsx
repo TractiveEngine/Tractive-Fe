@@ -22,9 +22,9 @@ export const HowToRegisterASATransporter = () => {
               seamless payment and ordering process. Choose from various secure
               payment options and complete transactions easily. Browse products,
               add them to your cart, and review your order before checkout.
-              Track your order's progress and reach out to our customer support
-              for assistance. Trust Agrictech for safe and convenient payments
-              and orders. The Agrictech Team
+              Track your order$apos;s progress and reach out to our customer
+              support for assistance. Trust Agrictech for safe and convenient
+              payments and orders. The Agrictech Team
             </p>
             <p className="mt-[2.5rem]">The Agrictech Team</p>
           </div>

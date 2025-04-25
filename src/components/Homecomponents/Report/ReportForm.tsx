@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/Button";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 
@@ -110,9 +111,11 @@ export const ReportForm = () => {
                   className="relative w-full max-w-[184px] h-[90px] rounded-md cursor-pointer flex items-center justify-center bg-[#f1f1f1] hover:bg-gray-100 transition"
                 >
                   {preview ? (
-                    <img
+                    <Image
                       src={preview}
                       alt="Uploaded"
+                      width={100}
+                      height={100}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (

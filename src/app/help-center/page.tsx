@@ -10,7 +10,7 @@ import { OurLocations } from '@/components/Homecomponents/HelpCenter/OurLocation
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-export default function page() {
+export default function HelpCenter() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 
@@ -18,7 +18,7 @@ export default function page() {
     setShowModal(false);
     setShowRepChatModal(false);
   };
-  
+
   return (
     <div className="w-full bg-[#fefefe]">
       <AnimatePresence>
