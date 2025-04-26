@@ -8,7 +8,6 @@ import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
 import toast, { Toaster } from "react-hot-toast";
@@ -37,6 +36,7 @@ export default function Signup() {
      } catch (err) {
        toast.dismiss();
        toast.error("signup failed. Try again.");
+       console.log(err)
      } finally {
        setLoading(false);
      }

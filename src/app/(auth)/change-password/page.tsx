@@ -1,11 +1,9 @@
 "use client";
 import { Button } from "@/components/Button";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { FaFacebook } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
+
 
 export default function ChangePassword() {
   const [showPassword, setShowPassword] = useState(false);
