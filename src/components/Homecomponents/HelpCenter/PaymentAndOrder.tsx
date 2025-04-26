@@ -24,7 +24,7 @@ export const PaymentAndOrder = () => {
               will be pending approval by our admin team to ensure a safe and
               trusted community. Please allow some time for the approval
               process. Once approved, you will receive a notification to
-              activate your account and gain full access to Agrictech's
+              activate your account and gain full access to Agrictech$apos;s
               features. Thank you for choosing Agrictech, where we connect
               farmers, buyers, and a thriving agricultural community. Happy
               farming! The Agrictech Team.

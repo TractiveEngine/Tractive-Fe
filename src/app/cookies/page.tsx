@@ -7,7 +7,7 @@ import { CustomerRepresentativeChatBox } from "@/components/Homecomponents/Custo
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useState } from "react";
 
-export default function page() {
+export default function Cooky() {
   const [showModal, setShowModal] = useState(false);
   const [showRepChatModal, setShowRepChatModal] = useState(false);
 

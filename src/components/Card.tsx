@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 interface CardProps {
@@ -34,9 +35,11 @@ export default function Card({
   return (
     <div className={`p-4 border rounded-lg shadow-md ${className}`}>
       {/* Image */}
-      <img
+      <Image
         src={image}
         alt={title}
+        width={100}
+        height={100}
         className={`w-[284px] object-cover rounded-md ${imageClass}`}
       />
 
