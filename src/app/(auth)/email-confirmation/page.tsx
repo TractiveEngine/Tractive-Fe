@@ -57,7 +57,7 @@ export default function EmailConfirmation() {
             {/* Submit Button */}
             <div className="mt-3">
               <p className="text-[13px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                I didn't receive any code.{" "}
+                I didn&apos;t receive any code.{" "}
                 <span className="text-[#538e53]">Resend</span>
               </p>
             </div>
