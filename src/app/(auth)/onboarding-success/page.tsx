@@ -1,11 +1,11 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function OnboardingSuccessPage() {
-  const router = useRouter();
+  // const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
