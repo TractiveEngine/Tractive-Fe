@@ -9,7 +9,7 @@ export default function EmailConfirmation() {
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
       {/* Image on the left (only visible on lg screens) */}
-      <div className="hidden lg:block w-[668px] h-screen">
+      <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/tomatoCarrot.png"
           alt="tomatoCarrot"
@@ -57,7 +57,7 @@ export default function EmailConfirmation() {
             {/* Submit Button */}
             <div className="mt-3">
               <p className="text-[13px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                I didn't receive any code.{" "}
+                I didn&apos;t receive any code.{" "}
                 <span className="text-[#538e53]">Resend</span>
               </p>
             </div>

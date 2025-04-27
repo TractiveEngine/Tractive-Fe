@@ -33,6 +33,7 @@ export default function Login() {
       toast.dismiss();
       toast.success("Login successful!");
     } catch (err) {
+      console.log("Login failed. Try again.", err);
       toast.dismiss();
       toast.error("Login failed. Try again.");
     } finally {
