@@ -33,7 +33,8 @@ export default function Signup() {
        await new Promise((res) => setTimeout(res, 2000));
        toast.dismiss();
        toast.success("Signup successful!");
-     } catch (err) {
+    } catch (err) {
+      console.log("signup failed. Try again.", err)
        toast.dismiss();
        toast.error("signup failed. Try again.");
        console.log(err)

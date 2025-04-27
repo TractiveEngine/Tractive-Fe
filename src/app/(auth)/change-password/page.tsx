@@ -28,7 +28,7 @@ export default function ChangePassword() {
 
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
-      <div className="hidden lg:block w-[648px] h-screen">
+      <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/callingWoman.png"
           alt="calling Woman"
