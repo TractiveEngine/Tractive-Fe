@@ -32,10 +32,11 @@ export default function Login() {
       await new Promise((res) => setTimeout(res, 2000));
       toast.dismiss();
       toast.success("Login successful!");
-    } catch (error) {
+    } catch (err) {
+      console.log("Login failed. Try again.", err);
       toast.dismiss();
       toast.error("Login failed. Try again.");
-      console.log(error)
+      console.log(err)
     } finally {
       setLoading(false);
     }

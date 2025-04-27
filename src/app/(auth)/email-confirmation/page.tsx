@@ -9,7 +9,7 @@ export default function EmailConfirmation() {
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
       {/* Image on the left (only visible on lg screens) */}
-      <div className="hidden lg:block w-[668px] h-screen">
+      <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/tomatoCarrot.png"
           alt="tomatoCarrot"

@@ -76,7 +76,7 @@ export default function OnboardingForm() {
   return (
     <>
       <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
-        <div className="hidden lg:block w-[668px] h-screen">
+        <div className="hidden lg:block w-[868px] h-screen">
           <Image
             src="/images/Tomato.png"
             alt="tomatoCarrot"
@@ -238,7 +238,7 @@ export default function OnboardingForm() {
                           }`}
                         >
                           {isSelected && (
-                            <IoIosCheckmark className="w-[2rem] h-[2rem] text-[#538e53] rounded-full"/>
+                            <IoIosCheckmark className="w-[2rem] h-[2rem] text-[#538e53] rounded-full" />
                           )}
                         </span>
                         {interest}
