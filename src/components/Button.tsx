@@ -3,7 +3,7 @@ import React from "react";
 
 interface ButtonProps {
   icon?: React.ReactNode;
-  text: string;
+  text: React.ReactNode;
   className?: string;
   iconClass?: string;
   textClass?: string;
