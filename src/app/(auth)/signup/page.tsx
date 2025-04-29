@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -10,41 +11,99 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
-import toast, { Toaster } from "react-hot-toast";
+import emailjs from "@emailjs/browser";
+import { toast } from "sonner";
+import bcrypt from "bcryptjs";
+import { useEmailUser } from "@/context/userEmailContext";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { setEmail } = useEmailUser();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
   });
 
   const onSubmit = async (data: SignupFormData) => {
-     setLoading(true);
-     toast.loading("signing up...");
+    setLoading(true);
+    toast.loading("signing up...");
+
     try {
-        console.log("✅ Signup Data:", data);
-       // Simulate login API
-       await new Promise((res) => setTimeout(res, 2000));
-       toast.dismiss();
-       toast.success("Signup successful!");
+      console.log("✅ Signup Data:", data);
+
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      const existingUsers: { email: string; [key: string]: unknown }[] = JSON.parse(
+        localStorage.getItem("users") || "[]"
+      );
+
+      const userExists = existingUsers.find(
+        (user) => user.email === data.email
+      );
+
+      if (userExists) {
+        toast.dismiss();
+        toast.error("User already exists!");
+        setLoading(false);
+        return;
+      }
+
+      const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
+
+      const newUser = {
+        fullName: data.fullName,
+        email: data.email,
+        password: hashedPassword,
+      };
+
+      setEmail(newUser.email);
+      existingUsers.push(newUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+      localStorage.setItem("pendingUser", JSON.stringify(newUser));
+      localStorage.setItem("pendingOtp", generatedOtp);
+
+      await emailjs.send(
+        "service_m7cl6ac",
+        "template_czhc5l1",
+        {
+          user_email: data.email,
+          user_name: data.fullName,
+          otp: generatedOtp,
+        },
+        "dlmHlpTbVPKHFCtFa"
+      );
+
+      await new Promise((res) => setTimeout(res, 2000));
+
+      toast.dismiss();
+      toast.success(`OTP sent to ${data.email}`);
+
+      console.log("👉 Your OTP is:", generatedOtp);
+
+      reset();
+
+      setTimeout(() => {
+        router.push("/email-confirmation");
+      }, 1000);
     } catch (err) {
-      console.log("signup failed. Try again.", err)
-       toast.dismiss();
-       toast.error("signup failed. Try again.");
-     } finally {
-       setLoading(false);
-     }
+      console.log("signup failed. Try again.", err);
+
+      toast.dismiss();
+      toast.error("signup failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      <Toaster position="top-center" />
       <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
         <div className="hidden lg:block w-[868px] h-screen">
           <Image
@@ -75,7 +134,6 @@ export default function Signup() {
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col gap-3 pb-10"
             >
-              {/* Full Name */}
               <div>
                 <label
                   htmlFor="full-name"
@@ -96,7 +154,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Email */}
               <div>
                 <label
                   htmlFor="email"
@@ -117,7 +174,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Password */}
               <div className="relative">
                 <label
                   htmlFor="password"
@@ -145,7 +201,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Submit */}
               <Button
                 className="w-full justify-center"
                 onClick={() => handleSubmit(onSubmit)()}
@@ -153,7 +208,6 @@ export default function Signup() {
                 disabled={loading}
               />
 
-              {/* Social login */}
               <div className="flex flex-col gap-4 mt-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
