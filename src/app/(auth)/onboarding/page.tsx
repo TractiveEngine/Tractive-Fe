@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
 import { toast } from "sonner"; // ✅ import sonner
+import { getAuthToken } from "@/utils/loginAuth";
 
 const states = [
   "Lagos",
@@ -48,9 +49,13 @@ export default function OnboardingForm() {
   const router = useRouter();
 
   useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
-    if (!authToken) {
-      router.replace("/signup");
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Unauthorized access. Login.", {
+        duration: 3000,
+        position: "top-center",
+      });
+      router.replace("/login");
     }
 
     const saved = localStorage.getItem("onboarding-data");
@@ -118,6 +123,16 @@ export default function OnboardingForm() {
     });
   };
   const onSubmit = async (data: OnboardingSchemaType) => {
+    const token = getAuthToken();
+    if (!token) {
+      console.error("Unauthorized access. Login.");
+          toast.error("Unauthorized access. Login.", {
+            duration: 3000,
+            position: "top-center",
+          });
+      router.replace("/login");
+      return;
+    }
     setLoading(true); // ✅ Start loading
     const finalData = {
       ...data,

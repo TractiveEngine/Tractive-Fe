@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
+import { getAuthToken } from "@/utils/loginAuth";
 
 export default function OnboardingForm() {
   const [activeRole, setActiveRole] = useState<string | null>(null);
@@ -14,13 +15,13 @@ export default function OnboardingForm() {
 
   // 🔐 Redirect unauthorized users
   useEffect(() => {
-    const token = localStorage.getItem("authToken"); // adjust this key if needed
+    const token = getAuthToken(); // adjust this key if needed
     if (!token) {
-      toast.error("Unauthorized access. Please sign up first.", {
+      toast.error("Unauthorized access. Login.", {
         duration: 3000,
         position: "top-center",
       });
-      router.push("/signup");
+      router.push("/login");
     }
   }, [router]);
 
@@ -29,9 +30,9 @@ export default function OnboardingForm() {
     if (role === "buyer") {
       router.push("/buyers");
     } else if (role === "transporter") {
-      router.push("/transporter-dashboard");
+      router.push("/transporter");
     } else if (role === "agent") {
-      router.push("/agent-dashboard");
+      router.push("/agent");
     }
   };
 

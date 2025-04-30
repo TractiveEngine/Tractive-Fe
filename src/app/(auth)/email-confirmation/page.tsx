@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import OtpInput from "react-otp-input";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEmailUser } from "@/context/userEmailContext";
 // ✅ Token generator function
@@ -20,12 +20,18 @@ function generateFakeToken(length = 32) {
 export default function EmailConfirmation() {
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const [resending, setResending] = useState(false);
   const [shake, setShake] = useState(false);
   const router = useRouter();
-  const { email, loading } = useEmailUser();
+  const { setEmail, email, loading } = useEmailUser();
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    }
+  }, []);
 
   useEffect(() => {
     if (otp.length === 5) {
@@ -33,21 +39,9 @@ export default function EmailConfirmation() {
     }
   });
 
-  // useEffect(() => {
-  //   if (!email) {
-  //     const pendingUserRaw = localStorage.getItem("pendingUser");
-  //     if (pendingUserRaw) {
-  //       const pendingUser = JSON.parse(pendingUserRaw);
-  //       if (pendingUser?.email) {
-  //         setEmail(pendingUser.email); // from context
-  //       }
-  //     }
-  //   }
-  // }, [email, setEmail]);
-
   const VerifyOtp = async () => {
     setVerifying(true);
-    setError(null); // Clear previous errors
+    setVerifyError(null); // Clear previous errors
 
     const savedOtp = localStorage.getItem("pendingOtp");
 
@@ -61,7 +55,8 @@ export default function EmailConfirmation() {
       new Promise((resolve) => setTimeout(resolve, ms));
 
     if (otp === savedOtp) {
-      toast.success("OTP verified successfully!");
+       await wait(2000);
+      toast.success("OTP and signup successful!");
 
       // ✅ Store fake token on success
       const fakeToken = generateFakeToken();
@@ -70,11 +65,11 @@ export default function EmailConfirmation() {
       // Wait 1 second to show "Verifying..." then navigate
       await wait(2000);
 
-      router.push("/onboarding");
+      router.push("/login");
     } else {
-      setError("Invalid OTP. Please try again."); // Show error
-      toast.error("Invalid OTP. Please try again.");
+      setVerifyError("Invalid OTP. Please try again."); // Show error
       await wait(2000);
+      toast.error("Invalid OTP. Please try again.");
       setVerifying(false);
       setShake(true);
       setOtp("");
@@ -88,20 +83,20 @@ export default function EmailConfirmation() {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const pendingUserRaw = localStorage.getItem("pendingUser");
+      const pendingUserRaw = localStorage.getItem("user");
       if (!pendingUserRaw) {
         toast.error("No pending user found.");
         return;
       }
 
-      const pendingUser = JSON.parse(pendingUserRaw);
+      const User = JSON.parse(pendingUserRaw);
       const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
       localStorage.setItem("pendingOtp", generatedOtp);
 
-      toast.success(`New OTP sent to ${pendingUser.email}`);
+      toast.success(`New OTP sent to ${User.email}`);
       console.log("👉 Resent OTP:", generatedOtp);
     } catch (error) {
-      console.error("Error resending OTP", error);
+      console.log("Fail to resending OTP", error);
       toast.error("Failed to resend OTP.");
     } finally {
       setResending(false);
@@ -176,9 +171,9 @@ export default function EmailConfirmation() {
               </p>
             )}
 
-            {error && !verifying && (
+            {verifyError && !verifying && (
               <p className="text-center text-[14px] text-red-500 mt-2">
-                {error}
+                {verifyError}
               </p>
             )}
 

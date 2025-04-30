@@ -11,10 +11,9 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
-import emailjs from "@emailjs/browser";
 import { toast } from "sonner";
-import bcrypt from "bcryptjs";
 import { useEmailUser } from "@/context/userEmailContext";
+import { registerUserWithOtp } from "@/utils/signupAuth";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,59 +32,22 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupFormData) => {
     setLoading(true);
-    toast.loading("signing up...");
 
     try {
       console.log("✅ Signup Data:", data);
 
-      const hashedPassword = await bcrypt.hash(data.password, 10);
-
-      const existingUsers: { email: string; [key: string]: unknown }[] = JSON.parse(
-        localStorage.getItem("users") || "[]"
+      const { newUser, otpSentTo } = await registerUserWithOtp(
+        data.fullName,
+        data.email,
+        data.password
       );
 
-      const userExists = existingUsers.find(
-        (user) => user.email === data.email
-      );
-
-      if (userExists) {
-        toast.dismiss();
-        toast.error("User already exists!");
-        setLoading(false);
-        return;
-      }
-
-      const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
-
-      const newUser = {
-        fullName: data.fullName,
-        email: data.email,
-        password: hashedPassword,
-      };
+      if (!newUser) return;
 
       setEmail(newUser.email);
-      existingUsers.push(newUser);
-      localStorage.setItem("users", JSON.stringify(existingUsers));
-      localStorage.setItem("pendingUser", JSON.stringify(newUser));
-      localStorage.setItem("pendingOtp", generatedOtp);
-
-      await emailjs.send(
-        "service_m7cl6ac",
-        "template_czhc5l1",
-        {
-          user_email: data.email,
-          user_name: data.fullName,
-          otp: generatedOtp,
-        },
-        "dlmHlpTbVPKHFCtFa"
-      );
 
       await new Promise((res) => setTimeout(res, 2000));
-
-      toast.dismiss();
-      toast.success(`OTP sent to ${data.email}`);
-
-      console.log("👉 Your OTP is:", generatedOtp);
+      console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
 
       reset();
 
@@ -94,9 +56,7 @@ export default function Signup() {
       }, 1000);
     } catch (err) {
       console.log("signup failed. Try again.", err);
-
-      toast.dismiss();
-      toast.error("signup failed. Try again.");
+      toast.error("Signup failed. Try again.");
     } finally {
       setLoading(false);
     }
