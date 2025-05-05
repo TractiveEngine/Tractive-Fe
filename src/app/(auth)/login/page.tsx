@@ -15,6 +15,19 @@ import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 import bcrypt from "bcryptjs"; // ✅ Imported bcrypt
 import { useRouter } from "next/navigation";
 
+
+// ✅ Token generator function
+function generateFakeToken(length = 32) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < length; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+
 // Simple spinner component to show when loading
 const Spinner = () => (
   <div className="w-4 h-4 border-4 border-b-2 border-[#a0dfa0] border-t-[#538e53]  rounded-full animate-spin" />
@@ -78,26 +91,44 @@ export default function Login() {
         setLoading(false);
         return;
       }
-
+  const wait = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
       // Assuming the token is returned from the backend on successful login
-      const token = "your-jwt-token"; // Replace this with the actual token from your API
+      // const fakeToken = generateFakeToken(); // Replace this with the actual token from your API
 
-      // Store the token in localStorage
-      localStorage.setItem("authToken", token);
+      // ✅ Store fake token on success
+      const fakeToken = generateFakeToken();
+      localStorage.setItem("authToken", fakeToken);
+      console.log("👉 Generated fake token:", fakeToken);
+      // Wait 1 second to show "Verifying..." then navigate
+      await wait(2000);
 
       setUserSession({
         email: StoredUser.email,
         password: StoredUser.password,
         fullName: StoredUser.fullName,
+        token: fakeToken, // Include the token
       });
 
       toast.dismiss(toastId); // Dismiss the loading toast
       await new Promise((res) => setTimeout(res, 2000));
       toast.success(`Welcome back, ${StoredUser.fullName}!`);
       reset();
+
+      // ✅ Check onboarding progress
+      const onboardingCompleted =
+        localStorage.getItem("onboardingCompleted") === "true";
+      const userRole = localStorage.getItem("userRole");
+
       setTimeout(() => {
-        router.push("/onboarding");
-      }, 1000);
+        if (!onboardingCompleted) {
+          router.push("/onboarding");
+        } else if (!userRole) {
+          router.push("/register-as");
+        } else {
+          router.push(`/${userRole}`);
+        }
+      }, 2000);
     } catch (err) {
       console.error("Login error:", err);
       toast.dismiss(toastId); // Dismiss the loading toast

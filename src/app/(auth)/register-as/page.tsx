@@ -21,7 +21,7 @@ export default function OnboardingForm() {
         duration: 3000,
         position: "top-center",
       });
-      router.push("/login");
+      router.replace("/login");
     }
   }, [router]);
 

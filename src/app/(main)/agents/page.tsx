@@ -1,23 +1,7 @@
 "use client";
-import { getAuthToken } from "@/utils/loginAuth";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
 
 export default function BuyerDashboard() {
-const router = useRouter()
-  // 🔐 Redirect unauthorized users
-  useEffect(() => {
-    const token = getAuthToken(); // adjust this key if needed
-    if (!token) {
-      toast.error("Unauthorized access. Login.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.push("/login");
-    }
-  }, [router]);
 
 
 

@@ -15,12 +15,12 @@ export default function BuyerLayout({
     useEffect(() => {
       const token = localStorage.getItem("authToken"); // adjust this key if needed
       if (!token) {
-        toast.error("Unauthorized access. Please sign up first.", {
+        toast.error("Unauthorized access. Login.", {
           duration: 3000,
           position: "top-center",
         });
-        router.push("/signup");
+        router.replace("/login");
       }
     }, [router]);
-  return <div className="bg-[#fefefe]">{children}</div>;
+  return <div className="bg-[#f1f1f1]">{children}</div>;
 }

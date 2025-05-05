@@ -6,16 +6,6 @@ import OtpInput from "react-otp-input";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEmailUser } from "@/context/userEmailContext";
-// ✅ Token generator function
-function generateFakeToken(length = 32) {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < length; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
-}
 
 export default function EmailConfirmation() {
   const [otp, setOtp] = useState("");
@@ -58,12 +48,7 @@ export default function EmailConfirmation() {
        await wait(2000);
       toast.success("OTP and signup successful!");
 
-      // ✅ Store fake token on success
-      const fakeToken = generateFakeToken();
-      localStorage.setItem("authToken", fakeToken);
-      console.log("👉 Generated fake token:", fakeToken);
-      // Wait 1 second to show "Verifying..." then navigate
-      await wait(2000);
+   
 
       router.push("/login");
     } else {
