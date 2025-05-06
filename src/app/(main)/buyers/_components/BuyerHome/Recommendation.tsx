@@ -1,7 +1,7 @@
 import BidingCard from "@/components/cards/BidingCard";
 import React from "react";
 
-export const Biding = () => {
+export const Recommendation = () => {
   const biddingData = [
     {
       image: "/images/pp_onion.png",
@@ -52,7 +52,7 @@ export const Biding = () => {
   return (
     <div className="w-[90%] mx-auto py-6">
       <p className="text-[15px] text-[#141414] font-normal font-montserrat mb-4">
-        My Biddings
+        Recommendations
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {biddingData.map((card, index) => (
