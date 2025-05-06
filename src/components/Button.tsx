@@ -27,7 +27,7 @@ export const Button = ({
         ${
           disabled
             ? "bg-gray-400 cursor-not-allowed"
-            : "bg-[#538E53] hover:bg-[#3b753b] text-[#f1f1f1]"
+            : "bg-[#538E53] hover:bg-[#3b753b] hover:text-[#f1f1f1] text-[#f1f1f1]"
         } 
         ${className}`}
       onClick={!disabled ? onClick : undefined}

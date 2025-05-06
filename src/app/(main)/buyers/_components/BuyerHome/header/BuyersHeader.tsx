@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { Button } from "@/components/Button";
+import { toast } from "sonner";
 
 // Placeholder images (replace with actual image paths)
 const sliderImages = [
@@ -48,6 +49,27 @@ export const BuyersHeader: React.FC = () => {
 
   // State for the active dropdown category
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  // State for follow status and loading status of each seller
+  const [followStates, setFollowStates] = useState<Record<string, boolean>>(
+    () => {
+      const initialStates: Record<string, boolean> = {};
+      topSellers.forEach((seller) => {
+        initialStates[seller.name] =
+          localStorage.getItem(`following_${seller.name}`) === "true";
+      });
+      return initialStates;
+    }
+  );
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
+    () => {
+      const initialStates: Record<string, boolean> = {};
+      topSellers.forEach((seller) => {
+        initialStates[seller.name] = false;
+      });
+      return initialStates;
+    }
+  );
 
   // Categories and their subcategories
   const categories = [
@@ -102,6 +124,56 @@ export const BuyersHeader: React.FC = () => {
     return stars;
   };
 
+  // Handle follow/unfollow toggle with loading and toast
+  const handleFollowToggle = async (sellerName: string) => {
+    setLoadingStates((prev) => ({ ...prev, [sellerName]: true }));
+    try {
+      // Simulate an async operation (e.g., API call) with a 500ms delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const newFollowState = !followStates[sellerName];
+      setFollowStates((prev) => ({
+        ...prev,
+        [sellerName]: newFollowState,
+      }));
+      if (newFollowState) {
+        localStorage.setItem(`following_${sellerName}`, "true");
+        toast.success(`Started following ${sellerName}!`);
+      } else {
+        localStorage.removeItem(`following_${sellerName}`);
+        toast.success(`Unfollowed ${sellerName}!`);
+      }
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      toast.error("Failed to update follow status.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [sellerName]: false }));
+    }
+  };
+
+  // Loader SVG
+  const Loader = () => (
+    <svg
+      className="animate-spin h-4 w-4 text-[#538E53]"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+  );
+
   return (
     <div className="w-[90%] mx-auto py-6 font-montserrat">
       <div className="flex flex-col md:flex-row gap-6">
@@ -116,7 +188,10 @@ export const BuyersHeader: React.FC = () => {
               onMouseLeave={handleCategoryLeave}
             >
               {categories.map((category, index) => (
-                <li key={index} className="relative w-[100%] flex justify-between">
+                <li
+                  key={index}
+                  className="relative w-[100%] flex justify-between"
+                >
                   <div
                     onMouseEnter={() => handleCategoryHover(category)}
                     onClick={() =>
@@ -244,10 +319,19 @@ export const BuyersHeader: React.FC = () => {
                   </div>
                 </div>
                 <Button
-                  text="Visit Store"
-                  onClick={() => {}}
-                  className="bg-transparent border-[#538E53] border-[2px] text-[#2B2B2B] !rounded-[4px] !px-[0.5rem] !py-[0.55rem] text-[0.8rem] font-normal"
-                  textClass="text-[#538E53] text-[0.8rem] font-normal"
+                  text={
+                    loadingStates[seller.name] ? (
+                      <Loader />
+                    ) : followStates[seller.name] ? (
+                      "Following"
+                    ) : (
+                      "Visit Store"
+                    )
+                  }
+                  onClick={() => handleFollowToggle(seller.name)}
+                  className="bg-transparent border-[#538E53] border-[2px] !hover:text-[#fefefe]  !rounded-[4px] !px-[0.5rem] !py-[0.55rem] text-[0.8rem] font-normal flex items-center justify-center"
+                  textClass="text-[#538E53] !hover:text-[#fefefe] text-[0.8rem] font-normal"
+                  disabled={loadingStates[seller.name]}
                 />
               </div>
             ))}
