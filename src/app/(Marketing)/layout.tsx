@@ -1,4 +1,4 @@
-import { Navbar } from "@/app/nav/Navbar";
+import { Navbar } from "@/components/nav/Navbar";
 import { Toaster } from "sonner";
 
 export default function RootLayout({
