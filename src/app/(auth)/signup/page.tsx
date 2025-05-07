@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -10,29 +11,49 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "sonner";
+import { useEmailUser } from "@/context/userEmailContext";
+import { registerUserWithOtp } from "@/utils/signupAuth";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { setEmail } = useEmailUser();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
   });
 
   const onSubmit = async (data: SignupFormData) => {
-     setLoading(true);
-     toast.loading("signing up...");
+    setLoading(true);
+
     try {
-        console.log("✅ Signup Data:", data);
-       // Simulate login API
-       await new Promise((res) => setTimeout(res, 2000));
-       toast.dismiss();
-       toast.success("Signup successful!");
+      console.log("✅ Signup Data:", data);
+
+      const { newUser, otpSentTo } = await registerUserWithOtp(
+        data.fullName,
+        data.email,
+        data.password
+      );
+
+      if (!newUser) return;
+
+      setEmail(newUser.email);
+
+      await new Promise((res) => setTimeout(res, 2000));
+      console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
+
+      reset();
+
+      setTimeout(() => {
+        router.push("/email-confirmation");
+      }, 1000);
     } catch (err) {
       console.log("signup failed. Try again.", err)
        toast.dismiss();
@@ -45,7 +66,6 @@ export default function Signup() {
 
   return (
     <>
-      <Toaster position="top-center" />
       <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
         <div className="hidden lg:block w-[868px] h-screen">
           <Image
@@ -76,7 +96,6 @@ export default function Signup() {
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col gap-3 pb-10"
             >
-              {/* Full Name */}
               <div>
                 <label
                   htmlFor="full-name"
@@ -97,7 +116,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Email */}
               <div>
                 <label
                   htmlFor="email"
@@ -118,7 +136,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Password */}
               <div className="relative">
                 <label
                   htmlFor="password"
@@ -146,7 +163,6 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Submit */}
               <Button
                 className="w-full justify-center"
                 onClick={() => handleSubmit(onSubmit)()}
@@ -154,7 +170,6 @@ export default function Signup() {
                 disabled={loading}
               />
 
-              {/* Social login */}
               <div className="flex flex-col gap-4 mt-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">

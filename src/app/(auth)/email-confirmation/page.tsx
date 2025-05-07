@@ -1,14 +1,96 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import OtpInput from "react-otp-input";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { useEmailUser } from "@/context/userEmailContext";
 
 export default function EmailConfirmation() {
   const [otp, setOtp] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+
+  const [resending, setResending] = useState(false);
+  const [shake, setShake] = useState(false);
+  const router = useRouter();
+  const { setEmail, email, loading } = useEmailUser();
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (otp.length === 5) {
+      VerifyOtp();
+    }
+  });
+
+  const VerifyOtp = async () => {
+    setVerifying(true);
+    setVerifyError(null); // Clear previous errors
+
+    const savedOtp = localStorage.getItem("pendingOtp");
+
+    if (!savedOtp) {
+      toast.error("No OTP found. Please signup again.");
+      setVerifying(false);
+      return;
+    }
+
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    if (otp === savedOtp) {
+       await wait(2000);
+      toast.success("OTP and signup successful!");
+
+   
+
+      router.push("/login");
+    } else {
+      setVerifyError("Invalid OTP. Please try again."); // Show error
+      await wait(2000);
+      toast.error("Invalid OTP. Please try again.");
+      setVerifying(false);
+      setShake(true);
+      setOtp("");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setResending(true);
+
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const pendingUserRaw = localStorage.getItem("user");
+      if (!pendingUserRaw) {
+        toast.error("No pending user found.");
+        return;
+      }
+
+      const User = JSON.parse(pendingUserRaw);
+      const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
+      localStorage.setItem("pendingOtp", generatedOtp);
+
+      toast.success(`New OTP sent to ${User.email}`);
+      console.log("👉 Resent OTP:", generatedOtp);
+    } catch (error) {
+      console.log("Fail to resending OTP", error);
+      toast.error("Failed to resend OTP.");
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <div className="w-[100%] bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
-      {/* Image on the left (only visible on lg screens) */}
+      {/* Left Side Image */}
       <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/tomatoCarrot.png"
@@ -35,33 +117,69 @@ export default function EmailConfirmation() {
             />
           </div>
 
-          <form className="flex flex-col gap-3 pb-10">
+          <div className="flex flex-col gap-3 pb-10">
             <div className="mt-4">
               <p className="text-[15px] text-center font-montserrat text-[#2b2b2b] font-normal">
                 Enter the code sent to
               </p>
               <p className="text-[15px] text-center font-montserrat text-[#2b2b2b] font-[500]">
-                Chikeziekelvin24@gmail.com
+                {loading ? (
+                  <span className="animate-spin w-4 h-4 inline-block border-2 border-gray-300 border-t-[#538e53] rounded-full"></span>
+                ) : (
+                  email || "your email"
+                )}
               </p>
             </div>
-            <OtpInput
-              value={otp}
-              onChange={setOtp}
-              numInputs={5}
-              renderSeparator={<span className="mx-2"></span>}
-              renderInput={(props) => <input {...props} />}
-              containerStyle="flex justify-center gap-3 mt-5"
-              inputStyle="!w-[50.931px] h-[50.931px] text-lg rounded-[1.769px] border border-[#808080] text-center outline-none focus:border-[#538e53] focus:ring-[0.2px] focus:ring-[#538e53] transition duration-200"
-            />
 
-            {/* Submit Button */}
-            <div className="mt-3">
-              <p className="text-[13px] text-center font-montserrat text-[#2b2b2b] font-normal">
+            {/* OTP Input with Shake */}
+            <motion.div
+              animate={shake ? { x: [-10, 10, -10, 10, 0] } : { x: 0 }}
+              transition={{ duration: 0.4 }}
+              onAnimationComplete={() => setShake(false)}
+            >
+              <OtpInput
+                value={otp}
+                onChange={setOtp}
+                numInputs={5}
+                renderSeparator={<span className="mx-2"></span>}
+                renderInput={(props) => (
+                  <input {...props} disabled={verifying} />
+                )}
+                containerStyle="flex justify-center gap-3 mt-5"
+                inputStyle="!w-[50.931px] h-[50.931px] text-lg rounded-[1.769px] border border-[#808080] text-center outline-none focus:border-[#538e53] focus:ring-[0.2px] focus:ring-[#538e53] transition duration-200"
+              />
+            </motion.div>
+
+            {verifying && (
+              <p className="text-center text-[14px] text-[#538e53] mt-4">
+                Verifying...
+              </p>
+            )}
+
+            {verifyError && !verifying && (
+              <p className="text-center text-[14px] text-red-500 mt-2">
+                {verifyError}
+              </p>
+            )}
+
+            <div className="mt-3 w-[100%]">
+              <p className="text-[13px] text-center font-montserrat text-[#2b2b2b] font-normal flex items-center justify-center gap-1">
                 I didn&apos;t receive any code.{" "}
-                <span className="text-[#538e53]">Resend</span>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="text-[#538e53] cursor-pointer"
+                  disabled={verifying}
+                >
+                  {resending ? (
+                    <span className="animate-spin w-4 h-4 inline-block border-2 border-[#a0dfa0]  border-t-[#538e53] rounded-full"></span>
+                  ) : (
+                    "Resend"
+                  )}
+                </button>
               </p>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
