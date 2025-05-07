@@ -157,8 +157,8 @@ export const Navbar = () => {
             {/* ========= ICONS ========= */}
             <div className="flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
               {/* ===================== Notification icon ========================= */}
-              <div className="relative" ref={notificationRef}>
-               <NotificationIcon />
+              <div className="relative" onClick={handleNotificationClick} ref={notificationRef}>
+               <NotificationIcon/>
                 {hasNotifications && (
                   <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                 )}

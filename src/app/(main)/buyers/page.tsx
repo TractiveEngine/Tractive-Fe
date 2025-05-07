@@ -1,5 +1,3 @@
-"use client";
-import Image from "next/image";
 import { BuyersHeader } from "./_components/BuyerHome/header/BuyersHeader";
 import { TopSelling } from "./_components/BuyerHome/TopSelling";
 import { Biding } from "./_components/BuyerHome/Biding";

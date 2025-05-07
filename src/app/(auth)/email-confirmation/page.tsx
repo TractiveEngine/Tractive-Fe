@@ -21,7 +21,7 @@ export default function EmailConfirmation() {
     if (storedEmail) {
       setEmail(storedEmail);
     }
-  }, []);
+  }, [setEmail]);
 
   useEffect(() => {
     if (otp.length === 5) {

@@ -1,4 +1,5 @@
 "use client";
+import { WishlistProvider } from "@/context/wishlistContext";
 import { isUserLoggedIn } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -13,7 +14,7 @@ export default function BuyerLayout({
 
   useEffect(() => {
     if (!isUserLoggedIn()) {
-      toast.error("Please Login to become a buyer.", {
+      toast.error("Login to become a buyer.", {
         duration: 3000,
         position: "top-center",
       });
@@ -23,5 +24,9 @@ export default function BuyerLayout({
     }
   }, [router]);
 
-  return <div className="bg-[#f1f1f1]">{children}</div>;
+  return (
+    <WishlistProvider>
+      <div className="bg-[#f1f1f1]">{children}</div>;
+    </WishlistProvider>
+  );
 }

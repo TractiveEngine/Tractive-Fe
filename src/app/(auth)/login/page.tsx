@@ -9,7 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { getStoredUser, setUserSession, getAuthToken } from "@/utils/loginAuth";
+import { getStoredUser, setUserSession } from "@/utils/loginAuth";
 import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 // import { ClipLoader } from "react-spinners"; // Import spinner
 import bcrypt from "bcryptjs"; // ✅ Imported bcrypt
