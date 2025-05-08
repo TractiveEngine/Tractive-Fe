@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import OtpInput from "react-otp-input";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useEmailUser } from "@/context/userEmailContext";
+import { useEmailUser } from "@/hooks/userEmailContext";
 
 export default function EmailConfirmation() {
   const [otp, setOtp] = useState("");
@@ -45,10 +45,8 @@ export default function EmailConfirmation() {
       new Promise((resolve) => setTimeout(resolve, ms));
 
     if (otp === savedOtp) {
-       await wait(2000);
+      await wait(2000);
       toast.success("OTP and signup successful!");
-
-   
 
       router.push("/login");
     } else {

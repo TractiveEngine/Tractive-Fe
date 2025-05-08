@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
 import { toast } from "sonner";
-import { useEmailUser } from "@/context/userEmailContext";
+import { useEmailUser } from "@/hooks/userEmailContext";
 import { registerUserWithOtp } from "@/utils/signupAuth";
 
 export default function Signup() {

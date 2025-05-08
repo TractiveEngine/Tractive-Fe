@@ -1,9 +1,17 @@
 "use client";
-import { WishlistProvider } from "@/context/wishlistContext";
+import { FollowingProvider } from "@/hooks/followingContext";
+import { WishlistProvider } from "@/hooks/wishlistContext";
 import { isUserLoggedIn } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
+
+const topSellers = [
+  "Kelvin Chikezie",
+  "Aisha Bello",
+  "Emeka Okonkwo",
+  "Fatima Musa",
+];
 
 export default function BuyerLayout({
   children,
@@ -25,8 +33,10 @@ export default function BuyerLayout({
   }, [router]);
 
   return (
-    <WishlistProvider>
-      <div className="bg-[#f1f1f1]">{children}</div>;
-    </WishlistProvider>
+    <FollowingProvider initialSellers={topSellers}>
+      <WishlistProvider>
+        <div className="bg-[#f1f1f1]">{children}</div>;
+      </WishlistProvider>
+    </FollowingProvider>
   );
 }
