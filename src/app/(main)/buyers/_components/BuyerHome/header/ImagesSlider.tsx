@@ -32,7 +32,7 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
 
   return (
     <div className="w-full md:w-[60%] relative">
-      <div className="relative w-full h-[350px] rounded-[4px] overflow-hidden">
+      <div className="relative w-full h-[360px] rounded-[4px] overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
