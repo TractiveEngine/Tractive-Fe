@@ -7,8 +7,11 @@ import {
 } from "@/schemas/onboardingSchema";
 import Image from "next/image";
 import { Button } from "@/components/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
+import { toast } from "sonner"; // ✅ import sonner
+import { getAuthToken } from "@/utils/loginAuth";
 
 const states = [
   "Lagos",
@@ -42,6 +45,60 @@ export default function OnboardingForm() {
   });
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Unauthorized access. Login.", {
+        duration: 3000,
+        position: "top-center",
+      });
+      router.replace("/login");
+    }
+
+    const saved = localStorage.getItem("onboarding-data");
+    if (saved) {
+      const parsed = JSON.parse(saved) as OnboardingSchemaType;
+      for (const key in parsed) {
+        if (key === "interests") {
+          setSelectedInterests(
+            parsed[key as keyof OnboardingSchemaType] as string[]
+          );
+          if (Array.isArray(parsed[key as keyof OnboardingSchemaType])) {
+            setValue(
+              "interests",
+              parsed[key as keyof OnboardingSchemaType] as [
+                (
+                  | "fish"
+                  | "Tubers"
+                  | "Grains"
+                  | "Edible"
+                  | "Livestock"
+                  | "Vegetable"
+                ),
+                ...(
+                  | "fish"
+                  | "Tubers"
+                  | "Grains"
+                  | "Edible"
+                  | "Livestock"
+                  | "Vegetable"
+                )[]
+              ]
+            );
+          }
+        } else {
+          setValue(
+            key as keyof OnboardingSchemaType,
+            parsed[key as keyof OnboardingSchemaType]
+          );
+        }
+      }
+    }
+  }, [setValue, router]);
+
   const toggleInterest = (interest: string) => {
     setSelectedInterests((prev) => {
       const updated = prev.includes(interest)
@@ -65,12 +122,46 @@ export default function OnboardingForm() {
       return updated;
     });
   };
-  const onSubmit = (data: OnboardingSchemaType) => {
+  const onSubmit = async (data: OnboardingSchemaType) => {
+    const token = getAuthToken();
+    if (!token) {
+      console.error("Unauthorized access. Login.");
+          toast.error("Unauthorized access. Login.", {
+            duration: 3000,
+            position: "top-center",
+          });
+      router.replace("/login");
+      return;
+    }
+    setLoading(true); // ✅ Start loading
     const finalData = {
       ...data,
       interests: selectedInterests,
     };
-    console.log("Form Data:", finalData);
+
+    if (selectedInterests.length === 0) {
+      toast.error("Please select at least one interest.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      toast.loading("Submitting your details...");
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // 2s delay
+
+      console.log("Saved Form Data:", finalData);
+      localStorage.setItem("onboarding-data", JSON.stringify(finalData));
+      toast.dismiss(); // hide loading toast
+      toast.success("Onboarding completed successfully!");
+
+      router.push("/register-as");
+    } catch (error) {
+      console.log("Something went wrong. Please try again.", error);
+      toast.dismiss(); // hide loading toast
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -256,11 +347,19 @@ export default function OnboardingForm() {
               {/* Submit */}
               <div>
                 <Button
-                  onClick={() => {
-                    handleSubmit(onSubmit)();
-                  }}
-                  className="w-full py-2 px-4 bg-[#538e53] flex items-center justify-center text-[#fefefe] rounded transition"
-                  text="Done"
+                  text={
+                    loading ? (
+                      <div className="flex items-center justify-center gap-2.5">
+                        <span className="animate-spin w-4 h-4 inline-block border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></span>
+                        <span>submitting...</span>
+                      </div>
+                    ) : (
+                      "Done"
+                    )
+                  }
+                  className="w-[100%] justify-center"
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={loading}
                 />
               </div>
             </form>

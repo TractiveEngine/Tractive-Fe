@@ -8,16 +8,39 @@ import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "sonner";
+import { getStoredUser, setUserSession, getAuthToken } from "@/utils/loginAuth";
 import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
+// import { ClipLoader } from "react-spinners"; // Import spinner
+import bcrypt from "bcryptjs"; // ✅ Imported bcrypt
+import { useRouter } from "next/navigation";
 
+
+// ✅ Token generator function
+function generateFakeToken(length = 32) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < length; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+
+// Simple spinner component to show when loading
+const Spinner = () => (
+  <div className="w-4 h-4 border-4 border-b-2 border-[#a0dfa0] border-t-[#538e53]  rounded-full animate-spin" />
+);
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter()
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
@@ -25,16 +48,90 @@ export default function Login() {
 
   const onSubmit = async (data: LoginSchemaType) => {
     setLoading(true);
-    toast.loading("Logging in...");
+    const toastId = toast.loading("Logging in...");
+
     try {
-      console.log("✅ Login Data:", data);
-      // Simulate login API
+      const StoredUser = getStoredUser();
+      console.log(StoredUser);
+
+      console.log("Stored Email:", StoredUser?.email);
+      console.log("Input Email:", data.email);
+      console.log(
+        "Match Email:",
+        data.email.trim().toLowerCase() ===
+          StoredUser?.email.trim().toLowerCase()
+      );
+
+      console.log("Stored Password:", StoredUser?.password);
+      console.log("Input Password:", data.password);
+      console.log(
+        "Match Password:",
+        data.password.trim() === StoredUser?.password.trim()
+      );
+
+      if (!StoredUser) {
+        toast.dismiss(toastId); // Dismiss the loading toast
+        toast.error("No account found. Please sign up.");
+        setLoading(false);
+        return;
+      }
+
+      const emailMatch =
+        data.email.trim().toLowerCase() ===
+        StoredUser.email.trim().toLowerCase();
+
+      const passwordMatch = await bcrypt.compare(
+        data.password,
+        StoredUser.password
+      );
+
+      if (!emailMatch || !passwordMatch) {
+        toast.dismiss(toastId);
+        toast.error("Incorrect email or password.");
+        setLoading(false);
+        return;
+      }
+  const wait = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+      // Assuming the token is returned from the backend on successful login
+      // const fakeToken = generateFakeToken(); // Replace this with the actual token from your API
+
+      // ✅ Store fake token on success
+      const fakeToken = generateFakeToken();
+      localStorage.setItem("authToken", fakeToken);
+      console.log("👉 Generated fake token:", fakeToken);
+      // Wait 1 second to show "Verifying..." then navigate
+      await wait(2000);
+
+      setUserSession({
+        email: StoredUser.email,
+        password: StoredUser.password,
+        fullName: StoredUser.fullName,
+        token: fakeToken, // Include the token
+      });
+
+      toast.dismiss(toastId); // Dismiss the loading toast
       await new Promise((res) => setTimeout(res, 2000));
-      toast.dismiss();
-      toast.success("Login successful!");
+      toast.success(`Welcome back, ${StoredUser.fullName}!`);
+      reset();
+
+      // ✅ Check onboarding progress
+      const onboardingCompleted =
+        localStorage.getItem("onboardingCompleted") === "true";
+      const userRole = localStorage.getItem("userRole");
+
+      setTimeout(() => {
+        if (!onboardingCompleted) {
+          router.push("/onboarding");
+        } else if (!userRole) {
+          router.push("/register-as");
+        } else {
+          router.push(`/${userRole}`);
+        }
+      }, 2000);
     } catch (err) {
-      console.log("Login failed. Try again.", err);
-      toast.dismiss();
+      console.error("Login error:", err);
+      toast.dismiss(toastId); // Dismiss the loading toast
       toast.error("Login failed. Try again.");
       console.log(err)
     } finally {
@@ -44,7 +141,6 @@ export default function Login() {
 
   return (
     <>
-      <Toaster position="top-center" />
       <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
         <div className="hidden lg:block w-[868px] h-screen">
           <Image
@@ -136,7 +232,16 @@ export default function Login() {
               <div>
                 <Button
                   onClick={() => handleSubmit(onSubmit)()}
-                  text={loading ? "Logging in..." : "Login"}
+                  text={
+                    loading ? (
+                      <div className="flex items-center justify-center gap-2.5">
+                        <Spinner />
+                        <span>Logging in...</span>
+                      </div>
+                    ) : (
+                      "Login"
+                    )
+                  }
                   disabled={loading}
                   className="w-full justify-center"
                 />
