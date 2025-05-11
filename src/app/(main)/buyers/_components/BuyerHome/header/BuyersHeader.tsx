@@ -5,7 +5,6 @@ import { useFollowing } from "@/hooks/followingContext";
 import { Categories } from "./categories";
 import { ImageSlider } from "./ImagesSlider";
 import { TopSellers } from "./TopSellers";
-import { SubCategories } from "./SubCategories";
 
 // Placeholder images (replace with actual image paths)
 const sliderImages = [

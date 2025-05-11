@@ -89,7 +89,10 @@ export const Categories: React.FC<CategoriesProps> = ({
                   <li key={index} className="relative w-[100%]">
                     <div
                       onMouseEnter={() => handleCategoryHover(category)}
-                      onClick={() => handleCategoryClick(category)}
+                      onClick={() => {
+                        handleCategoryClick(category);
+                        setSelectedCategory(category); // Update selected category
+                      }}
                       className="flex w-[100%] items-center justify-between text-[#2B2B2B] text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer"
                     >
                       <span className="flex-1">{category}</span>

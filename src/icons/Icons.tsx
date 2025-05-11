@@ -358,7 +358,8 @@ export const LeadingProfileIcon = () => {
 };
 
 interface WishIconProps {
-  title: string; // Used as a unique identifier for the wishlist
+  title: string;
+  className?: string;
 }
 
 export const WishIcon = ({ title }: WishIconProps) => {
@@ -393,6 +394,34 @@ export const WishIcon = ({ title }: WishIconProps) => {
   );
 };
 
+export const WishIcon1 = ({ title, className = "" }: WishIconProps) => {
+  const { isWished, toggleWish } = useWishlist();
+  // Handle click to toggle wished state
+  const handleWishToggle = () => {
+    toggleWish(title);
+  };
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="17"
+      height="17"
+      viewBox="0 0 22 21"
+      fill={isWished(title) ? "#2A942A" : "none"}
+      onClick={handleWishToggle}
+      className={className}
+    >
+      <path
+        d="M11.454 19.21C11.114 19.33 10.554 19.33 10.214 19.21C7.31398 18.22 0.833984 14.09 0.833984 7.09C0.833984 4 3.32398 1.5 6.39398 1.5C8.21398 1.5 9.82398 2.38 10.834 3.74C11.3478 3.04588 12.017 2.48173 12.788 2.09274C13.559 1.70376 14.4104 1.50076 15.274 1.5C18.344 1.5 20.834 4 20.834 7.09C20.834 14.09 14.354 18.22 11.454 19.21Z"
+        stroke="#2A942A"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
 export const LoaderIcon = () => {
   return (
     <svg
@@ -416,4 +445,81 @@ export const LoaderIcon = () => {
       ></path>
     </svg>
   );
-}
+};
+
+export const InfoIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M12 8V13M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"
+        stroke="#538E53"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11.9951 16H12.0041"
+        stroke="#538E53"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const PlayIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="42"
+      height="42"
+      viewBox="0 0 52 52"
+      fill="none"
+    >
+      <path
+        d="M8.66602 26.0003V18.287C8.66602 8.71034 15.4477 4.78868 23.746 9.57701L30.441 13.4337L37.136 17.2903C45.4343 22.0787 45.4343 29.922 37.136 34.7103L30.441 38.567L23.746 42.4237C15.4477 47.212 8.66602 43.2903 8.66602 33.7137V26.0003Z"
+        fill="#2B2B2B"
+      />
+    </svg>
+  );
+};
+
+export const PauseIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="45"
+      height="45"
+      viewBox="0 0 52 52"
+      fill="none"
+    >
+      <rect x="15" y="10" width="6" height="32" fill="#2b2b2b" />
+      <rect x="31" y="10" width="6" height="32" fill="#2b2b2b" />
+    </svg>
+  );
+};
+
+export const ArrowRightIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#2b2b2b"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+};

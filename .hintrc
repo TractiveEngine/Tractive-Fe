@@ -14,6 +14,7 @@
       {
         "empty-table-header": "off"
       }
-    ]
+    ],
+    "no-inline-styles": "off"
   }
 }
