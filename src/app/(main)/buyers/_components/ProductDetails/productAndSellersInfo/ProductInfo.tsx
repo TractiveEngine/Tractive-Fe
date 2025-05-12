@@ -126,16 +126,34 @@ export const ProductInfo = () => {
         </div>
         <div className="flex flex-col gap-2">
           <p className="font-montserrat font-normal text-[13px] text-[#808080]">
-          Share this
+            Share this
           </p>
           <div className="flex items-center gap-2">
-            <Image src="/images/FacebookBlack.png"  alt="Social Media" width={24} height={24}/>
-            <Image src="/images/WhatsAppBlack.png"  alt="Social Media" width={24} height={24}/>
-            <Image src="/images/TwitterBlack.png"  alt="Social Media" width={24} height={24}/>
-</div>
+            <Image
+              src="/images/FacebookBlack.png"
+              alt="Social Media"
+              width={24}
+              height={24}
+            />
+            <Image
+              src="/images/WhatsAppBlack.png"
+              alt="Social Media"
+              width={24}
+              height={24}
+            />
+            <Image
+              src="/images/TwitterBlack.png"
+              alt="Social Media"
+              width={24}
+              height={24}
+            />
+          </div>
         </div>
       </div>
-      <Link href="/report" className="text-[#8b4513]">
+      <Link
+        href="/report"
+        className="font-montserrat font-normal text-[12px] text-[#8b4513]"
+      >
         Report this item
       </Link>
     </div>

@@ -7,6 +7,7 @@ import { MakeBid } from "../../_components/ProductDetails/productHeader/MakeBid"
 import { ImgShowCase } from "../../_components/ProductDetails/ImgShowCase";
 import { ProductInfo } from "../../_components/ProductDetails/productAndSellersInfo/ProductInfo";
 import { SellersInfo } from "../../_components/ProductDetails/productAndSellersInfo/SellersInfo";
+import { SimilarProduct } from "../../_components/ProductDetails/SimilarProduct";
 
 const ProductDetail = () => {
   const { id } = useParams(); // Get the dynamic id from the URL
@@ -29,6 +30,7 @@ const ProductDetail = () => {
         <ProductInfo />
         <SellersInfo />
       </div>
+      <SimilarProduct />
     </div>
   );
 };

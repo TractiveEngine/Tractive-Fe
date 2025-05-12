@@ -506,7 +506,15 @@ export const PauseIcon = () => {
   );
 };
 
-export const ArrowRightIcon = () => {
+interface ArrowIconProps {
+  className?: string;
+  stroke?: string;
+}
+
+export const ArrowRightIcon = ({
+  className = "",
+  stroke = "#2b2b2b",
+}: ArrowIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -514,12 +522,66 @@ export const ArrowRightIcon = () => {
       height="19"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#2b2b2b"
+      stroke={stroke}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      className={className}
     >
       <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+};
+
+export const ReplyIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="21"
+      height="22"
+      viewBox="0 0 21 22"
+      fill="none"
+    >
+      <path
+        d="M14.679 8.44389C14.679 11.7856 11.7777 14.4884 8.20279 14.4884L7.39974 15.4555L6.92481 16.0254C6.51897 16.509 5.74182 16.4053 5.47414 15.8268L4.31705 13.2795C2.74549 12.1742 1.72656 10.4213 1.72656 8.44389C1.72656 5.10216 4.62791 2.39941 8.20279 2.39941C10.8105 2.39941 13.0643 3.84145 14.0746 5.91385C14.4631 6.68236 14.679 7.53722 14.679 8.44389Z"
+        stroke="#2B2B2B"
+        strokeWidth="1.29525"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.04492 8.44508H10.3624M18.9974 11.7782C18.9974 13.7556 17.9784 15.5085 16.4069 16.6138L15.2498 19.1611C14.9821 19.7396 14.205 19.8519 13.7991 19.3597L12.5211 17.8227C10.4315 17.8227 8.56633 16.8987 7.40061 15.4567L8.20366 14.4896C11.7785 14.4896 14.6799 11.7868 14.6799 8.44508C14.6799 7.53841 14.464 6.68355 14.0754 5.91504C16.8991 6.56266 18.9974 8.94591 18.9974 11.7782Z"
+        stroke="#2B2B2B"
+        strokeWidth="1.29525"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const LikeIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 22 22"
+      fill="none"
+    >
+      <path
+        d="M7.09082 16.5176L9.76766 18.59C10.1131 18.9354 10.8902 19.1081 11.4083 19.1081H14.6896C15.7258 19.1081 16.8483 18.331 17.1074 17.2948L19.1798 10.9912C19.6115 9.78235 18.8344 8.74616 17.5391 8.74616H14.0851C13.567 8.74616 13.1353 8.31441 13.2216 7.70996L13.6534 4.94677C13.8261 4.16962 13.308 3.30613 12.5309 3.04708C11.8401 2.78803 10.9766 3.13343 10.6312 3.65153L7.09082 8.91886"
+        stroke="#2B2B2B"
+        strokeWidth="1.29525"
+        strokeMiterlimit="10"
+      />
+      <path
+        d="M2.68652 16.518V8.05568C2.68652 6.84679 3.20462 6.41504 4.41352 6.41504H5.27701C6.48591 6.41504 7.00401 6.84679 7.00401 8.05568V16.518C7.00401 17.7268 6.48591 18.1586 5.27701 18.1586H4.41352C3.20462 18.1586 2.68652 17.7268 2.68652 16.518Z"
+        stroke="#2B2B2B"
+        strokeWidth="1.29525"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 };
