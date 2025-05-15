@@ -1,55 +1,31 @@
-import React from "react";
-import { SellerCard } from "./_components/SellerCard";
+"use client"
+import React, { useState } from "react";
+import { FilterSeller } from "./_components/FilterSeller";
+import { SellerList } from "./_components/SellerList";
 
-const page = () => {
+
+export default function SellerPage() {
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
+
   return (
-    <div className="w-[100%] bg-[#fefefe]">
-      <div className="w-[90%] mx-auto">
-        <div className="flex flex-col justify-center w-full h-full p-4 bg-[#fefefe]">
-          <h1 className="text-2xl font-bold">Sellers</h1>
-          <p className="mt-2 text-gray-700">List of sellers available.</p>
-        </div>
-        <div className="flex items-center justify-between w-full h-full p-4">
-          <SellerCard
-            image="/images/bidder3.png"
-            sellerName="GIG Logistics"
-            rating={4.5}
-            rateStatus="Excellent"
-            sellerYear="5"
-            customerNumber={3000}
-            sellerBio="Given you the best ride ever than you can imagine."
-          />
-          <SellerCard
-            image="/images/bidder3.png"
-            sellerName="GIG Logistics"
-            rating={4.5}
-            rateStatus="Excellent"
-            sellerYear="5"
-            customerNumber={3000}
-            sellerBio="Given you the best ride ever than you can imagine."
-          />
-          <SellerCard
-            image="/images/bidder3.png"
-            sellerName="GIG Logistics"
-            rating={4.5}
-            rateStatus="Excellent"
-            sellerYear="5"
-            customerNumber={3000}
-            sellerBio="Given you the best ride ever than you can imagine."
-          />
-          <SellerCard
-            image="/images/bidder3.png"
-            sellerName="GIG Logistics"
-            rating={4.5}
-            rateStatus="Excellent"
-            sellerYear="5"
-            customerNumber={3000}
-            sellerBio="Given you the best ride ever than you can imagine."
-          />
-        </div>
+    <div className="w-full bg-[#f1f1f1] min-h-screen">
+      <div className="w-full sm:w-[90%] flex flex-col sm:flex-row sm:gap-4 lg:gap-8 mx-auto px-4 sm:px-0">
+        <FilterSeller
+          selectedRatings={selectedRatings}
+          setSelectedRatings={setSelectedRatings}
+          selectedLocations={selectedLocations}
+          setSelectedLocations={setSelectedLocations}
+          selectedYears={selectedYears}
+          setSelectedYears={setSelectedYears}
+        />
+        <SellerList
+          selectedRatings={selectedRatings}
+          selectedLocations={selectedLocations}
+          selectedYears={selectedYears}
+        />
       </div>
     </div>
   );
-};
-
-export default page;
+}

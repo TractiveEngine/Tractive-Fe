@@ -282,8 +282,8 @@ export const YellowStarIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14+"
+      width="13"
+      height="13"
       viewBox="0 0 15 15"
       fill="none"
     >
@@ -595,7 +595,7 @@ export const AwardIcon = () => {
       viewBox="0 0 17 17"
       fill="none"
     >
-      <g clip-path="url(#clip0_6180_142292)">
+      <g clipPath="url(#clip0_6180_142292)">
         <path
           d="M2.88867 7.44433V10.7924C2.88867 12.0184 2.88867 12.0184 4.04735 12.7999L7.23373 14.6389C7.71203 14.9151 8.49346 14.9151 8.97176 14.6389L12.1581 12.7999C13.3168 12.0184 13.3168 12.0184 13.3168 10.7924V7.44433C13.3168 6.21828 13.3168 6.21828 12.1581 5.43685L8.97176 3.59777C8.49346 3.32158 7.71203 3.32158 7.23373 3.59777L4.04735 5.43685C2.88867 6.21828 2.88867 6.21828 2.88867 7.44433Z"
           stroke="#2B2B2B"
@@ -623,4 +623,83 @@ export const AwardIcon = () => {
       </defs>
     </svg>
   );
+};
+
+export const FilterIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M18.6001 21.9004L5.4001 21.9004C4.3001 21.9004 3.4001 21.0004 3.4001 19.9004V17.7004C3.4001 16.9004 3.9001 15.9004 4.4001 15.4004L8.7001 11.6004C9.3001 11.1004 9.7001 10.1004 9.7001 9.30039V5.00039C9.7001 4.40039 10.1001 3.60039 10.6001 3.30039L12.0001 2.40039C13.3001 1.60039 15.1001 2.50039 15.1001 4.10039V9.40039C15.1001 10.1004 15.5001 11.0004 15.9001 11.5004L19.7001 15.5004C20.2001 16.0004 20.6001 16.9004 20.6001 17.5004V19.8004C20.6001 21.0004 19.7001 21.9004 18.6001 21.9004Z"
+        stroke="#808080"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13.07 21.9004L18 14.0004"
+        stroke="#808080"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+interface ArrowUpIconProps {
+  onClick?: () => void;
 }
+
+export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      onClick={onClick}
+      className="cursor-pointer"
+    >
+      <path
+        d="M19.9201 15.0496L13.4001 8.52965C12.6301 7.75965 11.3701 7.75965 10.6001 8.52965L4.08008 15.0496"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const ArrowDownIcon = ({ onClick }: ArrowUpIconProps) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      onClick={onClick}
+      className="cursor-pointer"
+    >
+      <path
+        d="M19.9201 8.95043L13.4001 15.4704C12.6301 16.2404 11.3701 16.2404 10.6001 15.4704L4.08008 8.95043"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
