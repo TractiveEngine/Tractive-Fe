@@ -378,15 +378,15 @@ export const WishIcon =({ title }: WishIconProps) => {
   }, [title]);
 
   // Handle click to toggle wished state
-  const handleWishToggle = () => {
-    const newWishedState = !isWished;
-    setIsWished(newWishedState);
-    if (newWishedState) {
-      localStorage.setItem(`wished_${title}`, "true");
-    } else {
-      localStorage.removeItem(`wished_${title}`);
-    }
-  };
+  // const handleWishToggle = () => {
+  //   const newWishedState = !isWished;
+  //   setIsWished(newWishedState);
+  //   if (newWishedState) {
+  //     localStorage.setItem(`wished_${title}`, "true");
+  //   } else {
+  //     localStorage.removeItem(`wished_${title}`);
+  //   }
+  // };
 
   return (
      <div className="absolute top-2 right-2 bg-[#ffffff80] rounded-full p-1">
