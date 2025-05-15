@@ -104,11 +104,11 @@ export const Navbar = () => {
     setHasBids(false);
   };
 
-  // const handleNotificationClick = () => {
-  //   setIsNotificationOpen(!isNotificationOpen);
-  //   setIsBidOpen(false); // Close bid dropdown
-  //   setIsDropdownOpen(false); // Close user dropdown
-  // };
+  const handleNotificationClick = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    setIsBidOpen(false); // Close bid dropdown
+    setIsDropdownOpen(false); // Close user dropdown
+  };
 
   const handleBidClick = () => {
     setIsBidOpen(!isBidOpen);
