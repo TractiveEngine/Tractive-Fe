@@ -3,7 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "sonner";
-import { UserEmailProvider } from "@/context/userEmailContext";
+import { UserEmailProvider } from "@/hooks/userEmailContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],

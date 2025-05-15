@@ -1,8 +1,17 @@
 "use client";
+import { FollowingProvider } from "@/hooks/followingContext";
+import { WishlistProvider } from "@/hooks/wishlistContext";
 import { isUserLoggedIn } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
+
+const topSellers = [
+  "Kelvin Chikezie",
+  "Aisha Bello",
+  "Emeka Okonkwo",
+  "Fatima Musa",
+];
 
 export default function BuyerLayout({
   children,
@@ -13,7 +22,7 @@ export default function BuyerLayout({
 
   useEffect(() => {
     if (!isUserLoggedIn()) {
-      toast.error("Please Login to become a buyer.", {
+      toast.error("Login to become a buyer.", {
         duration: 3000,
         position: "top-center",
       });
@@ -23,5 +32,11 @@ export default function BuyerLayout({
     }
   }, [router]);
 
-  return <div className="bg-[#f1f1f1]">{children}</div>;
+  return (
+    <FollowingProvider initialSellers={topSellers}>
+      <WishlistProvider>
+        <div className="bg-[#f1f1f1]">{children}</div>;
+      </WishlistProvider>
+    </FollowingProvider>
+  );
 }

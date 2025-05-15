@@ -56,6 +56,7 @@ export const registerUserWithOtp = async (
 
     return { newUser, otpSentTo: newUser.email };
   } catch (err) {
+    console.error("Signup failed. Please try again", err);
     toast.dismiss(toastId);
     toast.error("Signup failed. Please try again.");
     return { newUser: null };

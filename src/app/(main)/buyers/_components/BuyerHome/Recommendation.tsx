@@ -4,6 +4,7 @@ import React from "react";
 export const Recommendation = () => {
   const biddingData = [
     {
+      id: "productCode1253",
       image: "/images/pp_onion.png",
       title: "Pepper",
       time: "24:08:07",
@@ -15,6 +16,7 @@ export const Recommendation = () => {
       bidingPrice: "$350",
     },
     {
+      id: "productCode1254",
       image: "/images/pp_onion.png",
       title: "Tomato",
       time: "12:05:03",
@@ -26,6 +28,7 @@ export const Recommendation = () => {
       bidingPrice: "$200",
     },
     {
+      id: "productCode1252",
       image: "/images/pp_onion.png",
       title: "Maize",
       time: "18:15:09",
@@ -37,6 +40,7 @@ export const Recommendation = () => {
       bidingPrice: "$550",
     },
     {
+      id: "productCode1251",
       image: "/images/pp_onion.png",
       title: "Chicken",
       time: "06:30:45",
@@ -55,9 +59,10 @@ export const Recommendation = () => {
         Recommendations
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {biddingData.map((card, index) => (
+        {biddingData.map((card) => (
           <BidingCard
-            key={index}
+            id={card.id}
+            key={card.id}
             image={card.image}
             title={card.title}
             time={card.time}

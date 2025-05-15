@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
 import { toast } from "sonner";
-import { useEmailUser } from "@/context/userEmailContext";
+import { useEmailUser } from "@/hooks/userEmailContext";
 import { registerUserWithOtp } from "@/utils/signupAuth";
 
 export default function Signup() {
@@ -45,6 +45,8 @@ export default function Signup() {
       if (!newUser) return;
 
       setEmail(newUser.email);
+      // Notify user where OTP was sent
+      toast.success(`OTP sent to ${otpSentTo}`);
 
       await new Promise((res) => setTimeout(res, 2000));
       console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
