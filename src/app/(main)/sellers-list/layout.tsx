@@ -1,4 +1,5 @@
 "use client";
+import { WishlistProvider } from "@/hooks/wishlistContext";
 import { isUserLoggedIn } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -23,5 +24,9 @@ export default function BuyerLayout({
     }
   }, [router]);
 
-  return <div className="bg-[#f1f1f1]">{children}</div>;
+  return (
+    <WishlistProvider>
+      <div className="bg-[#f1f1f1]">{children}</div>;
+    </WishlistProvider>
+  );
 }

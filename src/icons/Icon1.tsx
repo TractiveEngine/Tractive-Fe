@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
 
-export const messageIcon = () => {
+export const MessageIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="17"
+      height="17"
       viewBox="0 0 24 24"
       fill="none"
     >
@@ -38,8 +38,8 @@ export const CallIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="22"
-      height="22"
+      width="17"
+      height="17"
       viewBox="0 0 22 22"
       fill="none"
     >
@@ -107,8 +107,8 @@ export const ReviewIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="23"
-      height="23"
+      width="20"
+      height="20"
       viewBox="0 0 23 23"
       fill="none"
     >
@@ -118,6 +118,72 @@ export const ReviewIcon = () => {
         strokeWidth="1.39133"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+
+export const CopyIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="15"
+      height="15"
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <g clipPath="url(#clip0_9598_9364)">
+        <path
+          d="M14.166 11.1673V13.6673C14.166 17.0007 12.8327 18.334 9.49935 18.334H6.33268C2.99935 18.334 1.66602 17.0007 1.66602 13.6673V10.5007C1.66602 7.16732 2.99935 5.83398 6.33268 5.83398H8.83268"
+          stroke="#2B2B2B"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.66732 1.66602H13.0007M5.83398 4.16602C5.83398 2.78268 6.95065 1.66602 8.33398 1.66602H10.5173M18.334 6.66602V11.8243C18.334 13.116 17.284 14.166 15.9923 14.166M18.334 6.66602H15.834C13.959 6.66602 13.334 6.04102 13.334 4.16602V1.66602L18.334 6.66602ZM14.1673 11.166H11.5007C9.50065 11.166 8.83398 10.4993 8.83398 8.49935V5.83268L14.1673 11.166Z"
+          stroke="#2B2B2B"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_9598_9364">
+          <rect width="20" height="20" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+
+export const XIcon = () => { 
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 30 30"
+      fill="none"
+    >
+      <rect width="30" height="30" rx="15" fill="#F1F1F1" />
+      <line
+        x1="9.58779"
+        y1="10.3117"
+        x2="19.5041"
+        y2="20.1943"
+        stroke="#2B2B2B"
+        strokeWidth="0.752294"
+      />
+      <line
+        x1="20.1082"
+        y1="10.2089"
+        x2="10.2256"
+        y2="20.1252"
+        stroke="#2B2B2B"
+        strokeWidth="0.752294"
       />
     </svg>
   );

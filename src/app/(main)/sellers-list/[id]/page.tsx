@@ -1,9 +1,16 @@
-import React from 'react'
+import React from "react";
+import { StoreHeader } from "../_components/sellersStore/StoreHeader";
+import { FilterProduct } from "../_components/sellersStore/FilterProduct";
+import { StoreRecommendation } from "../_components/sellersStore/StoreRecommendation";
+import { OtherStoreProduct } from "../_components/sellersStore/OtherStoreProduct";
 
-const page = () => {
+export default function SellersID() {
   return (
-    <div>page</div>
-  )
+    <div className="w-full bg-[#f1f1f1]">
+      <StoreHeader />
+      <FilterProduct />
+      <StoreRecommendation />
+      <OtherStoreProduct />
+    </div>
+  );
 }
-
-export default page

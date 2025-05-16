@@ -656,9 +656,10 @@ export const FilterIcon = () => {
 
 interface ArrowUpIconProps {
   onClick?: () => void;
+  className?: string;
 }
 
-export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
+export const ArrowUpIcon = ({ onClick, className }: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -667,7 +668,7 @@ export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
       viewBox="0 0 24 24"
       fill="none"
       onClick={onClick}
-      className="cursor-pointer"
+      className={`cursor-pointer ${className}`}
     >
       <path
         d="M19.9201 15.0496L13.4001 8.52965C12.6301 7.75965 11.3701 7.75965 10.6001 8.52965L4.08008 15.0496"
@@ -681,7 +682,7 @@ export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
   );
 };
 
-export const ArrowDownIcon = ({ onClick }: ArrowUpIconProps) => {
+export const ArrowDownIcon = ({ onClick, className  }: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -690,7 +691,7 @@ export const ArrowDownIcon = ({ onClick }: ArrowUpIconProps) => {
       viewBox="0 0 24 24"
       fill="none"
       onClick={onClick}
-      className="cursor-pointer"
+      className={`cursor-pointer ${className}`}
     >
       <path
         d="M19.9201 8.95043L13.4001 15.4704C12.6301 16.2404 11.3701 16.2404 10.6001 15.4704L4.08008 8.95043"
