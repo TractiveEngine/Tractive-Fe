@@ -1,9 +1,12 @@
 "use client";
 import { Button } from "@/components/Button";
 import { AwardIcon, YellowStarIcon } from "@/icons/Icons";
+import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 interface SellerCardProps {
+  id: string;
   image: string;
   sellerName: string;
   rating: number;
@@ -14,6 +17,7 @@ interface SellerCardProps {
 }
 
 export const SellerCard: React.FC<SellerCardProps> = ({
+  id,
   image,
   sellerName,
   rating,
@@ -25,7 +29,9 @@ export const SellerCard: React.FC<SellerCardProps> = ({
   return (
     <div className="border-[1px] border-[#808080] w-full rounded-lg">
       <div className="flex flex-col justify-center w-full p-3 rounded-lg">
-        <img
+        <Image
+          width={100}
+          height={100}
           src={image}
           alt={sellerName}
           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
@@ -61,12 +67,14 @@ export const SellerCard: React.FC<SellerCardProps> = ({
         <p className="font-montserrat mt-2 font-normal text-[11px] text-[#2b2b2b]">
           {sellerBio}
         </p>
-        <Button
-          text="View"
-          onClick={() => {}}
-          className="mx-auto justify-center w-full sm:w-[90%] mt-3 text-[#fefefe] py-2 px-4 !rounded-[100px]"
-          textClass="font-montserrat font-normal text-[12px] sm:text-[13px] text-[#fefefe]"
-        />
+        <Link href={`/sellers-list/${id}`}>
+          <Button
+            text="View"
+            onClick={() => {}}
+            className="mx-auto justify-center w-full sm:w-[90%] mt-3 text-[#fefefe] py-2 px-4 !rounded-[100px]"
+            textClass="font-montserrat font-normal text-[12px] sm:text-[13px] text-[#fefefe]"
+          />
+        </Link>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
 import { biddingData } from "../../BuyerHome/Biding";
-import { StarIcon, WishIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
+import { StarIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 
 export const ProductInfo = () => {
