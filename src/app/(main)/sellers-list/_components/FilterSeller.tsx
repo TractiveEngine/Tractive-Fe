@@ -67,9 +67,9 @@ export const FilterSeller: React.FC<FilterSellerProps> = ({
   selectedYears,
   setSelectedYears,
 }) => {
-  const [pendingRatings, setPendingRatings] = useState<number[]>([]);
-  const [pendingLocations, setPendingLocations] = useState<string[]>([]);
-  const [pendingYears, setPendingYears] = useState<string[]>([]);
+  const [pendingRatings, setPendingRatings] = useState<number[]>(selectedRatings);
+  const [pendingLocations, setPendingLocations] = useState<string[]>(selectedLocations);
+  const [pendingYears, setPendingYears] = useState<string[]>(selectedYears);
   const [openRating, setOpenRating] = useState<boolean>(true);
   const [openLocation, setOpenLocation] = useState<boolean>(true);
   const [openYears, setOpenYears] = useState<boolean>(true);

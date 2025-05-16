@@ -150,7 +150,7 @@ export const VideoPreview = () => {
       window.removeEventListener("mousemove", handleVolumeMouseMove);
       window.removeEventListener("mouseup", handleVolumeMouseUp);
     };
-  }, [isDraggingProgress, isDraggingVolume]);
+  });
 
   return (
     <div className="flex flex-col items-center w-full">

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from "react";
 import { SellerCard } from "./SellerCard";
 interface SellerListProps {
@@ -14,26 +14,29 @@ export const SellerList: React.FC<SellerListProps> = ({
 }) => {
   const sellers = [
     {
+      id: "sellerV1",
       image: "/images/bidder3.png",
       sellerName: "GIG Logistics",
       rating: 4.0,
       rateStatus: "Excellent",
-      sellerYear: "5",
+      sellerYear: "10",
       customerNumber: 300,
       sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "Lagos",
+      location: "kano",
     },
     {
+      id: "sellerV2",
       image: "/images/bidder3.png",
       sellerName: "GIG Logistics",
       rating: 5.0,
       rateStatus: "Excellent",
-      sellerYear: "5",
+      sellerYear: "8",
       customerNumber: 300,
       sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "Lagos",
+      location: "kwara",
     },
     {
+      id: "sellerV3",
       image: "/images/bidder3.png",
       sellerName: "GIG Logistics",
       rating: 3.0,
@@ -44,6 +47,7 @@ export const SellerList: React.FC<SellerListProps> = ({
       location: "Lagos",
     },
     {
+      id: "sellerV4",
       image: "/images/bidder3.png",
       sellerName: "GIG Logistics",
       rating: 5.0,
@@ -82,9 +86,10 @@ export const SellerList: React.FC<SellerListProps> = ({
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-4">
-        {filteredSellers.map((seller, index) => (
+        {filteredSellers.map((seller) => (
           <SellerCard
-            key={index}
+            key={seller.id}
+            id={seller.id}
             image={seller.image}
             sellerName={seller.sellerName}
             rating={seller.rating}
