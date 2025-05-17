@@ -1,10 +1,26 @@
 "use client"
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterSeller } from "./_components/FilterSeller";
 import { SellerList } from "./_components/SellerList";
+import { isUserLoggedIn } from "@/utils/loginAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 
 export default function SellerPage() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (!isUserLoggedIn()) {
+      toast.error("Login to view the Sellers List.", {
+        duration: 3000,
+        position: "top-center",
+      });
+      setTimeout(() => {
+        router.push("/login");
+      }, 1000);
+    }
+  }, [router]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);

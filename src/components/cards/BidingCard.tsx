@@ -67,7 +67,6 @@ export default function BidingCard({
     <div
       className={`bg-[#fefefe] rounded-lg shadow-md w-[100%] overflow-hidden ${className}`}
     >
-        <Link href={`/buyers/product/${id}`}>
       {/* Image with Icon */}
       <div className="relative">
         <Image
@@ -79,6 +78,7 @@ export default function BidingCard({
         />
         <WishIcon title={title} />
       </div>
+      <Link href={`/buyers/product/${id}`}>
         <div className="p-4">
           <div className="flex items-center gap-2">
             <Image
@@ -139,6 +139,7 @@ export default function BidingCard({
             </p>
           </div>
         </div>
+        
 
         <div className="flex items-center justify-between pl-4">
           <div className="flex items-center gap-1.5 mb-2">

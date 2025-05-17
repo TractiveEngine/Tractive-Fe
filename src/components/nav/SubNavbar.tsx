@@ -38,22 +38,22 @@ export const SubNavbar: React.FC = () => {
       ),
     },
     {
-      href: "/sellers-list",
+      href: "/buyers/sellers-list",
       name: "Sellers List",
       icon: (
         <SellerIcon
-          isActive={pathname === "/sellers-list"}
-          isHovered={hoveredItem === "/sellers-list"}
+          isActive={pathname === "/buyers/sellers-list"}
+          isHovered={hoveredItem === "/buyers/sellers-list"}
         />
       ),
     },
     {
-      href: "/wish-list",
+      href: "/buyers/wish-list",
       name: "Wish List",
       icon: (
         <WishListIcon
-          isActive={pathname === "/wish-list"}
-          isHovered={hoveredItem === "/wish-list"}
+          isActive={pathname === "/buyers/wish-list"}
+          isHovered={hoveredItem === "/buyers/wish-list"}
         />
       ),
     },

@@ -67,7 +67,7 @@ export const SellerCard: React.FC<SellerCardProps> = ({
         <p className="font-montserrat mt-2 font-normal text-[11px] text-[#2b2b2b]">
           {sellerBio}
         </p>
-        <Link href={`/sellers-list/${id}`}>
+        <Link href={`/buyers/sellers-list/${id}`}>
           <Button
             text="View"
             onClick={() => {}}
