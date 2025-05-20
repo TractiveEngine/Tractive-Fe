@@ -13,7 +13,7 @@ import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 
-export const StoreHeader = () => {
+export const TransporterHeader = () => {
   const [openCallLog, setOpenCallLog] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     "09034145971": false,
@@ -41,12 +41,7 @@ export const StoreHeader = () => {
   const control3 = useAnimation();
   const control4 = useAnimation();
   const control5 = useAnimation();
-  
-  // Memoize the controls array to prevent re-creation on every render
-  const controls = useMemo(
-    () => [control1, control2, control3, control4, control5],
-    [control1, control2, control3, control4, control5]
-  );
+  const controls = [control1, control2, control3, control4, control5];
 
   const handleCallLog = () => {
     setOpenCallLog(!openCallLog);
@@ -76,12 +71,12 @@ export const StoreHeader = () => {
         <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
           <div className="bg-[#fefefe] flex flex-col gap-2 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] lg:w-[17rem] h-[100px]">
             <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b] truncate">
-              Sellers information
+              Transporters information
             </p>
             <div className="flex items-center gap-2">
               <Image
                 src="/images/sellerprofile.png"
-                alt="Seller Profile"
+                alt="Transporter Profile"
                 width={40}
                 height={40}
                 className="object-cover sm:w-[50px] sm:h-[50px]"
@@ -176,7 +171,7 @@ export const StoreHeader = () => {
                 <ShoppingCartIcon />
               </div>
               <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#fefefe]">
-                Total sales made (90)
+                5000 Successful Delivered Orders
               </p>
             </div>
           </div>

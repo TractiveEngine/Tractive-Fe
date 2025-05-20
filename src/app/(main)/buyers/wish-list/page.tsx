@@ -104,18 +104,7 @@ const Page: React.FC = () => {
       bidingPrice: "$550",
     },
     
-    {
-      id: "productCode1251",
-      image: "/images/pp_onion.png",
-      title: "Chicken",
-      time: "06:30:45",
-      description: "Fresh chicken straight from the farm.",
-      timeImage: "/images/redclock.png",
-      crownImage: "/images/leadingcrown.png",
-      quantity: "20 Units",
-      amount: "$150",
-      bidingPrice: "$120",
-    },
+    
   ];
 
   // Update border position and width when active tab changes
