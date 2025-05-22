@@ -47,7 +47,10 @@ export default function TruckCard({
           className={`w-[100%] object-cover rounded-md ${imageClass}`}
         />
       </div>
-      <Link href={`/buyers/product/${id}`} className="flex flex-col gap-3">
+      <Link
+        href={`/buyers/transporter-list/booking-transporter/${id}`}
+        className="flex flex-col gap-3"
+      >
         <div className="px-2.5 pt-2">
           {/* Title */}
           <div className="flex items-center gap-3">
@@ -96,7 +99,7 @@ export default function TruckCard({
         <div className="flex justify-end">
           <button
             type="button"
-            className="bg-[#538e53] w-[50%] h-[2.9rem] text-[#fefefe] font-normal text-[14px] rounded-tl-[10px] rounded-br-[10px] px-4 py-2 transition duration-200 ease-in-out"
+            className="bg-[#538e53] w-[50%] h-[2.9rem] text-[#fefefe] font-normal text-[14px] rounded-tl-[10px] rounded-br-[10px] px-4 py-2 transition duration-200 ease-in-out cursor-pointer"
           >
             Book
           </button>

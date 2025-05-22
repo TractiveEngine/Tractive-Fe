@@ -9,12 +9,13 @@
         "label": "off"
       }
     ],
-    "axe/aria": [
+    "axe/aria": "off",
+    "no-inline-styles": "off",
+    "axe/structure": [
       "default",
       {
-        "empty-table-header": "off"
+        "list": "off"
       }
-    ],
-    "no-inline-styles": "off"
+    ]
   }
 }

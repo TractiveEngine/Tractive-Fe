@@ -1,4 +1,5 @@
 "use client";
+import EmptyTruckCard from "@/components/cards/EmptyTruckCard";
 import TruckCard from "@/components/cards/TruckCard";
 import React from "react";
 
@@ -6,17 +7,17 @@ import React from "react";
 const generateBookingCode = () => {
   return Math.floor(1000 + Math.random() * 9000).toString();
 };
-interface AlmostFullTruckProps {
+interface EmptyTruckProps {
   fromState?: string;
   toState?: string;
   sortOption?: string;
 }
 
-export const AlmostFullTruck = ({
+export const EmptyTruck = ({
   fromState = "",
   toState = "",
   sortOption = "All",
-}: AlmostFullTruckProps) => {
+}: EmptyTruckProps) => {
   const TruckData = [
     {
       id: `BookingCode${generateBookingCode()}`,
@@ -86,11 +87,11 @@ export const AlmostFullTruck = ({
   return (
     <div className="w-[90%] mx-auto py-6">
       <p className="text-[15px] text-[#141414] font-normal font-montserrat mb-4">
-        Almost Full
+        Empty Truck
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredTruckData.map((card) => (
-          <TruckCard
+          <EmptyTruckCard
             key={card.id}
             id={card.id}
             image={card.image}

@@ -1,9 +1,23 @@
-import BidingCard from "@/components/cards/BidingCard";
 import React from "react";
 
-export const biddingData = [
+// Interface for BiddingData items
+export interface BiddingItem {
+  id: string;
+  image: string;
+  title: string;
+  time: string;
+  description: string;
+  timeImage: string;
+  crownImage: string;
+  quantity: string;
+  amount: string;
+  biddingPrice: string;
+}
+
+// Export the static data
+export const BiddingData: BiddingItem[] = [
   {
-    id: "productCode1253",
+    id: "productCode1001",
     image: "/images/pp_onion.png",
     title: "Pepper",
     time: "24:08:07",
@@ -12,10 +26,10 @@ export const biddingData = [
     crownImage: "/images/leadingcrown.png",
     quantity: "50 Bags",
     amount: "$400",
-    bidingPrice: "$350",
+    biddingPrice: "$350",
   },
   {
-    id: "productCode1254",
+    id: "productCode1002",
     image: "/images/pp_onion.png",
     title: "Tomato",
     time: "12:05:03",
@@ -24,10 +38,10 @@ export const biddingData = [
     crownImage: "/images/leadingcrown.png",
     quantity: "30 Bags",
     amount: "$250",
-    bidingPrice: "$200",
+    biddingPrice: "$200",
   },
   {
-    id: "productCode1252",
+    id: "productCode1003",
     image: "/images/pp_onion.png",
     title: "Maize",
     time: "18:15:09",
@@ -36,45 +50,18 @@ export const biddingData = [
     crownImage: "/images/leadingcrown.png",
     quantity: "75 Bags",
     amount: "$600",
-    bidingPrice: "$550",
+    biddingPrice: "$550",
   },
   {
-    id: "productCode1251",
+    id: "productCode1004",
     image: "/images/pp_onion.png",
     title: "Chicken",
     time: "06:30:45",
     description: "Fresh chicken straight from the farm.",
     timeImage: "/images/redclock.png",
     crownImage: "/images/leadingcrown.png",
-    quantity: "20 Units",
+    quantity: "20 Bags",
     amount: "$150",
-    bidingPrice: "$120",
+    biddingPrice: "$120",
   },
 ];
-export const OtherStoreProduct = () => {
-
-  return (
-    <div className="w-[90%] mx-auto py-6">
-      <p className="text-[15px] text-[#141414] font-normal font-montserrat mb-4">
-        Others
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {biddingData.map((card) => (
-          <BidingCard
-            id={card.id}
-            key={card.id}
-            image={card.image}
-            title={card.title}
-            time={card.time}
-            description={card.description}
-            timeImage={card.timeImage}
-            crownImage={card.crownImage}
-            quantity={card.quantity}
-            amount={card.amount}
-            bidingPrice={card.bidingPrice}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};

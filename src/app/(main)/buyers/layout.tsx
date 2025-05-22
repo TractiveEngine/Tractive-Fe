@@ -35,7 +35,7 @@ export default function BuyerLayout({
   return (
     <FollowingProvider initialSellers={topSellers}>
       <WishlistProvider>
-        <div className="bg-[#f1f1f1]">{children}</div>;
+        <div className="bg-[#f1f1f1]">{children}</div>
       </WishlistProvider>
     </FollowingProvider>
   );
