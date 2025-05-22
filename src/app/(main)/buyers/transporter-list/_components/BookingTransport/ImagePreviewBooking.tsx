@@ -15,7 +15,7 @@ export const ImagePreviewBooking = () => {
       </div>
 
       {/* ======= Booking Summary ========= */}
-      <div className="flex flex-col gap-[2px] w-[50%] rounded-md shadow-md">
+      <div className="flex flex-col gap-[2px] w-[50%] rounded-md shadow-md bg-[#fefefe]">
         <div className="flex flex-col gap-3 p-3">
           <div className="flex justify-between items-center">
             <span className="text-[12px] text-[#2b2b2b] font-montserrat font-normal">
