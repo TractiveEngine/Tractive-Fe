@@ -1,4 +1,4 @@
-import React from "react";
+
 
 // Interface for BiddingData items
 export interface BiddingItem {

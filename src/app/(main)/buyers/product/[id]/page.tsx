@@ -8,12 +8,12 @@ import { ImgShowCase } from "../../_components/ProductDetails/ImgShowCase";
 import { ProductInfo } from "../../_components/ProductDetails/productAndSellersInfo/ProductInfo";
 import { SellersInfo } from "../../_components/ProductDetails/productAndSellersInfo/SellersInfo";
 import { SimilarProduct } from "../../_components/ProductDetails/SimilarProduct";
-import { BiddingData, BiddingItem } from "../../BiddingDatas"; // Adjusted import path
+import { BiddingData } from "../../BiddingDatas"; // Adjusted import path
 
 // Define props for child components
-interface ProductComponentProps {
-  item: BiddingItem;
-}
+// interface ProductComponentProps {
+//   item: BiddingItem;
+// }
 
 const ProductDetail: React.FC = () => {
   const params = useParams<{ id: string }>(); // Explicitly type id as string
@@ -50,11 +50,3 @@ const ProductDetail: React.FC = () => {
 
 export default ProductDetail;
 
-// Update child components to accept props (example interfaces)
-// Add these to respective component files
-export interface VideoPreviewProps extends ProductComponentProps {}
-export interface MakeBidProps extends ProductComponentProps {}
-export interface ImgShowCaseProps extends ProductComponentProps {}
-export interface ProductInfoProps extends ProductComponentProps {}
-export interface SellersInfoProps extends ProductComponentProps {}
-export interface SimilarProductProps extends ProductComponentProps {}

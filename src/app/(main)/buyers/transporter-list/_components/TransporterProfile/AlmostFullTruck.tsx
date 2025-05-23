@@ -12,58 +12,60 @@ interface AlmostFullTruckProps {
   sortOption?: string;
 }
 
+export const TruckData = [
+  {
+    id: `BookingCode${generateBookingCode()}`,
+    image: "/images/transportTruck.png",
+    rating: "4.0",
+    truckName: "Monster Truck",
+    amountPerKg: "$40",
+    fullLoad: "$100",
+    spaceRemaining: "100 kg",
+    locationFrom: "Lagos",
+    locationTo: "Abuja",
+  },
+  {
+    id: `BookingCode${generateBookingCode()}`,
+    image: "/images/transportTruck.png",
+    rating: "4.5",
+    truckName: "Heavy Duty Hauler",
+    amountPerKg: "$50",
+    fullLoad: "$150",
+    spaceRemaining: "0 kg",
+    locationFrom: "Kano",
+    locationTo: "Ibadan",
+  },
+  {
+    id: `BookingCode${generateBookingCode()}`,
+    image: "/images/transportTruck.png",
+    rating: "4.2",
+    truckName: "Freight Master",
+    amountPerKg: "$45",
+    fullLoad: "$120",
+    spaceRemaining: "120kg",
+    locationFrom: "Jos",
+    locationTo: "Enugu",
+  },
+  {
+    id: `BookingCode${generateBookingCode()}`,
+    image: "/images/transportTruck.png",
+    rating: "4.8",
+    truckName: "Cargo King",
+    amountPerKg: "$60",
+    fullLoad: "$200",
+    spaceRemaining: "500 kg",
+    locationFrom: "Owerri",
+    locationTo: "Kano",
+  },
+];
+
+
 export const AlmostFullTruck = ({
   fromState = "",
   toState = "",
   sortOption = "All",
 }: AlmostFullTruckProps) => {
-  const TruckData = [
-    {
-      id: `BookingCode${generateBookingCode()}`,
-      image: "/images/transportTruck.png",
-      rating: "4.0",
-      truckName: "Monster Truck",
-      amountPerKg: "$40",
-      fullLoad: "$100",
-      spaceRemaining: "100 kg",
-      locationFrom: "Lagos",
-      locationTo: "Abuja",
-    },
-    {
-      id: `BookingCode${generateBookingCode()}`,
-      image: "/images/transportTruck.png",
-      rating: "4.5",
-      truckName: "Heavy Duty Hauler",
-      amountPerKg: "$50",
-      fullLoad: "$150",
-      spaceRemaining: "0 kg",
-      locationFrom: "Kano",
-      locationTo: "Ibadan",
-    },
-    {
-      id: `BookingCode${generateBookingCode()}`,
-      image: "/images/transportTruck.png",
-      rating: "4.2",
-      truckName: "Freight Master",
-      amountPerKg: "$45",
-      fullLoad: "$120",
-      spaceRemaining: "120kg",
-      locationFrom: "Jos",
-      locationTo: "Enugu",
-    },
-    {
-      id: `BookingCode${generateBookingCode()}`,
-      image: "/images/transportTruck.png",
-      rating: "4.8",
-      truckName: "Cargo King",
-      amountPerKg: "$60",
-      fullLoad: "$200",
-      spaceRemaining: "500 kg",
-      locationFrom: "Owerri",
-      locationTo: "Kano",
-    },
-  ];
-
+  
   const filteredTruckData = TruckData.filter((truck) => {
     // Route filtering
     const matchesFrom = fromState ? truck.locationFrom === fromState : true;

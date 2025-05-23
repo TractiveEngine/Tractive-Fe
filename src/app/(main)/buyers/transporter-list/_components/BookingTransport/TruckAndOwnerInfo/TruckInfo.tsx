@@ -2,21 +2,22 @@ import Link from "next/link";
 import React from "react";
 import { StarIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
-import { BiddingItem } from "../../../BiddingDatas";
+import { TruckItem } from "../BookingHeader/ImagePreviewBooking";
+import { LocationIcon } from "@/icons/Icon1";
 
-interface ProductInfoProps {
-  item: BiddingItem;
+interface TruckInfoProps {
+  item: TruckItem;
 }
 
-export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
+export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
   return (
     <div className="w-[100%] flex flex-col px-4 pt-2 pb-6 gap-[50px] bg-[#fefefe]">
-      <div className="w-[100%] flex flex-col">
+      <div className="w-[100%] flex flex-col gap-5">
         <div className="flex flex-col gap-[16px]">
           <div className="flex flex-col gap-[8px]">
-            <div className="flex items-center justify-between w-1/2">
+            <div className="flex items-center justify-between flex-wrap w-[100%] md:w-3/5">
               <p className="font-montserrat font-normal text-[17px] text-[#2b2b2b]">
-                {item.title}
+                {item.truckName}
               </p>
               <div className="flex items-center gap-[40px]">
                 <div className="flex items-center gap-4">
@@ -27,7 +28,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
                     <YellowStarIcon />
                     <StarIcon />
                     <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                      4.0
+                      {item.rating}.0
                     </span>
                   </div>
                   <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
@@ -39,14 +40,21 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="font-montserrat font-normal text-[13px] text-[#808080]">
-                Quantity
-                <span className="text-[#2b2b2b]"> {item.quantity}</span>
+
+            <div className="flex items-center flex-wrap gap-1 sm:gap-[4px]">
+              <div className="flex items-center gap-[3px]">
+                <LocationIcon />
+                <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-medium">
+                  {item.locationFrom} to {item.locationTo}
+                </p>
+              </div>
+              <span className="w-[2px] h-[1rem] bg-[#808080]" />
+              <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
+                40 fit
               </p>
-              <span className="w-[1.5px] h-[15px] bg-[#2b2b2b]"></span>
-              <p className="font-montserrat font-normal text-[13px] text-[#808080]">
-                Price <span className="text-[#2b2b2b]">{item.amount}</span>
+              <span className="w-[2px] h-[1rem] bg-[#808080]" />
+              <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
+                Estimated delivery: 3 days
               </p>
             </div>
           </div>
@@ -54,11 +62,15 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
             <p className="font-montserrat font-normal text-[13px] text-[#808080]">
               Description
             </p>
-            <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-              {item.description}
+            <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+              Indulge in the rich, earthy flavor and nutritional goodness of our
+              Organic Red Kidney Beans. Sourced from trusted organic farms,
+              these kidney beans are a staple in many cuisines worldwide, known
+              for their versatility and health benefits.
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-12">
             <div className="relative w-[30px] h-[30px]">
@@ -92,35 +104,11 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
               />
             </div>
             <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-              + 24 others have bidden
+              + 24 others have booked
             </p>
           </div>
-          <span className="w-[10px] h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
-          <div className="flex items-center gap-1.5">
-            <span className="font-montserrat text-[13px] text-[#2b2b2b] font-normal">
-              Leading:
-            </span>
-            <div className="flex items-center flex-col mb-3">
-              <Image
-                src="/images/leadingcrown.png"
-                alt="crown"
-                width={20}
-                height={20}
-                className=""
-              />
-              <Image
-                src="/images/leadbidder.png"
-                alt="Bidder"
-                width={30}
-                height={30}
-              />
-            </div>
-          </div>
-          <p className="font-montserrat font-normal text-[13px] text-[#808080]">
-            James Peters:{" "}
-            <span className="text-[#2b2b2b]">{item.biddingPrice}</span>
-          </p>
         </div>
+
         <div className="flex flex-col gap-2">
           <p className="font-montserrat font-normal text-[13px] text-[#808080]">
             Share this
@@ -147,11 +135,12 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
           </div>
         </div>
       </div>
+      
       <Link
         href="/report"
         className="font-montserrat font-normal text-[12px] text-[#8b4513]"
       >
-        Report this item
+        Report this Fleet
       </Link>
     </div>
   );

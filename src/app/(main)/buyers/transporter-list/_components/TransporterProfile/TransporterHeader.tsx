@@ -41,7 +41,12 @@ export const TransporterHeader = () => {
   const control3 = useAnimation();
   const control4 = useAnimation();
   const control5 = useAnimation();
-  const controls = [control1, control2, control3, control4, control5];
+  
+  // Memoize the controls array to prevent re-creation on every render
+  const controls = useMemo(
+    () => [control1, control2, control3, control4, control5],
+    [control1, control2, control3, control4, control5]
+  );
 
   const handleCallLog = () => {
     setOpenCallLog(!openCallLog);
