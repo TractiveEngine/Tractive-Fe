@@ -4,7 +4,6 @@ import { TruckItem } from "@/utils/TruckData";
 interface NegotiateProps {
   selectedProducts: string[];
   item: TruckItem;
-  onBack: () => void;
 }
 
 interface Product {
@@ -23,7 +22,6 @@ const products: Product[] = [
 export const Negotiate: React.FC<NegotiateProps> = ({
   selectedProducts,
   item,
-  onBack,
 }) => {
   const [negotiatedAmount, setNegotiatedAmount] = useState("");
 

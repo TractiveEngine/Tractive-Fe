@@ -12,7 +12,6 @@ const BookingTransport: React.FC = () => {
   const { id } = useParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [isNegotiating, setIsNegotiating] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
  // Get the truck ID from the URL
   const truckItem = TruckData.find((truck) => truck.id === id) || {
     ...TruckData[0],

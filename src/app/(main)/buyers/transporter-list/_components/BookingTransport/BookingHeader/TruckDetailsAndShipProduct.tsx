@@ -167,7 +167,6 @@ export const TruckDetailsAndShipProduct: React.FC<
         <Negotiate
           selectedProducts={selectedProductsState}
           item={item}
-          onBack={() => setIsNegotiating(false)}
         />
       ) : (
         <>
