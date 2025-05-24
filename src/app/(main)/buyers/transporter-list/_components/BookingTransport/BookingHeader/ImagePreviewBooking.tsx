@@ -1,41 +1,44 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import { FaCheck, FaAngleLeft } from "react-icons/fa";
 import { TruckDetailsAndShipProduct } from "./TruckDetailsAndShipProduct";
 import { DeliveryDetailsAndPaymentMethod } from "./DeliveryDetailsAndPaymentMethod";
 import { AccountDetails } from "./AccountDetails";
-
-export interface TruckItem {
-  image: string;
-  truckName: string;
-  rating: number;
-  locationFrom: string;
-  locationTo: string;
-  amountPerKg: string | number;
-  fullLoad: string | number;
-  spaceRemaining: string | number;
-}
-
+import { TruckItem } from "@/utils/TruckData";
 interface ImagePreviewBookingProps {
   item: TruckItem;
   currentStep: number;
   setCurrentStep: (step: number) => void;
+  isNegotiating: boolean;
+  setIsNegotiating: (isNegotiating: boolean) => void;
 }
 
 export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
   item,
   currentStep,
   setCurrentStep,
+  isNegotiating,
+  setIsNegotiating,
 }) => {
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const steps = ["Select Truck", "Confirm Details", "Payment"];
 
   const handleBackClick = () => {
-    setCurrentStep(Math.max(currentStep - 1, 1));
+    if (isNegotiating) {
+      setIsNegotiating(false);
+    } else {
+      setCurrentStep(Math.max(currentStep - 1, 1));
+    }
   };
 
   const handleStepClick = (step: number) => {
-    setCurrentStep(step);
+    if (step <= currentStep) {
+      setCurrentStep(step);
+      setIsNegotiating(false);
+    }
   };
+
+  // selectedProducts state is already defined above, so this duplicate declaration is removed.
 
   const renderBookingDetails = () => {
     switch (currentStep) {
@@ -44,10 +47,19 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
           <TruckDetailsAndShipProduct
             item={item}
             setCurrentStep={setCurrentStep}
+            isNegotiating={isNegotiating}
+            setIsNegotiating={setIsNegotiating}
+            setSelectedProducts={setSelectedProducts}
           />
         );
       case 2:
-        return <DeliveryDetailsAndPaymentMethod item={item} />;
+        return (
+          <DeliveryDetailsAndPaymentMethod
+            item={item}
+            selectedProducts={selectedProducts}
+            setCurrentStep={setCurrentStep} // Pass setCurrentStep
+          />
+        );
       case 3:
         return <AccountDetails />;
       default:
@@ -63,16 +75,16 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
           alt={item.truckName}
           width={979}
           height={602}
-          className="object-cover w-full h-[562px] rounded-md"
+          className="object-cover w-full h-[100%] rounded-md"
           sizes="(max-width: 639px) 100vw, (max-width: 767px) 100vw, (max-width: 1023px) 60vw, 66vw"
         />
       </div>
 
       {/* Booking Summary */}
-      <div className="flex flex-col w-[100%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe]">
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col h-[562px] w-[100%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe]">
+        <div className="flex flex-col">
           <div className="flex justify-between items-center px-5 pt-4">
-            {currentStep === 1 ? (
+            {currentStep === 1 && !isNegotiating ? (
               <span className="text-[12px] sm:text-[13px] md:text-[14px] text-[#2b2b2b] font-montserrat font-normal">
                 Summary
               </span>

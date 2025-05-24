@@ -6,14 +6,15 @@ import Link from "next/link";
 
 interface CardProps {
   id: string;
-  image: string; // Required
-  truckName: string; // Required
+  image: string;
+  truckName: string;
   amountPerKg?: string;
   locationFrom?: string;
   locationTo?: string;
   fullLoad?: string;
   rating?: string;
   spaceRemaining?: string;
+  isEmptyTruck?: boolean; // New prop to toggle label color
   className?: string;
   imageClass?: string;
   truckNameClass?: string;
@@ -29,6 +30,7 @@ export default function TruckCard({
   locationTo,
   rating,
   spaceRemaining,
+  isEmptyTruck = false,
   className = "",
   imageClass = "",
   truckNameClass = "",
@@ -37,7 +39,6 @@ export default function TruckCard({
     <div
       className={`bg-[#f9f9f9] rounded-lg shadow-md w-[100%] overflow-hidden ${className}`}
     >
-      {/* Image with Icon */}
       <div className="relative">
         <Image
           src={image}
@@ -52,7 +53,6 @@ export default function TruckCard({
         className="flex flex-col gap-3"
       >
         <div className="px-2.5 pt-2">
-          {/* Title */}
           <div className="flex items-center gap-3">
             <h2
               className={`text-[13px] font-medium font-montserrat ${truckNameClass}`}
@@ -88,8 +88,12 @@ export default function TruckCard({
         </div>
 
         <div className="w-[100%] bg-[#CCE5CCB2] gap-0.5 flex items-center justify-center p-[4px]">
-          <p className="font-montserrat text-[11px] text-[#8B4513] font-normal">
-            Space Remaining:
+          <p
+            className={`font-montserrat text-[11px] font-normal ${
+              isEmptyTruck ? "text-[#2b2b2b]" : "text-[#8B4513]"
+            }`}
+          >
+            {isEmptyTruck ? "Full Load:" : "Space Remaining:"}
           </p>
           <span className="font-montserrat text-[11px] text-[#2b2b2b] font-normal">
             {spaceRemaining}

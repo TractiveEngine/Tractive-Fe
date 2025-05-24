@@ -2,8 +2,8 @@ import Link from "next/link";
 import React from "react";
 import { StarIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
-import { TruckItem } from "../BookingHeader/ImagePreviewBooking";
 import { LocationIcon } from "@/icons/Icon1";
+import { TruckItem } from "@/utils/TruckData";
 
 interface TruckInfoProps {
   item: TruckItem;
