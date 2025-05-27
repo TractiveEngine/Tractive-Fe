@@ -1,5 +1,6 @@
+// _components/DeliveryDetailsAndPaymentMethod.tsx
+"use client";
 import React, { useState } from "react";
-import { TruckItem } from "@/utils/TruckData";
 import Image from "next/image";
 import { Button } from "@/components/Button";
 
@@ -13,30 +14,18 @@ interface OnboardingData {
   interests: string[];
 }
 
-interface DeliveryDetailsAndPaymentMethodProps {
-  selectedProducts: string[];
-  item: TruckItem;
-  setCurrentStep: (step: number) => void; // Added to update step
-}
-
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
-}
-
 interface PaymentMethod {
   id: string;
   name: string;
   image: string;
 }
 
-const products: Product[] = [
-  { id: "12346DRTDF", name: "Tomatoes, best at...", weight: "55kg" },
-  { id: "12347DRTDF", name: "Tomatoes, best at...", weight: "15kg" },
-  { id: "12348DRTDF", name: "Tomatoes, best at...", weight: "45kg" },
-  { id: "12349DRTDF", name: "Tomatoes, best at...", weight: "85kg" },
-];
+
+interface DeliveryDetailsAndPaymentMethodProps {
+  totalPrice: number;
+  onContinue: () => void;
+  className?: string;
+}
 
 const paymentMethods: PaymentMethod[] = [
   { id: "card", name: "Pay by Card", image: "/images/card.png" },
@@ -47,12 +36,10 @@ const paymentMethods: PaymentMethod[] = [
 
 export const DeliveryDetailsAndPaymentMethod: React.FC<
   DeliveryDetailsAndPaymentMethodProps
-> = ({ selectedProducts, item, setCurrentStep }) => {
-  // State for selected payment method
+> = ({ totalPrice, onContinue }) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
 
-  // Fetch onboarding data from local storage
   const onboardingData: OnboardingData | null = (() => {
     try {
       const data = localStorage.getItem("onboarding-data");
@@ -63,34 +50,8 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
     }
   })();
 
-  // Calculate total weight of selected products
-  const totalWeight = selectedProducts.reduce((total, productId) => {
-    const product = products.find((p) => p.id === productId);
-    if (product) {
-      return total + parseFloat(product.weight.replace("kg", ""));
-    }
-    return total;
-  }, 0);
-
-  // Calculate total amount based on amountPerKg
-  const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("$", ""));
-
-  // Handle payment method toggle
   const handlePaymentMethodToggle = (methodId: string) => {
     setSelectedPaymentMethod(methodId);
-  };
-
-  const handleContinueClick = () => {
-    if (selectedPaymentMethod) {
-      // Store selected payment method if needed (e.g., for AccountDetails)
-      try {
-        localStorage.setItem("selected-payment-method", selectedPaymentMethod);
-      } catch (error) {
-        console.error("Error saving selected-payment-method:", error);
-      }
-      setCurrentStep(3); // Move to AccountDetails
-    }
   };
 
   return (
@@ -113,19 +74,18 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
           transform: translate(-50%, -50%);
           width: 12px;
           height: 12px;
-          background-color: #fefefe;
+          background-color: #FEFEFE;
           border-radius: 50%;
         }
         .custom-radio:checked {
-          border-color: #fefefe;
+          border-color: #FEFEFE;
         }
       `}</style>
 
-      {/* Onboarding Data */}
-      <div className="flex flex-col gap-2 px-5">
+      <div className="flex flex-col gap-2 px-5 pt-6">
         {onboardingData ? (
           <div className="flex flex-col gap-2.5">
-            <div className="flex justify-between ">
+            <div className="flex justify-between">
               <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
                 State:{" "}
                 <span className="text-[#2b2b2b]">{onboardingData.state}</span>
@@ -166,21 +126,17 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
 
       <span className="w-full h-[1px] bg-[#e2e2e2]" />
 
-      {/* Total Weight and Amount */}
       <div className="flex flex-col gap-2 px-5">
         <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-          Total: <span className="text-[#2b2b2b]">{totalWeight}kg</span>
-        </p>
-        <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-          Amount:
-          <span className="text-[#2b2b2b]"> ${totalAmount.toFixed(2)}</span>
+          Grind Total:{" "}
+          <span className="text-[#2b2b2b]">${totalPrice.toLocaleString()}</span>
         </p>
       </div>
       <span className="w-full h-[1px] bg-[#e2e2e2]" />
-      {/* Payment Method */}
+
       <div className="flex flex-col gap-2 px-5">
         <div className="flex items-center gap-1 sm:gap-2">
-          <span className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#2b2b2b] font-normal">
+          <span className="font-montserrat text-[11px] sm:text-[12px] text-[#2b2b2b] font-normal">
             Select a Payment Method
           </span>
         </div>
@@ -225,7 +181,7 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
         </div>
         <Button
           text="Continue"
-          onClick={handleContinueClick}
+          onClick={onContinue}
           className="justify-center"
           disabled={!selectedPaymentMethod}
         />

@@ -126,6 +126,7 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
               ))}
             </div>
           </div>
+          <span className="w-full h-[1px] bg-[#e2e2e2]" />
           {renderBookingDetails()}
         </div>
       </div>
