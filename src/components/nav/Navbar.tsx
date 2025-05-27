@@ -7,6 +7,7 @@ import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import "./Navbar.css";
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
+import { Notifications } from "../Notifications";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -137,22 +138,21 @@ export const Navbar = () => {
             {/* ========= ICONS ========= */}
             <div className="flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
               {/* ===================== Notification icon ========================= */}
-              <div className="relative" onClick={handleNotificationClick} ref={notificationRef}>
-               <NotificationIcon/>
+              <div
+                className="relative"
+                onClick={handleNotificationClick}
+                ref={notificationRef}
+              >
+                <NotificationIcon />
                 {hasNotifications && (
                   <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                 )}
                 {isNotificationOpen && (
-                  <div className="absolute top-8 left-0 w-64 bg-white border border-gray-200 rounded-[4px] shadow-lg z-10">
+                  <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
                     <ul className="py-2">
                       {hasNotifications ? (
                         <>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            You have a new message
-                          </li>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            Order #456 updated
-                          </li>
+                          <Notifications />
                         </>
                       ) : (
                         <li className="px-4 py-2 text-[0.89rem] text-gray-500">
@@ -166,7 +166,8 @@ export const Navbar = () => {
 
               {/* ===================== BID icon ========================= */}
               <div className="relative">
-                <Link href="/buyers/my-biddings"
+                <Link
+                  href="/buyers/my-biddings"
                   className="flex items-center flex-col cursor-pointer"
                 >
                   <span className="relative flex items-center justify-center w-[24px] h-[14.4px] rounded-[3.6px] border-[1.2px] border-[#2b2b2b]">
@@ -174,9 +175,8 @@ export const Navbar = () => {
                   </span>
                   <span className="w-[2.4px] h-[9.8px] rounded-[3.6px] bg-[#2b2b2b]"></span>
                 </Link>
-                
-                  <span className="absolute -top-[2px] -right-[4px] h-2 w-2 rounded-full bg-[#538E53]" />
-               
+
+                <span className="absolute -top-[2px] -right-[4px] h-2 w-2 rounded-full bg-[#538E53]" />
               </div>
             </div>
           </div>
@@ -283,7 +283,6 @@ export const Navbar = () => {
         </>
       )}
       <MobileNavbar />
-
     </div>
   );
 };

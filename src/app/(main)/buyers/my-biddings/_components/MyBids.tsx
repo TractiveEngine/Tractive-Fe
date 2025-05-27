@@ -183,7 +183,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
                 <div className="w-[0.7px] h-[10rem] bg-[#808080]"></div>
                 <div className="flex flex-col items-center justify-center cursor-pointer px-3.5">
                   <TrashIcon />
-                  <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b2b]">
+                  <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
                     Delete
                   </span>
                 </div>

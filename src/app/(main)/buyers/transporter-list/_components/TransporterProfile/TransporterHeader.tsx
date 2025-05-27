@@ -12,9 +12,11 @@ import { ArrowRightIcon, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
+import { Reviews } from "@/components/Reviews";
 
 export const TransporterHeader = () => {
   const [openCallLog, setOpenCallLog] = useState(false);
+  const [showReviews, setShowReviews] = useState(false); // New state for Reviews visibility
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     "09034145971": false,
     "09034145972": false,
@@ -60,6 +62,10 @@ export const TransporterHeader = () => {
     }, 2000);
   };
 
+  const handleReviewsToggle = () => {
+    setShowReviews(!showReviews); // Toggle Reviews visibility
+  };
+
   useEffect(() => {
     // Start animation for each progress bar on mount
     controls.forEach((control, index) => {
@@ -71,8 +77,8 @@ export const TransporterHeader = () => {
   }, [controls, ratings]);
 
   return (
-    <div className="w-[90%] mx-auto mt-6 pb-6">
-      <div className="flex flex-col lg:flex-row items-center gap-4 w-[100%]">
+    <div className="w-[90%] relative mx-auto mt-6 pb-6">
+      <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
         <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
           <div className="bg-[#fefefe] flex flex-col gap-2 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] lg:w-[17rem] h-[100px]">
             <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b] truncate">
@@ -183,7 +189,7 @@ export const TransporterHeader = () => {
         </div>
 
         <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%]">
-          <div className="bg-[#fefefe] flex flex-col  items-center sm:items-start gap-3 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] sm:w-[8.5rem] h-[100px] justify-center">
+          <div className="bg-[#fefefe] flex flex-col items-center sm:items-start gap-3 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] sm:w-[8.5rem] h-[100px] justify-center">
             <div className="flex gap-2 items-center justify-center bg-[#538e53] w-[35px] h-[35px] sm:w-[40px] sm:h-[40px] p-1 rounded-[100px]">
               <AwardIcon />
             </div>
@@ -263,7 +269,10 @@ export const TransporterHeader = () => {
                     + 25,000
                   </p>
                 </div>
-                <div className="flex items-center gap-1 cursor-pointer">
+                <div
+                  className="flex items-center gap-1 cursor-pointer"
+                  onClick={handleReviewsToggle} // Add click handler
+                >
                   <span className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#538e53]">
                     See reviews
                   </span>
@@ -276,6 +285,18 @@ export const TransporterHeader = () => {
             </div>
           </div>
         </div>
+        {/* Conditionally render Reviews component with animation */}
+        {showReviews && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute right-0 -bottom-[2.7rem] z-60"
+          >
+            <Reviews />
+          </motion.div>
+        )}
       </div>
     </div>
   );
