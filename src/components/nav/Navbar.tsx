@@ -121,7 +121,7 @@ export const Navbar = () => {
       {/* Conditional Rendering Based on Login Status */}
       {isLoggedIn ? (
         <>
-          <div className="hidden md:flex items-center gap-[2rem] w-[100%] md:gap-[3rem] lg:gap-[7rem] md:w-[75%] lg:w-[60%]">
+          <div className="hidden md:flex items-center justify-center gap-[2rem] w-[100%] md:gap-[3rem] lg:gap-[7rem] md:w-[75%] lg:w-[60%]">
             {/* Search Box and Icons */}
             <div className="relative flex items-center w-[80%]">
               <input

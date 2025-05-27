@@ -63,7 +63,7 @@ const Page: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#f1f1f1] min-h-screen flex items-center justify-center">
+    <div className="w-full bg-[#f1f1f1] min-h-screen flex justify-center">
       <div className="flex flex-col md:flex-row gap-6 w-[90%] max-w-[1200px] mx-auto">
         <MyBids
           bidItems={bidItems}

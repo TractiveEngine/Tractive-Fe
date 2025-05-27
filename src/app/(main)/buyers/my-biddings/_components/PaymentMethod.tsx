@@ -3,7 +3,7 @@ import React from "react";
 
 export const PaymentMethod = () => {
   return (
-    <div className="flex flex-col gap-3 w-[100%] px-6 ">
+    <div className="flex flex-col gap-3 w-[100%] px-6 pb-5">
       <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
         Payment method
       </p>
