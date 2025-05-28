@@ -12,7 +12,7 @@ type BiddingData = {
   crownImage: string;
   quantity: string;
   amount: string;
-  bidingPrice: string;
+  biddingPrice: string;
 };
 
 type MyBidingProps = {

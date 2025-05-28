@@ -26,7 +26,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "50 Bags",
       amount: "$400",
-      bidingPrice: "$350",
+      biddingPrice: "$350",
     },
     {
       id: "productCode1254",
@@ -38,7 +38,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "30 Bags",
       amount: "$250",
-      bidingPrice: "$200",
+      biddingPrice: "$200",
     },
     {
       id: "productCode1252",
@@ -50,7 +50,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "75 Bags",
       amount: "$600",
-      bidingPrice: "$550",
+      biddingPrice: "$550",
     },
     {
       id: "productCode1251",
@@ -62,7 +62,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "20 Units",
       amount: "$150",
-      bidingPrice: "$120",
+      biddingPrice: "$120",
     },
   ];
 
@@ -77,7 +77,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "50 Bags",
       amount: "$400",
-      bidingPrice: "$350",
+      biddingPrice: "$350",
     },
     {
       id: "productCode1254",
@@ -89,7 +89,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "30 Bags",
       amount: "$250",
-      bidingPrice: "$200",
+      biddingPrice: "$200",
     },
     {
       id: "productCode1252",
@@ -101,7 +101,7 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       quantity: "75 Bags",
       amount: "$600",
-      bidingPrice: "$550",
+      biddingPrice: "$550",
     },
     
     

@@ -1,10 +1,24 @@
-import { ArrowRightIcon, LikeIcon, ReplyIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
+import { Reviews } from "@/components/Reviews";
+import {
+  ArrowRightIcon,
+  LikeIcon,
+  ReplyIcon,
+  StarIcon,
+  YellowStarIcon,
+} from "@/icons/Icons";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 export const OwnersInfo = () => {
+  const [seeMore, setSeeMore] = useState(false);
+
+  const handleSeeMore = () => {
+    setSeeMore(!seeMore); // See More Reviews visibility
+  };
+
   return (
-    <div className="w-[100%] lg:w-[57%] flex flex-col gap-[10px]">
+    <div className="relative w-[100%] lg:w-[57%] flex flex-col gap-[10px]">
       <div className="flex flex-col gap-[12px] bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
         <p className="font-montserrat font-normal text-[#2b2b2b] text-[12px]">
           Transporters Information
@@ -51,7 +65,7 @@ export const OwnersInfo = () => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-1.5 bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
+      <div className="relative flex flex-col gap-1.5 bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-between gap-1.5 flex-wrap">
           <div className="relative flex items-center gap-2 flex-wrap">
             <Image
@@ -103,12 +117,27 @@ export const OwnersInfo = () => {
             </div>
           </div>
         </div>
-        <div className="cursor-pointer flex text-[#538e53] items-center justify-end gap-[4px]">
+        <div
+          className="cursor-pointer flex text-[#538e53] items-center justify-end gap-[4px]"
+          onClick={handleSeeMore}
+        >
           <span className="font-montserrat font-normal text-[12px] text-[#538e53]">
             See more
           </span>
           <ArrowRightIcon stroke="#538e53" className="w-4 h-4" />
         </div>
+        {/* Conditionally render Reviews component with animation */}
+        {seeMore && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute right-0 top-[15.7rem] z-60"
+          >
+            <Reviews onClose={handleSeeMore} />
+          </motion.div>
+        )}
       </div>
     </div>
   );

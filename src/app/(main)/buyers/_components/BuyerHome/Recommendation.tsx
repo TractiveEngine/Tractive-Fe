@@ -22,7 +22,7 @@ export const Recommendation = () => {
             crownImage={card.crownImage}
             quantity={card.quantity}
             amount={card.amount}
-            bidingPrice={card.biddingPrice}
+            biddingPrice={card.biddingPrice}
           />
         ))}
       </div>

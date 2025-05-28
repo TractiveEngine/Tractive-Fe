@@ -11,7 +11,7 @@ type BiddingData = {
   crownImage: string;
   quantity: string;
   amount: string;
-  bidingPrice: string;
+  biddingPrice: string;
 };
 
 type BiddingProductProps = {
@@ -34,7 +34,7 @@ export const BiddingProduct: React.FC<BiddingProductProps> = ({ data }) => {
             crownImage={card.crownImage}
             quantity={card.quantity}
             amount={card.amount}
-            bidingPrice={card.bidingPrice}
+            biddingPrice={card.biddingPrice}
           />
         ))}
       </div>

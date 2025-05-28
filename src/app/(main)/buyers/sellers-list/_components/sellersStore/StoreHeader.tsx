@@ -12,9 +12,11 @@ import { ArrowRightIcon, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
+import { Reviews } from "@/components/Reviews";
 
 export const StoreHeader = () => {
   const [openCallLog, setOpenCallLog] = useState(false);
+   const [showReviews, setShowReviews] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     "09034145971": false,
     "09034145972": false,
@@ -41,7 +43,7 @@ export const StoreHeader = () => {
   const control3 = useAnimation();
   const control4 = useAnimation();
   const control5 = useAnimation();
-  
+
   // Memoize the controls array to prevent re-creation on every render
   const controls = useMemo(
     () => [control1, control2, control3, control4, control5],
@@ -70,9 +72,13 @@ export const StoreHeader = () => {
     });
   }, [controls, ratings]);
 
+  const handleReviewsToggle = () => {
+    setShowReviews(!showReviews); // Toggle Reviews visibility
+  };
+
   return (
-    <div className="w-[90%] mx-auto mt-6 pb-6">
-      <div className="flex flex-col lg:flex-row items-center gap-4 w-[100%]">
+    <div className="relative w-[90%] mx-auto mt-6 pb-6">
+      <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
         <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
           <div className="bg-[#fefefe] flex flex-col gap-2 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] lg:w-[17rem] h-[100px]">
             <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b] truncate">
@@ -263,7 +269,10 @@ export const StoreHeader = () => {
                     + 25,000
                   </p>
                 </div>
-                <div className="flex items-center gap-1 cursor-pointer">
+                <div
+                  className="flex items-center gap-1 cursor-pointer"
+                  onClick={handleReviewsToggle} // Add click handler
+                >
                   <span className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#538e53]">
                     See reviews
                   </span>
@@ -276,6 +285,18 @@ export const StoreHeader = () => {
             </div>
           </div>
         </div>
+        {/* Conditionally render Reviews component with animation */}
+        {showReviews && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute right-0 top-[7.6rem] z-60"
+          >
+            <Reviews onClose={handleReviewsToggle} />
+          </motion.div>
+        )}
       </div>
     </div>
   );

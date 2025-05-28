@@ -15,7 +15,7 @@ interface CardProps {
   description?: string;
   amount?: string;
   quantity?: string;
-  bidingPrice?: string;
+  biddingPrice?: string;
   className?: string;
   imageClass?: string;
   crownImageClass?: string;
@@ -36,7 +36,7 @@ export default function BidingCard({
   description,
   amount,
   quantity,
-  bidingPrice,
+  biddingPrice,
   className = "",
   imageClass = "",
   crownImageClass = "",
@@ -159,7 +159,7 @@ export default function BidingCard({
             <p
               className={`text-sm text-gray-500 font-montserrat ${quantityClass}`}
             >
-              {bidingPrice}
+              {biddingPrice}
             </p>
           </div>
 

@@ -292,9 +292,9 @@ export const TransporterHeader = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="absolute right-0 -bottom-[2.7rem] z-60"
+            className="absolute right-0 top-[7.6rem] z-60"
           >
-            <Reviews />
+            <Reviews onClose={handleReviewsToggle} />
           </motion.div>
         )}
       </div>

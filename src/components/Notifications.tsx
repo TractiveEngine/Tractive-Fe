@@ -239,7 +239,7 @@ export const Notifications = () => {
             )}
           </React.Fragment>
         ))
-      )}motion
+      )}
     </div>
   );
 };
