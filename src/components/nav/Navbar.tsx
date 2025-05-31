@@ -8,6 +8,7 @@ import "./Navbar.css";
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
+import { ProfileDropDown } from "../ProfileDropDown";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -211,34 +212,7 @@ export const Navbar = () => {
                 />
               </svg>
             </div>
-            {isDropdownOpen && (
-              <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-[4px] shadow-lg z-10">
-                <li>
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Settings
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            )}
+            {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
           </div>
         </>
       ) : (
