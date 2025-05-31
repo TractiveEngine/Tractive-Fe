@@ -8,8 +8,8 @@ export const ProfilePicture = () => {
       <Image
         src="/images/profileSettingImage.png"
         alt="profile Image"
-        width={100}
-        height={100}
+        width={90}
+        height={90}
       />
       <div className="absolute -bottom-2 left-0 bg-[#f1f1f1] rounded-full p-2 cursor-pointer hover:bg-[#e2e2e2] transition-colors duration-200">
         <CameraIcon />

@@ -1,7 +1,12 @@
 import { ProfilePicture } from "@/app/(auth)/(profiles)/_components/ProfilePicture";
-import { CallOutlineIcon, DeliveryIcon, ProfileSettingIcon, SecurityIcon } from "@/icons/Icon1";
+import {
+  CallOutlineIcon,
+  DeliveryIcon,
+  ProfileSettingIcon,
+  SecurityIcon,
+} from "@/icons/Icon1";
 import { ArrowRightIcon } from "@/icons/Icons";
-import {usePathname} from "next/navigation"
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 
@@ -16,7 +21,7 @@ interface OnboardingData {
 }
 
 export const AsideNav = () => {
-    const pathname = usePathname();
+  const pathname = usePathname();
   const onboardingData: OnboardingData | null = (() => {
     try {
       const data = localStorage.getItem("onboarding-data");
@@ -65,52 +70,53 @@ export const AsideNav = () => {
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
-            <div className="flex items-center justify-between">
-              <Link
-                href="/profile-settings"
-                className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]"
-              >
+            <Link
+              href="/profile-settings"
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
                 <ProfileSettingIcon />
                 Profile Setting
-              </Link>
+              </div>
               <ArrowRightIcon />
-            </div>
+            </Link>
           </li>
+
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/security-settings"
+              pathname === "/security-setting"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
-            <div className="flex items-center justify-between">
-              <Link
-                href="/security-settings"
-                className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]"
-              >
+            <Link
+              href="/security-setting"
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
                 <SecurityIcon />
                 Security Setting
-              </Link>
+              </div>
               <ArrowRightIcon />
-            </div>
+            </Link>
           </li>
           <li
-            className={`p-6 hover:bg-[#e2e2e2]  cursor-pointer ${
+            className={`p-6 cursor-pointer ${
               pathname === "/delivery-location"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
-            <div className="flex items-center justify-between">
-              <Link
-                href="/delivery-location"
-                className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]"
-              >
+            <Link
+              href="/delivery-location"
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
                 <DeliveryIcon />
                 Delivery Location
-              </Link>
+              </div>
               <ArrowRightIcon />
-            </div>
+            </Link>
           </li>
         </ul>
       </div>
