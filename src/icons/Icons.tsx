@@ -57,7 +57,12 @@ export const MenuIcon: React.FC<menuIconProps> = ({ className, onClick }) => {
   );
 };
 
-export const SearchIcon = () => {
+interface SearchIconProps {
+  className?: string;
+  stroke?: string;
+}
+
+export const SearchIcon = ({ stroke = "#FEFEFE" }: SearchIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +74,7 @@ export const SearchIcon = () => {
     >
       <path
         d="M8.25 15.5C10.0402 15.5 11.7571 14.7888 13.023 13.523C14.2888 12.2571 15 10.5402 15 8.75C15 6.95979 14.2888 5.2429 13.023 3.97703C11.7571 2.71116 10.0402 2 8.25 2C6.45979 2 4.7429 2.71116 3.47703 3.97703C2.21116 5.2429 1.5 6.95979 1.5 8.75C1.5 10.5402 2.21116 12.2571 3.47703 13.523C4.7429 14.7888 6.45979 15.5 8.25 15.5ZM14.1975 16.0175C14.595 17.2175 15.5025 17.3375 16.2 16.2875C16.8375 15.3275 16.4175 14.54 15.2625 14.54C14.4075 14.5325 13.9275 15.2 14.1975 16.0175Z"
-        stroke="#FEFEFE"
+        stroke={stroke}
         strokeWidth="0.62574"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -656,9 +661,10 @@ export const FilterIcon = () => {
 
 interface ArrowUpIconProps {
   onClick?: () => void;
+  className?: string;
 }
 
-export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
+export const ArrowUpIcon = ({ onClick, className }: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -667,7 +673,7 @@ export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
       viewBox="0 0 24 24"
       fill="none"
       onClick={onClick}
-      className="cursor-pointer"
+      className={`cursor-pointer ${className}`}
     >
       <path
         d="M19.9201 15.0496L13.4001 8.52965C12.6301 7.75965 11.3701 7.75965 10.6001 8.52965L4.08008 15.0496"
@@ -681,7 +687,7 @@ export const ArrowUpIcon = ({ onClick }: ArrowUpIconProps) => {
   );
 };
 
-export const ArrowDownIcon = ({ onClick }: ArrowUpIconProps) => {
+export const ArrowDownIcon = ({ onClick, className }: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -690,7 +696,7 @@ export const ArrowDownIcon = ({ onClick }: ArrowUpIconProps) => {
       viewBox="0 0 24 24"
       fill="none"
       onClick={onClick}
-      className="cursor-pointer"
+      className={`cursor-pointer ${className}`}
     >
       <path
         d="M19.9201 8.95043L13.4001 15.4704C12.6301 16.2404 11.3701 16.2404 10.6001 15.4704L4.08008 8.95043"

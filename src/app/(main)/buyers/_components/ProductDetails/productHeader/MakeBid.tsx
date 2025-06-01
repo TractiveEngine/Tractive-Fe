@@ -42,8 +42,8 @@ export const MakeBid = () => {
           onClick={() => {}}
         />
       </div>
-          <div className="flex items-center bg-[#fefefe] px-4 py-7">
-              <ProPaymentMethod />
+      <div className="flex items-center bg-[#fefefe] px-4 py-7">
+        <ProPaymentMethod />
       </div>
     </form>
   );

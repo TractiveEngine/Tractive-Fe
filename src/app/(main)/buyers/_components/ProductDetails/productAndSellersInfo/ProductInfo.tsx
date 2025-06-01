@@ -1,17 +1,14 @@
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import React from "react";
-import { biddingData } from "../../BuyerHome/Biding";
 import { StarIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
+import { BiddingItem } from "../../../BiddingDatas";
 
-export const ProductInfo = () => {
-  const { id } = useParams(); // Get the dynamic id from the URL
-  const item = biddingData.find((data) => data.id === id); // Find the item by id
+interface ProductInfoProps {
+  item: BiddingItem;
+}
 
-  if (!item) {
-    return <div className="text-center py-10">Bidding item not found</div>;
-  }
+export const ProductInfo: React.FC<ProductInfoProps> = ({item}) => {
   return (
     <div className="w-[100%] flex flex-col px-4 pt-2 pb-6 gap-[50px] bg-[#fefefe]">
       <div className="w-[100%] flex flex-col">
@@ -121,7 +118,7 @@ export const ProductInfo = () => {
           </div>
           <p className="font-montserrat font-normal text-[13px] text-[#808080]">
             James Peters:{" "}
-            <span className="text-[#2b2b2b]">{item.bidingPrice}</span>
+            <span className="text-[#2b2b2b]">{item.biddingPrice}</span>
           </p>
         </div>
         <div className="flex flex-col gap-2">

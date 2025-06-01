@@ -7,6 +7,8 @@ import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import "./Navbar.css";
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
+import { Notifications } from "../Notifications";
+import { ProfileDropDown } from "../ProfileDropDown";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -16,12 +18,9 @@ export const Navbar = () => {
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isBidOpen, setIsBidOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
-  const [hasBids, setHasBids] = useState(false); // Placeholder for bid status
 
   const notificationRef = useRef<HTMLDivElement>(null);
-  const bidRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
@@ -52,14 +51,9 @@ export const Navbar = () => {
         { id: 1, message: "You have a new message" },
         { id: 2, message: "Order #456 updated" },
       ];
-      const mockBids = [
-        { id: 123, message: "Bid #123 placed" },
-        { id: 124, message: "Bid #124 updated" },
-      ];
 
       // Update states based on mock data
       setHasNotifications(mockNotifications.length > 0);
-      setHasBids(mockBids.length > 0);
     };
 
     checkLoginStatus();
@@ -76,9 +70,7 @@ export const Navbar = () => {
       ) {
         setIsNotificationOpen(false);
       }
-      if (bidRef.current && !bidRef.current.contains(event.target as Node)) {
-        setIsBidOpen(false);
-      }
+
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)
@@ -99,27 +91,17 @@ export const Navbar = () => {
     setUser(null);
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
-    setIsBidOpen(false);
     setHasNotifications(false);
-    setHasBids(false);
   };
 
   const handleNotificationClick = () => {
     setIsNotificationOpen(!isNotificationOpen);
-    setIsBidOpen(false); // Close bid dropdown
-    setIsDropdownOpen(false); // Close user dropdown
-  };
-
-  const handleBidClick = () => {
-    setIsBidOpen(!isBidOpen);
-    setIsNotificationOpen(false); // Close notification dropdown
     setIsDropdownOpen(false); // Close user dropdown
   };
 
   const handleUserDropdownClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
     setIsNotificationOpen(false); // Close notification dropdown
-    setIsBidOpen(false); // Close bid dropdown
   };
 
   return (
@@ -141,7 +123,7 @@ export const Navbar = () => {
       {/* Conditional Rendering Based on Login Status */}
       {isLoggedIn ? (
         <>
-          <div className="hidden md:flex items-center gap-[2rem] w-[100%] md:gap-[3rem] lg:gap-[7rem] md:w-[75%] lg:w-[60%]">
+          <div className="hidden md:flex items-center justify-center gap-[2rem] w-[100%] md:gap-[3rem] lg:gap-[7rem] md:w-[75%] lg:w-[60%]">
             {/* Search Box and Icons */}
             <div className="relative flex items-center w-[80%]">
               <input
@@ -157,22 +139,21 @@ export const Navbar = () => {
             {/* ========= ICONS ========= */}
             <div className="flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
               {/* ===================== Notification icon ========================= */}
-              <div className="relative" onClick={handleNotificationClick} ref={notificationRef}>
-               <NotificationIcon/>
+              <div
+                className="relative"
+                onClick={handleNotificationClick}
+                ref={notificationRef}
+              >
+                <NotificationIcon />
                 {hasNotifications && (
                   <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                 )}
                 {isNotificationOpen && (
-                  <div className="absolute top-8 left-0 w-64 bg-white border border-gray-200 rounded-[4px] shadow-lg z-10">
+                  <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
                     <ul className="py-2">
                       {hasNotifications ? (
                         <>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            You have a new message
-                          </li>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            Order #456 updated
-                          </li>
+                          <Notifications />
                         </>
                       ) : (
                         <li className="px-4 py-2 text-[0.89rem] text-gray-500">
@@ -185,39 +166,18 @@ export const Navbar = () => {
               </div>
 
               {/* ===================== BID icon ========================= */}
-              <div className="relative" ref={bidRef}>
-                <div
+              <div className="relative">
+                <Link
+                  href="/buyers/my-biddings"
                   className="flex items-center flex-col cursor-pointer"
-                  onClick={handleBidClick}
                 >
                   <span className="relative flex items-center justify-center w-[24px] h-[14.4px] rounded-[3.6px] border-[1.2px] border-[#2b2b2b]">
                     <small className="text-[10px] absolute">BID</small>
                   </span>
                   <span className="w-[2.4px] h-[9.8px] rounded-[3.6px] bg-[#2b2b2b]"></span>
-                </div>
-                {hasBids && (
-                  <span className="absolute -top-[2px] -right-[4px] h-2 w-2 rounded-full bg-[#538E53]" />
-                )}
-                {isBidOpen && (
-                  <div className="absolute top-8 left-0 w-64 bg-white border border-gray-200 rounded-[4px] shadow-lg z-10">
-                    <ul className="py-2">
-                      {hasBids ? (
-                        <>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            Bid #123 placed
-                          </li>
-                          <li className="px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]">
-                            Bid #124 updated
-                          </li>
-                        </>
-                      ) : (
-                        <li className="px-4 py-2 text-[0.89rem] text-gray-500">
-                          No active bids
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                )}
+                </Link>
+
+                <span className="absolute -top-[2px] -right-[4px] h-2 w-2 rounded-full bg-[#538E53]" />
               </div>
             </div>
           </div>
@@ -252,34 +212,7 @@ export const Navbar = () => {
                 />
               </svg>
             </div>
-            {isDropdownOpen && (
-              <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-[4px] shadow-lg z-10">
-                <li>
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Settings
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-[0.89rem] text-gray-700 hover:bg-[#CCE5CC] hover:text-[#538E53]"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            )}
+            {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
           </div>
         </>
       ) : (
@@ -324,7 +257,6 @@ export const Navbar = () => {
         </>
       )}
       <MobileNavbar />
-
     </div>
   );
 };
