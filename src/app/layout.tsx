@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Footer } from "@/components/Footer";
 import { Toaster } from "sonner";
 import { UserEmailProvider } from "@/hooks/userEmailContext";
 
@@ -29,9 +28,6 @@ export default function RootLayout({
           <main>
             <Toaster position="bottom-center" />
             {children}
-            <div className="bg-[#f1f1f1] w-full">
-              <Footer />
-            </div>
           </main>
         </UserEmailProvider>
       </body>

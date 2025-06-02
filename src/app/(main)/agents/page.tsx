@@ -6,7 +6,7 @@ export default function BuyerDashboard() {
 
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#ffffff]">
+    <div className="flex flex-col items-center justify-center h-screen">
       <div className="text-center">
         <Image
           src="/images/AgricTechCart.png" // Optional dashboard image

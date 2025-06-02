@@ -1,4 +1,7 @@
 "use client";
+import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/nav/Navbar";
+import { SubNavbar } from "@/components/nav/SubNavbar";
 import { FollowingProvider } from "@/hooks/followingContext";
 import { WishlistProvider } from "@/hooks/wishlistContext";
 import { isUserLoggedIn } from "@/utils/loginAuth";
@@ -35,7 +38,16 @@ export default function BuyerLayout({
   return (
     <FollowingProvider initialSellers={topSellers}>
       <WishlistProvider>
+        <nav className="bg-[#fefefe] w-full">
+          <Navbar />
+          <div className="bg-[#EBEBEB] w-full">
+            <SubNavbar />
+          </div>
+        </nav>
         <div className="bg-[#f1f1f1]">{children}</div>
+        <div className="bg-[#f1f1f1] w-full">
+          <Footer />
+        </div>
       </WishlistProvider>
     </FollowingProvider>
   );

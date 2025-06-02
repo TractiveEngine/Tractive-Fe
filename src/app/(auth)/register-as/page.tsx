@@ -27,12 +27,12 @@ export default function OnboardingForm() {
 
   const sendPostRequest = (role: string) => {
     console.log(`Sending request for ${role}`);
-    if (role === "buyer") {
+    if (role === "buyers") {
       router.push("/buyers");
-    } else if (role === "transporter") {
-      router.push("/transporter");
-    } else if (role === "agent") {
-      router.push("/agent");
+    } else if (role === "transporters") {
+      router.push("/transporters");
+    } else if (role === "agents") {
+      router.push("/agents");
     }
   };
 
@@ -118,14 +118,14 @@ export default function OnboardingForm() {
               {/* Buyer */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer"
-                onClick={() => setActiveRole("buyer")}
+                onClick={() => setActiveRole("buyers")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Buyer
                 </span>
                 <div
                   className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "buyer"
+                    activeRole === "buyers"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
@@ -143,14 +143,14 @@ export default function OnboardingForm() {
               {/* Transporter */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer"
-                onClick={() => setActiveRole("transporter")}
+                onClick={() => setActiveRole("transporters")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Transporter
                 </span>
                 <div
                   className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "transporter"
+                    activeRole === "transporters"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
@@ -168,14 +168,14 @@ export default function OnboardingForm() {
               {/* Agent */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer"
-                onClick={() => setActiveRole("agent")}
+                onClick={() => setActiveRole("agents")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Agent
                 </span>
                 <div
                   className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "agent"
+                    activeRole === "agents"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
