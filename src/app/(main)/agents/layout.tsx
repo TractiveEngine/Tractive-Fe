@@ -35,7 +35,7 @@ export default function BuyerLayout({
           <ATNavbar />
         </nav>
         {/* Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        <main className="flex-1 pt-[4rem] overflow-y-auto">{children}</main>
       </div>
     </div>
   );

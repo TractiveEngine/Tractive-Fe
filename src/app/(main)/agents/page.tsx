@@ -1,26 +1,25 @@
 "use client";
-import Image from "next/image";
+import { FarmerRevenueChart } from "./_components/FarmerRevenueChart";
+import { FarmerOverview } from "./_components/FarmerOverview";
+import { OutOfStock } from "./_components/OutOfStock";
+import { TopCustomers } from "./_components/TopCustomers";
+import { MostSoldCategoryBarChart } from "./_components/MostSoldCategoryBarChart";
+import { MostSoldItem } from "./_components/MostSoldItem";
 
-export default function BuyerDashboard() {
-
-
-
+export default function AgentDashboard() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="text-center">
-        <Image
-          src="/images/AgricTechCart.png" // Optional dashboard image
-          alt="Dashboard"
-          width={120}
-          height={120}
-          className="mx-auto mb-6"
-        />
-        <h1 className="text-3xl font-bold text-[#2b2b2b] mb-4 font-montserrat">
-          Welcome to your Buyer Dashboard!
-        </h1>
-        <p className="text-lg text-[#555] font-montserrat">
-          Start purchasing products, track orders, and manage your profile here.
-        </p>
+    <div className="w-[90%] mx-auto flex flex-col justify-center">
+      <div className="flex gap-4 w-full">
+        <div className="flex flex-col gap-4 w-full">
+          <FarmerOverview />
+          <FarmerRevenueChart />
+        </div>
+        <OutOfStock />
+      </div>
+      <div className="flex gap-4 w-full">
+        <TopCustomers />
+        <MostSoldCategoryBarChart />
+        <MostSoldItem />
       </div>
     </div>
   );
