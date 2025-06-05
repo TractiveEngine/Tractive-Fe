@@ -4,7 +4,8 @@ import { RedSmallChart, SmallChart } from "./SmallChart";
 
 export const FarmerOverview = () => {
   return (
-    <div className="flex gap-2.5 w-full items-center">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 w-full items-center">
+
       <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
           <div className="bg-[#CCE5CC4D] p-1 rounded-[100px]">
@@ -29,6 +30,7 @@ export const FarmerOverview = () => {
           <SmallChart />
         </div>
       </div>
+
       <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
           <div className="bg-[#F2D8C599] p-1 rounded-[100px]">

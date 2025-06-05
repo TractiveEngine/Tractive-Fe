@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import "./Navbar.css";
-import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
 import { ProfileDropDown } from "../ProfileDropDown";
+import { ATMobileNavbar } from "./A&TMobileNavbar";
 
 export const ATNavbar = () => {
   const pathname = usePathname();
@@ -105,13 +105,15 @@ export const ATNavbar = () => {
   };
 
   return (
+    <>
+    <div className="w-full bg-[#fefefe]">
     <div
-      className={`w-[90%] mx-auto py-2 flex justify-between font-montserrat items-center ${
+      className={`w-[95%] mx-auto py-2 hidden md:flex justify-between font-montserrat items-center ${
         isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
       }`}
     >
       {isLoggedIn ? (
-        <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[1.2rem] font-medium">
+        <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
           Dashboard
         </span>
       ) : (
@@ -145,7 +147,7 @@ export const ATNavbar = () => {
             </div>
 
             {/* ========= ICONS ========= */}
-            <div className="flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
+            <div className="relative flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
               {/* ===================== Notification icon ========================= */}
               <div
                 className="relative"
@@ -157,7 +159,7 @@ export const ATNavbar = () => {
                   <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                 )}
                 {isNotificationOpen && (
-                  <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
+                  <div className="absolute !top-10 !-left-[15rem] w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
                     <ul className="py-2">
                       {hasNotifications ? (
                         <>
@@ -249,7 +251,10 @@ export const ATNavbar = () => {
           </ul>
         </>
       )}
-      <MobileNavbar />
     </div>
+    </div>
+  
+      <ATMobileNavbar />
+    </>
   );
 };

@@ -57,11 +57,11 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
 
 export const FarmerRevenueChart = () => {
   return (
-    <div className="w-full bg-[#fefefe] p-4 rounded-[4px] shadow-md">
-      <h2 className="font-montserrat text-[#2b2b2b] text-[16px] font-semibold mb-4">
+    <div className="w-full bg-[#fefefe] rounded-[4px] shadow-md">
+      <h2 className="font-montserrat text-[#2b2b2b] text-[13px] p-2 pl-4 rounded-tl-[6px] rounded-br-[6px]  font-medium mb-4 bg-[#cce5cc] flex items-center w-[15%]">
         Revenue
       </h2>
-      <div className="w-full h-[300px]">
+      <div className="w-full h-[280px] p-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
@@ -101,8 +101,7 @@ export const FarmerRevenueChart = () => {
               vertical={false}
               horizontal={true}
             />
-            <Tooltip content={<CustomTooltip />}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="value"
