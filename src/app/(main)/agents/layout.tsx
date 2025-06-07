@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 
-// Custom hook to detect current breakpoint
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
 
@@ -38,25 +37,31 @@ export default function AgentLayout({
 }) {
   const router = useRouter();
   const breakpoint = useBreakpoint();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // 🔐 Redirect unauthorized users and fetch user data
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = isUserLoggedIn();
+        setIsLoggedIn(loggedIn);
+        if (loggedIn) {
+          const userData = getLoggedInUser();
+          if (userData && "fullName" in userData && "email" in userData) {
+            setUser({ fullName: userData.fullName, email: userData.email });
+          } else {
+            setUser(null);
+            setIsLoggedIn(false);
+          }
         } else {
           setUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error("Error checking login status:", error);
+        setIsLoggedIn(false);
         setUser(null);
       }
     };
@@ -65,8 +70,8 @@ export default function AgentLayout({
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      toast.error("Unauthorized access. Login.", {
+    if (isLoggedIn === false) {
+      toast.error("Unauthorized access. Please login.", {
         duration: 3000,
         position: "top-center",
       });
@@ -83,37 +88,47 @@ export default function AgentLayout({
   };
 
   const handleUserDropdownClick = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    console.log("Toggling profile dropdown");
+    setIsDropdownOpen((prev) => !prev);
   };
 
-  // Define marginLeft based on breakpoint
+  const closeDropdown = () => {
+    console.log("Closing profile dropdown");
+    setIsDropdownOpen(false);
+  };
+
   const marginLeft = {
     xs: "0rem",
-    sm: "6rem", // Matches sm:ml-[6rem]
-    lg: "12.5rem", // Matches lg:ml-50 (assuming ml-50 is 12.5rem or 200px)
+    sm: "6rem",
+    lg: "12.5rem",
   };
+
+  if (isLoggedIn === null) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f1f1f1]">
-      {/* Sidebar */}
       <AgentAsideNav />
-      {/* Main Content */}
       <motion.div
         className="flex-1 flex flex-col"
         animate={{ marginLeft: marginLeft[breakpoint] }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {/* Top Navbar */}
         <nav className="w-full">
           <ATNavbar />
         </nav>
-        {/* Content Area */}
         <div className="flex flex-col">
           <AgentAsideNavMobile
             user={user}
             isDropdownOpen={isDropdownOpen}
             handleUserDropdownClick={handleUserDropdownClick}
             handleLogout={handleLogout}
+            closeDropdown={closeDropdown}
           />
           <main className="flex-1 pt-[2rem] lg:pt-[4rem] overflow-y-auto">
             {children}

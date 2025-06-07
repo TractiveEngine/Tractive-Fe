@@ -5,7 +5,6 @@ import {
   BidsIcon,
   BoxTickIcon,
   FarmersIcon,
-  LogoutIcon,
   MessageQuestionIcon,
   MessagesIcon,
   MessageStarIcon,
@@ -22,7 +21,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ProfileDropDown } from "../ProfileDropDown";
+import { ProfileDropDownMobile } from "../ProfileDropDownMobile";
 
 interface NavSection {
   title: string;
@@ -39,6 +38,7 @@ interface AgentAsideNavMobileProps {
   isDropdownOpen: boolean;
   handleUserDropdownClick: () => void;
   handleLogout: () => void;
+  closeDropdown: () => void; // New prop
 }
 
 export const AgentAsideNavMobile = ({
@@ -46,6 +46,7 @@ export const AgentAsideNavMobile = ({
   isDropdownOpen,
   handleUserDropdownClick,
   handleLogout,
+  closeDropdown,
 }: AgentAsideNavMobileProps) => {
   const pathname = usePathname();
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
@@ -56,8 +57,11 @@ export const AgentAsideNavMobile = ({
     Others: true,
   });
   const profileRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
-  const toggleSection = (section: string) => {
+  const toggleSection = (section: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    console.log(`Toggling section: ${section}`);
     setOpenSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -66,11 +70,25 @@ export const AgentAsideNavMobile = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
       if (
         profileRef.current &&
-        !profileRef.current.contains(event.target as Node)
+        !profileRef.current.contains(target) &&
+        navRef.current &&
+        !navRef.current.contains(target) &&
+        isDropdownOpen // Only close if dropdown is open
       ) {
-        handleUserDropdownClick(); // Close dropdown if clicking outside
+        console.log("Click outside profile and nav, closing dropdown");
+        closeDropdown(); // Use closeDropdown instead of handleUserDropdownClick
+      } else {
+        console.log(
+          "Click inside profile or nav, or dropdown closed, not closing dropdown",
+          {
+            profileContains: profileRef.current?.contains(target),
+            navContains: navRef.current?.contains(target),
+            isDropdownOpen,
+          }
+        );
       }
     };
 
@@ -78,36 +96,36 @@ export const AgentAsideNavMobile = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleUserDropdownClick]);
+  }, [isDropdownOpen, closeDropdown]);
 
   const navSections: NavSection[] = [
     {
       title: "Store",
       items: [
         { href: "/add-to-store", icon: AddToStoreIcon, label: "Add to store" },
-        { href: "/produce-list", icon: ProduceListIcon, label: "Produce list" },
-        { href: "/farmers", icon: FarmersIcon, label: "Farmers" },
-        { href: "/bids", icon: BidsIcon, label: "Bids", hasDot: true },
+        { href: "/agents/produce-list", icon: ProduceListIcon, label: "Produce list" },
+        { href: "/agents/farmers", icon: FarmersIcon, label: "Farmers" },
+        { href: "/agents/bids", icon: BidsIcon, label: "Bids", hasDot: true },
       ],
     },
     {
       title: "Orders",
       items: [
-        { href: "/orders/new", icon: Bag2Icon, label: "New", hasDot: true },
-        { href: "/orders/packed", icon: PackedIcon, label: "Packed" },
-        { href: "/orders/delivered", icon: BoxTickIcon, label: "Delivered" },
+        { href: "/agents/new", icon: Bag2Icon, label: "New", hasDot: true },
+        { href: "/agents/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/agents/delivered", icon: BoxTickIcon, label: "Delivered" },
       ],
     },
     {
       title: "Transactions",
       items: [
         {
-          href: "/transactions/pending",
+          href: "/agents/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/transactions/received",
+          href: "/agents/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -116,38 +134,59 @@ export const AgentAsideNavMobile = ({
     {
       title: "Customers",
       items: [
-        { href: "/customers", icon: Profile2UserIcon, label: "Customers" },
-        { href: "/reviews", icon: MessageStarIcon, label: "Reviews" },
+        { href: "/agents/customers", icon: Profile2UserIcon, label: "Customers" },
+        { href: "/agents/reviews", icon: MessageStarIcon, label: "Reviews" },
       ],
     },
     {
       title: "Others",
       items: [
-        { href: "/chat", icon: MessagesIcon, label: "Chat", hasDot: true },
-        { href: "/help", icon: MessageQuestionIcon, label: "Help" },
+        { href: "/agents/chat", icon: MessagesIcon, label: "Chat", hasDot: true },
+        { href: "/agents/help", icon: MessageQuestionIcon, label: "Help" },
       ],
     },
   ];
 
+  const sectionVariants = {
+    initial: { height: 0, opacity: 0 },
+    animate: { height: "auto", opacity: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } },
+    exit: { height: 0, opacity: 0, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } },
+  };
+
+  const itemVariants = {
+    initial: { y: 10, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: { y: 10, opacity: 0 },
+  };
+
   return (
-    <aside className="w-[95%] rounded-[0.4rem] mx-auto bg-[#2b2b2b] block sm:hidden shadow-md mt-[1.3rem] z-20 overflow-y-auto">
-      {/* User Info and Dropdown */}
+    <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20 overflow-y-auto">
       {user && (
         <div className="relative px-[0.5rem] pt-[1rem]" ref={profileRef}>
           <div
-            className="flex items-center gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 rounded-[4px] hover:bg-[#4a4a4a] transition"
-            onClick={handleUserDropdownClick}
+            className="flex items-center justify-between gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 px-2.5 rounded-[4px] hover:bg-[#4a4a4a] transition"
+            onClick={() => {
+              console.log("Profile clicked, toggling dropdown");
+              handleUserDropdownClick();
+            }}
           >
-            <Image
-              src="/images/profile_image.png" // Replace with user-uploaded image if available
-              alt="Profile"
-              width={27}
-              height={27}
-              className="rounded-full"
-            />
-            <span className="text-[#fefefe] text-[0.89rem] font-normal">
-              {user.fullName}
-            </span>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/images/profile_image.png"
+                alt="Profile"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+              <div className="flex flex-col">
+                <span className="text-[#fefefe] text-[0.8rem] font-normal">
+                  {user.fullName}
+                </span>
+                <span className="text-[#fefefe] text-[0.8rem] font-normal">
+                  {user.email}
+                </span>
+              </div>
+            </div>
             <svg
               className="h-4 w-4 text-[#fefefe]"
               fill="none"
@@ -162,21 +201,28 @@ export const AgentAsideNavMobile = ({
               />
             </svg>
           </div>
-          {isDropdownOpen && (
-            <div className="absolute top-[3rem] left-0 w-full border border-gray-700 rounded-[4px] shadow-lg z-30">
-              <ProfileDropDown onLogout={handleLogout} />
-            </div>
-          )}
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="w-full rounded-[4px] mt-2 z-30 bg-[#fefefe] shadow-lg"
+              >
+                <ProfileDropDownMobile onLogout={handleLogout} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
-      {/* Routes */}
-      <div className="flex flex-col gap-[2.5rem]">
+      <div className="flex flex-col gap-[2.5rem]" ref={navRef}>
         <div className="flex flex-col px-1">
           <ul className="mt-[1rem] px-[0.5rem]">
             <li>
               <Link
                 href="/agents"
-                className={`flex items-start w-[4rem] flex-col gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
+                className={`flex items-start w-[4rem] flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
                   pathname === "/agents" ? "bg-[#3a3a3a]" : "hover:bg-[#4a4a4a]"
                 }`}
               >
@@ -188,11 +234,10 @@ export const AgentAsideNavMobile = ({
             </li>
           </ul>
           <span className="bg-[#e2e2e2] w-full h-[1px] my-1"></span>
-          {/* Collapsible Sections */}
           {navSections.map((section, idx) => (
             <div key={section.title} className="px-[0.5rem]">
               <button
-                onClick={() => toggleSection(section.title)}
+                onClick={(e) => toggleSection(section.title, e)}
                 className="flex items-center justify-between w-full rounded-md cursor-pointer py-2 px-2.5 text-left font-montserrat text-[#fefefe] text-[11px] font-normal bg-[#3a3a3a] transition-colors duration-200 hover:bg-[#4a4a4a]"
               >
                 <p className="truncate">{section.title}</p>
@@ -208,14 +253,22 @@ export const AgentAsideNavMobile = ({
               <AnimatePresence>
                 {openSections[section.title] && (
                   <motion.ul
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                     className="overflow-hidden grid grid-cols-4 gap-1.5"
                   >
-                    {section.items.map((item) => (
-                      <li key={item.href}>
+                    {section.items.map((item, index) => (
+                      <motion.li
+                        key={item.href}
+                        variants={itemVariants}
+                        transition={{
+                          delay: index * 0.1,
+                          duration: 0.3,
+                          ease: [0.4, 0, 0.2, 1],
+                        }}
+                      >
                         <Link
                           href={item.href}
                           className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
@@ -234,7 +287,7 @@ export const AgentAsideNavMobile = ({
                             )}
                           </div>
                         </Link>
-                      </li>
+                      </motion.li>
                     ))}
                   </motion.ul>
                 )}
@@ -245,22 +298,6 @@ export const AgentAsideNavMobile = ({
             </div>
           ))}
         </div>
-        {/* Logout */}
-        <ul className="mb-[2rem] px-[0.5rem]">
-          <li>
-            <div
-              onClick={handleLogout}
-              className="flex items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 flex-col cursor-pointer hover:bg-[#4a4a4a]"
-            >
-              <LogoutIcon stroke="#fefefe" fill="#fefefe" />
-              <div className="flex items-center gap-3">
-                <span className="font-montserrat text-[#fefefe] text-[11px] font-normal">
-                  Logout
-                </span>
-              </div>
-            </div>
-          </li>
-        </ul>
       </div>
     </aside>
   );

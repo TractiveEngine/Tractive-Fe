@@ -44,7 +44,7 @@ const MostSoldItemProducts: MostSoldItemProduct[] = [
 
 export const MostSoldItem: React.FC = () => {
   return (
-    <div className="w-full lg:w-[39%] bg-[#fefefe] shadow-md rounded-[4px] pb-4 lg:pb-0.5">
+    <div className="w-full bg-[#fefefe] shadow-md rounded-[4px] pb-4 lg:pb-0.5">
       <div className="flex items-end justify-between border-b-[1px] border-[#e2e2e2] mb-4">
         <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium bg-[#cce5cc] flex items-center justify-center w-[40%]">
           Most Sold Item

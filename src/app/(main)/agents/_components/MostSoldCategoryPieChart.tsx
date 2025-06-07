@@ -64,7 +64,7 @@ export const MostSoldCategoryPieChart: React.FC = () => {
   };
 
   return (
-    <div className="w-full lg:w-[28%] bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
+    <div className="w-full bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
       <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium mb-4 bg-[#E5F1E5] flex items-center justify-center w-[10rem]">
         Most Sold Categories
       </h2>

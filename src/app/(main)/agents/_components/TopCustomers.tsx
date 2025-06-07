@@ -71,7 +71,7 @@ const rowVariants = {
 
 export const TopCustomers: React.FC = () => {
   return (
-    <div className="w-full lg:w-[33%] bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
+    <div className="w-full bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
       <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium mb-4 bg-[#EFCEB780] flex items-center justify-center w-[40%]">
         Top Customers
       </h2>

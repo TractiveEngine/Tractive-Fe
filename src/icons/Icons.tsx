@@ -665,7 +665,11 @@ interface ArrowUpIconProps {
   stroke?: string;
 }
 
-export const ArrowUpIcon = ({ onClick, className, stroke }: ArrowUpIconProps) => {
+export const ArrowUpIcon = ({
+  onClick,
+  className,
+  stroke = "#292d32",
+}: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -678,7 +682,7 @@ export const ArrowUpIcon = ({ onClick, className, stroke }: ArrowUpIconProps) =>
     >
       <path
         d="M19.9201 15.0496L13.4001 8.52965C12.6301 7.75965 11.3701 7.75965 10.6001 8.52965L4.08008 15.0496"
-        stroke={`#292D32 ${stroke}`}
+        stroke={stroke}
         strokeWidth="1.5"
         strokeMiterlimit="10"
         strokeLinecap="round"
@@ -688,7 +692,7 @@ export const ArrowUpIcon = ({ onClick, className, stroke }: ArrowUpIconProps) =>
   );
 };
 
-export const ArrowDownIcon = ({ onClick, className, stroke }: ArrowUpIconProps) => {
+export const ArrowDownIcon = ({ onClick, className, stroke="#292d32" }: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -701,7 +705,7 @@ export const ArrowDownIcon = ({ onClick, className, stroke }: ArrowUpIconProps) 
     >
       <path
         d="M19.9201 8.95043L13.4001 15.4704C12.6301 16.2404 11.3701 16.2404 10.6001 15.4704L4.08008 8.95043"
-        stroke={`#292D32 ${stroke}`}
+        stroke={stroke}
         strokeWidth="1.5"
         strokeMiterlimit="10"
         strokeLinecap="round"

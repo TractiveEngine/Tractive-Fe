@@ -623,6 +623,33 @@ export const LogoutIcon: React.FC<IconProps> = ({
     </svg>
   );
 };
+export const CalenderIcon = () => {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="19"
+        viewBox="0 0 18 19"
+        fill="none"
+      >
+        <path
+          d="M6 2V4.25M12 2V4.25M2.625 7.3175H15.375M15.75 6.875V13.25C15.75 15.5 14.625 17 12 17H6C3.375 17 2.25 15.5 2.25 13.25V6.875C2.25 4.625 3.375 3.125 6 3.125H12C14.625 3.125 15.75 4.625 15.75 6.875Z"
+          stroke="#2B2B2B"
+          stroke-width="1.5"
+          stroke-miterlimit="10"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M11.7715 10.7754H11.7782M11.7715 13.0254H11.7782M8.99645 10.7754H9.00395M8.99645 13.0254H9.00395M6.2207 10.7754H6.2282M6.2207 13.0254H6.2282"
+          stroke="#2B2B2B"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    );
+}
 // export const NameIcon = () => {
 //     return (
 

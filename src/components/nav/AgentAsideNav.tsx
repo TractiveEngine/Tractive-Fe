@@ -62,29 +62,29 @@ export const AgentAsideNav = () => {
       title: "Store",
       items: [
         { href: "/add-to-store", icon: AddToStoreIcon, label: "Add to store" },
-        { href: "/produce-list", icon: ProduceListIcon, label: "Produce list" },
-        { href: "/farmers", icon: FarmersIcon, label: "Farmers" },
-        { href: "/bids", icon: BidsIcon, label: "Bids", hasDot: true },
+        { href: "/agents/produce-list", icon: ProduceListIcon, label: "Produce list" },
+        { href: "/agents/farmers", icon: FarmersIcon, label: "Farmers" },
+        { href: "/agents/bids", icon: BidsIcon, label: "Bids", hasDot: true },
       ],
     },
     {
       title: "Orders",
       items: [
-        { href: "/orders/new", icon: Bag2Icon, label: "New", hasDot: true },
-        { href: "/orders/packed", icon: PackedIcon, label: "Packed" },
-        { href: "/orders/delivered", icon: BoxTickIcon, label: "Delivered" },
+        { href: "/agents/new", icon: Bag2Icon, label: "New", hasDot: true },
+        { href: "/agents/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/agents/delivered", icon: BoxTickIcon, label: "Delivered" },
       ],
     },
     {
       title: "Transactions",
       items: [
         {
-          href: "/transactions/pending",
+          href: "/agents/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/transactions/received",
+          href: "/agents/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -93,15 +93,15 @@ export const AgentAsideNav = () => {
     {
       title: "Customers",
       items: [
-        { href: "/customers", icon: Profile2UserIcon, label: "Customers" },
-        { href: "/reviews", icon: MessageStarIcon, label: "Reviews" },
+        { href: "/agents/customers", icon: Profile2UserIcon, label: "Customers" },
+        { href: "/agents/reviews", icon: MessageStarIcon, label: "Reviews" },
       ],
     },
     {
       title: "Others",
       items: [
-        { href: "/chat", icon: MessagesIcon, label: "Chat", hasDot: true },
-        { href: "/help", icon: MessageQuestionIcon, label: "Help" },
+        { href: "/agents/chat", icon: MessagesIcon, label: "Chat", hasDot: true },
+        { href: "/agents/help", icon: MessageQuestionIcon, label: "Help" },
       ],
     },
   ];
