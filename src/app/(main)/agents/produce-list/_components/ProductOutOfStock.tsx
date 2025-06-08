@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
+import { ProductTable } from "./table/ProductTable";
 
 export const ProductOutOfStock: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -60,7 +61,6 @@ export const ProductOutOfStock: React.FC = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-
 
   const handleOutOfStock = () => {
     console.log("Out of Stock clicked");
@@ -237,28 +237,15 @@ export const ProductOutOfStock: React.FC = () => {
               className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
               aria-label="Mark as out of stock"
             >
-            <AddToStoreIcon stroke='#fefefe' />
-            Add Item
+              <AddToStoreIcon stroke="#fefefe" />
+              Add Item
             </button>
           </div>
         </div>
       </div>
       {/* Product List */}
       <div className="mt-6">
-        <h2 className="text-lg sm:text-xl font-semibold mb-4">
-          Product Out Of Stock
-        </h2>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <li className="p-4 bg-white rounded-[4px] shadow-sm hover:shadow-md transition-shadow">
-            Product 1
-          </li>
-          <li className="p-4 bg-white rounded-[4px] shadow-sm hover:shadow-md transition-shadow">
-            Product 2
-          </li>
-          <li className="p-4 bg-white rounded-[4px] shadow-sm hover:shadow-md transition-shadow">
-            Product 3
-          </li>
-        </ul>
+        <ProductTable />
       </div>
     </div>
   );

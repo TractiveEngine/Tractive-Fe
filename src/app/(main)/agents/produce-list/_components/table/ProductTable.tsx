@@ -164,7 +164,7 @@ export const ProductTable: React.FC = () => {
       <table className="min-w-[800px] rounded-lg table-auto">
         <thead>
           <tr className="text-left text-[13px] font-normal font-montserrat text-[#2b2b2b] md:text-sm">
-            <th className="py-3 pl-4 w-[50px] min-w-[50px]">
+            <th className="py-3 pl-4 w-[50px] min-w-[50px]"> 
               <div className="relative w-5 h-5">
                 <input
                   type="checkbox"
@@ -173,7 +173,7 @@ export const ProductTable: React.FC = () => {
                   }
                   onChange={() => {
                     const allChecked =
-                          products.length > 0 && products.every((p) => p.checked);
+                      products.length > 0 && products.every((p) => p.checked);
                     setProducts(
                       products.map((p) => ({ ...p, checked: !allChecked }))
                     );
@@ -185,12 +185,24 @@ export const ProductTable: React.FC = () => {
                 )}
               </div>
             </th>
-            <th className="py-1.5 px-4 min-w-[150px]">Item</th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden sm:table-cell font-montserrat font-normal">ID</th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">Revenue</th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">Sold</th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">Stock</th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">Reviews</th>
+            <th className="py-1.5 px-4 min-w-[150px] font-montserrat font-normal">
+              Item
+            </th>
+            <th className="py-1.5 px-4 min-w-[100px] hidden sm:table-cell font-montserrat font-normal">
+              ID
+            </th>
+            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">
+              Revenue
+            </th>
+            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">
+              Sold
+            </th>
+            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">
+              Stock
+            </th>
+            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">
+              Reviews
+            </th>
             <th className="py-1.5 px-4 min-w-[50px]"></th>
           </tr>
         </thead>
