@@ -57,11 +57,13 @@ export default function Signup() {
         router.push("/email-confirmation");
       }, 1000);
     } catch (err) {
-      console.log("signup failed. Try again.", err);
-      toast.error("Signup failed. Try again.");
-    } finally {
-      setLoading(false);
-    }
+      console.log("signup failed. Try again.", err)
+       toast.dismiss();
+       toast.error("signup failed. Try again.");
+       console.log(err)
+     } finally {
+       setLoading(false);
+     }
   };
 
   return (

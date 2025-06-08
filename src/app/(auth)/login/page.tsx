@@ -133,6 +133,7 @@ export default function Login() {
       console.error("Login error:", err);
       toast.dismiss(toastId); // Dismiss the loading toast
       toast.error("Login failed. Try again.");
+      console.log(err)
     } finally {
       setLoading(false);
     }
