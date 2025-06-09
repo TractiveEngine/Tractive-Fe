@@ -45,8 +45,6 @@ export default function Signup() {
       if (!newUser) return;
 
       setEmail(newUser.email);
-      // Notify user where OTP was sent
-      toast.success(`OTP sent to ${otpSentTo}`);
 
       await new Promise((res) => setTimeout(res, 2000));
       console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
