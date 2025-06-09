@@ -164,7 +164,7 @@ export const ProductTable: React.FC = () => {
       <table className="min-w-[800px] rounded-lg table-auto">
         <thead>
           <tr className="text-left text-[13px] font-normal font-montserrat text-[#2b2b2b] md:text-sm">
-            <th className="py-3 pl-4 w-[50px] min-w-[50px]"> 
+            <th className="py-3 pl-4 w-[50px] min-w-[50px]">
               <div className="relative w-5 h-5">
                 <input
                   type="checkbox"
