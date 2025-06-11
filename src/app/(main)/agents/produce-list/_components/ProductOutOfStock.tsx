@@ -4,16 +4,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
+import { AddToStore } from "../../_components/AddToStore";
 
 export const ProductOutOfStock: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
     "Jan",
@@ -30,7 +31,6 @@ export const ProductOutOfStock: React.FC = () => {
     "Dec",
   ];
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -50,7 +50,6 @@ export const ProductOutOfStock: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -62,23 +61,20 @@ export const ProductOutOfStock: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleOutOfStock = () => {
-    console.log("Out of Stock clicked");
-  };
-
-  // Dropdown animation variants
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full mx-auto">
+      <AddToStore
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-          {/* Search and Dropdowns */}
           <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-            {/* Search Input */}
             <div className="relative w-[100%] sm:w-[70%] flex-grow">
               <input
                 type="text"
@@ -94,7 +90,6 @@ export const ProductOutOfStock: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center w-full sm:w-auto">
-              {/* Year Dropdown */}
               <div className="relative flex-1" ref={yearDropdownRef}>
                 <button
                   onClick={() => setIsYearOpen(!isYearOpen)}
@@ -163,8 +158,6 @@ export const ProductOutOfStock: React.FC = () => {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Month Dropdown */}
               <div className="relative flex-1" ref={monthDropdownRef}>
                 <button
                   onClick={() => setIsMonthOpen(!isMonthOpen)}
@@ -230,12 +223,11 @@ export const ProductOutOfStock: React.FC = () => {
               </div>
             </div>
           </div>
-          {/* Buttons */}
           <div className="flex items-center gap-4 justify-start md:justify-end">
             <button
-              onClick={handleOutOfStock}
+              onClick={() => setIsModalOpen(true)}
               className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-              aria-label="Mark as out of stock"
+              aria-label="Add item to store"
             >
               <AddToStoreIcon stroke="#fefefe" />
               Add Item
@@ -243,7 +235,6 @@ export const ProductOutOfStock: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Product List */}
       <div className="mt-6">
         <ProductTable />
       </div>

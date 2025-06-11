@@ -98,13 +98,13 @@ export const ProductRow: React.FC<ProductRowProps> = ({
 }) => {
   return (
     <motion.tr
-      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative z-[100]"
+      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
       transition={{ delay: index * 0.1 }}
     >
-      <td className="py-1.5 pl-4">
+      <td className="py-1.5 pl-4 whitespace-nowrap">
         <div className="relative w-5 h-5">
           <input
             type="checkbox"
@@ -122,13 +122,13 @@ export const ProductRow: React.FC<ProductRowProps> = ({
             alt={product.name}
             width={83}
             height={47}
-            className="object-cover"
+            className="object-cover w-[53px] h-[30px] sm:w-[63px] sm:h-[35px] lg:w-[87px] lg:h-[47px]"
           />
           <div>
-            <p className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
               {product.name}
             </p>
-            <p className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
               {product.description}
             </p>
           </div>
@@ -136,7 +136,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       </td>
       <td className="py-1.5 px-4">
         <div className="flex items-center gap-1.5 cursor-pointer">
-          <span className="text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
             {product.id}
           </span>
           <button
@@ -149,22 +149,22 @@ export const ProductRow: React.FC<ProductRowProps> = ({
           </button>
         </div>
       </td>
-      <td className="py-1.5 px-4 text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         ${product.revenue.toFixed(2)}
       </td>
-      <td className="py-1.5 px-4 text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         {product.sold}
       </td>
-      <td className="py-1.5 px-4 text-[13px] font-montserrat font-normal text-[#538e53]">
+      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
         {product.stock}
       </td>
-      <td className="py-1.5 px-4 text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         <div className="flex items-center space-x-2">
           <StarStrokeIcon />
-          <span className="text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
             {product.rating}
           </span>
-          <span className="text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
             ({product.reviews} reviews)
           </span>
         </div>

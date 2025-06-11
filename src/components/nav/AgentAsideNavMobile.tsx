@@ -22,14 +22,16 @@ import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProfileDropDownMobile } from "../ProfileDropDownMobile";
+import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
 
 interface NavSection {
   title: string;
   items: {
-    href: string;
+    href?: string;
     icon: React.ComponentType<{ stroke?: string; fill?: string }>;
     label: string;
     hasDot?: boolean;
+    onClick?: () => void;
   }[];
 }
 
@@ -38,7 +40,7 @@ interface AgentAsideNavMobileProps {
   isDropdownOpen: boolean;
   handleUserDropdownClick: () => void;
   handleLogout: () => void;
-  closeDropdown: () => void; // New prop
+  closeDropdown: () => void;
 }
 
 export const AgentAsideNavMobile = ({
@@ -56,12 +58,12 @@ export const AgentAsideNavMobile = ({
     Customers: true,
     Others: true,
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
   const toggleSection = (section: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    console.log(`Toggling section: ${section}`);
     setOpenSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -76,19 +78,9 @@ export const AgentAsideNavMobile = ({
         !profileRef.current.contains(target) &&
         navRef.current &&
         !navRef.current.contains(target) &&
-        isDropdownOpen // Only close if dropdown is open
+        isDropdownOpen
       ) {
-        console.log("Click outside profile and nav, closing dropdown");
-        closeDropdown(); // Use closeDropdown instead of handleUserDropdownClick
-      } else {
-        console.log(
-          "Click inside profile or nav, or dropdown closed, not closing dropdown",
-          {
-            profileContains: profileRef.current?.contains(target),
-            navContains: navRef.current?.contains(target),
-            isDropdownOpen,
-          }
-        );
+        closeDropdown();
       }
     };
 
@@ -102,8 +94,16 @@ export const AgentAsideNavMobile = ({
     {
       title: "Store",
       items: [
-        { href: "/add-to-store", icon: AddToStoreIcon, label: "Add to store" },
-        { href: "/agents/produce-list", icon: ProduceListIcon, label: "Produce list" },
+        {
+          icon: AddToStoreIcon,
+          label: "Add to store",
+          onClick: () => setIsModalOpen(true),
+        },
+        {
+          href: "/agents/produce-list",
+          icon: ProduceListIcon,
+          label: "Produce list",
+        },
         { href: "/agents/farmers", icon: FarmersIcon, label: "Farmers" },
         { href: "/agents/bids", icon: BidsIcon, label: "Bids", hasDot: true },
       ],
@@ -134,14 +134,23 @@ export const AgentAsideNavMobile = ({
     {
       title: "Customers",
       items: [
-        { href: "/agents/customers", icon: Profile2UserIcon, label: "Customers" },
+        {
+          href: "/agents/customers",
+          icon: Profile2UserIcon,
+          label: "Customers",
+        },
         { href: "/agents/reviews", icon: MessageStarIcon, label: "Reviews" },
       ],
     },
     {
       title: "Others",
       items: [
-        { href: "/agents/chat", icon: MessagesIcon, label: "Chat", hasDot: true },
+        {
+          href: "/agents/chat",
+          icon: MessagesIcon,
+          label: "Chat",
+          hasDot: true,
+        },
         { href: "/agents/help", icon: MessageQuestionIcon, label: "Help" },
       ],
     },
@@ -149,8 +158,16 @@ export const AgentAsideNavMobile = ({
 
   const sectionVariants = {
     initial: { height: 0, opacity: 0 },
-    animate: { height: "auto", opacity: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } },
-    exit: { height: 0, opacity: 0, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } },
+    animate: {
+      height: "auto",
+      opacity: 1,
+      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+    },
+    exit: {
+      height: 0,
+      opacity: 0,
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+    },
   };
 
   const itemVariants = {
@@ -160,13 +177,13 @@ export const AgentAsideNavMobile = ({
   };
 
   return (
-    <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20 overflow-y-auto">
+    <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20">
+      <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {user && (
         <div className="relative px-[0.5rem] pt-[1rem]" ref={profileRef}>
           <div
             className="flex items-center justify-between gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 px-2.5 rounded-[4px] hover:bg-[#4a4a4a] transition"
             onClick={() => {
-              console.log("Profile clicked, toggling dropdown");
               handleUserDropdownClick();
             }}
           >
@@ -261,7 +278,7 @@ export const AgentAsideNavMobile = ({
                   >
                     {section.items.map((item, index) => (
                       <motion.li
-                        key={item.href}
+                        key={item.href || item.label}
                         variants={itemVariants}
                         transition={{
                           delay: index * 0.1,
@@ -269,24 +286,45 @@ export const AgentAsideNavMobile = ({
                           ease: [0.4, 0, 0.2, 1],
                         }}
                       >
-                        <Link
-                          href={item.href}
-                          className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
-                            pathname === item.href
-                              ? "bg-[#3a3a3a] text-[#fefefe]"
-                              : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
-                          }`}
-                        >
-                          <item.icon stroke="#fefefe" fill="#fefefe" />
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
-                              {item.label}
-                            </span>
-                            {item.hasDot && (
-                              <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
-                            )}
-                          </div>
-                        </Link>
+                        {item.href ? (
+                          <Link
+                            href={item.href}
+                            className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
+                              pathname === item.href
+                                ? "bg-[#3a3a3a] text-[#fefefe]"
+                                : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
+                            }`}
+                          >
+                            <item.icon stroke="#fefefe" fill="#fefefe" />
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
+                                {item.label}
+                              </span>
+                              {item.hasDot && (
+                                <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={item.onClick}
+                            className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
+                              isModalOpen && item.label === "Add to store"
+                                ? "bg-[#3a3a3a] text-[#fefefe]"
+                                : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
+                            }`}
+                          >
+                            <item.icon stroke="#fefefe" fill="#fefefe" />
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
+                                {item.label}
+                              </span>
+                              {item.hasDot && (
+                                <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
+                              )}
+                            </div>
+                          </button>
+                        )}
                       </motion.li>
                     ))}
                   </motion.ul>

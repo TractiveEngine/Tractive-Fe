@@ -538,6 +538,31 @@ export const ArrowRightIcon = ({
   );
 };
 
+export const ArrowLeftIcon = ({
+  className = "",
+  stroke = "#2b2b2b",
+}: ArrowIconProps) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="19"
+      height="19"
+      viewBox="0 0 9 18"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M8.04883 1.07992L1.52883 7.59992C0.758828 8.36992 0.758828 9.62992 1.52883 10.3999L8.04883 16.9199"
+        stroke={stroke}
+        stroke-width="1.5"
+        stroke-miterlimit="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+};
+
 export const ReplyIcon = () => {
   return (
     <svg
@@ -692,7 +717,11 @@ export const ArrowUpIcon = ({
   );
 };
 
-export const ArrowDownIcon = ({ onClick, className, stroke="#292d32" }: ArrowUpIconProps) => {
+export const ArrowDownIcon = ({
+  onClick,
+  className,
+  stroke = "#292d32",
+}: ArrowUpIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

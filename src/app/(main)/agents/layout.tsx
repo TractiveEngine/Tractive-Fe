@@ -130,7 +130,7 @@ export default function AgentLayout({
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="flex-1 pt-[2rem] lg:pt-[4rem] overflow-y-auto">
+          <main className="pt-[2rem] lg:pt-[4rem]">
             {children}
           </main>
         </div>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
+import "./table/Table.css"
 
 export const ActiveProduct: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -77,7 +78,7 @@ export const ActiveProduct: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full mx-auto">
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
           {/* Search and Dropdowns */}
@@ -254,8 +255,8 @@ export const ActiveProduct: React.FC = () => {
         </div>
       </div>
       {/* Product List */}
-      <div className="mt-6">
-<ProductTable />
+      <div className="mt-6 w-full">
+        <ProductTable />
       </div>
     </div>
   );
