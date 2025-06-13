@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
-import "./table/Table.css"
+import "../../Table.css"
 
 export const ActiveProduct: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");

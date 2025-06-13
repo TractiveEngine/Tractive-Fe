@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ProductRow } from "./ProductRow";
 import { TickIcon } from "./ProductRow";
-import "./Table.css"
 
 // Define interfaces for type safety
 export interface Product {

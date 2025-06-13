@@ -46,7 +46,7 @@ export const AgentAsideNav = () => {
     Customers: true,
     Others: true,
   });
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
