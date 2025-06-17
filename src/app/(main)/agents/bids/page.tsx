@@ -2,11 +2,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Farmer, farmers } from "@/utils/FarmersData";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { OnboardingFarmers } from "./_components/OnnboardingFarmers";
-import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
+import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
+import { Bids, bidsList, Bidder } from "@/utils/BidsData";
+import { BidActionMenu } from "./_components/BidActionMenu";
+import { BiddersModal } from "./_components/BiddersModal";
 
 interface ColumnConfig<T> {
   header: string;
@@ -15,44 +16,94 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const farmerColumns: ColumnConfig<Farmer>[] = [
+const bidsColumns: ColumnConfig<Bids>[] = [
   {
-    header: "Name",
+    header: "Item",
     key: "name",
     minWidth: "min-w-[150px]",
-    render: (farmer) => (
+    render: (bid) => (
       <div className="flex items-center gap-2">
         <Image
-          src={farmer.image}
-          alt={farmer.name}
-          width={25}
-          height={25}
-          className="rounded-full w-[25px] h-[25px] sm:w-[35px] sm:h-[35px] object-cover"
+          src={bid.image}
+          alt={bid.name}
+          width={83}
+          height={47}
+          className="object-cover w-[53px] h-[30px]"
         />
-        <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-          {farmer.name}
+        <div className="flex flex-col">
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+            {bid.name}
+          </span>
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+            {bid.description}
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Price",
+    key: "price",
+    minWidth: "min-w-[100px]",
+    render: (bid) => `$${bid.price.toFixed(2)}`,
+  },
+  {
+    header: "Bidders",
+    key: "bidders",
+    minWidth: "min-w-[120px]",
+    render: (bid) => (
+      <div className="flex items-center gap-6 sm:gap-7">
+        <div className="relative w-[30px] h-[30px]">
+          <Image
+            src="/images/bidder1.png"
+            alt="Bidder 1"
+            width={20}
+            height={20}
+            className="absolute left-0 z-10 sm:w-[25px] sm:h-[25px]"
+          />
+          <Image
+            src="/images/bidder2.png"
+            alt="Bidder 2"
+            width={20}
+            height={20}
+            className="absolute left-[10px] sm:left-[12px] z-20 sm:w-[25px] sm:h-[25px]"
+          />
+          <Image
+            src="/images/bidder3.png"
+            alt="Bidder 3"
+            width={20}
+            height={20}
+            className="absolute left-[20px] sm:left-[28px] z-30 sm:w-[25px] sm:h-[25px]"
+          />
+        </div>
+        <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
+          {bid.bidders}
+        </p>
+      </div>
+    ),
+  },
+  {
+    header: "Leading",
+    key: "leading",
+    minWidth: "min-w-[120px]",
+    render: (bid) => (
+      <div className="flex items-center gap-2">
+        <Image
+          src="/images/leadingavatar.png"
+          alt="Leading Bid"
+          width={20}
+          height={20}
+          className="w-[20px] h-[20px]"
+        />
+        <span className="font-montserrat font-normal text-[10px] sm:text-[12px] text-[#2b2b2b]">
+          ${bid.leading.toFixed(2)}
         </span>
       </div>
     ),
   },
   {
-    header: "State",
-    key: "state",
-    minWidth: "min-w-[100px]",
-  },
-  {
-    header: "Revenue",
-    key: "revenue",
-    minWidth: "min-w-[100px]",
-  },
-  {
-    header: "Orders",
-    key: "orders",
-    minWidth: "min-w-[100px]",
-  },
-  {
-    header: "Mobile",
-    key: "mobile",
+    header: "Farmer",
+    key: "farmer",
     minWidth: "min-w-[100px]",
   },
   {
@@ -62,19 +113,14 @@ const farmerColumns: ColumnConfig<Farmer>[] = [
   },
 ];
 
-// const fetchFarmers = async (): Promise<Farmer[]> => {
-//   // Simulate API call
-//   return new Promise((resolve) => {
-//     setTimeout(() => resolve(farmers), 1000);
-//   });
-// };
-
-const FarmersListPage: React.FC = () => {
+const BidsListPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBiddersModalOpen, setIsBiddersModalOpen] = useState<boolean>(false);
+  const [selectedBidders, setSelectedBidders] = useState<Bidder[]>([]);
+  const [selectedItemName, setSelectedItemName] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -118,27 +164,45 @@ const FarmersListPage: React.FC = () => {
       if (event.key === "Escape") {
         setIsYearOpen(false);
         setIsMonthOpen(false);
+        setIsBiddersModalOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    console.log("Modal state:", {
+      isBiddersModalOpen,
+      selectedBidders,
+      selectedItemName,
+    });
+  }, [isBiddersModalOpen, selectedBidders, selectedItemName]);
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
+  };
+
+  const handleViewBidders = (id: string) => {
+    console.log(`handleViewBidders called with id: ${id}`);
+    const bid = bidsList.find((b) => b.id === id);
+    if (bid) {
+      console.log(`Bid found:`, bid);
+      setSelectedBidders(bid.biddersList || []);
+      setSelectedItemName(bid.name);
+      setIsBiddersModalOpen(true);
+    } else {
+      console.log(`No bid found for id: ${id}`);
+    }
   };
 
   return (
     <div className="w-full">
       <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <h2 className="text-[17px] font-montserrat text-[#2b2b2b] px-6 pt-6 mb-4">
-          Farmers
+          Bids
         </h2>
-        <OnboardingFarmers
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
 
         <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
@@ -149,7 +213,7 @@ const FarmersListPage: React.FC = () => {
                   type="text"
                   placeholder="Search"
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                  aria-label="Search farmers"
+                  aria-label="Search bids"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <SearchIcon
@@ -294,28 +358,26 @@ const FarmersListPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 justify-start md:justify-end">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-                aria-label="Onboard farmer"
-              >
-                <AddToStoreIcon stroke="#fefefe" />
-                Onboard
-              </button>
-            </div>
           </div>
         </div>
         <div className="my-6">
-          <TableList<Farmer>
-            dataType="farmers"
-            columns={farmerColumns}
-            initialData={farmers}
+          <TableList<Bids>
+            dataType="bids"
+            columns={bidsColumns}
+            initialData={bidsList}
+            ActionMenuComponent={BidActionMenu}
+            handleViewBidders={handleViewBidders}
           />
         </div>
+        <BiddersModal
+          isOpen={isBiddersModalOpen}
+          onClose={() => setIsBiddersModalOpen(false)}
+          bidders={selectedBidders}
+          itemName={selectedItemName}
+        />
       </div>
     </div>
   );
 };
 
-export default FarmersListPage;
+export default BidsListPage;

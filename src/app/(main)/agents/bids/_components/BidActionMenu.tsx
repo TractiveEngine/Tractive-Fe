@@ -1,15 +1,14 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ActionMenuProps } from "../../_components/ActionMenuProps";
-import { ThreeDotIcon } from "../../produce-list/_components/table/ActionMenu";
+import { ActionMenuProps } from "../../_components/ActionMenuProps"; // Adjust path as needed
+import { ThreeDotIcon } from "../../produce-list/_components/table/ActionMenu"; // Adjust path as needed
 
-export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
+export const BidActionMenu: React.FC<ActionMenuProps> = ({
   productId,
   activeMenu,
   setActiveMenu,
-  handleEdit,
-  handleReport,
+  handleViewBidders,
 }) => {
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,33 +41,22 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="absolute w-[6.8rem] py-1 px-1 bottom-[0rem] right-16 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
+            className="absolute w-[8rem] py-1 px-1 bottom-[0rem] right-16 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
             transition={{ duration: 0.2 }}
           >
-            {handleEdit && (
+            {handleViewBidders && (
               <button
                 onClick={() => {
-                  handleEdit(productId);
+                  handleViewBidders(productId);
                   setActiveMenu(null);
                 }}
-                className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                className="w-full cursor-pointer text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
               >
-                Edit Profile
-              </button>
-            )}
-            {handleReport && (
-              <button
-                onClick={() => {
-                  handleReport(productId);
-                  setActiveMenu(null);
-                }}
-                className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100"
-              >
-                Report
+                View Bidders
               </button>
             )}
           </motion.div>

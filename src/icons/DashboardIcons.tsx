@@ -258,17 +258,17 @@ export const Bag2Icon: React.FC<IconProps> = ({ stroke = "#292d32"  }) => {
       <path
         d="M6.4629 6.58955V5.82564C6.4629 4.05368 7.88834 2.31322 9.6603 2.14784C10.1526 2.09947 10.6497 2.15472 11.1194 2.31002C11.5891 2.46533 12.0211 2.71727 12.3875 3.04961C12.754 3.38195 13.0468 3.78733 13.2472 4.23967C13.4475 4.69201 13.5509 5.18129 13.5507 5.67601V6.76281M7.6442 17.8749H12.3694C15.5353 17.8749 16.1023 16.607 16.2677 15.0634L16.8584 10.3382C17.071 8.41663 16.5197 6.84943 13.157 6.84943H6.85667C3.49388 6.84943 2.94261 8.41663 3.15524 10.3382L3.7459 15.0634C3.91128 16.607 4.47831 17.8749 7.6442 17.8749Z"
         stroke={stroke}
-        stroke-width="1.1813"
-        stroke-miterlimit="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.1813"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M12.7569 10H12.7648M7.24414 10H7.25044"
         stroke={stroke}
-        stroke-width="1.57507"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.57507"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -353,16 +353,16 @@ export const BoxTickIcon = ({ stroke = "#292d32" }: IconProps) => {
       <path
         d="M2.37891 5.58008L9.0014 9.41257L15.5789 5.60255"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M9.00195 16.2078V9.40527"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M16.2079 6.8775V11.1225C16.2079 11.16 16.208 11.19 16.2005 11.2275C15.6755 10.77 15.0005 10.5 14.2505 10.5C13.5455 10.5 12.893 10.7475 12.3755 11.16C11.6855 11.7075 11.2505 12.555 11.2505 13.5C11.2505 14.0625 11.4079 14.595 11.6854 15.045C11.7529 15.165 11.8355 15.2775 11.9255 15.3825L10.553 16.14C9.69796 16.62 8.30295 16.62 7.44795 16.14L3.44296 13.92C2.53545 13.4175 1.79297 12.1575 1.79297 11.1225V6.8775C1.79297 5.8425 2.53545 4.58252 3.44296 4.08002L7.44795 1.86C8.30295 1.38 9.69796 1.38 10.553 1.86L14.558 4.08002C15.4655 4.58252 16.2079 5.8425 16.2079 6.8775Z"
@@ -389,23 +389,23 @@ export const MoneyReceiveIcon: React.FC<IconProps> = ({
       <path
         d="M7.125 10.3122C7.125 11.0397 7.68751 11.6247 8.37751 11.6247H9.78749C10.3875 11.6247 10.875 11.1147 10.875 10.4772C10.875 9.79468 10.575 9.54719 10.1325 9.38969L7.875 8.60218C7.4325 8.44468 7.13251 8.20469 7.13251 7.51469C7.13251 6.88469 7.61999 6.36719 8.21999 6.36719H9.63C10.32 6.36719 10.8825 6.95219 10.8825 7.67969"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M9 5.625V12.375"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M16.5 9C16.5 13.14 13.14 16.5 9 16.5C4.86 16.5 1.5 13.14 1.5 9C1.5 4.86 4.86 1.5 9 1.5"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -426,37 +426,37 @@ export const MoneyReceive2Icon: React.FC<IconProps> = ({
       <path
         d="M7.125 10.3122C7.125 11.0397 7.68751 11.6247 8.37751 11.6247H9.78749C10.3875 11.6247 10.875 11.1147 10.875 10.4772C10.875 9.79468 10.575 9.54719 10.1325 9.38969L7.875 8.60218C7.4325 8.44468 7.13251 8.20469 7.13251 7.51469C7.13251 6.88469 7.61999 6.36719 8.21999 6.36719H9.63C10.32 6.36719 10.8825 6.95219 10.8825 7.67969"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M9 5.625V12.375"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+      strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M16.5 9C16.5 13.14 13.14 16.5 9 16.5C4.86 16.5 1.5 13.14 1.5 9C1.5 4.86 4.86 1.5 9 1.5"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M12.75 2.25V5.25H15.75"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M16.5 1.5L12.75 5.25"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -516,9 +516,9 @@ export const MessageStarIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => 
           <path
             d="M3.43223 1.37766L3.87223 2.25766C3.93223 2.38016 4.09223 2.49766 4.22723 2.52016L5.02473 2.65266C5.53473 2.73766 5.65473 3.10766 5.28723 3.47266L4.66723 4.09266C4.56223 4.19766 4.50473 4.40016 4.53723 4.54516L4.71473 5.31266C4.85473 5.92016 4.53223 6.15516 3.99473 5.83766L3.24723 5.39516C3.11223 5.31516 2.88973 5.31516 2.75223 5.39516L2.00473 5.83766C1.46973 6.15516 1.14473 5.91766 1.28473 5.31266L1.46223 4.54516C1.49473 4.40016 1.43723 4.19766 1.33223 4.09266L0.712233 3.47266C0.347233 3.10766 0.464733 2.73766 0.974733 2.65266L1.77223 2.52016C1.90473 2.49766 2.06473 2.38016 2.12473 2.25766L2.56473 1.37766C2.80473 0.900156 3.19473 0.900156 3.43223 1.37766Z"
             stroke={stroke}
-            stroke-width="1.125"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.125"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </g>
         <defs>
@@ -551,9 +551,9 @@ export const MessagesIcon: React.FC<IconProps> = ({
         <path
           d="M12.75 6.75C12.75 9.6525 10.23 12 7.125 12L6.4275 12.84L6.015 13.335C5.6625 13.755 4.9875 13.665 4.755 13.1625L3.75 10.95C2.385 9.99 1.5 8.4675 1.5 6.75C1.5 3.8475 4.02 1.5 7.125 1.5C9.39 1.5 11.3475 2.7525 12.225 4.5525C12.5625 5.22 12.75 5.9625 12.75 6.75Z"
           stroke={stroke}
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M5.25 6.75023H9M16.5 9.64523C16.5 11.3627 15.615 12.8852 14.25 13.8452L13.245 16.0577C13.0125 16.5602 12.3375 16.6577 11.985 16.2302L10.875 14.8952C9.06 14.8952 7.44 14.0927 6.4275 12.8402L7.125 12.0002C10.23 12.0002 12.75 9.65273 12.75 6.75023C12.75 5.96273 12.5625 5.22023 12.225 4.55273C14.6775 5.11523 16.5 7.18523 16.5 9.64523Z"
@@ -635,17 +635,17 @@ export const CalenderIcon = () => {
         <path
           d="M6 2V4.25M12 2V4.25M2.625 7.3175H15.375M15.75 6.875V13.25C15.75 15.5 14.625 17 12 17H6C3.375 17 2.25 15.5 2.25 13.25V6.875C2.25 4.625 3.375 3.125 6 3.125H12C14.625 3.125 15.75 4.625 15.75 6.875Z"
           stroke="#2B2B2B"
-          stroke-width="1.5"
-          stroke-miterlimit="10"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeMiterlimit="10"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M11.7715 10.7754H11.7782M11.7715 13.0254H11.7782M8.99645 10.7754H9.00395M8.99645 13.0254H9.00395M6.2207 10.7754H6.2282M6.2207 13.0254H6.2282"
           stroke="#2B2B2B"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     );
