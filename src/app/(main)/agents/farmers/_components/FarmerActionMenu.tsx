@@ -34,15 +34,15 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
       <button
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => setActiveMenu(activeMenu ? null : productId)}
-        className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
+        onClick={() => setActiveMenu(isActive ? null : productId)}
+        className="bg-[#f1f1f1] rounded-full cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
       </button>
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="absolute w-[6.8rem] py-1 px-1 bottom-[0rem] right-16 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
+            className="absolute min-w-[120px] py-1 px-1 right-0 top-10 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-[100]"
             variants={menuVariants}
             initial="hidden"
             animate="visible"

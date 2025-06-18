@@ -1,5 +1,5 @@
 .Table_Container {
-  @apply mb-[1rem] mx-auto w-full max-w-[100vw] overflow-x-auto shadow-[inset_-10px_0_8px_-8px_rgba(0\\,_0\\,_0\\,_0.05)];
+  @apply mb-[1rem] w-full max-w-[100vw] overflow-x-auto shadow-[inset_-10px_0_8px_-8px_rgba(0\\,_0\\,_0\\,_0.05)];
 
   box-shadow: inset -10px 0 8px -8px rgba(0, 0, 0, 0.05);
 }
@@ -16,6 +16,11 @@
   }
 }
 @media screen and (min-width: 568px) {
+  .Table_Container {
+    @apply max-w-[80vw];
+  }
+}
+@media screen and (min-width: 910px) {
   .Table_Container {
     @apply max-w-[85vw];
   }

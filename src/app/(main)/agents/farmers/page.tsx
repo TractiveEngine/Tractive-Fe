@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Farmer, farmers } from "@/utils/FarmersData";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { OnboardingFarmers } from "./_components/OnnboardingFarmers";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
+// import { OnboardingFarmers } from "./_components/OnboardingFarmer";
+import { FarmerActionMenu } from "./_components/FarmerActionMenu";
+import { OnboardingFarmers } from "./_components/OnboardingFarmer";
 
 interface ColumnConfig<T> {
   header: string;
@@ -53,7 +55,7 @@ const farmerColumns: ColumnConfig<Farmer>[] = [
   {
     header: "Mobile",
     key: "mobile",
-    minWidth: "min-w-[100px]",
+    minWidth: "min-w-[120px]",
   },
   {
     header: "Date",
@@ -62,19 +64,16 @@ const farmerColumns: ColumnConfig<Farmer>[] = [
   },
 ];
 
-// const fetchFarmers = async (): Promise<Farmer[]> => {
-//   // Simulate API call
-//   return new Promise((resolve) => {
-//     setTimeout(() => resolve(farmers), 1000);
-//   });
-// };
-
 const FarmersListPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFarmer, setEditFarmer] = useState<Farmer | null>(null);
+  const [farmersData, setFarmersData] = useState<Farmer[]>(farmers);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -118,11 +117,70 @@ const FarmersListPage: React.FC = () => {
       if (event.key === "Escape") {
         setIsYearOpen(false);
         setIsMonthOpen(false);
+        setIsOnboardModalOpen(false);
+        setIsEditModalOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleEdit = (id: string) => {
+    console.log(`Editing farmer with ID: ${id}`);
+    const farmer = farmersData.find((f) => f.id === id);
+    if (farmer) {
+      setEditFarmer(farmer);
+      setIsEditModalOpen(true);
+    } else {
+      console.error(`Farmer with ID ${id} not found`);
+    }
+  };
+
+  const handleReport = (id: string) => {
+    console.log(`Reported farmer with ID: ${id}`);
+    alert(`Reported farmer with ID: ${id}`);
+  };
+
+  const handleOnboardSubmit = (
+    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date">
+  ) => {
+    const newFarmer: Farmer = {
+      id: `farmer-${Date.now()}`,
+      revenue: "$0",
+      orders: "0",
+      date: new Date().toLocaleDateString("en-GB"),
+      ...formData,
+    };
+    setFarmersData([newFarmer, ...farmersData]);
+  };
+
+  const handleEditSubmit = (
+    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date">
+  ) => {
+    if (editFarmer) {
+      setFarmersData(
+        farmersData.map((f) =>
+          f.id === editFarmer.id ? { ...f, ...formData } : f
+        )
+      );
+      setIsEditModalOpen(false);
+      setEditFarmer(null);
+    }
+  };
+
+  const filteredFarmers = farmersData.filter((farmer) => {
+    const matchesSearch =
+      farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      farmer.state.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesYear =
+      !selectedYear || farmer.date.includes(selectedYear.toString());
+    const matchesMonth =
+      !selectedMonth ||
+      farmer.date.includes(
+        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
+      );
+    return matchesSearch && matchesYear && matchesMonth;
+  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -136,10 +194,16 @@ const FarmersListPage: React.FC = () => {
           Farmers
         </h2>
         <OnboardingFarmers
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isOnboardModalOpen}
+          onClose={() => setIsOnboardModalOpen(false)}
+          onSubmit={handleOnboardSubmit}
         />
-
+        <OnboardingFarmers
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleEditSubmit}
+          editFarmer={editFarmer}
+        />
         <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
@@ -148,6 +212,8 @@ const FarmersListPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search farmers"
                 />
@@ -184,7 +250,7 @@ const FarmersListPage: React.FC = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -251,7 +317,7 @@ const FarmersListPage: React.FC = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -294,10 +360,10 @@ const FarmersListPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 justify-start md:justify-end">
+            <div className="flex items-center gap-4 justify-end">
               <button
-                onClick={() => setIsModalOpen(true)}
-                className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
+                onClick={() => setIsOnboardModalOpen(true)}
+                className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.92] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
                 aria-label="Onboard farmer"
               >
                 <AddToStoreIcon stroke="#fefefe" />
@@ -306,11 +372,14 @@ const FarmersListPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="my-6">
+        <div className="my-6 overflow-x-auto">
           <TableList<Farmer>
             dataType="farmers"
             columns={farmerColumns}
-            initialData={farmers}
+            initialData={filteredFarmers}
+            ActionMenuComponent={FarmerActionMenu}
+            handleEdit={handleEdit}
+            handleReport={handleReport}
           />
         </div>
       </div>
