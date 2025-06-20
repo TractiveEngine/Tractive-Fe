@@ -36,7 +36,7 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {transaction.name}
           </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
             {transaction.description}
           </span>
         </div>
@@ -84,18 +84,18 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     minWidth: "min-w-[100px]",
   },
 ];
+
 export const ApprovedTableList = () => {
- 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
     useState<boolean>(false);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
     "Jan",
@@ -111,7 +111,7 @@ export const ApprovedTableList = () => {
     "Nov",
     "Dec",
   ];
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -130,28 +130,42 @@ export const ApprovedTableList = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsYearOpen(false);
         setIsMonthOpen(false);
         setIsCustomerCareModalOpen(false);
-        setActiveMenu(null);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  
+
+  const filteredTransactions = ApprovedData.filter((transaction) => {
+    const matchesSearch =
+      transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesYear =
+      !selectedYear || transaction.date.includes(selectedYear.toString());
+    const matchesMonth =
+      !selectedMonth ||
+      transaction.date.includes(
+        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
+      );
+    return matchesSearch && matchesYear && matchesMonth;
+  });
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
-  
+
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
+      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
@@ -159,6 +173,8 @@ export const ApprovedTableList = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search transactions"
                 />
@@ -195,7 +211,7 @@ export const ApprovedTableList = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -262,7 +278,7 @@ export const ApprovedTableList = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -309,9 +325,9 @@ export const ApprovedTableList = () => {
         </div>
         <div className="my-6">
           <TableList<Transaction>
-            dataType="pending"
+            dataType="received"
             columns={transactionColumns}
-            initialData={ApprovedData}
+            initialData={filteredTransactions}
             ActionMenuComponent={TransactionActionMenu}
             handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
           />
@@ -323,4 +339,4 @@ export const ApprovedTableList = () => {
       </div>
     </div>
   );
-}
+};

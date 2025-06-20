@@ -36,7 +36,7 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {transaction.name}
           </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
             {transaction.description}
           </span>
         </div>
@@ -90,9 +90,8 @@ export const PendingTableList = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
-    useState<boolean>(false);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -137,12 +136,26 @@ export const PendingTableList = () => {
         setIsYearOpen(false);
         setIsMonthOpen(false);
         setIsCustomerCareModalOpen(false);
-        setActiveMenu(null);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const filteredTransactions = PendingData.filter((transaction) => {
+    const matchesSearch =
+      transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesYear =
+      !selectedYear || transaction.date.includes(selectedYear.toString());
+    const matchesMonth =
+      !selectedMonth ||
+      transaction.date.includes(
+        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
+      );
+    return matchesSearch && matchesYear && matchesMonth;
+  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -151,7 +164,7 @@ export const PendingTableList = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
+      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
@@ -159,6 +172,8 @@ export const PendingTableList = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search transactions"
                 />
@@ -195,7 +210,7 @@ export const PendingTableList = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -245,9 +260,7 @@ export const PendingTableList = () => {
                     role="combobox"
                     aria-expanded={isMonthOpen}
                     aria-controls="month-dropdown"
-                    aria-label={
-                      selectedMonth ? "Selected month" : "Select month"
-                    }
+                    aria-label={selectedMonth ? "Selected month" : "Select month"}
                   >
                     {selectedMonth || "Month"}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
@@ -262,7 +275,7 @@ export const PendingTableList = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -311,7 +324,7 @@ export const PendingTableList = () => {
           <TableList<Transaction>
             dataType="pending"
             columns={transactionColumns}
-            initialData={PendingData}
+            initialData={filteredTransactions}
             ActionMenuComponent={TransactionActionMenu}
             handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
           />

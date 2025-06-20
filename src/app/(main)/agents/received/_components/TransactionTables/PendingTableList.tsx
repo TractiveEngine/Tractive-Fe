@@ -92,7 +92,6 @@ export const PendingTableList = () => {
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
     useState<boolean>(false);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +136,6 @@ export const PendingTableList = () => {
         setIsYearOpen(false);
         setIsMonthOpen(false);
         setIsCustomerCareModalOpen(false);
-        setActiveMenu(null);
       }
     };
     document.addEventListener("keydown", handleKeyDown);

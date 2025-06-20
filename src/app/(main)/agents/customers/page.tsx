@@ -4,12 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { Transaction, ApprovedData } from "@/utils/TransactionData";
-import { TableList } from "../../../_components/table/TableList";
-import { copyToClipboard } from "@/utils/Clipboard";
-import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
-import { CustomerCareModal } from "../CustomerCareModal";
-import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
+import { TableList } from "../_components/table/TableList";
+import { CustomerActionMenu } from "./_components/CustomerActionMenu";
+import { CustomerInfoModal } from "./_components/CustomerInfoModal";
+import { SupportModal } from "./_components/SupportModal";
+import { Customer, customers } from "@/utils/CustomersData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,65 +17,47 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const transactionColumns: ColumnConfig<Transaction>[] = [
+const customerColumns: ColumnConfig<Customer>[] = [
   {
-    header: "Item",
+    header: "Name",
     key: "name",
     minWidth: "min-w-[150px]",
-    render: (transaction) => (
+    render: (customer) => (
       <div className="flex items-center gap-2">
-        <Image
-          src={transaction.image}
-          alt={transaction.name}
-          width={53}
-          height={30}
-          className="object-cover w-[73px] h-[40px]"
-        />
-        <div className="flex flex-col">
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {transaction.name}
-          </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {transaction.description}
-          </span>
-        </div>
+        {customer.image && (
+          <Image
+            src={customer.image}
+            alt={customer.name}
+            width={25}
+            height={25}
+            className="rounded-full w-[25px] h-[25px] sm:w-[35px] sm:h-[35px] object-cover"
+          />
+        )}
+        <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+          {customer.name}
+        </span>
       </div>
     ),
   },
   {
-    header: "ID",
-    key: "id",
+    header: "State",
+    key: "state",
     minWidth: "min-w-[100px]",
-    render: (transaction) => (
-      <div className="flex items-center gap-2">
-        <span>{transaction.id}</span>
-        <button
-          onClick={() => copyToClipboard(transaction.id)}
-          title="Copy Product ID"
-          aria-label="Copy Product ID"
-          className="cursor-pointer"
-        >
-          <IdCopyIcon />
-        </button>
-      </div>
-    ),
   },
   {
-    header: "Sold",
-    key: "sold",
+    header: "Revenue",
+    key: "revenue",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.sold.toFixed(2)}`,
   },
   {
-    header: "Commission",
-    key: "commission",
+    header: "Orders",
+    key: "orders",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.commission.toFixed(2)}`,
   },
   {
-    header: "Buyer",
-    key: "buyer",
-    minWidth: "min-w-[100px]",
+    header: "Mobile",
+    key: "mobile",
+    minWidth: "min-w-[120px]",
   },
   {
     header: "Date",
@@ -84,17 +65,22 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     minWidth: "min-w-[100px]",
   },
 ];
-export const ApprovedTableList = () => {
- 
+
+export default function CustomersListPage() {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
-    useState<boolean>(false);
+  const customersData = customers;
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isCustomerInfoOpen, setIsCustomerInfoOpen] = useState<boolean>(false);
+  const [isSupportOpen, setIsSupportOpen] = useState<boolean>(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
     "Jan",
@@ -110,7 +96,7 @@ export const ApprovedTableList = () => {
     "Nov",
     "Dec",
   ];
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -129,27 +115,60 @@ export const ApprovedTableList = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsYearOpen(false);
         setIsMonthOpen(false);
-        setIsCustomerCareModalOpen(false);
+        setIsCustomerInfoOpen(false);
+        setIsSupportOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  
+
+  const handleCustomerInfo = (id: string) => {
+    console.log(`Customer info requested for ID: ${id}`);
+    const customer = customersData.find((c) => c.id === id);
+    if (customer) {
+      setSelectedCustomer(customer);
+      setIsCustomerInfoOpen(true);
+    }
+  };
+
+  const handleSupport = (id: string) => {
+    console.log(`Support requested for customer ID: ${id}`);
+    setIsSupportOpen(true);
+  };
+
+  const filteredCustomers = customersData.filter((customer) => {
+    const matchesSearch =
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.state.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesYear =
+      !selectedYear || customer.date.includes(selectedYear.toString());
+    const matchesMonth =
+      !selectedMonth ||
+      customer.date.includes(
+        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
+      );
+    return matchesSearch && matchesYear && matchesMonth;
+  });
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
-  
+
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
+      <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
+        <h2 className="text-[17px] font-montserrat text-[#2b2b2b] px-6 pt-6 mb-4">
+          Customers
+        </h2>
+        <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
@@ -157,8 +176,10 @@ export const ApprovedTableList = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                  aria-label="Search transactions"
+                  aria-label="Search customers"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <SearchIcon
@@ -193,7 +214,7 @@ export const ApprovedTableList = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -260,7 +281,7 @@ export const ApprovedTableList = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -305,19 +326,25 @@ export const ApprovedTableList = () => {
             </div>
           </div>
         </div>
-        <div className="my-6">
-          <TableList<Transaction>
-            dataType="pending"
-            columns={transactionColumns}
-            initialData={ApprovedData}
-            ActionMenuComponent={TransactionActionMenu}
-            handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
+        <div className="my-6 overflow-x-auto">
+          <TableList<Customer>
+            dataType="customers"
+            columns={customerColumns}
+            initialData={filteredCustomers}
+            ActionMenuComponent={CustomerActionMenu}
+            handleCustomerInfo={handleCustomerInfo}
+            handleSupport={handleSupport}
+          />
+          <CustomerInfoModal
+            customer={selectedCustomer}
+            isOpen={isCustomerInfoOpen}
+            onClose={() => setIsCustomerInfoOpen(false)}
+          />
+          <SupportModal
+            isOpen={isSupportOpen}
+            onClose={() => setIsSupportOpen(false)}
           />
         </div>
-        <CustomerCareModal
-          isOpen={isCustomerCareModalOpen}
-          onClose={() => setIsCustomerCareModalOpen(false)}
-        />
       </div>
     </div>
   );

@@ -26,6 +26,8 @@ interface BidsListTableProps<T extends BaseData> {
   handleEdit?: (id: string) => void;
   handleReport?: (id: string) => void;
   handleViewBidders?: (id: string) => void;
+  handleCustomerInfo?: (id: string) => void;
+  handleSupport?: (id: string) => void;
   handleBuyerInfo?: (id: string) => void;
   handleParked?: (id: string) => void;
   handleDelivered?: (id: string) => void;
@@ -56,6 +58,8 @@ export const TableList = <T extends BaseData>({
   handleTrackOrder,
   handleCustomerCare,
   handleCheckboxChange,
+  handleCustomerInfo,
+  handleSupport,
   handleSelectAll,
   allChecked,
 }: BidsListTableProps<T>): React.ReactElement => {
@@ -112,6 +116,16 @@ export const TableList = <T extends BaseData>({
 
   const defaultHandleCustomerCare = (id: string) => {
     console.log(`Default handleCustomerCare called for id: ${id}`);
+    setActiveMenu(null);
+  };
+
+  const defaultHandleCustomerInfo = (id: string) => {
+    console.log(`Default handleCustomerInfo called for id: ${id}`);
+    setActiveMenu(null);
+  };
+
+  const defaultHandleSupport = (id: string) => {
+    console.log(`Default handleSupport called for id: ${id}`);
     setActiveMenu(null);
   };
 
@@ -228,6 +242,16 @@ export const TableList = <T extends BaseData>({
                     handleCustomerCare={
                       dataType === "pending"
                         ? handleCustomerCare || defaultHandleCustomerCare
+                        : undefined
+                    }
+                    handleCustomerInfo={
+                      dataType === "customers"
+                        ? handleCustomerInfo || defaultHandleCustomerInfo
+                        : undefined
+                    }
+                    handleSupport={
+                      dataType === "customers"
+                        ? handleSupport || defaultHandleSupport
                         : undefined
                     }
                   />
