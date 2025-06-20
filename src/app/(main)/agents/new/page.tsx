@@ -60,7 +60,7 @@ export default function ProduceListPage() {
 
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
-      <h1 className="text-[16px] font-normal mb-4 px-6 pt-6 sm:text-lg">
+      <h1 className="text-[16px] font-normal font-montserrat mb-4 px-6 pt-6 sm:text-lg">
         Order management
       </h1>
       <div className="flex flex-col">

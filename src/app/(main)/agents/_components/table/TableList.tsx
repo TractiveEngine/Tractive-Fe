@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion"; // Added import for TickIcon
-import { ActionMenuProps } from "../ActionMenuProps";
+import { motion } from "framer-motion";
 import { TickIcon } from "../../produce-list/_components/table/ProductRow";
+import { ActionMenuProps } from "../ActionMenuProps";
 import "../../Table.css";
+
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
@@ -71,7 +72,6 @@ export const TableList = <T extends BaseData>({
     }
   }, [dataType, fetchData, initialData]);
 
-  // Default handlers for farmers and bids
   const defaultHandleEdit = (id: string) => {
     console.log(`Default handleEdit called for id: ${id}`);
     alert(`Edit ${dataType} with ID: ${id}`);
@@ -90,7 +90,6 @@ export const TableList = <T extends BaseData>({
     setActiveMenu(null);
   };
 
-  // Default no-op handlers for product actions
   const defaultHandleBuyerInfo = (id: string) => {
     console.log(`Default handleBuyerInfo called for id: ${id}`);
     setActiveMenu(null);
@@ -227,9 +226,7 @@ export const TableList = <T extends BaseData>({
                         : undefined
                     }
                     handleCustomerCare={
-                      dataType === "new" ||
-                      dataType === "parked" ||
-                      dataType === "delivered"
+                      dataType === "pending"
                         ? handleCustomerCare || defaultHandleCustomerCare
                         : undefined
                     }

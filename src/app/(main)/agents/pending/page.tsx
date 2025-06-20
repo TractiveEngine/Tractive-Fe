@@ -1,19 +1,19 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ActiveProduct } from "./_components/ActiveProduct";
-import { ProductOutOfStock } from "./_components/ProductOutOfStock";
+import { PendingTableList } from "./_components/TransactionTables/PendingTableList";
+import { ApprovedTableList } from "./_components/TransactionTables/ReceivedTableList";
 
 interface SideProps {
-  switchSides: "Active" | "OutOfStock";
-  setSwitchSides: React.Dispatch<React.SetStateAction<"Active" | "OutOfStock">>;
+  switchSides: "Pending" | "Approved";
+  setSwitchSides: React.Dispatch<React.SetStateAction<"Pending" | "Approved">>;
 }
 
-export default function ProduceListPage() {
+export default function PendingTransactionListPage() {
   const [switchSides, setSwitchSides] =
-    useState<SideProps["switchSides"]>("Active");
-  const activeContainerRef = useRef<HTMLDivElement>(null);
-  const outOfStockContainerRef = useRef<HTMLDivElement>(null);
+    useState<SideProps["switchSides"]>("Pending");
+  const PendingContainerRef = useRef<HTMLDivElement>(null);
+  const ApprovedContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState<{
     left: number;
@@ -31,9 +31,9 @@ export default function ProduceListPage() {
   useEffect(() => {
     const updateIndicator = () => {
       const activeContainer =
-        switchSides === "Active"
-          ? activeContainerRef.current
-          : outOfStockContainerRef.current;
+        switchSides === "Pending"
+          ? PendingContainerRef.current
+          : ApprovedContainerRef.current;
       const container = containerRef.current;
       if (activeContainer && container) {
         const containerRect = container.getBoundingClientRect();
@@ -52,7 +52,7 @@ export default function ProduceListPage() {
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
       <h1 className="text-[16px] font-normal font-montserrat mb-4 px-6 pt-6 sm:text-lg">
-        Stock management
+        Transaction history
       </h1>
       <div className="flex flex-col">
         <div
@@ -63,51 +63,47 @@ export default function ProduceListPage() {
         >
           <div
             className="flex items-center gap-1 relative"
-            ref={activeContainerRef}
+            ref={PendingContainerRef}
           >
             <button
               role="tab"
               id="active-tab"
-              onClick={() => handleSwitchSides("Active")}
+              onClick={() => handleSwitchSides("Pending")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "Active"
-                  ? "text-[#538e53]"
-                  : "text-[#538e53]/70"
+                switchSides === "Pending" ? "text-[#E0A63A]" : "text-[#E0A63A]"
               }`}
-              aria-selected={switchSides === "Active"}
-              aria-controls="active-panel"
+              aria-selected={switchSides === "Pending"}
+              aria-controls="Pending-panel"
             >
-              Active
+              Pending
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
+            <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px]">
               15
             </span>
           </div>
           <div
             className="flex items-center gap-1 relative"
-            ref={outOfStockContainerRef}
+            ref={ApprovedContainerRef}
           >
             <button
               role="tab"
-              id="outofstock-tab"
-              onClick={() => handleSwitchSides("OutOfStock")}
+              id="Approved-tab"
+              onClick={() => handleSwitchSides("Approved")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "OutOfStock"
-                  ? "text-[#8B4513]"
-                  : "text-[#8B4513]/70"
+                switchSides === "Approved" ? "text-[#538e53]" : "text-[#538e53]"
               }`}
-              aria-selected={switchSides === "OutOfStock"}
-              aria-controls="outofstock-panel"
+              aria-selected={switchSides === "Approved"}
+              aria-controls="Approved-panel"
             >
-              Out of Stock
+              Approved
             </button>
-            <span className="bg-[#8B4513] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
               15
             </span>
           </div>
           <motion.div
             className={`absolute -bottom-[0.5rem] rounded-t-[10px] h-[3.7px] ${
-              switchSides === "Active" ? "bg-[#538e53]" : "bg-[#8B4513]"
+              switchSides === "Pending" ? "bg-[#E0A63A]" : "bg-[#538e53]"
             }`}
             animate={{ left: indicatorStyle.left, width: indicatorStyle.width }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -119,9 +115,13 @@ export default function ProduceListPage() {
       <div
         className="mb-4"
         role="tabpanel"
-        id={switchSides === "Active" ? "active-panel" : "outofstock-panel"}
+        id={switchSides === "Pending" ? "Pending-panel" : "Approved-panel"}
       >
-        {switchSides === "Active" ? <ActiveProduct /> : <ProductOutOfStock />}
+        {switchSides === "Pending" ? (
+          <PendingTableList />
+        ) : (
+          <ApprovedTableList />
+        )}
       </div>
     </div>
   );
