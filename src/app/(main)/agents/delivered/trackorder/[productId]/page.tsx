@@ -1,30 +1,41 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DeliveredProductData, Product } from "@/utils/ProductData"; // Adjust path as needed
+import { motion } from "framer-motion";
+import { DeliveredProductData, Product } from "@/utils/ProductData";
 
 export default function TrackOrderPage() {
-  const { productId } = useParams(); // Get productID from URL
+  const { productId } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching product data (replace with actual API call if needed)
-    const foundProduct = DeliveredProductData.find((p) => p.id === productId);
-    setProduct(foundProduct || null);
+    if (typeof productId === "string") {
+      const foundProduct = DeliveredProductData.find((p) => p.id === productId);
+      if (!foundProduct) {
+        notFound();
+      }
+      setProduct(foundProduct || null);
+    }
     setLoading(false);
   }, [productId]);
 
   if (loading) {
-    return <div className="text-center p-6">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <motion.div
+          className="w-12 h-12 border-4 border-t-[#538e53] border-gray-200 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          role="status"
+          aria-label="Loading product details"
+        />
+      </div>
+    );
   }
 
   if (!product) {
-    return (
-      <div className="text-center p-6 text-red-500">
-        Product with ID {productId} not found.
-      </div>
-    );
+    return notFound();
   }
 
   return (
@@ -54,7 +65,6 @@ export default function TrackOrderPage() {
         <p>
           <strong>Tracking Status:</strong> {product.status}
         </p>
-        {/* Add more tracking details as needed */}
       </div>
     </div>
   );
