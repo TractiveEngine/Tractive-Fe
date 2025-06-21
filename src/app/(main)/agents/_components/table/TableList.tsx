@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { TickIcon } from "../../produce-list/_components/table/ProductRow";
 import { ActionMenuProps } from "../ActionMenuProps";
 import "../../Table.css";
+import { useRouter } from "next/navigation";
 
 interface ColumnConfig<T> {
   header: string;
@@ -63,6 +64,7 @@ export const TableList = <T extends BaseData>({
   handleSelectAll,
   allChecked,
 }: BidsListTableProps<T>): React.ReactElement => {
+  const router = useRouter();
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -111,6 +113,7 @@ export const TableList = <T extends BaseData>({
 
   const defaultHandleTrackOrder = (id: string) => {
     console.log(`Default handleTrackOrder called for id: ${id}`);
+    router.push(`/agents/delivered/trackorder/${id}`);
     setActiveMenu(null);
   };
 

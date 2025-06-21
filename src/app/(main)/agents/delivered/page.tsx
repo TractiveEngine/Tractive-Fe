@@ -31,7 +31,6 @@ export default function ProduceListPage() {
     setSwitchSides(side);
   };
 
-  // Update indicator position and width when switchSides changes
   useEffect(() => {
     const updateIndicator = () => {
       let activeContainer: HTMLDivElement | null = null;

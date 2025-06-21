@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThreeDotIcon } from "../../../produce-list/_components/table/ActionMenu";
 import { ActionMenuProps } from "../../../_components/ActionMenuProps";
+import { ThreeDotIcon } from "../../../produce-list/_components/table/ActionMenu";
 
 export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
   productId,
@@ -73,7 +73,7 @@ export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
                 handleCustomerCare?.(productId);
                 setActiveMenu(null);
               }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b  hover:bg-gray-100"
+              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
             >
               Customer Care
             </button>

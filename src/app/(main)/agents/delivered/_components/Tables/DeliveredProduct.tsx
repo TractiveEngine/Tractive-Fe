@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Add for navigation
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -89,6 +90,7 @@ const productColumns: ColumnConfig<Product>[] = [
 ];
 
 export const DeliveredProduct: React.FC = () => {
+  const router = useRouter(); // Initialize router
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
@@ -149,7 +151,7 @@ export const DeliveredProduct: React.FC = () => {
   };
 
   const handleTrackOrder = (id: string) => {
-    alert(`Track order for product ID: ${id}`);
+    router.push(`/agents/delivered/trackorder/${id}`); // Navigate to track order page
   };
 
   const handleCustomerCare = (id: string) => {
@@ -174,8 +176,7 @@ export const DeliveredProduct: React.FC = () => {
       product.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.id.includes(searchQuery);
-    const matchesYear =
-      !selectedYear || product.date.includes(searchQuery.toLowerCase());
+    const matchesYear = !selectedYear || product.date.includes(selectedYear); // Fixed
     const matchesMonth =
       !selectedMonth ||
       product.date.includes(

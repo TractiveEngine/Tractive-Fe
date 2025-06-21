@@ -8,6 +8,7 @@ export interface Product {
   location: string;
   date: string;
   checked: boolean;
+  status: "New" | "Packed" | "Delivered"; // Use string literal union
 }
 
 export const NewProductData: Product[] = [
@@ -21,6 +22,7 @@ export const NewProductData: Product[] = [
     location: "Lagos",
     date: "23/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "234567890",
@@ -32,6 +34,7 @@ export const NewProductData: Product[] = [
     location: "Abuja",
     date: "20/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "345678901",
@@ -43,6 +46,7 @@ export const NewProductData: Product[] = [
     location: "Enugu",
     date: "21/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "456789012",
@@ -54,6 +58,7 @@ export const NewProductData: Product[] = [
     location: "Kano",
     date: "22/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "567890123",
@@ -65,6 +70,7 @@ export const NewProductData: Product[] = [
     location: "Ibadan",
     date: "19/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "678901234",
@@ -76,6 +82,7 @@ export const NewProductData: Product[] = [
     location: "Port Harcourt",
     date: "18/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "789012345",
@@ -87,6 +94,7 @@ export const NewProductData: Product[] = [
     location: "Lagos",
     date: "17/09/2025",
     checked: false,
+    status: "New",
   },
   {
     id: "890123456",
@@ -98,6 +106,7 @@ export const NewProductData: Product[] = [
     location: "Abuja",
     date: "16/09/2025",
     checked: false,
+    status: "New",
   },
 ];
 
@@ -112,6 +121,7 @@ export const ParkedProductData: Product[] = [
     location: "Lagos",
     date: "15/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "012345678",
@@ -123,6 +133,7 @@ export const ParkedProductData: Product[] = [
     location: "Kano",
     date: "14/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "123456780",
@@ -134,6 +145,7 @@ export const ParkedProductData: Product[] = [
     location: "Enugu",
     date: "13/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "234567891",
@@ -145,6 +157,7 @@ export const ParkedProductData: Product[] = [
     location: "Abuja",
     date: "12/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "345678902",
@@ -156,6 +169,7 @@ export const ParkedProductData: Product[] = [
     location: "Ibadan",
     date: "11/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "456789013",
@@ -167,6 +181,7 @@ export const ParkedProductData: Product[] = [
     location: "Port Harcourt",
     date: "10/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "567890124",
@@ -178,6 +193,7 @@ export const ParkedProductData: Product[] = [
     location: "Lagos",
     date: "09/09/2025",
     checked: false,
+    status: "Packed",
   },
   {
     id: "678901235",
@@ -189,6 +205,7 @@ export const ParkedProductData: Product[] = [
     location: "Abuja",
     date: "08/09/2025",
     checked: false,
+    status: "Packed",
   },
 ];
 
@@ -203,6 +220,7 @@ export const DeliveredProductData: Product[] = [
     location: "Lagos",
     date: "07/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "890123457",
@@ -214,6 +232,7 @@ export const DeliveredProductData: Product[] = [
     location: "Kano",
     date: "06/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "901234568",
@@ -225,6 +244,7 @@ export const DeliveredProductData: Product[] = [
     location: "Enugu",
     date: "05/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "012345679",
@@ -236,6 +256,7 @@ export const DeliveredProductData: Product[] = [
     location: "Ibadan",
     date: "04/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "123456781",
@@ -247,6 +268,7 @@ export const DeliveredProductData: Product[] = [
     location: "Abuja",
     date: "03/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "234567892",
@@ -258,6 +280,7 @@ export const DeliveredProductData: Product[] = [
     location: "Port Harcourt",
     date: "02/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "345678903",
@@ -269,6 +292,7 @@ export const DeliveredProductData: Product[] = [
     location: "Lagos",
     date: "01/09/2025",
     checked: false,
+    status: "Delivered",
   },
   {
     id: "456789014",
@@ -280,5 +304,6 @@ export const DeliveredProductData: Product[] = [
     location: "Abuja",
     date: "31/08/2025",
     checked: false,
+    status: "Delivered",
   },
 ];
