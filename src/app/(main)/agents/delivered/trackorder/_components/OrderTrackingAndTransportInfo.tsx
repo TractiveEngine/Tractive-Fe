@@ -16,46 +16,6 @@ import {
   TickIcon,
 } from "../../../_components/Icons/AgentIcons";
 
-interface TrackingHistory {
-  id: string;
-  status: string;
-  date: string;
-  description: string;
-}
-
-// Mock tracking history for search functionality
-const mockTrackingHistory: TrackingHistory[] = [
-  {
-    id: "1",
-    status: "Order Placed",
-    date: "01/09/2025",
-    description: "Order confirmed by seller",
-  },
-  {
-    id: "2",
-    status: "Processing",
-    date: "02/09/2025",
-    description: "Order being prepared for shipment",
-  },
-  {
-    id: "3",
-    status: "Shipped",
-    date: "03/09/2025",
-    description: "Order shipped from warehouse",
-  },
-  {
-    id: "4",
-    status: "In Transit",
-    date: "04/09/2025",
-    description: "Order in transit to destination",
-  },
-  {
-    id: "5",
-    status: "Delivered",
-    date: "05/09/2025",
-    description: "Order delivered to buyer",
-  },
-];
 
 const loaderVariants: Variants = {
   initial: { opacity: 0, scale: 0.8 },
@@ -72,14 +32,6 @@ const loaderVariants: Variants = {
   exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
 };
 
-const skeletonVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.3 } },
-  pulse: {
-    opacity: [0.6, 1, 0.6],
-    transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" },
-  },
-};
 
 export const OrderTrackingAndTransportInfo = () => {
   const { productId } = useParams();
@@ -102,12 +54,6 @@ export const OrderTrackingAndTransportInfo = () => {
     }
   }, [productId]);
 
-  const filteredTrackingHistory = mockTrackingHistory.filter(
-    (entry) =>
-      entry.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.date.includes(searchQuery)
-  );
 
   if (loading) {
     return (

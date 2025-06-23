@@ -1,4 +1,5 @@
-import { useState } from "react";
+"use client";
+import React, { useState } from "react";
 import Image from "next/image";
 import { PackagedProduct, PackagedProducts } from "@/utils/PackageData";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
@@ -18,6 +19,38 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
     console.error("Failed to copy:", error);
     return false;
   }
+};
+
+// Component for rendering the ID column cell with copy functionality
+const IdCell: React.FC<{ id: string }> = ({ id }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const success = await copyToClipboard(id);
+    if (success) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <span>{id}</span>
+      <button
+        onClick={handleCopy}
+        title="Copy Product ID"
+        aria-label="Copy Product ID"
+        className="cursor-pointer relative"
+      >
+        <IdCopyIcon />
+        {isCopied && (
+          <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#538e53] text-white text-[10px] px-2 py-1 rounded">
+            Copied!
+          </span>
+        )}
+      </button>
+    </div>
+  );
 };
 
 const packageColumns: ColumnConfig<PackagedProduct>[] = [
@@ -49,36 +82,7 @@ const packageColumns: ColumnConfig<PackagedProduct>[] = [
     header: "ID",
     key: "id",
     minWidth: "min-w-[100px]",
-    render: (packagedProduct) => {
-      const [isCopied, setIsCopied] = useState(false);
-
-      const handleCopy = async () => {
-        const success = await copyToClipboard(packagedProduct.id);
-        if (success) {
-          setIsCopied(true);
-          setTimeout(() => setIsCopied(false), 2000);
-        }
-      };
-
-      return (
-        <div className="flex items-center gap-2">
-          <span>{packagedProduct.id}</span>
-          <button
-            onClick={handleCopy}
-            title="Copy Product ID"
-            aria-label="Copy Product ID"
-            className="cursor-pointer relative"
-          >
-            <IdCopyIcon />
-            {isCopied && (
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#538e53] text-white text-[10px] px-2 py-1 rounded">
-                Copied!
-              </span>
-            )}
-          </button>
-        </div>
-      );
-    },
+    render: (packagedProduct) => <IdCell id={packagedProduct.id} />,
   },
 ];
 
@@ -86,7 +90,7 @@ export const PackagedTable: React.FC = () => {
   return (
     <div className="w-full bg-[#fefefe] shadow-md rounded-[10px] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="border-spacing-0">
+        <table className="w-full border-separate border-spacing-0">
           <thead>
             <tr className="bg-[#fefefe] border-b border-[#e0e0e0]">
               {packageColumns.map((column, index) => (
@@ -102,6 +106,7 @@ export const PackagedTable: React.FC = () => {
                         : ""
                     }
                   `}
+                  scope="col"
                 >
                   {column.header}
                 </th>
