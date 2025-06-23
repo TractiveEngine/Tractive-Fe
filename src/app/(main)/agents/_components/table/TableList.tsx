@@ -44,7 +44,7 @@ const rowVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-export const TableList = <T extends BaseData>({
+export const  TableList = <T extends BaseData>({
   dataType,
   columns,
   initialData = [],
