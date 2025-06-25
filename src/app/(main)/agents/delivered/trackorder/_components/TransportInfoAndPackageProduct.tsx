@@ -34,7 +34,7 @@ export const TransportInfoAndPackageProduct = () => {
     logoAlt: "GIGM Logo",
     logoWidth: 67,
     logoHeight: 47,
-    rating: 4.0,
+    rating: "4.0",
     phoneNumbers,
   };
 
@@ -42,7 +42,7 @@ export const TransportInfoAndPackageProduct = () => {
     <div className="flex gap-2 rounded-[10px]">
       <div className="flex gap-3 w-full">
         {/* Transport Information */}
-        <div className="flex flex-col bg-[#fefefe] shadow-md rounded-[10px] p-4 w-[300px]">
+        <div className="flex flex-col bg-[#fefefe] shadow-md rounded-[10px] p-4 w-[385px]">
           <h2 className="font-montserrat font-normal text-[14px] mb-2 text-[#2b2b2b]">
             Transporter Info
           </h2>

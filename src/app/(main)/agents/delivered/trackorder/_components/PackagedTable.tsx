@@ -8,7 +8,7 @@ interface ColumnConfig<T> {
   header: string;
   key: keyof T;
   render?: (item: T) => React.ReactNode;
-  minWidth?: string;
+  maxWidth?: string;
 }
 
 const copyToClipboard = async (text: string): Promise<boolean> => {
@@ -57,7 +57,7 @@ const packageColumns: ColumnConfig<PackagedProduct>[] = [
   {
     header: "Package",
     key: "name",
-    minWidth: "min-w-[150px]",
+    maxWidth: "max-w-[75px]",
     render: (packagedProduct) => (
       <div className="flex items-center gap-2">
         <Image
@@ -81,7 +81,7 @@ const packageColumns: ColumnConfig<PackagedProduct>[] = [
   {
     header: "ID",
     key: "id",
-    minWidth: "min-w-[100px]",
+    maxWidth: "max-w-[40px]",
     render: (packagedProduct) => <IdCell id={packagedProduct.id} />,
   },
 ];
@@ -97,8 +97,8 @@ export const PackagedTable: React.FC = () => {
                 <th
                   key={column.key.toString()}
                   className={`
-                    px-4 py-2 text-left font-montserrat font-normal text-[12px] text-[#2b2b2b]
-                    ${column.minWidth || ""}
+                    px-2 py-2 text-left font-montserrat font-normal text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0]
+                    ${column.maxWidth || ""}
                     ${index === 0 ? "first:rounded-tl-[10px]" : ""}
                     ${
                       index === packageColumns.length - 1
@@ -130,8 +130,8 @@ export const PackagedTable: React.FC = () => {
                   <td
                     key={`${item.id}-${column.key}`}
                     className={`
-                      px-4 py-2 text-[11px] font-montserrat font-normal
-                      ${column.minWidth || ""}
+                      px-2 py-2 text-[11px] font-montserrat font-normal
+                      ${column.maxWidth || ""}
                       ${
                         index === PackagedProducts.length - 1 && colIndex === 0
                           ? "first:rounded-bl-[10px]"

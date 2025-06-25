@@ -13,7 +13,7 @@ type TransportCallDetailsProps = {
     logoAlt: string;
     logoWidth: number;
     logoHeight: number;
-    rating: number;
+    rating: string;
     phoneNumbers: string[];
   };
   copiedStates: { [key: string]: boolean };
