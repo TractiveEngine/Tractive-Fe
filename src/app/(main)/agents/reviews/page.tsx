@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useMemo } from "react";
-import { ReviewIcon, XIcon } from "@/icons/Icon1";
+import { ReviewIcon } from "@/icons/Icon1";
 import { LikeIcon, ReplyIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
@@ -33,11 +33,6 @@ interface ReviewData {
   ratings: Rating[];
   reviews: Review[];
   reviewerAvatars: string[];
-}
-
-// Props interface for the Reviews component
-interface ReviewsProps {
-  onClose: () => void;
 }
 
 // Sample review data
@@ -102,7 +97,7 @@ const reviewData: ReviewData = {
   ],
 };
 
-const ReviewsPage: React.FC<ReviewsProps> = ({ onClose }) => {
+const ReviewsPage: React.FC = () => {
   const { overallRating, totalReviewers, ratings, reviews, reviewerAvatars } =
     reviewData;
 

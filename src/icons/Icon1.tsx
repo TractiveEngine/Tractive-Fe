@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { IconBaseProps } from "react-icons/lib";
 
 export const MessageIcon = () => {
   return (

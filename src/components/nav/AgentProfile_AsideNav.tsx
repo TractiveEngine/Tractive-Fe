@@ -1,7 +1,6 @@
 
 import {
   CallOutlineIcon,
-  DeliveryIcon,
   ProfileSettingIcon,
   SecurityIcon,
   WalletAddIcon,
