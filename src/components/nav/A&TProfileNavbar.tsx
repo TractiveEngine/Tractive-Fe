@@ -6,10 +6,11 @@ import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import "./Navbar.css";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
-import { Notifications } from "../Notifications";import { ATMobileNavbar } from "./A&TMobileNavbar";
+import { Notifications } from "../Notifications";
+import { ATMobileNavbar } from "./A&TMobileNavbar";
 import { Agent_ProfileDropDown } from "../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
 
-export const ATNavbar = () => {
+export const ATProfileNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(
@@ -111,23 +112,20 @@ export const ATNavbar = () => {
             isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
           }`}
         >
-          {isLoggedIn ? (
-            <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
-              Dashboard
-            </span>
-          ) : (
-            <>
-              {/* Logo */}
-              <Link href="/" className="hidden md:flex items-center">
-                <Image
-                  src="/images/navLogo.png"
-                  alt="Agrictech Logo"
-                  width={75}
-                  height={75}
-                />
-              </Link>
-            </>
-          )}
+          <div>
+            {/* Logo */}
+            <Link href="/" className="hidden md:flex items-center">
+              <Image
+                src="/images/navLogo.png"
+                alt="Agrictech Logo"
+                width={70}
+                height={70}
+              />
+            </Link>
+          </div>
+          <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
+            Dashboard
+          </span>
 
           {/* Conditional Rendering Based on Login Status */}
           {isLoggedIn ? (

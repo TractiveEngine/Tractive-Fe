@@ -1,4 +1,4 @@
-import { ProfilePicture } from "@/app/(auth)/(profiles)/_components/ProfilePicture";
+import { ProfilePicture } from "@/app/(profiles)/buyer-profile/_components/ProfilePicture";
 import {
   CallOutlineIcon,
   DeliveryIcon,
@@ -20,7 +20,7 @@ interface OnboardingData {
   interests: string[];
 }
 
-export const AsideNav = () => {
+export const BuyerProfile_AsideNav = () => {
   const pathname = usePathname();
   const onboardingData: OnboardingData | null = (() => {
     try {
@@ -65,13 +65,13 @@ export const AsideNav = () => {
         <ul className="flex flex-col w-[100%]">
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/profile-settings"
+              pathname === "/buyer-profile-settings"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/profile-settings"
+              href="/buyer-profile-settings"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -84,13 +84,13 @@ export const AsideNav = () => {
 
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/security-setting"
+              pathname === "/buyer-security-setting"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/security-setting"
+              href="/buyer-security-setting"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -102,13 +102,13 @@ export const AsideNav = () => {
           </li>
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/delivery-location"
+              pathname === "/buyer-delivery-location"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/delivery-location"
+              href="/buyer-delivery-location"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">

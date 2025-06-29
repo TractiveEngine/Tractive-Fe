@@ -20,9 +20,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ProfileDropDownMobile } from "../ProfileDropDownMobile";
-import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
+import { motion, AnimatePresence } from "framer-motion";import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
+import { Agent_ProfileDropDownMobile } from "../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDownMobile";
 
 interface NavSection {
   title: string;
@@ -227,7 +226,7 @@ export const AgentAsideNavMobile = ({
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                 className="w-full rounded-[4px] mt-2 z-30 bg-[#fefefe] shadow-lg"
               >
-                <ProfileDropDownMobile onLogout={handleLogout} />
+                <Agent_ProfileDropDownMobile onLogout={handleLogout} />
               </motion.div>
             )}
           </AnimatePresence>

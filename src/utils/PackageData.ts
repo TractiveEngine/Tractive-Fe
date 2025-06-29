@@ -15,7 +15,7 @@ export const PackagedProducts: PackagedProduct[] = [
   {
     id: "987654321",
   image: "/images/yellowPepper.png",
-    name: "Sweet Potato",
+    name: "Potato",
     description: "Organic sweet...",
   },
   {

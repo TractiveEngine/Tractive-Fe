@@ -7,14 +7,14 @@ interface ProfileDropDownProps {
   onLogout: () => void;
 }
 
-export const ProfileDropDownMobile = ({ onLogout }: ProfileDropDownProps) => {
+export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
   return (
-    <div className="flex flex-col gap-3 pt-2 w-full bg-[#fefefe] rounded-[4px] z-20">
+    <div className="flex flex-col gap-3 absolute right-0 top-12 pt-2 w-48 bg-[#fefefe] rounded-[4px] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)] z-20">
       <ul className="flex flex-col">
         <li className="w-[95%] mx-auto">
           <Link
-            href="/profile-settings"
-            className="block px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#2b2b2b] transition-all duration-200 hover:text-[#fefefe]"
+            href="/buyer-profile"
+            className="block px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#538E53] hover:text-[#fefefe]"
           >
             Profile settings
           </Link>
@@ -22,14 +22,13 @@ export const ProfileDropDownMobile = ({ onLogout }: ProfileDropDownProps) => {
         <li className="w-[95%] mx-auto">
           <button
             onClick={onLogout}
-            className="block w-full text-left px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#2b2b2b] transition-all duration-200 hover:text-[#FEFEFE] cursor-pointer"
+            className="block w-full text-left px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#538E53] hover:text-[#FEFEFE] cursor-pointer"
           >
             Logout
           </button>
         </li>
       </ul>
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
-      {/* ===== Account Switch ====== */}
       <div className="flex flex-col gap-2 px-3 pb-3">
         <div className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">

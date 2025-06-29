@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { IconBaseProps } from "react-icons/lib";
 
 export const MessageIcon = () => {
   return (
@@ -120,7 +121,12 @@ export const AwardIcon = () => {
   );
 };
 
-export const ReviewIcon = () => {
+interface IconProps {
+  stroke?: string;
+  className?: string;
+}
+
+export const ReviewIcon: React.FC<IconProps> = ({className, stroke="#2b2b2b"}) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -128,10 +134,11 @@ export const ReviewIcon = () => {
       height="20"
       viewBox="0 0 23 23"
       fill="none"
+      className={className}
     >
       <path
         d="M15.8642 4.2757C17.6636 4.2757 19.1106 5.73197 19.1106 7.52215C19.1106 9.27523 17.7193 10.7037 15.9848 10.7686C15.9046 10.7593 15.8237 10.7593 15.7436 10.7686M17.6544 19.1166C18.3222 18.9775 18.9529 18.7085 19.4724 18.3096C20.9194 17.2244 20.9194 15.4342 19.4724 14.349C18.9622 13.9594 18.3408 13.6997 17.6822 13.5513M9.13941 10.648C9.04665 10.6387 8.93534 10.6387 8.83331 10.648C7.76867 10.6119 6.75989 10.1627 6.02062 9.39577C5.28135 8.6288 4.86963 7.60419 4.87265 6.53894C4.87265 4.26643 6.70921 2.42059 8.991 2.42059C10.082 2.40091 11.1362 2.81544 11.9216 3.573C12.7069 4.33055 13.1592 5.36907 13.1789 6.4601C13.1986 7.55112 12.7841 8.60528 12.0265 9.39066C11.269 10.176 10.2304 10.6283 9.13941 10.648ZM4.50163 14.0707C2.25694 15.5733 2.25694 18.0221 4.50163 19.5154C7.05241 21.2221 11.2357 21.2221 13.7865 19.5154C16.0311 18.0128 16.0311 15.5641 13.7865 14.0707C11.245 12.3733 7.06168 12.3733 4.50163 14.0707Z"
-        stroke="#2B2B2B"
+        stroke={stroke}
         strokeWidth="1.39133"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -447,3 +454,63 @@ export const DeliveryIcon = () => {
     </svg>
   );
 };
+
+
+
+export const WalletAddIcon = () => { 
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M17.7514 7.04997C17.5114 7.00997 17.2614 6.99998 17.0014 6.99998H7.00141C6.72141 6.99998 6.45141 7.01998 6.19141 7.05998C6.33141 6.77998 6.53141 6.52001 6.77141 6.28001L10.0214 3.02C11.3914 1.66 13.6114 1.66 14.9814 3.02L16.7314 4.78996C17.3714 5.41996 17.7114 6.21997 17.7514 7.04997Z"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 19C9 19.75 8.79 20.46 8.42 21.06C7.73 22.22 6.46 23 5 23C3.54 23 2.27 22.22 1.58 21.06C1.21 20.46 1 19.75 1 19C1 16.79 2.79 15 5 15C7.21 15 9 16.79 9 19Z"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.49172 18.9795H3.51172"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 17.5195V20.5095"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 12V17C22 20 20 22 17 22H7.63C7.94 21.74 8.21 21.42 8.42 21.06C8.79 20.46 9 19.75 9 19C9 16.79 7.21 15 5 15C3.8 15 2.73 15.53 2 16.36V12C2 9.28 3.64 7.38 6.19 7.06C6.45 7.02 6.72 7 7 7H17C17.26 7 17.51 7.00999 17.75 7.04999C20.33 7.34999 22 9.26 22 12Z"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 12.5H19C17.9 12.5 17 13.4 17 14.5C17 15.6 17.9 16.5 19 16.5H22"
+        stroke="#292D32"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

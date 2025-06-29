@@ -21,7 +21,6 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 };
 
-// Component for rendering the ID column cell with copy functionality
 const IdCell: React.FC<{ id: string }> = ({ id }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -57,21 +56,21 @@ const packageColumns: ColumnConfig<PackagedProduct>[] = [
   {
     header: "Package",
     key: "name",
-    maxWidth: "max-w-[75px]",
+    maxWidth: "max-w-[60px]",
     render: (packagedProduct) => (
       <div className="flex items-center gap-2">
         <Image
           src={packagedProduct.image}
           alt={`Image of ${packagedProduct.name}`}
-          width={53}
-          height={30}
-          className="object-cover"
+          width={40} // Reduced for mobile
+          height={24}
+          className="object-cover sm:w-[53px] sm:h-[30px]"
         />
         <div className="flex flex-col">
-          <span className="truncate text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {packagedProduct.name}
           </span>
-          <span className="truncate text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b] hidden sm:block">
             {packagedProduct.description}
           </span>
         </div>
@@ -81,23 +80,23 @@ const packageColumns: ColumnConfig<PackagedProduct>[] = [
   {
     header: "ID",
     key: "id",
-    maxWidth: "max-w-[40px]",
+    maxWidth: "max-w-[50px] sm:max-w-[30px]",
     render: (packagedProduct) => <IdCell id={packagedProduct.id} />,
   },
 ];
 
 export const PackagedTable: React.FC = () => {
   return (
-    <div className="w-full bg-[#fefefe] shadow-md rounded-[10px] overflow-hidden">
+    <div className="w-full xl:w-[63%] bg-[#fefefe] shadow-md rounded-[10px] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full border-separate border-spacing-0">
+        <table className="min-w-[100%] border-separate border-spacing-y-3 sm:border-spacing-y-0">
           <thead>
             <tr className="bg-[#fefefe] border-b border-[#e0e0e0]">
               {packageColumns.map((column, index) => (
                 <th
                   key={column.key.toString()}
                   className={`
-                    px-2 py-2 text-left font-montserrat font-normal text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0]
+                    px-3 py-1 sm:px-2 sm:py-2 text-left font-montserrat font-normal text-[11px] sm:text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0]
                     ${column.maxWidth || ""}
                     ${index === 0 ? "first:rounded-tl-[10px]" : ""}
                     ${
@@ -130,7 +129,7 @@ export const PackagedTable: React.FC = () => {
                   <td
                     key={`${item.id}-${column.key}`}
                     className={`
-                      px-2 py-2 text-[11px] font-montserrat font-normal
+                      px-3 py-1 sm:px-2 sm:py-2 text-[10px] sm:text-[11px] font-montserrat font-normal
                       ${column.maxWidth || ""}
                       ${
                         index === PackagedProducts.length - 1 && colIndex === 0

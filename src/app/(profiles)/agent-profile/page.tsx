@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { ProfilePicture } from "../_components/ProfilePicture";
+import { ProfilePicture } from "./_components/ProfilePicture";
 
 const ProfileSetting = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +10,7 @@ const ProfileSetting = () => {
     mobile: "",
     alternativeMobile: "",
     address: "",
-    localMarket: "",
+    Motto: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,15 +159,15 @@ const ProfileSetting = () => {
             htmlFor="localMarket"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Local Market
+            Motto
           </label>
           <input
             type="text"
-            id="localMarket"
-            name="localMarket"
-            value={formData.localMarket}
+            id="motto"
+            name="Motto"
+            value={formData.Motto}
             onChange={handleChange}
-            placeholder="Enter your local market"
+            placeholder="Enter your motto"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[12px] font-montserrat text-[#2b2b2b]"
             required
           />

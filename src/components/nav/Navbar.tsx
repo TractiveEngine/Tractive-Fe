@@ -8,7 +8,7 @@ import "./Navbar.css";
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
-import { ProfileDropDown } from "../ProfileDropDown";
+import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -212,7 +212,9 @@ export const Navbar = () => {
                 />
               </svg>
             </div>
-            {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
+            {isDropdownOpen && (
+              <Buyer_ProfileDropDown onLogout={handleLogout} />
+            )}
           </div>
         </>
       ) : (

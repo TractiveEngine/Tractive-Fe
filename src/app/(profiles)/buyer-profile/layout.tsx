@@ -1,6 +1,6 @@
 // app/help/layout.tsx
 "use client";
-import { AsideNav } from "@/components/nav/AsideNav";
+import { BuyerProfile_AsideNav } from "@/components/nav/BuyerProfile_AsideNav";
 import { Navbar } from "@/components/nav/Navbar";
 import { SubNavbar } from "@/components/nav/SubNavbar";
 import { isUserLoggedIn } from "@/utils/loginAuth";
@@ -8,12 +8,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-export default function ProfileSettingLayout({
+export default function BuyerProfileSettingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
- const router = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isUserLoggedIn()) {
@@ -38,7 +38,7 @@ export default function ProfileSettingLayout({
       <div className="w-full">
         <div className="w-[90%] mx-auto flex flex-col md:flex-row gap-6 p-4">
           <aside className="w-[70%] rounded-md">
-            <AsideNav />
+            <BuyerProfile_AsideNav />
           </aside>
           {children}
         </div>

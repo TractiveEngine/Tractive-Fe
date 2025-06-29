@@ -39,78 +39,73 @@ export const TransportInfoAndPackageProduct = () => {
   };
 
   return (
-    <div className="flex gap-2 rounded-[10px]">
-      <div className="flex gap-3 w-full">
+    <div className="w-full flex flex-col  gap-4 rounded-[10px]">
+      <div className="flex ProductTransport_Details gap-4 w-full">
         {/* Transport Information */}
-        <div className="flex flex-col bg-[#fefefe] shadow-md rounded-[10px] p-4 w-[385px]">
-          <h2 className="font-montserrat font-normal text-[14px] mb-2 text-[#2b2b2b]">
+        <div className="flex flex-col bg-[#fefefe] shadow-md rounded-[10px] p-3 sm:p-4 w-full xl:w-[50%]">
+          <h2 className="font-montserrat font-normal text-[12px] sm:text-[14px] mb-2 text-[#2b2b2b]">
             Transporter Info
           </h2>
           <div className="flex flex-col gap-2 items-center justify-center">
-            <div className="flex flex-col gap-2 items-center justify-center">
-              <Image
-                src="/images/profileSettingImage.png"
-                alt="transporter Image"
-                width={60}
-                height={60}
-                className="rounded-[100%] object-cover"
-              />
-              <span className="font-montserrat font-normal text-[15px] text-[#2b2b2b]">
-                Goodness corporation
-              </span>
-
+            <Image
+              src="/images/profileSettingImage.png"
+              alt="transporter Image"
+              width={40}
+              height={40}
+              className="rounded-full object-cover w-10 h-10 sm:w-12 sm:h-12"
+            />
+            <span className="font-montserrat font-normal text-[13px] sm:text-[14px] text-[#2b2b2b] text-center">
+              Goodness corporation
+            </span>
+            <div className="flex items-center gap-1">
               <div className="flex items-center gap-1">
-                <div className="flex items-center gap-1">
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <StarIcon />
-                </div>
-                <span className="font-montserrat font-medium text-[11px] text-[#2b2b2b]">
-                  4.0
-                </span>
+                <YellowStarIcon />
+                <YellowStarIcon />
+                <YellowStarIcon />
+                <YellowStarIcon />
+                <StarIcon />
               </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <button className="border-[1px] border-[#808080] text-[#2b2b2b] font-montserrat font-medium text-[12px] px-8 py-2.5 rounded-[50px]">
-                  Follow
-                </button>
-                <span className="font-montserrat font-normal text-[12px] text-[#2b2b2b]">
-                  700 Followers
-                </span>
-              </div>
-              <span className="font-montserrat font-normal text-[12px] text-[#2b2b2b]">
-                Abia State
-              </span>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 p-2 bg-[#cce5cc] rounded-[100px] cursor-pointer">
-                  <MessageFill />
-                </div>
-                <div
-                  className="flex items-center justify-center w-8 h-8 p-2 bg-[#cce5cc] rounded-[100px] cursor-pointer"
-                  onClick={openModal}
-                >
-                  <PhoneCallFill />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-0.5">
-                <AwardIcon />
-                <span className="font-montserrat font-normal text-center text-[11px] text-[#2b2b2b]">
-                  5 years of transportation service
-                </span>
-              </div>
-              <span className="font-montserrat font-normal text-[12px] text-[#2b2b2b]">
-                Rating: Excellent
+              <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+                4.0
               </span>
             </div>
+            <div className="flex flex-col items-center gap-1">
+              <button className="border-[1px] border-[#808080] text-[#2b2b2b] font-montserrat font-medium text-[11px] sm:text-[12px] px-4 sm:px-6 py-1.5 sm:py-2 rounded-[50px]">
+                Follow
+              </button>
+              <span className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
+                700 Followers
+              </span>
+            </div>
+            <span className="font-montserrat font-normal text-[10px] sm:text-[12px] text-[#2b2b2b]">
+              Abia State
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 p-2 bg-[#cce5cc] rounded-full cursor-pointer">
+                <MessageFill  />
+              </div>
+              <div
+                className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 p-2 bg-[#cce5cc] rounded-full cursor-pointer"
+                onClick={openModal}
+              >
+                <PhoneCallFill />
+              </div>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <AwardIcon />
+              <span className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#2b2b2b]">
+                5 years of transportation service
+              </span>
+            </div>
+            <span className="font-montserrat font-normal text-[10px] sm:text-[12px] text-[#2b2b2b]">
+              Rating: Excellent
+            </span>
           </div>
         </div>
+
         {/* Packaged Products Table */}
         <PackagedTable />
       </div>
-
       <TransportCallDetails
         isOpen={isModalOpen}
         onClose={closeModal}
