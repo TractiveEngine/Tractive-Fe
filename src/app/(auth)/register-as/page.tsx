@@ -15,7 +15,7 @@ export default function OnboardingForm() {
 
   // 🔐 Redirect unauthorized users
   useEffect(() => {
-    const token = getAuthToken(); // adjust this key if needed
+    const token = getAuthToken();
     if (!token) {
       toast.error("Unauthorized access. Login.", {
         duration: 3000,
@@ -45,28 +45,20 @@ export default function OnboardingForm() {
       return;
     }
 
-    // Save selected role to local storage
     localStorage.setItem("userRole", activeRole);
-
-    // Show loading toast
     const loadingToastId = toast.loading("⏳ Preparing your dashboard...", {
       position: "top-center",
     });
 
     setIsLoading(true);
-
-    // Navigate first
     router.push("/onboarding-success");
 
-    // Simulate request and update toast after delay
     setTimeout(() => {
-      toast.dismiss(loadingToastId); // Remove the loading toast
-
+      toast.dismiss(loadingToastId);
       toast.success("Role selected successfully!", {
         duration: 3000,
         position: "top-center",
       });
-
       sendPostRequest(activeRole);
       setIsLoading(false);
     }, 7000);
@@ -114,17 +106,17 @@ export default function OnboardingForm() {
             </div>
 
             {/* Role selection */}
-            <div className="flex items-center justify-between gap-[2rem]">
+            <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory md:justify-between">
               {/* Buyer */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
                 onClick={() => setActiveRole("buyers")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Buyer
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "buyers"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -135,21 +127,21 @@ export default function OnboardingForm() {
                     alt="As a Buyer"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>
 
               {/* Transporter */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
                 onClick={() => setActiveRole("transporters")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Transporter
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "transporters"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -160,21 +152,21 @@ export default function OnboardingForm() {
                     alt="As a Transporter"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>
 
               {/* Agent */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
                 onClick={() => setActiveRole("agents")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Agent
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "agents"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -185,7 +177,7 @@ export default function OnboardingForm() {
                     alt="As an Agent"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>

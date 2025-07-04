@@ -9,6 +9,7 @@ type BiddingData = {
   description: string;
   timeImage: string;
   crownImage: string;
+  leadingProfileImage: string;
   quantity: string;
   amount: string;
   biddingPrice: string;
@@ -32,6 +33,7 @@ export const WishList: React.FC<WishListProps> = ({ data }) => {
             description={card.description}
             timeImage={card.timeImage}
             crownImage={card.crownImage}
+            leadingProfileImage={card.leadingProfileImage}
             quantity={card.quantity}
             amount={card.amount}
             biddingPrice={card.biddingPrice}
