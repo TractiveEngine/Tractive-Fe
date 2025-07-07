@@ -213,16 +213,16 @@ export const MobileNavbar = () => {
                 {/* ========= ICONS ========= */}
                 <div className="flex flex-col gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
                   {/* ===================== Notification icon ========================= */}
-                  <div   onClick={handleNotificationClick}
-                      ref={notificationRef} className="flex items-center justify-between p-1.5 rounded-[4px] hover:bg-[#f1f1f1] gap-2 cursor-pointer">
+                  <div
+                    onClick={handleNotificationClick}
+                    ref={notificationRef}
+                    className="flex items-center justify-between p-1.5 rounded-[4px] hover:bg-[#f1f1f1] gap-2 cursor-pointer"
+                  >
                     <span className="text-[#2b2b2b] hover:text-[#214821] text-[0.79rem] font-normal font-montserrat transition">
                       Notification
                     </span>
 
-                    <div
-                      className="relative"
-                    
-                    >
+                    <div className="relative">
                       <NotificationIcon />
                       {hasNotifications && (
                         <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />

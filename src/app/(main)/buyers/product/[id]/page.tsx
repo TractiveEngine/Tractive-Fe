@@ -32,14 +32,14 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="w-[90%] mx-auto py-6">
-      <div className="flex flex-col mb-4 md:flex-row gap-4 w-full">
+      <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
         <VideoPreview />
         <MakeBid />
       </div>
       <div className="mb-4">
         <ImgShowCase />
       </div>
-      <div className="flex flex-col mb-4 md:flex-row gap-4 w-full">
+      <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
         <ProductInfo item={item} />
         <SellersInfo />
       </div>

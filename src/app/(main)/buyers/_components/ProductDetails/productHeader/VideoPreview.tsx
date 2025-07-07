@@ -1,20 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import {PlayIcon, PauseIcon} from "@/icons/Icons"; // Import Play and Pause icons
+import { PlayIcon, PauseIcon } from "@/icons/Icons";
 
+export const VideoPreview: React.FC = () => {
+  const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(0);
+  const [isDraggingProgress, setIsDraggingProgress] = useState(false);
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const volumeRef = useRef<SVGSVGElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
 
-export const VideoPreview = () => {
-  const [progress, setProgress] = useState(0); // Progress in percentage
-  const [volume, setVolume] = useState(0); // Volume in percentage
-  const [isDraggingProgress, setIsDraggingProgress] = useState(false); // Track dragging state for progress
-  const [isDraggingVolume, setIsDraggingVolume] = useState(false); // Track dragging state for volume
-  const [isPlaying, setIsPlaying] = useState(false); // Track play/pause state
-  const progressRef = useRef<HTMLDivElement>(null); // Reference to the progress bar
-  const volumeRef = useRef<SVGSVGElement>(null); // Reference to the volume SVG
-  const videoRef = useRef<HTMLVideoElement>(null); // Reference to the video element
-  const [totalDuration, setTotalDuration] = useState(0); // Total duration in seconds
-  const [currentTime, setCurrentTime] = useState(0); // Current time in seconds
-
-  // Format time to MM:SS
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -23,14 +20,12 @@ export const VideoPreview = () => {
       .padStart(2, "0")}`;
   };
 
-  // Initialize video duration and volume on load
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleLoadedMetadata = () => {
-      setTotalDuration(video.duration);
-      setVolume(Math.floor(video.volume * 100)); // Set initial volume (0-100)
+      setVolume(Math.floor(video.volume * 100));
     };
 
     const handleTimeUpdate = () => {
@@ -49,7 +44,6 @@ export const VideoPreview = () => {
     };
   }, [isDraggingProgress]);
 
-  // Handle play/pause toggle
   const togglePlayPause = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -62,7 +56,6 @@ export const VideoPreview = () => {
     setIsPlaying(!isPlaying);
   };
 
-  // Handle progress bar click for seeking
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !videoRef.current) return;
     const rect = progressRef.current.getBoundingClientRect();
@@ -75,12 +68,10 @@ export const VideoPreview = () => {
     setCurrentTime(newTime);
   };
 
-  // Handle progress drag start
   const handleProgressMouseDown = () => {
     setIsDraggingProgress(true);
   };
 
-  // Handle progress drag movement
   const handleProgressMouseMove = (e: MouseEvent) => {
     if (!isDraggingProgress || !progressRef.current || !videoRef.current)
       return;
@@ -95,12 +86,10 @@ export const VideoPreview = () => {
     setCurrentTime(newTime);
   };
 
-  // Handle progress drag end
   const handleProgressMouseUp = () => {
     setIsDraggingProgress(false);
   };
 
-  // Handle volume click
   const handleVolumeClick = (e: React.MouseEvent<SVGSVGElement>) => {
     if (!volumeRef.current || !videoRef.current) return;
     const rect = volumeRef.current.getBoundingClientRect();
@@ -112,12 +101,10 @@ export const VideoPreview = () => {
     videoRef.current.volume = clampedVolume / 100;
   };
 
-  // Handle volume drag start
   const handleVolumeMouseDown = () => {
     setIsDraggingVolume(true);
   };
 
-  // Handle volume drag movement
   const handleVolumeMouseMove = (e: MouseEvent) => {
     if (!isDraggingVolume || !volumeRef.current || !videoRef.current) return;
     const rect = volumeRef.current.getBoundingClientRect();
@@ -129,12 +116,10 @@ export const VideoPreview = () => {
     videoRef.current.volume = clampedVolume / 100;
   };
 
-  // Handle volume drag end
   const handleVolumeMouseUp = () => {
     setIsDraggingVolume(false);
   };
 
-  // Add event listeners for dragging
   useEffect(() => {
     if (isDraggingProgress) {
       window.addEventListener("mousemove", handleProgressMouseMove);
@@ -153,93 +138,93 @@ export const VideoPreview = () => {
   });
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="relative">
+    <div className="flex flex-col items-center w-[100%] mx-auto">
+      <div className="relative w-full">
         <video
           ref={videoRef}
           src="/images/videoPreview.mp4"
-          width={1086}
-          height={628}
+          className="w-full h-auto rounded-none aspect-[16/9] object-cover"
           autoPlay
           loop
-          className="rounded-none w-[799px] object-cover"
           controls={false}
           muted={volume === 0}
         />
-        {/* Play/Pause Button Overlay */}
-        <div className="absolute top-1/2 left-1/2 cursor-pointer flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-[#fefefe] rounded-[100px] w-[50px] h-[50px]">
+        <div className="absolute top-1/2 left-1/2 cursor-pointer flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-[#fefefe] rounded-full w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] md:w-[60px] md:h-[60px]">
           <button
             onClick={togglePlayPause}
             className="focus:outline-none bg-transparent border-none cursor-pointer"
           >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            {isPlaying ? (
+              <PauseIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+            ) : (
+              <PlayIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+            )}
           </button>
         </div>
       </div>
-      <div className="relative -top-1.5 w-full rounded-b-[5px] max-w-[1086px] bg-[#2b2b2b] flex items-center justify-between gap-[3rem] py-2">
-        {/* Progress and Timers */}
-        <div className="flex-1 flex items-center justify-between p-[0.890rem]">
-          {/* Left Timer */}
-          <span className="text-xs text-[#fefefe] font-medium">
+      <div className="w-full rounded-b-[5px] bg-[#2b2b2b] flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4 py-2 px-3 sm:px-4">
+        <div className="w-[100%] flex items-center justify-between">
+          <span className="text-[0.65rem] sm:text-xs text-[#fefefe] font-medium">
             {formatTime(currentTime)}
           </span>
-          {/* Progress Bar */}
           <div
-            className="flex-1 h-[4px] bg-[#f1f1f1] rounded-full mx-3 cursor-pointer relative"
+            className="w-[100%] h-[3px] sm:h-[4px] bg-[#f1f1f1] rounded-full mx-2 sm:mx-3 cursor-pointer relative"
             onClick={handleProgressClick}
             ref={progressRef}
           >
             <div
-              className="h-[4px] bg-[#538e53] rounded-full relative"
+              className="h-[3px] sm:h-[4px] bg-[#538e53] rounded-full relative"
               style={{ width: `${progress}%` }}
             >
-              {/* Draggable Thumb with Current Time Inside */}
               <div
-                className="absolute -right-6 top-1/2 transform -translate-y-1/2 w-12 h-6 bg-[#538e53] rounded-full flex items-center justify-center cursor-pointer shadow-md"
+                className="absolute -right-5 sm:-right-6 top-1/2 transform -translate-y-1/2 w-8 sm:w-10 h-4 sm:h-5 bg-[#538e53] rounded-full flex items-center justify-center cursor-pointer shadow-md"
                 onMouseDown={handleProgressMouseDown}
               >
-                <span className="text-white text-xs font-medium">
+                <span className="text-white text-[0.5rem] sm:text-[0.78rem] font-medium">
                   {formatTime(currentTime)}
                 </span>
               </div>
             </div>
           </div>
-          {/* Right Timer */}
-          <span className="text-xs text-[#fefefe] font-medium">
-            {formatTime(totalDuration)}
+          <span className="text-[0.65rem] sm:text-xs text-[#fefefe] font-medium">
+            {formatTime(currentTime)}
           </span>
         </div>
-        {/* Volume Control */}
-        <div className="mr-[3rem] flex items-center gap-2">
-          <span className="text-sm text-[#fefefe] font-medium">Volume</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="text-[0.7rem] sm:text-sm text-[#fefefe] font-medium">
+            Volume
+          </span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="100"
-            height="8"
-            viewBox="0 0 80 8"
+            width="80"
+            height="6"
+            viewBox="0 0 80 6"
             fill="none"
             ref={volumeRef}
-            className="cursor-pointer"
+            className="cursor-pointer w-[76px] sm:w-[95px] h-[5px] sm:h-[6px]"
             onClick={handleVolumeClick}
             onMouseDown={handleVolumeMouseDown}
           >
-            <rect y="2" width="80" height="4" rx="2" fill="#E2E2E2" />
+            <rect y="1" width="80" height="4" rx="2" fill="#E2E2E2" />
             <rect
-              y="2"
-              width={`${(volume / 100) * 80}`}
+              y="1"
+              width={`${(volume / 100) * 80 }`}
               height="4"
               rx="2"
               fill="#538E53"
             />
+
             <circle
               cx={`${(volume / 100) * 80}`}
-              cy="4"
-              r="4"
+              cy="3"
+              r="3"
               fill="#538E53"
               className="shadow-sm"
             />
           </svg>
-          <span className="text-sm text-[#fefefe] font-medium">{volume}%</span>
+          <span className="text-[0.7rem] sm:text-sm text-[#fefefe] font-medium">
+            {volume}%
+          </span>
         </div>
       </div>
     </div>

@@ -146,7 +146,7 @@ export const BuyersHeader: React.FC = () => {
         {quickAccessPath.map((item, index) => (
           <React.Fragment key={index}>
             <span
-              className={`cursor-pointer text-[#2B2B2B] text-[0.89rem] font-normal ${
+              className={`cursor-pointer text-[#2B2B2B] text-[0.6rem] sm:text-[0.7rem] md:text-[0.89rem] font-normal ${
                 index === quickAccessPath.length - 1
                   ? "pointer-events-none text-[#2B2B2B]" // Disable click on the current item
                   : "hover:text-[#538E53] transition"
@@ -166,7 +166,7 @@ export const BuyersHeader: React.FC = () => {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className=""
+                className="w-[13px] h-[13px] sm:w-[15px] sm:h-[15px] md:w-[19px] md:h-[19px]  "
               >
                 <path d="M9 5l7 7-7 7" />
               </svg>
@@ -175,7 +175,8 @@ export const BuyersHeader: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 w-full">
+      <div className="flex flex-col md:flex-row gap-6 w-full">
         {/* Left Div: Categories */}
         <Categories
           categories={categories}
@@ -195,7 +196,8 @@ export const BuyersHeader: React.FC = () => {
           sliderImages={sliderImages}
           currentSlide={currentSlide}
           setCurrentSlide={setCurrentSlide}
-        />
+          />
+        </div>
 
         {/* Right Div: Promotional Section */}
         <TopSellers

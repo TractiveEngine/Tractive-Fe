@@ -78,8 +78,8 @@ export const TransporterList: React.FC<SellerListProps> = ({
   });
 
   return (
-    <div className="flex flex-col w-full sm:w-2/3 lg:w-[95%] gap-4 bg-[#fefefe] h-auto rounded-lg">
-      <div className="flex flex-col justify-center gap-4 w-full px-4   pt-6 bg-[#fefefe]">
+    <div className="flex flex-col w-full lg:w-[95%] gap-4 bg-[#fefefe] h-auto rounded-[7px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
+      <div className="flex flex-col justify-center gap-4 w-full px-4 pt-6 bg-[#fefefe]">
         <input
           type="text"
           placeholder="Search for transporters"

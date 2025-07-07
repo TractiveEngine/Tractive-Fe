@@ -54,14 +54,14 @@ export const FilterStore: React.FC = () => {
     <div className="w-full">
       <label
         htmlFor="location-select"
-        className="text-[#2B2B2B] text-[0.79rem] font-normal mb-2 block"
+        className="text-[#2B2B2B] text-[0.65rem] sm:text-[0.79] font-normal mb-2 block"
       >
         Select Location
       </label>
       <div className="relative w-[90%]">
         <select
           id="location-select"
-          className="w-full p-2 pr-8 border border-[#808080] rounded-[4px] text-[0.79rem] font-normal text-[#2B2B2B] bg-[#fefefe] focus:outline-none focus:ring-[0.1px] focus:ring-[#538E53] transition appearance-none"
+          className="w-full p-2 pr-8 border border-[#808080] rounded-[4px] text-[0.65rem] sm:text-[0.79] font-normal text-[#2B2B2B] bg-[#fefefe] focus:outline-none focus:ring-[0.1px] focus:ring-[#538E53] transition appearance-none"
           value={selectedLocation || ""}
           onChange={(e) => handleLocationSelect(e.target.value)}
         >
@@ -87,11 +87,6 @@ export const FilterStore: React.FC = () => {
             <path d="M6 9l6 6 6-6" />
           </svg>
         </div>
-        {/* {selectedLocation && (
-          <p className="mt-1 text-[#2B2B2B] text-[0.69rem] font-normal">
-            Selected: {selectedLocation}
-          </p>
-        )} */}
       </div>
     </div>
   );

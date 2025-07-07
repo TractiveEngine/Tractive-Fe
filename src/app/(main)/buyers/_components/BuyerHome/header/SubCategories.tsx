@@ -27,17 +27,17 @@ export const SubCategories: React.FC<SubCategoriesProps> = ({
       <ul
         className={
           variant === "hover"
-            ? "absolute left-full top-0 w-48 bg-[#FEFEFE] border border-gray-200 rounded-[4px] p-2 mt-[-2px] z-10"
-            : "space-y-2 w-full mt-2 pl-1.5 pr-2"
+            ? "absolute left-1/2 -translate-x-1/2 w-48 bg-[#FEFEFE] border border-gray-200 rounded-[4px] p-2 mt-[-2px] z-10 lg:left-full md:translate-x-0"
+            : "space-y-2 w-full mx-auto mt-2 px-2 md:max-w-full md:mx-0 md:pl-1.5 md:pr-2"
         }
       >
         {subCategories.map((subCat, subIndex) => (
           <li key={subIndex} className="py-1">
             <div
-              className="flex w-[100%] items-center justify-between text-[#2B2B2B] text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer"
+              className="flex w-full items-center justify-between text-[#2B2B2B] text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer"
               onClick={() => handleSubCatClick(subCat)}
             >
-              <span className="text-[#2B2B2B] text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer">
+              <span className="text-[#2B2B2B] text-[0.6rem] sm:text-[0.7rem] mdtext-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer">
                 {subCat}
               </span>
               <svg

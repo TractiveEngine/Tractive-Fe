@@ -448,7 +448,11 @@ export const InfoIcon = () => {
   );
 };
 
-export const PlayIcon = () => {
+interface videoIconProps {
+  className: string;
+}
+
+export const PlayIcon = ({className}: videoIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -456,6 +460,7 @@ export const PlayIcon = () => {
       height="42"
       viewBox="0 0 52 52"
       fill="none"
+      className={className}
     >
       <path
         d="M8.66602 26.0003V18.287C8.66602 8.71034 15.4477 4.78868 23.746 9.57701L30.441 13.4337L37.136 17.2903C45.4343 22.0787 45.4343 29.922 37.136 34.7103L30.441 38.567L23.746 42.4237C15.4477 47.212 8.66602 43.2903 8.66602 33.7137V26.0003Z"
@@ -465,7 +470,8 @@ export const PlayIcon = () => {
   );
 };
 
-export const PauseIcon = () => {
+
+export const PauseIcon = ({className}: videoIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -473,6 +479,7 @@ export const PauseIcon = () => {
       height="45"
       viewBox="0 0 52 52"
       fill="none"
+      className={className}
     >
       <rect x="15" y="10" width="6" height="32" fill="#2b2b2b" />
       <rect x="31" y="10" width="6" height="32" fill="#2b2b2b" />
@@ -628,8 +635,8 @@ export const FilterIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
     >

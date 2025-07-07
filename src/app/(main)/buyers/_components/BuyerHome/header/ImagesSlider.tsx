@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import "../../../Buyer.css"
 
 interface ImageSliderProps {
   sliderImages: string[];
@@ -20,7 +21,7 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 5000); // Auto-slide every 5 seconds
+    }, 3000); // Auto-slide every 3 seconds
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, [sliderImages.length, setCurrentSlide]);
@@ -31,9 +32,9 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   };
 
   return (
-    <div className="w-full md:w-[60%] relative">
-      <div className="relative w-full h-[360px] rounded-[4px] overflow-hidden">
-        <AnimatePresence mode="wait">
+    <div className="w-full lg:w-[75%] relative">
+      <div className="relative w-full h-[150px] image-slider-content  rounded-[4px] overflow-hidden">
+        <AnimatePresence>
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0 }}
@@ -52,12 +53,12 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
         </AnimatePresence>
       </div>
       {/* Slider Navigation Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
         {sliderImages.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition ${
+            className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition ${
               currentSlide === index ? "bg-[#2B2B2B]" : "bg-[#F1F1F1]"
             }`}
             title={`Go to slide ${index + 1}`}
@@ -66,7 +67,7 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
       </div>
       <Link
         href="/bid"
-        className="text-[#2B2B2B] flex items-center justify-center absolute bottom-[0] left-[0] bg-[#FEFEFE] px-[1.4rem] py-[0.9rem] text-[0.89rem] w-[9rem] font-normal"
+        className="text-[#2B2B2B] flex items-center justify-center absolute bottom-[0] left-[0] bg-[#FEFEFE] px-[1.4rem] py-[0.6rem] md:py-[0.9rem] text-[0.6rem] md:text-[0.79rem] w-[6rem] md:w-[8rem] font-normal"
       >
         Bid Now
       </Link>

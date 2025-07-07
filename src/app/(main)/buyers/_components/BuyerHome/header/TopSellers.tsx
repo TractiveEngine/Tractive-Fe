@@ -31,11 +31,11 @@ export const TopSellers: React.FC<TopSellersProps> = ({
   const Loader = () => <LoaderIcon />;
 
   return (
-    <div className="w-full md:w-1/4 bg-[#FEFEFE] rounded-[4px] flex flex-col gap-[1rem]">
+    <div className="w-full lg:w-[33%] bg-[#FEFEFE] rounded-[4px] flex flex-col gap-[1rem] mb-4 lg:mb-0">
       <p className="text-[#2B2B2B] bg-[#CCE5CC80] px-[1rem] py-[0.7rem] rounded-tl-[7px] rounded-br-[7px] text-[0.89rem] w-[7rem] font-normal">
         Top Sellers
       </p>
-      <div className="flex flex-col gap-4 mx-auto w-[90%]">
+      <div className="flex flex-col gap-4 mx-auto mb-0 md:mb-4 w-[90%]">
         {topSellers.map((seller, index) => (
           <div
             key={index}
@@ -51,7 +51,7 @@ export const TopSellers: React.FC<TopSellersProps> = ({
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-[0.7rem] text-[#2B2B2B] font-normal">
+                <span className="truncate text-[0.7rem] text-[#2B2B2B] font-normal">
                   {seller.name}
                 </span>
                 <div className="flex items-center gap-[0.2rem]">
@@ -59,6 +59,7 @@ export const TopSellers: React.FC<TopSellersProps> = ({
                 </div>
               </div>
             </div>
+            
             <Button
               text={
                 loadingStates[seller.name] ? (

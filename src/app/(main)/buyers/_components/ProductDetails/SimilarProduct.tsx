@@ -9,7 +9,7 @@ export const SimilarProduct = () => {
       <p className="text-[15px] text-[#141414] font-normal font-montserrat mb-4">
         Similar Items
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {BiddingData.map((card) => (
           <BidingCard
             id={card.id}

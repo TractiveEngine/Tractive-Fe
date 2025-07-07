@@ -1,0 +1,30 @@
+@media (min-width: 460px) {
+  .image-slider-content {
+    height: 200px;
+  }
+}
+@media (min-width: 560px) {
+  .image-slider-content {
+    height: 230px;
+  }
+}
+@media (min-width: 640px) {
+  .image-slider-content {
+    height: 250px;
+  }
+}
+@media (min-width: 768px) {
+  .image-slider-content {
+    height: 350px;
+  }
+}
+@media (min-width: 768px) {
+  .image-slider-content {
+    height: 350px;
+  }
+}
+@media (min-width: 1024px) {
+  .image-slider-content {
+    height: 376px;
+  }
+}
