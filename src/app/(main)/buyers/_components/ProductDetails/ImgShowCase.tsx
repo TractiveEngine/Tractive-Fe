@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ArrowLeftIcon } from "@/icons/Icons";
+import { ArrowRightIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useState } from "react";
 

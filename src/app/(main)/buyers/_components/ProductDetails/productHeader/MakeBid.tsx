@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button";
+"use client"
 import { InfoIcon } from "@/icons/Icons";
 import React from "react";
 import { ProPaymentMethod } from "./ProPaymentMethod";

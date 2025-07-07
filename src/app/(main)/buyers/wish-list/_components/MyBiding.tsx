@@ -10,6 +10,7 @@ type BiddingData = {
   description: string;
   timeImage: string;
   crownImage: string;
+  leadingProfileImage: string;
   quantity: string;
   amount: string;
   biddingPrice: string;

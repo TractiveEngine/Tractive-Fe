@@ -8,7 +8,6 @@ import {
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/Button";
-import { FilterTransporterMobile } from "./FilterTransporterMobile";
 
 // Interface for icon props
 interface IconProps {
