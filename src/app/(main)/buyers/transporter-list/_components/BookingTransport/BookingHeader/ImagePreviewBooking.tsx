@@ -68,8 +68,8 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-col lg:flex-row gap-4 w-full mb-4">
-      <div className="w-full lg:w-[100%] h-auto">
+    <div className="flex flex-col md:flex-row gap-4 w-full mb-4">
+      <div className="w-full lg:w-[100%] h-max  rounded-md shadow-md overflow-hidden">
         <Image
           src={item.image}
           alt={item.truckName}
@@ -81,7 +81,7 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
       </div>
 
       {/* Booking Summary */}
-      <div className="flex flex-col h-[562px] w-[100%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe]">
+      <div className="flex flex-col h-fit md:h-[562px] w-[100%] md:w-[90%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe]">
         <div className="flex flex-col">
           <div className="flex justify-between items-center px-5 pt-4">
             {currentStep === 1 && !isNegotiating ? (

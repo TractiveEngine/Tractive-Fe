@@ -17,7 +17,7 @@ interface IconProps {
 }
 
 // Interface for FilterTransporterMobile props
-interface FilterTransporterMobileProps {
+interface FilterSellerMobileProps {
   selectedRatings: number[];
   setSelectedRatings: React.Dispatch<React.SetStateAction<number[]>>;
   selectedLocations: string[];
@@ -60,9 +60,7 @@ export const CheckCircleIcon: React.FC<IconProps> = ({
 };
 
 // FilterTransporterMobile component
-export const FilterTransporterMobile: React.FC<
-  FilterTransporterMobileProps
-> = ({
+export const FilterSellerMobile: React.FC<FilterSellerMobileProps> = ({
   selectedRatings,
   setSelectedRatings,
   selectedLocations,
