@@ -1,6 +1,6 @@
 "use client";
-import { ATProfileNavbar } from "@/components/nav/A&TProfileNavbar";
-import { AgentProfile_AsideNav } from "@/components/nav/AgentProfile_AsideNav";
+import { ATProfileNavbar } from "@/components/nav/AgentNav/AgentProfileNavbar";
+import { AgentProfile_AsideNav } from "@/components/nav/AgentNav/AgentProfile_AsideNav";
 import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

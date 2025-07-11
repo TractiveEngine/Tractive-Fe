@@ -4,13 +4,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
+import "../Navbar.css";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
-import { Notifications } from "../Notifications";
-import { ATMobileNavbar } from "./A&TMobileNavbar";
-import { Agent_ProfileDropDown } from "../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
+import { Notifications } from "../../Notifications";import { Transporter_ProfileDropDown } from "@/components/Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDown";
+import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
 
-export const ATProfileNavbar = () => {
+export const TransporterNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(
@@ -112,20 +111,23 @@ export const ATProfileNavbar = () => {
             isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
           }`}
         >
-          <div>
-            {/* Logo */}
-            <Link href="/" className="hidden md:flex items-center">
-              <Image
-                src="/images/navLogo.png"
-                alt="Agrictech Logo"
-                width={70}
-                height={70}
-              />
-            </Link>
-          </div>
-          <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
-            Dashboard
-          </span>
+          {isLoggedIn ? (
+            <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
+              Dashboard
+            </span>
+          ) : (
+            <>
+              {/* Logo */}
+              <Link href="/" className="hidden md:flex items-center">
+                <Image
+                  src="/images/navLogo.png"
+                  alt="Agrictech Logo"
+                  width={75}
+                  height={75}
+                />
+              </Link>
+            </>
+          )}
 
           {/* Conditional Rendering Based on Login Status */}
           {isLoggedIn ? (
@@ -205,7 +207,7 @@ export const ATProfileNavbar = () => {
                   </svg>
                 </div>
                 {isDropdownOpen && (
-                  <Agent_ProfileDropDown onLogout={handleLogout} />
+                  <Transporter_ProfileDropDown onLogout={handleLogout} />
                 )}
               </div>
             </>
@@ -253,7 +255,7 @@ export const ATProfileNavbar = () => {
         </div>
       </div>
 
-      <ATMobileNavbar />
+      <TransporterMobileNavbar />
     </>
   );
 };

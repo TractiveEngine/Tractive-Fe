@@ -4,10 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
+import "../Navbar.css";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
-import { Notifications } from "../Notifications";import { ATMobileNavbar } from "./A&TMobileNavbar";
-import { Agent_ProfileDropDown } from "../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
+import { Notifications } from "../../Notifications";
+import { ATMobileNavbar } from "./AgentMobileNavbar";
+import { Agent_ProfileDropDown } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
 
 export const ATNavbar = () => {
   const pathname = usePathname();

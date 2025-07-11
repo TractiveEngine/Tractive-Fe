@@ -4,9 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
+import "../Navbar.css";
 import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
-import { Notifications } from "../Notifications";
+import { Notifications } from "../../Notifications";
 
 export const ATMobileNavbar = () => {
   const pathname = usePathname();

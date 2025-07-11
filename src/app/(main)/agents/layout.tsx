@@ -1,7 +1,7 @@
 "use client";
-import { ATNavbar } from "@/components/nav/A&TNavbar";
-import { AgentAsideNav } from "@/components/nav/AgentAsideNav";
-import { AgentAsideNavMobile } from "@/components/nav/AgentAsideNavMobile";
+import { ATNavbar } from "@/components/nav/AgentNav/AgentNavbar";
+import { AgentAsideNav } from "@/components/nav/AgentNav/AgentAsideNav";
+import { AgentAsideNavMobile } from "@/components/nav/AgentNav/AgentAsideNavMobile";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -130,9 +130,7 @@ export default function AgentLayout({
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="pt-[2rem] lg:pt-[4rem]">
-            {children}
-          </main>
+          <main className="pt-[2rem] lg:pt-[4rem]">{children}</main>
         </div>
       </motion.div>
     </div>

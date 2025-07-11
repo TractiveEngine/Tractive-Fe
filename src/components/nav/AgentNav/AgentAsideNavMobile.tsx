@@ -20,8 +20,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
-import { Agent_ProfileDropDownMobile } from "../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDownMobile";
+import { motion, AnimatePresence } from "framer-motion";
+import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
+import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDownMobile";
 
 interface NavSection {
   title: string;
