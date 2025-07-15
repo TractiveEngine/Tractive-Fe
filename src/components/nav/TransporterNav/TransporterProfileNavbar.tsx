@@ -4,13 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
+import "../Navbar.css";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
-import { ATMobileNavbar } from "./TransporterMobileNavbar";
 import { Agent_ProfileDropDown } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
+import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
 
-export const ATProfileNavbar = () => {
+export const TransporterProfileNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(
@@ -253,7 +253,7 @@ export const ATProfileNavbar = () => {
         </div>
       </div>
 
-      <ATMobileNavbar />
+      <TransporterMobileNavbar />
     </>
   );
 };

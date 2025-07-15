@@ -10,7 +10,7 @@ import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AgentMobileNavbar";
 import { Agent_ProfileDropDown } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
 
-export const ATNavbar = () => {
+export const AgentNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(

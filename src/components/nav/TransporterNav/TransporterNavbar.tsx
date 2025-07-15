@@ -6,7 +6,8 @@ import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import "../Navbar.css";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
-import { Notifications } from "../../Notifications";import { Transporter_ProfileDropDown } from "@/components/Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDown";
+import { Notifications } from "../../Notifications";
+import { Transporter_ProfileDropDown } from "@/components/Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDown";
 import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
 
 export const TransporterNavbar = () => {

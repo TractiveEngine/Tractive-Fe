@@ -21,7 +21,7 @@ interface OnboardingData {
   interests: string[];
 }
 
-export const AgentProfile_AsideNav = () => {
+export const TransporterProfile_AsideNav = () => {
   const pathname = usePathname();
   const onboardingData: OnboardingData | null = (() => {
     try {

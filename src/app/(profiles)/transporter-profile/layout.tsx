@@ -1,6 +1,6 @@
 "use client";
-import { AgentProfile_AsideNav } from "@/components/nav/AgentNav/AgentProfile_AsideNav";
-import { AgentProfileNavbar } from "@/components/nav/AgentNav/AgentProfileNavbar";
+import { TransporterProfile_AsideNav } from "@/components/nav/TransporterNav/TransporterProfile_AsideNav";
+import { TransporterProfileNavbar } from "@/components/nav/TransporterNav/TransporterProfileNavbar";
 import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -59,12 +59,12 @@ export default function ProfileSettingLayout({
   return (
     <div className="bg-[#f1f1f1]">
       <nav className="bg-[#fefefe] w-full">
-        <AgentProfileNavbar />
+        <TransporterProfileNavbar />
       </nav>
       <div className="w-full h-screen">
         <div className="w-[95%] mx-auto flex flex-col md:flex-row gap-6 pt-4">
           <aside className="w-[70%] rounded-md">
-            <AgentProfile_AsideNav />
+            <TransporterProfile_AsideNav />
           </aside>
           {children}
         </div>

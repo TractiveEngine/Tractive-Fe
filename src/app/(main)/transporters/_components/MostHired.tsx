@@ -57,8 +57,8 @@ const MostHiredDrivers: MostHiredDriversProps[] = [
 
 export const MostHired: React.FC = () => {
   return (
-    <div className="w-full lg:w-[45%] bg-[#fefefe] shadow-md rounded-[4px]">
-      <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium mb-4 bg-[#cce5cc] flex items-center justify-center w-[40%]">
+    <div className="w-full rounded-[4px]">
+      <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-normal mb-4 bg-[#cce5cc] flex items-center justify-center w-[40%]">
         Most hired
       </h2>
 
@@ -80,10 +80,10 @@ export const MostHired: React.FC = () => {
 
               </div>
               <div className="flex flex-col gap-[8ppx]">
-                <span className="font-montserrat text-[#2b2b2b] text-[13px] font-normal">
+                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
                   {drivers.name}
                 </span>
-                <span className="font-montserrat text-[#2b2b2b] text-[13px] font-normal truncate">
+                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal truncate">
                   {drivers.description}
                 </span>
               </div>

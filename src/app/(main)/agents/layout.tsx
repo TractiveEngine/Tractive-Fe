@@ -1,5 +1,4 @@
 "use client";
-import { ATNavbar } from "@/components/nav/AgentNav/AgentNavbar";
 import { AgentAsideNav } from "@/components/nav/AgentNav/AgentAsideNav";
 import { AgentAsideNavMobile } from "@/components/nav/AgentNav/AgentAsideNavMobile";
 import { useRouter } from "next/navigation";
@@ -7,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
+import { AgentNavbar } from "@/components/nav/AgentNav/AgentNavbar";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
@@ -120,7 +120,7 @@ export default function AgentLayout({
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         <nav className="w-full">
-          <ATNavbar />
+          <AgentNavbar />
         </nav>
         <div className="flex flex-col">
           <AgentAsideNavMobile
