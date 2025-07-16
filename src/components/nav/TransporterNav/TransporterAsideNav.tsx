@@ -22,8 +22,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { logoutUser } from "@/utils/loginAuth";
-import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
+import { motion, AnimatePresence } from "framer-motion"
+import AddFleet from "@/app/(main)/transporters/_components/AddFleet";
 
 interface NavSection {
   title: string;
@@ -83,7 +83,7 @@ export const TransporterAsideNav = () => {
       items: [
         {
           icon: AddToStoreIcon,
-          label: "Add to store",
+          label: "Add Fleet",
           onClick: () => setIsModalOpen(true),
         },
         {
@@ -172,9 +172,9 @@ export const TransporterAsideNav = () => {
 
   return (
     <aside className="w-25 lg:w-50 bg-[#fefefe] fixed h-full hidden sm:block shadow-md z-20 overflow-y-auto">
-      <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddFleet isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <Link
-        href="/agents"
+        href="/transporters"
         className="flex items-center justify-center lg:justify-start mx-auto my-2 w-[3rem] lg:w-[50%]"
       >
         <Image
@@ -254,7 +254,7 @@ export const TransporterAsideNav = () => {
                           <button
                             onClick={item.onClick}
                             className={`w-full cursor-pointer flex items-center gap-1.5 lg:gap-3 py-2 px-3.5 rounded-md transition-colors duration-200 lg:flex-row flex-col ${
-                              isModalOpen && item.label === "Add to store"
+                              isModalOpen && item.label === "Add Fleet"
                                 ? "bg-[#CCE5CC80]"
                                 : "hover:bg-[#f1f1f1]"
                             }`}
