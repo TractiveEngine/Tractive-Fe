@@ -1,16 +1,15 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThreeDotIcon } from "../../fleet-list/_components/table/ActionMenu";
 import { TransportActionMenuProps } from "../../_components/TransportActionMenuProps";
+import { ThreeDotIcon } from "../../fleet-list/_components/table/ActionMenu";
 
-export const DriverActionMenu: React.FC<TransportActionMenuProps> = ({
+export const NegotiationActionMenu: React.FC<TransportActionMenuProps> = ({
   driverId,
   activeMenu,
   setActiveMenu,
-  handleEdit,
-  handleRemove,
-  handleAssignFleet,
+  handleReject,
+  handleAccept,
 }) => {
   const isActive = activeMenu === driverId;
   const menuRef = useRef<HTMLDivElement>(null);
@@ -35,52 +34,43 @@ export const DriverActionMenu: React.FC<TransportActionMenuProps> = ({
       <button
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => setActiveMenu(isActive ? null : driverId)}
-        className="bg-[#f1f1f1] rounded-full cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
+        onClick={() => setActiveMenu(activeMenu ? null : driverId)}
+        className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
       </button>
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="absolute min-w-[120px] py-1 px-1 right-13 top-0 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-[100]"
+            className="absolute w-[8rem] py-1 px-1 bottom-[0rem] right-16 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
             transition={{ duration: 0.2 }}
           >
-            {handleEdit && (
+            {handleReject && (
               <button
                 onClick={() => {
-                  handleEdit(driverId);
+                  handleReject(driverId);
                   setActiveMenu(null);
                 }}
-                className="w-full text-left px-1   text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                className="w-full cursor-pointer text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                aria-label={`Reject negotiation ${driverId}`}
               >
-                Edit
+                Reject
               </button>
             )}
-            {handleRemove && (
+            {handleAccept && (
               <button
                 onClick={() => {
-                  handleRemove(driverId);
+                  handleAccept(driverId);
                   setActiveMenu(null);
                 }}
-                className="w-full text-left px-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                className="w-full cursor-pointer text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                aria-label={`Accept negotiation ${driverId}`}
               >
-                Remove
-              </button>
-            )}
-            {handleAssignFleet && (
-              <button
-                onClick={() => {
-                  handleAssignFleet(driverId);
-                  setActiveMenu(null);
-                }}
-                className="w-full text-left px-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
-              >
-                Assign Fleet
+                Accept
               </button>
             )}
           </motion.div>

@@ -9,6 +9,22 @@ import AddFleet from "../../_components/AddFleet";
 import { Fleet, initialFleets } from "@/utils/Fleet";
 import "../../Table.css";
 
+
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export const AvailableTransit: React.FC = () => {
   const [fleets, setFleets] = useState<Fleet[]>(initialFleets);
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -22,20 +38,6 @@ export const AvailableTransit: React.FC = () => {
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
 
   // Filter fleets based on status, year, month, and search term
   const filteredFleets = useMemo(() => {
@@ -57,7 +59,7 @@ export const AvailableTransit: React.FC = () => {
         : true;
       return matchesStatus && matchesYear && matchesMonth && matchesSearch;
     });
-  }, [fleets, selectedYear, selectedMonth, months, searchTerm]);
+  }, [fleets, selectedYear, selectedMonth, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {

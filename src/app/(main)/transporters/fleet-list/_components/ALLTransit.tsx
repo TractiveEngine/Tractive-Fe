@@ -9,33 +9,37 @@ import AddFleet from "../../_components/AddFleet";
 import { initialFleets, Fleet } from "@/utils/Fleet";
 import "../../Table.css";
 
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export const AllTransit: React.FC = () => {
-  const [fleets, setFleets] = useState<Fleet[]>(initialFleets);
+  const [fleets, setFleets] = useState<Fleet[]>(
+    initialFleets.map((fleet) => ({ ...fleet, checked: false }))
+  );
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+
 
   // Filter fleets based on year, month, and search term
   const filteredFleets = useMemo(() => {
@@ -56,7 +60,7 @@ export const AllTransit: React.FC = () => {
         : true;
       return matchesYear && matchesMonth && matchesSearch;
     });
-  }, [fleets, selectedYear, selectedMonth, months, searchTerm]);
+  }, [fleets, selectedYear, selectedMonth, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -108,12 +112,12 @@ export const AllTransit: React.FC = () => {
         fleet.id === id
           ? {
               ...fleet,
-             status:
+              status:
                 fleet.status === "Available"
                   ? "Under maintenance"
                   : fleet.status === "Under maintenance"
                   ? "Available"
-                  : fleet.status, // Preserve other statuses like "On transit"
+                  : fleet.status,
             }
           : fleet
       )
@@ -131,6 +135,7 @@ export const AllTransit: React.FC = () => {
     navigator.clipboard.writeText(IOT);
     alert(`Copied IOT: ${IOT}`);
   };
+  
 
   // Dropdown animation variants
   const dropdownVariants = {

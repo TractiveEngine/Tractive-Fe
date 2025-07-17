@@ -1,10 +1,11 @@
-export interface DriverActionMenuProps {
+export interface TransportActionMenuProps {
   driverId: string;
   activeMenu: string | null;
   setActiveMenu: (id: string | null) => void;
   handleEdit?: (id: string) => void;
   handleRemove?: (id: string) => void;
-  handleViewBidders?: (id: string) => void;
+  handleReject?: (id: string) => void;
+  handleAccept?: (id: string) => void;
   handleBuyerInfo?: (id: string) => void;
   handleCustomerInfo?: (id: string) => void;
   handleParked?: (id: string) => void;

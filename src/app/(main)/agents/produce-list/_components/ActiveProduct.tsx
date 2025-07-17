@@ -235,6 +235,7 @@ export const ActiveProduct: React.FC = () => {
               </div>
             </div>
           </div>
+          
           {/* Buttons */}
           <div className="flex items-center gap-4 justify-start md:justify-end">
             <button

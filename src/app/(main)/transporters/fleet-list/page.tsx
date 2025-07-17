@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { AvailableTransit } from "./_components/AvailableTransit";
 import { OnTransit } from "./_components/OnTransit";
@@ -28,7 +29,6 @@ interface TabConfig {
   colorClassFaded: string;
 }
 
-
 export default function FleetListPage() {
   const [activeTab, setActiveTab] = useState<SlideType>("All");
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -39,52 +39,58 @@ export default function FleetListPage() {
   });
 
   // Calculate counts dynamically from initialFleets
-  const counts = {
-    All: initialFleets.length,
-    Available: initialFleets.filter((fleet) => fleet.status === "Available").length,
-    UnderMaintenance: initialFleets.filter((fleet) => fleet.status === "Under maintenance").length,
-    OnTransit: initialFleets.filter((fleet) => fleet.status === "On transit").length,
-  };
+  const counts = useMemo(
+    () => ({
+      All: initialFleets.length,
+      Available: initialFleets.filter((fleet) => fleet.status === "Available").length,
+      UnderMaintenance: initialFleets.filter((fleet) => fleet.status === "Under maintenance").length,
+      OnTransit: initialFleets.filter((fleet) => fleet.status === "On transit").length,
+    }),
+    []
+  );
 
-  // Tab configuration
-  const tabs: TabConfig[] = [
-    {
-      id: "all-tab",
-      label: "All",
-      displayLabel: "All",
-      count: counts.All,
-      colorClass: "bg-[#538e53]",
-      textColor: "text-[#538e53]",
-      colorClassFaded: "text-[#fefefe]",
-    },
-    {
-      id: "available-tab",
-      label: "Available",
-      displayLabel: "Available",
-      count: counts.Available,
-      colorClass: "bg-[#538e53]",
-      textColor: "text-[#538e53]",
-      colorClassFaded: "text-[#fefefe]",
-    },
-    {
-      id: "under-maintenance-tab",
-      label: "UnderMaintenance",
-      displayLabel: "Under Maintenance",
-      count: counts.UnderMaintenance,
-      colorClass: "bg-[#538e53]",
-      textColor: "text-[#538e53]",
-      colorClassFaded: "text-[#fefefe]",
-    },
-    {
-      id: "on-transit-tab",
-      label: "OnTransit",
-      displayLabel: "On Transit",
-      count: counts.OnTransit,
-      colorClass: "bg-[#538e53]",
-      textColor: "text-[#538e53]",
-      colorClassFaded: "text-[#fefefe]",
-    },
-  ];
+  // Tab configuration with explicit type annotation
+  const tabs: TabConfig[] = useMemo(
+    () => [
+      {
+        id: "all-tab",
+        label: "All",
+        displayLabel: "All",
+        count: counts.All,
+        colorClass: "bg-[#538e53]",
+        textColor: "text-[#538e53]",
+        colorClassFaded: "text-[#fefefe]",
+      },
+      {
+        id: "available-tab",
+        label: "Available",
+        displayLabel: "Available",
+        count: counts.Available,
+        colorClass: "bg-[#538e53]",
+        textColor: "text-[#538e53]",
+        colorClassFaded: "text-[#fefefe]",
+      },
+      {
+        id: "under-maintenance-tab",
+        label: "UnderMaintenance",
+        displayLabel: "Under Maintenance",
+        count: counts.UnderMaintenance,
+        colorClass: "bg-[#538e53]",
+        textColor: "text-[#538e53]",
+        colorClassFaded: "text-[#fefefe]",
+      },
+      {
+        id: "on-transit-tab",
+        label: "OnTransit",
+        displayLabel: "On Transit",
+        count: counts.OnTransit,
+        colorClass: "bg-[#538e53]",
+        textColor: "text-[#538e53]",
+        colorClassFaded: "text-[#fefefe]",
+      },
+    ],
+    [counts]
+  );
 
   // Handle tab switching
   const handleSwitchTab = (tab: SlideType) => {
@@ -110,7 +116,7 @@ export default function FleetListPage() {
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
-  }, [activeTab]);
+  }, [activeTab, tabs]);
 
   // Map activeTab to corresponding component
   const renderContent = () => {
@@ -190,4 +196,4 @@ export default function FleetListPage() {
       </div>
     </div>
   );
-}
+};

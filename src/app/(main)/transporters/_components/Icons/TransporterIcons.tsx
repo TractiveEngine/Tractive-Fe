@@ -274,10 +274,14 @@ export const MessageOutline = () => {
   );
 };
 
-export const TickIcon = () => {
+interface TickIconProps {
+  className?: string;
+}
+
+export const TickIcon = ({className}: TickIconProps) => {
   return (
     <svg
-      className=""
+      className={className}
       viewBox="0 0 16 16"
       fill="#fefefe"
       xmlns="http://www.w3.org/2000/svg"

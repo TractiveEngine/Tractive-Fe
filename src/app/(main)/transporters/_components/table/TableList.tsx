@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "../../Table.css";
 import { useRouter } from "next/navigation";
-import { DriverActionMenuProps } from "../../_components/DriverActionMenuProps";
+import { TransportActionMenuProps } from "../TransportActionMenuProps";
+import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
 
 interface ColumnConfig<T> {
   header: string;
@@ -22,7 +23,7 @@ interface ListTableProps<T extends BaseData> {
   columns: ColumnConfig<T>[];
   initialData?: T[];
   fetchData?: (dataType: string) => Promise<T[]>;
-  ActionMenuComponent?: React.ComponentType<DriverActionMenuProps>;
+  ActionMenuComponent?: React.ComponentType<TransportActionMenuProps>;
   handleEdit?: (id: string) => void;
   handleRemove?: (id: string) => void;
   handleAssignFleet?: (id: string) => void;
@@ -34,6 +35,8 @@ interface ListTableProps<T extends BaseData> {
   handleDelivered?: (id: string) => void;
   handleTrackOrder?: (id: string) => void;
   handleCustomerCare?: (id: string) => void;
+  handleReject?: (id: string) => void;
+  handleAccept?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
@@ -53,18 +56,24 @@ export const TableList = <T extends BaseData>({
   handleEdit,
   handleRemove,
   handleAssignFleet,
-  handleViewBidders,
   handleBuyerInfo,
   handleParked,
   handleDelivered,
   handleTrackOrder,
   handleCustomerCare,
   handleCustomerInfo,
+  handleCheckboxChange,
+  handleSelectAll,
+  allChecked,
   handleSupport,
+  handleReject,
+  handleAccept,
 }: ListTableProps<T>): React.ReactElement => {
   const router = useRouter();
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  const isCheckboxTable = ["negotiations"].includes(dataType);
 
   useEffect(() => {
     if (fetchData) {
@@ -95,13 +104,7 @@ export const TableList = <T extends BaseData>({
     }
     setActiveMenu(null);
   };
-
-  const defaultHandleViewBidders = (id: string) => {
-    console.log(`Default handleViewBidders called for id: ${id}`);
-    alert(`View bidders for ${dataType} with ID: ${id}`);
-    setActiveMenu(null);
-  };
-
+  
   const defaultHandleBuyerInfo = (id: string) => {
     console.log(`Default handleBuyerInfo called for id: ${id}`);
     setActiveMenu(null);
@@ -138,6 +141,18 @@ export const TableList = <T extends BaseData>({
     setActiveMenu(null);
   };
 
+  const defaultHandleReject = (id: string) => {
+    console.log(`Default handleReject called for id: ${id}`);
+    alert(`Reject ${dataType} with ID: ${id}`);
+    setActiveMenu(null);
+  };
+
+  const defaultHandleAccept = (id: string) => {
+    console.log(`Default handleAccept called for id: ${id}`);
+    alert(`Accept ${dataType} with ID: ${id}`);
+    setActiveMenu(null);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -148,6 +163,19 @@ export const TableList = <T extends BaseData>({
       <table className="Table_Style">
         <thead>
           <tr className="text-left text-[12px] font-normal font-montserrat text-[#2b2b2b] md:text-sm">
+            {isCheckboxTable && (
+              <th className="py-3 pl-4 w-[50px] min-w-[50px]">
+                <div className="relative w-5 h-5">
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    onChange={handleSelectAll}
+                    className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
+                  />
+                  {allChecked && <TickIcon />}
+                </div>
+              </th>
+            )}
             {columns.map((col) => (
               <th
                 key={col.key as string}
@@ -171,6 +199,19 @@ export const TableList = <T extends BaseData>({
               animate="visible"
               transition={{ delay: index * 0.1 }}
             >
+              {isCheckboxTable && (
+                <td className="py-1.5 pl-4 whitespace-nowrap">
+                  <div className="relative w-5 h-5">
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => handleCheckboxChange?.(item.id)}
+                      className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
+                    />
+                    {item.checked && <TickIcon />}
+                  </div>
+                </td>
+              )}
               {columns.map((col) => (
                 <td
                   key={col.key as string}
@@ -198,11 +239,6 @@ export const TableList = <T extends BaseData>({
                     handleAssignFleet={
                       dataType === "drivers"
                         ? handleAssignFleet || defaultHandleAssignFleet
-                        : undefined
-                    }
-                    handleViewBidders={
-                      dataType === "bids"
-                        ? handleViewBidders || defaultHandleViewBidders
                         : undefined
                     }
                     handleBuyerInfo={
@@ -240,6 +276,16 @@ export const TableList = <T extends BaseData>({
                     handleSupport={
                       dataType === "customers"
                         ? handleSupport || defaultHandleSupport
+                        : undefined
+                    }
+                    handleReject={
+                      dataType === "negotiations"
+                        ? handleReject || defaultHandleReject
+                        : undefined
+                    }
+                    handleAccept={
+                      dataType === "negotiations"
+                        ? handleAccept || defaultHandleAccept
                         : undefined
                     }
                   />
