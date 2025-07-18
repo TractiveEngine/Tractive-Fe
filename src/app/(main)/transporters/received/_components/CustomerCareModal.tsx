@@ -37,7 +37,7 @@ export const CustomerCareModal: React.FC<CustomerCareModalProps> = ({
             className="text-[#808080] hover:text-[#2b2b2b]"
             aria-label="Close modal"
           >
-            ×
+            x
           </button>
         </div>
         <div className="space-y-3">

@@ -294,3 +294,29 @@ export const TickIcon = ({className}: TickIconProps) => {
     </svg>
   );
 };
+
+
+export const IdCopyIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 18 18"
+      fill="none"
+      className="cursor-pointer"
+    >
+      <g clipPath="url(#clip0_10196_93765)">
+        <path
+          d="M12 0.75H3C2.175 0.75 1.5 1.425 1.5 2.25V12.75H3V2.25H12V0.75ZM11.25 3.75H6C5.175 3.75 4.5075 4.425 4.5075 5.25L4.5 15.75C4.5 16.575 5.1675 17.25 5.9925 17.25H14.25C15.075 17.25 15.75 16.575 15.75 15.75V8.25L11.25 3.75ZM6 15.75V5.25H10.5V9H14.25V15.75H6Z"
+          fill="#2B2B2B"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_10196_93765">
+          <rect width="18" height="18" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+};

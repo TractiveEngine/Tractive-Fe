@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { Transaction, PendingData } from "@/utils/TransactionData";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
-import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
+import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
+import { TransporterPendingData, TransporterTransaction } from "@/utils/TransporterTransactionData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,25 +18,27 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const transactionColumns: ColumnConfig<Transaction>[] = [
-  {
-    header: "Item",
+const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
+{
+    header: "Fleet",
     key: "name",
     minWidth: "min-w-[150px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
-        <Image
-          src={transaction.image}
-          alt={transaction.name}
-          width={53}
-          height={30}
-          className="object-cover w-[73px] h-[40px]"
-        />
+        <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
+          <Image
+            src={transaction.image}
+            alt={transaction.name}
+            width={40}
+            height={24}
+            className="object-cover"
+          />
+        </div>
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {transaction.name}
           </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
             {transaction.description}
           </span>
         </div>
@@ -44,8 +46,8 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     ),
   },
   {
-    header: "ID",
-    key: "id",
+    header: "IOT",
+    key: "IOT",
     minWidth: "min-w-[100px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
@@ -62,20 +64,20 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     ),
   },
   {
-    header: "Sold",
-    key: "sold",
+    header: "Kg",
+    key: "KG",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.sold.toFixed(2)}`,
+    render: (transaction) => `${transaction.KG} KG`,
   },
   {
-    header: "Commission",
-    key: "commission",
+    header: "Payment",
+    key: "Payment",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.commission.toFixed(2)}`,
+    render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
   },
   {
-    header: "Buyer",
-    key: "buyer",
+    header: "Payer",
+    key: "Seller",
     minWidth: "min-w-[100px]",
   },
   {
@@ -92,6 +94,7 @@ export const PendingTableList = () => {
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
     useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +145,21 @@ export const PendingTableList = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const filteredTransactions = TransporterPendingData.filter((transaction) => {
+    const matchesSearch =
+      transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.Seller.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesYear =
+      !selectedYear || transaction.date.includes(selectedYear.toString());
+    const matchesMonth =
+      !selectedMonth ||
+      transaction.date.includes(
+        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
+      );
+    return matchesSearch && matchesYear && matchesMonth;
+  });
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
@@ -157,6 +175,8 @@ export const PendingTableList = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search transactions"
                 />
@@ -193,7 +213,7 @@ export const PendingTableList = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -260,7 +280,7 @@ export const PendingTableList = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -306,10 +326,10 @@ export const PendingTableList = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<Transaction>
+          <TableList<TransporterTransaction>
             dataType="pending"
             columns={transactionColumns}
-            initialData={PendingData}
+            initialData={filteredTransactions}
             ActionMenuComponent={TransactionActionMenu}
             handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
           />

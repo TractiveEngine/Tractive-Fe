@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { Transaction, ApprovedData } from "@/utils/TransactionData";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
-import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
+import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
+import { TransporterApprovedData, TransporterTransaction } from "@/utils/TransporterTransactionData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,71 +18,73 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const transactionColumns: ColumnConfig<Transaction>[] = [
-  {
-    header: "Item",
-    key: "name",
-    minWidth: "min-w-[150px]",
-    render: (transaction) => (
-      <div className="flex items-center gap-2">
-        <Image
-          src={transaction.image}
-          alt={transaction.name}
-          width={53}
-          height={30}
-          className="object-cover w-[73px] h-[40px]"
-        />
-        <div className="flex flex-col">
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {transaction.name}
-          </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
-            {transaction.description}
-          </span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    header: "ID",
-    key: "id",
-    minWidth: "min-w-[100px]",
-    render: (transaction) => (
-      <div className="flex items-center gap-2">
-        <span>{transaction.id}</span>
-        <button
-          onClick={() => copyToClipboard(transaction.id)}
-          title="Copy Product ID"
-          aria-label="Copy Product ID"
-          className="cursor-pointer"
-        >
-          <IdCopyIcon />
-        </button>
-      </div>
-    ),
-  },
-  {
-    header: "Sold",
-    key: "sold",
-    minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.sold.toFixed(2)}`,
-  },
-  {
-    header: "Commission",
-    key: "commission",
-    minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.commission.toFixed(2)}`,
-  },
-  {
-    header: "Buyer",
-    key: "buyer",
-    minWidth: "min-w-[100px]",
-  },
-  {
-    header: "Date",
-    key: "date",
-    minWidth: "min-w-[100px]",
-  },
+const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
+ {
+     header: "Fleet",
+     key: "name",
+     minWidth: "min-w-[150px]",
+     render: (transaction) => (
+       <div className="flex items-center gap-2">
+         <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
+           <Image
+             src={transaction.image}
+             alt={transaction.name}
+             width={40}
+             height={24}
+             className="object-cover"
+           />
+         </div>
+         <div className="flex flex-col">
+           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+             {transaction.name}
+           </span>
+           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
+             {transaction.description}
+           </span>
+         </div>
+       </div>
+     ),
+   },
+   {
+     header: "IOT",
+     key: "IOT",
+     minWidth: "min-w-[100px]",
+     render: (transaction) => (
+       <div className="flex items-center gap-2">
+         <span>{transaction.id}</span>
+         <button
+           onClick={() => copyToClipboard(transaction.id)}
+           title="Copy Product ID"
+           aria-label="Copy Product ID"
+           className="cursor-pointer"
+         >
+           <IdCopyIcon />
+         </button>
+       </div>
+     ),
+   },
+   {
+     header: "Kg",
+     key: "KG",
+     minWidth: "min-w-[100px]",
+     render: (transaction) => `${transaction.KG} KG`,
+   },
+   {
+     header: "Payment",
+     key: "Payment",
+     minWidth: "min-w-[100px]",
+     render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
+   },
+   {
+     header: "Payer",
+     key: "Seller",
+     minWidth: "min-w-[100px]",
+   },
+   {
+     header: "Date",
+     key: "date",
+     minWidth: "min-w-[100px]",
+   },
 ];
 
 export const ApprovedTableList = () => {
@@ -143,10 +145,10 @@ export const ApprovedTableList = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const filteredTransactions = ApprovedData.filter((transaction) => {
+  const filteredTransactions = TransporterApprovedData.filter((transaction) => {
     const matchesSearch =
       transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.Seller.toLowerCase().includes(searchQuery.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesYear =
       !selectedYear || transaction.date.includes(selectedYear.toString());
@@ -165,7 +167,7 @@ export const ApprovedTableList = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
+      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
@@ -324,7 +326,7 @@ export const ApprovedTableList = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<Transaction>
+          <TableList<TransporterTransaction>
             dataType="received"
             columns={transactionColumns}
             initialData={filteredTransactions}

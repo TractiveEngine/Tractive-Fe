@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { Transaction, PendingData } from "@/utils/TransactionData";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
-import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
+import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
+import { TransporterPendingData, TransporterTransaction } from "@/utils/TransporterTransactionData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,20 +18,22 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const transactionColumns: ColumnConfig<Transaction>[] = [
+const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
   {
-    header: "Item",
+    header: "Fleet",
     key: "name",
     minWidth: "min-w-[150px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
-        <Image
-          src={transaction.image}
-          alt={transaction.name}
-          width={53}
-          height={30}
-          className="object-cover w-[73px] h-[40px]"
-        />
+        <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
+          <Image
+            src={transaction.image}
+            alt={transaction.name}
+            width={40}
+            height={24}
+            className="object-cover"
+          />
+        </div>
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {transaction.name}
@@ -44,8 +46,8 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     ),
   },
   {
-    header: "ID",
-    key: "id",
+    header: "IOT",
+    key: "IOT",
     minWidth: "min-w-[100px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
@@ -62,20 +64,20 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     ),
   },
   {
-    header: "Sold",
-    key: "sold",
+    header: "Kg",
+    key: "KG",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.sold.toFixed(2)}`,
+    render: (transaction) => `${transaction.KG} KG`,
   },
   {
-    header: "Commission",
-    key: "commission",
+    header: "Payment",
+    key: "Payment",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.commission.toFixed(2)}`,
+    render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
   },
   {
-    header: "Buyer",
-    key: "buyer",
+    header: "Payer",
+    key: "Seller",
     minWidth: "min-w-[100px]",
   },
   {
@@ -90,7 +92,8 @@ export const PendingTableList = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] = useState<boolean>(false);
+  const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
+    useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
@@ -142,10 +145,10 @@ export const PendingTableList = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const filteredTransactions = PendingData.filter((transaction) => {
+  const filteredTransactions = TransporterPendingData.filter((transaction) => {
     const matchesSearch =
       transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.Seller.toLowerCase().includes(searchQuery.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesYear =
       !selectedYear || transaction.date.includes(selectedYear.toString());
@@ -164,7 +167,7 @@ export const PendingTableList = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
+      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
@@ -260,7 +263,9 @@ export const PendingTableList = () => {
                     role="combobox"
                     aria-expanded={isMonthOpen}
                     aria-controls="month-dropdown"
-                    aria-label={selectedMonth ? "Selected month" : "Select month"}
+                    aria-label={
+                      selectedMonth ? "Selected month" : "Select month"
+                    }
                   >
                     {selectedMonth || "Month"}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
@@ -321,7 +326,7 @@ export const PendingTableList = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<Transaction>
+          <TableList<TransporterTransaction>
             dataType="pending"
             columns={transactionColumns}
             initialData={filteredTransactions}

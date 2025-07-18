@@ -1,17 +1,17 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ActionMenuProps } from "../../../_components/ActionMenuProps";
-import { ThreeDotIcon } from "../../../produce-list/_components/table/ActionMenu";
-import { I24SupportIcon } from "../../../_components/Icons/AgentIcons";
+import { TransportActionMenuProps } from "../../../_components/TransportActionMenuProps";
+import { ThreeDotIcon } from "../../../fleet-list/_components/table/ActionMenu";
+import { I24SupportIcon } from "../../../_components/Icons/TransporterIcons";
 
-export const TransactionActionMenu: React.FC<ActionMenuProps> = ({
-  productId,
+export const TransactionActionMenu: React.FC<TransportActionMenuProps> = ({
+  driverId,
   activeMenu,
   setActiveMenu,
   handleCustomerCare,
 }) => {
-  const isActive = activeMenu === productId;
+  const isActive = activeMenu === driverId;
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export const TransactionActionMenu: React.FC<ActionMenuProps> = ({
       <button
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => setActiveMenu(isActive ? null : productId)}
+        onClick={() => setActiveMenu(isActive ? null : driverId)}
         className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
@@ -51,7 +51,7 @@ export const TransactionActionMenu: React.FC<ActionMenuProps> = ({
           >
             <button
               onClick={() => {
-                handleCustomerCare?.(productId);
+                handleCustomerCare?.(driverId);
                 setActiveMenu(null);
               }}
               className="w-full flex items-center gap-2 cursor-pointer text-left px-2 py-1 text-[11.5px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"

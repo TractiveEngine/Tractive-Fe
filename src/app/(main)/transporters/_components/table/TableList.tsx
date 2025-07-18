@@ -264,7 +264,7 @@ export const TableList = <T extends BaseData>({
                         : undefined
                     }
                     handleCustomerCare={
-                      dataType === "pending"
+                      dataType === "pending" || "received"
                         ? handleCustomerCare || defaultHandleCustomerCare
                         : undefined
                     }
