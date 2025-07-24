@@ -40,7 +40,6 @@ export const AllTransit: React.FC = () => {
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
 
-
   // Filter fleets based on year, month, and search term
   const filteredFleets = useMemo(() => {
     return fleets.filter((fleet) => {
@@ -135,7 +134,6 @@ export const AllTransit: React.FC = () => {
     navigator.clipboard.writeText(IOT);
     alert(`Copied IOT: ${IOT}`);
   };
-  
 
   // Dropdown animation variants
   const dropdownVariants = {
