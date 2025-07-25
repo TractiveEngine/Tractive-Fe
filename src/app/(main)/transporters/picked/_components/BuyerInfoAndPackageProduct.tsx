@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React from "react";
 import { PackagedTable } from "./PackagedTable";
 import { PhoneCall } from "../../_components/Icons/TransporterIcons";
 
