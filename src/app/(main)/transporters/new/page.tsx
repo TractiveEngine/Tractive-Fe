@@ -8,12 +8,16 @@ import { TabTitles } from "./_components/TabTitles";
 export default function TrackOrderPage() {
   const [isPicked, setIsPicked] = useState<boolean>(false);
   const [isDelivered, setIsDelivered] = useState<boolean>(false);
+  const [isOnTransit, setIsOnTransit] = useState<boolean>(false);
 
   const handlePickedClick = () => {
     setIsPicked(true);
   };
 
   const handleTransitClick = () => {
+    setIsOnTransit(true);
+  };
+  const handleDeliveredClick = () => {
     setIsDelivered(true);
   };
 
@@ -23,11 +27,13 @@ export default function TrackOrderPage() {
         <TabTitles
           isPicked={isPicked}
           onPickedClick={handlePickedClick}
-          isOnTransit={isDelivered}
+          isOnTransit={isOnTransit}
           onTransitClick={handleTransitClick}
+          isDelivered={isDelivered}
+          onDeliveredClick={handleDeliveredClick}
         />
         <div className="flex flex-col mapProductTransport_Details gap-2 sm:gap-4 w-full">
-          <MapTrackingTimeline isPicked={isPicked} isOnTransit={isDelivered} />
+          <MapTrackingTimeline isPicked={isPicked} isOnTransit={isOnTransit} isDelivered={ isDelivered} />
           <TransportInfoAndPackageProduct />
         </div>
       </div>

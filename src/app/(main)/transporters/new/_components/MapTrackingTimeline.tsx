@@ -2,16 +2,14 @@
 import Image from "next/image";
 import "../TrackOrder.css";
 import { TickIcon } from "../../_components/Icons/TransporterIcons";
+import { TabTitlesProps } from "./TabTitles";
 
-interface MapTrackingTimelineProps {
-  isPicked: boolean;
-  isOnTransit: boolean;
-}
 
 export const MapTrackingTimeline = ({
   isPicked,
   isOnTransit,
-}: MapTrackingTimelineProps) => {
+  isDelivered
+}:TabTitlesProps ) => {
   return (
     <div className="w-full h-fit flex flex-col gap-4 bg-[#fefefe] rounded-[10px] shadow-md">
       <Image
@@ -64,9 +62,13 @@ export const MapTrackingTimeline = ({
         </div>
         <div className="absolute right-[2%] deliveredEST_Date top-0 flex flex-col gap-1 justify-center items-center">
           <div
-            className={`flex items-center p-[3px] justify-center rounded-full w-3 h-3 sm:w-4 sm:h-4 z-10`}
+            className={`flex items-center p-[3px] justify-center rounded-full ${
+              isDelivered
+                ? "bg-[#538e53] text-[#fefefe]"
+                : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
+            } w-3 h-3 sm:w-4 sm:h-4 z-10`}
           >
-            {/* {isDelivered && <TickIcon />} */}
+            {isDelivered && <TickIcon />}
           </div>
           <div className="flex flex-col items-center">
             <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">

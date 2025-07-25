@@ -5,7 +5,7 @@ import { TransportCallDetails } from "./TransportCallDetails";
 import { PackagedTable } from "./PackagedTable";
 import { MessageFill, PhoneCall, PhoneCallFill } from "../../_components/Icons/TransporterIcons";
 
-export const TransportInfoAndPackageProduct = () => {
+export const BuyerInfoAndPackageProduct = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     "09034145971": false,

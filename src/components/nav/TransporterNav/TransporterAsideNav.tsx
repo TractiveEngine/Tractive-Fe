@@ -66,7 +66,7 @@ export const TransporterAsideNav = () => {
     Drivers: "/transporters/drivers",
     Negotiations: "/transporters/negotiations",
     New: "/transporters/new",
-    Packed: "/transporters/packed",
+    Picked: "/transporters/picked",
     OnTransit: "/transporters/on-transit",
     Delivered: "/transporters/delivered",
     Pending: "/transporters/pending",
@@ -109,7 +109,7 @@ export const TransporterAsideNav = () => {
           label: "New",
           hasDot: true,
         },
-        { href: "/transporters/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/transporters/picked", icon: PackedIcon, label: "Picked" },
         {
           href: "/transporters/on-transit",
           icon: BoxTickIcon,

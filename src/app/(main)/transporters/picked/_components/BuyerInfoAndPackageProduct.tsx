@@ -1,39 +1,9 @@
-import { AwardIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useState } from "react";
-import { TransportCallDetails } from "./TransportCallDetails";
 import { PackagedTable } from "./PackagedTable";
-import { MessageFill, PhoneCall, PhoneCallFill } from "../../_components/Icons/TransporterIcons";
+import { PhoneCall } from "../../_components/Icons/TransporterIcons";
 
-export const TransportInfoAndPackageProduct = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
-    "09034145971": false,
-    "09034145972": false,
-  });
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  const phoneNumbers = ["09034145971", "09034145972"];
-
-  const handleCopy = (number: string) => {
-    navigator.clipboard.writeText(number);
-    setCopiedStates((prev) => ({ ...prev, [number]: true }));
-    setTimeout(() => {
-      setCopiedStates((prev) => ({ ...prev, [number]: false }));
-    }, 2000);
-  };
-
-  const modalDetails = {
-    company: "GIGM Transport Company",
-    logoSrc: "/images/GIGM.png",
-    logoAlt: "GIGM Logo",
-    logoWidth: 67,
-    logoHeight: 47,
-    rating: "4.0",
-    phoneNumbers,
-  };
+export const BuyerInfoAndPackageProduct = () => {
 
   return (
     <div className="w-full flex flex-col  gap-4 rounded-[8px]">

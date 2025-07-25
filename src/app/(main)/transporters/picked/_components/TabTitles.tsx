@@ -28,7 +28,7 @@ export const TabTitles = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<
     "New" | "Picked" | "On Transit" | "Delivered"
-  >("New");
+  >("Picked");
   const newContainerRef = useRef<HTMLDivElement>(null);
   const pickedContainerRef = useRef<HTMLDivElement>(null);
   const onTransitContainerRef = useRef<HTMLDivElement>(null);
