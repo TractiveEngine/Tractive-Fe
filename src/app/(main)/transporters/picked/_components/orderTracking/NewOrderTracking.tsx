@@ -5,7 +5,6 @@ import "../../TrackOrder.css";
 import { TickIcon } from "../../../_components/Icons/TransporterIcons";
 import { TabTitlesProps } from "../TabTitles";
 
-
 export const NewOrderTracking = ({
   isPicked,
   onPickedClick,

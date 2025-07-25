@@ -9,7 +9,10 @@ import { copyToClipboard } from "@/utils/Clipboard";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
 import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
-import { TransporterPendingData, TransporterTransaction } from "@/utils/TransporterTransactionData";
+import {
+  TransporterPendingData,
+  TransporterTransaction,
+} from "@/utils/TransporterTransactionData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -19,7 +22,7 @@ interface ColumnConfig<T> {
 }
 
 const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
-{
+  {
     header: "Fleet",
     key: "name",
     minWidth: "min-w-[150px]",

@@ -4,7 +4,6 @@ import { PackagedTable } from "./PackagedTable";
 import { PhoneCall } from "../../_components/Icons/TransporterIcons";
 
 export const BuyerInfoAndPackageProduct = () => {
-
   return (
     <div className="w-full flex flex-col  gap-4 rounded-[8px]">
       <div className="flex ProductTransport_Details gap-4 w-full">

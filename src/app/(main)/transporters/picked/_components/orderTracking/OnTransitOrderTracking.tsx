@@ -2,9 +2,7 @@
 import Image from "next/image";
 import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import "../../TrackOrder.css"; // Ensure this CSS file is imported for styles
-import {
-  TickIcon,
-} from "../../../_components/Icons/TransporterIcons";
+import { TickIcon } from "../../../_components/Icons/TransporterIcons";
 import { TabTitlesProps } from "../TabTitles";
 
 export const OnTransitOrderTracking = ({

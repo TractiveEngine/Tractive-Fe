@@ -33,7 +33,11 @@ export default function TrackOrderPage() {
           onDeliveredClick={handleDeliveredClick}
         />
         <div className="flex flex-col mapProductTransport_Details gap-2 sm:gap-4 w-full">
-          <MapTrackingTimeline isPicked={isPicked} isOnTransit={isOnTransit} isDelivered={ isDelivered} />
+          <MapTrackingTimeline
+            isPicked={isPicked}
+            isOnTransit={isOnTransit}
+            isDelivered={isDelivered}
+          />
           <BuyerInfoAndPackageProduct />
         </div>
       </div>

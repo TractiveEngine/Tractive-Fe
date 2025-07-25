@@ -9,7 +9,10 @@ import { copyToClipboard } from "@/utils/Clipboard";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
 import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
-import { TransporterApprovedData, TransporterTransaction } from "@/utils/TransporterTransactionData";
+import {
+  TransporterApprovedData,
+  TransporterTransaction,
+} from "@/utils/TransporterTransactionData";
 
 interface ColumnConfig<T> {
   header: string;
@@ -19,71 +22,71 @@ interface ColumnConfig<T> {
 }
 
 const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
- {
-     header: "Fleet",
-     key: "name",
-     minWidth: "min-w-[150px]",
-     render: (transaction) => (
-       <div className="flex items-center gap-2">
-         <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
-           <Image
-             src={transaction.image}
-             alt={transaction.name}
-             width={40}
-             height={24}
-             className="object-cover"
-           />
-         </div>
-         <div className="flex flex-col">
-           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-             {transaction.name}
-           </span>
-           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
-             {transaction.description}
-           </span>
-         </div>
-       </div>
-     ),
-   },
-   {
-     header: "IOT",
-     key: "IOT",
-     minWidth: "min-w-[100px]",
-     render: (transaction) => (
-       <div className="flex items-center gap-2">
-         <span>{transaction.id}</span>
-         <button
-           onClick={() => copyToClipboard(transaction.id)}
-           title="Copy Product ID"
-           aria-label="Copy Product ID"
-           className="cursor-pointer"
-         >
-           <IdCopyIcon />
-         </button>
-       </div>
-     ),
-   },
-   {
-     header: "Kg",
-     key: "KG",
-     minWidth: "min-w-[100px]",
-     render: (transaction) => `${transaction.KG} KG`,
-   },
-   {
-     header: "Payment",
-     key: "Payment",
-     minWidth: "min-w-[100px]",
-     render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
-   },
-   {
-     header: "Payer",
-     key: "Seller",
-     minWidth: "min-w-[100px]",
-   },
-   {
-     header: "Date",
-     key: "date",
-     minWidth: "min-w-[100px]",
+  {
+    header: "Fleet",
+    key: "name",
+    minWidth: "min-w-[150px]",
+    render: (transaction) => (
+      <div className="flex items-center gap-2">
+        <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
+          <Image
+            src={transaction.image}
+            alt={transaction.name}
+            width={40}
+            height={24}
+            className="object-cover"
+          />
+        </div>
+        <div className="flex flex-col">
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+            {transaction.name}
+          </span>
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#666666]">
+            {transaction.description}
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "IOT",
+    key: "IOT",
+    minWidth: "min-w-[100px]",
+    render: (transaction) => (
+      <div className="flex items-center gap-2">
+        <span>{transaction.id}</span>
+        <button
+          onClick={() => copyToClipboard(transaction.id)}
+          title="Copy Product ID"
+          aria-label="Copy Product ID"
+          className="cursor-pointer"
+        >
+          <IdCopyIcon />
+        </button>
+      </div>
+    ),
+  },
+  {
+    header: "Kg",
+    key: "KG",
+    minWidth: "min-w-[100px]",
+    render: (transaction) => `${transaction.KG} KG`,
+  },
+  {
+    header: "Payment",
+    key: "Payment",
+    minWidth: "min-w-[100px]",
+    render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
+  },
+  {
+    header: "Payer",
+    key: "Seller",
+    minWidth: "min-w-[100px]",
+  },
+  {
+    header: "Date",
+    key: "date",
+    minWidth: "min-w-[100px]",
   },
 ];
 

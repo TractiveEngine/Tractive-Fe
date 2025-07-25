@@ -4,12 +4,11 @@ import "../TrackOrder.css";
 import { TickIcon } from "../../_components/Icons/TransporterIcons";
 import { TabTitlesProps } from "./TabTitles";
 
-
 export const MapTrackingTimeline = ({
   isPicked,
   isOnTransit,
-  isDelivered
-}:TabTitlesProps ) => {
+  isDelivered,
+}: TabTitlesProps) => {
   return (
     <div className="w-full h-fit flex flex-col gap-4 bg-[#fefefe] rounded-[10px] shadow-md">
       <Image
