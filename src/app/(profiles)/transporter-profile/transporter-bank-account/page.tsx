@@ -88,7 +88,7 @@ const BankAccount: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-[100%] bg-[#fefefe] flex flex-col items-center shadow-md rounded-[4px] pt-[4rem]">
+    <div className="w-[100%] bg-[#fefefe] h-screen flex flex-col items-center shadow-md rounded-[4px] pt-[4rem]">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4 py-6 w-[90%] max-w-[500px]"
@@ -142,7 +142,7 @@ const BankAccount: React.FC = () => {
             name="accountNumber"
             value={formData.accountNumber}
             onChange={handleChange}
-            placeholder="Enter your account number"
+            placeholder="Account number"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
             required
           />
@@ -162,7 +162,7 @@ const BankAccount: React.FC = () => {
             name="accountName"
             value={formData.accountName}
             onChange={handleChange}
-            placeholder="Enter your account name"
+            placeholder="Account name"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
             required
           />

@@ -7,13 +7,15 @@ interface ProfileDropDownProps {
   onLogout: () => void;
 }
 
-export const Transporter_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
+export const Transporter_ProfileDropDown = ({
+  onLogout,
+}: ProfileDropDownProps) => {
   return (
     <div className="flex flex-col gap-3 absolute right-0 top-12 pt-2 w-48 bg-[#fefefe] rounded-[4px] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)] z-20">
       <ul className="flex flex-col">
         <li className="w-[95%] mx-auto">
           <Link
-            href="/agent-profile"
+            href="/transporter-profile"
             className="block px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#538E53] hover:text-[#fefefe]"
           >
             Profile settings

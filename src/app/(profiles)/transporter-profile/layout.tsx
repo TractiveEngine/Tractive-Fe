@@ -5,6 +5,8 @@ import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { IoIosMenu } from "react-icons/io";
+import { IoCloseOutline } from "react-icons/io5";
 
 export default function ProfileSettingLayout({
   children,
@@ -13,6 +15,7 @@ export default function ProfileSettingLayout({
 }) {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isAsideOpen, setIsAsideOpen] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -48,6 +51,16 @@ export default function ProfileSettingLayout({
     }
   }, [router]);
 
+  const toggleAside = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    console.log("Toggle aside clicked, current state:", isAsideOpen); // Debug log
+    setIsAsideOpen((prev) => {
+      const newState = !prev;
+      console.log("New aside state:", newState); // Debug log
+      return newState;
+    });
+  };
+
   if (isLoggedIn === null) {
     return <div>Loading...</div>;
   }
@@ -57,16 +70,49 @@ export default function ProfileSettingLayout({
   }
 
   return (
-    <div className="bg-[#f1f1f1]">
+    <div className="bg-[#f1f1f1] min-h-screen">
       <nav className="bg-[#fefefe] w-full">
         <TransporterProfileNavbar />
       </nav>
-      <div className="w-full h-screen">
+      <div className="w-full h-screen relative">
         <div className="w-[95%] mx-auto flex flex-col md:flex-row gap-6 pt-4">
-          <aside className="w-[70%] rounded-md">
+          {/* Hamburger menu icon for mobile */}
+          {isAsideOpen ? (
+            <IoCloseOutline
+              className="md:hidden w-8 h-8 text-[#2b2b2b] fixed top-2 right-15 z-50 p-1 bg-white rounded-md shadow-md cursor-pointer"
+              onClick={toggleAside}
+              role="button"
+              aria-label="Close menu"
+            />
+          ) : (
+            <IoIosMenu
+              className="md:hidden w-8 h-8 text-[#2b2b2b] fixed top-2 right-15 z-50 p-1 bg-white rounded-md shadow-md cursor-pointer"
+              onClick={toggleAside}
+              role="button"
+              aria-label="Open menu"
+            />
+          )}
+          <aside
+            className={`
+              w-[70%] md:w-[40%] rounded-md fixed md:static top-0 left-0 h-full md:h-auto
+              bg-[#fefefe] md:bg-transparent transform transition-transform duration-300 ease-in-out
+              ${
+                isAsideOpen ? "translate-x-0" : "-translate-x-full"
+              } md:translate-x-0
+              z-40
+            `}
+          >
             <TransporterProfile_AsideNav />
           </aside>
-          {children}
+          {/* Overlay for mobile when aside is open */}
+          {isAsideOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
+              onClick={toggleAside}
+              aria-label="Close menu"
+            />
+          )}
+          <main className="flex-1 mt-12 md:mt-0">{children}</main>
         </div>
       </div>
     </div>

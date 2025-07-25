@@ -33,7 +33,7 @@ const SecuritySetting = () => {
   };
 
   return (
-    <div className="w-[100%] bg-[#fefefe] flex flex-col items-center shadow-md rounded-[4px] pt-[4rem]">
+    <div className="w-[100%] bg-[#fefefe] h-screen flex flex-col items-center shadow-md rounded-[4px] pt-[4rem]">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col justify-center gap-4 py-6 w-[90%] max-w-[500px]"

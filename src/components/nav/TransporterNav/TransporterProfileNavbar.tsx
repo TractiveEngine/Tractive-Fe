@@ -114,7 +114,7 @@ export const TransporterProfileNavbar = () => {
         >
           <div>
             {/* Logo */}
-            <Link href="/" className="hidden md:flex items-center">
+            <Link href="/transporters" className="hidden md:flex items-center">
               <Image
                 src="/images/navLogo.png"
                 alt="Agrictech Logo"
@@ -123,9 +123,6 @@ export const TransporterProfileNavbar = () => {
               />
             </Link>
           </div>
-          <span className="hidden md:flex items-center font-montserrat text-[#2b2b2b] text-[16px] lg:text-[1.2rem] font-medium">
-            Dashboard
-          </span>
 
           {/* Conditional Rendering Based on Login Status */}
           {isLoggedIn ? (

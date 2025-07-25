@@ -1,6 +1,7 @@
 
 import {
   CallOutlineIcon,
+  DeliveryIcon,
   ProfileSettingIcon,
   SecurityIcon,
   WalletAddIcon,
@@ -66,13 +67,13 @@ export const TransporterProfile_AsideNav = () => {
         <ul className="flex flex-col w-[100%]">
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/agent-profile"
+              pathname === "/transporter-profile"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/agent-profile"
+              href="/transporter-profile"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -85,13 +86,13 @@ export const TransporterProfile_AsideNav = () => {
 
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/agent-profile/agent-security-setting"
+              pathname === "/transporter-profile/transporter-security-setting"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/agent-profile/agent-security-setting"
+              href="/transporter-profile/transporter-security-setting"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -103,13 +104,32 @@ export const TransporterProfile_AsideNav = () => {
           </li>
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/agent-profile/agent-bank-account"
+              pathname === "/transporter-profile/transporter-delivery-location"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/agent-profile/agent-bank-account"
+              href="/transporter-profile/transporter-delivery-location"
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
+                <DeliveryIcon />
+                Delivery Location
+              </div>
+              <ArrowRightIcon />
+            </Link>
+          </li>
+          
+          <li
+            className={`p-6 cursor-pointer ${
+              pathname === "/transporter-profile/transporter-bank-account"
+                ? "bg-[#cce5cc]"
+                : "hover:bg-[#e2e2e2] "
+            }`}
+          >
+            <Link
+              href="/transporter-profile/transporter-bank-account"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">

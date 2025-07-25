@@ -8,9 +8,8 @@ const ProfileSetting = () => {
     businessName: "",
     email: "",
     mobile: "",
-    alternativeMobile: "",
+    alternative: "",
     address: "",
-    Motto: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,13 +118,13 @@ const ProfileSetting = () => {
               htmlFor="alternativeMobile"
               className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
             >
-              Alternative Mobile
+              Alternative
             </label>
             <input
               type="tel"
               id="alternativeMobile"
               name="alternativeMobile"
-              value={formData.alternativeMobile}
+              value={formData.alternative}
               onChange={handleChange}
               placeholder="Enter alternative mobile"
               className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[12px] font-montserrat text-[#2b2b2b]"
@@ -148,26 +147,6 @@ const ProfileSetting = () => {
             value={formData.address}
             onChange={handleChange}
             placeholder="Enter your address"
-            className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[12px] font-montserrat text-[#2b2b2b]"
-            required
-          />
-        </div>
-
-        {/* Local Market */}
-        <div className="w-full">
-          <label
-            htmlFor="localMarket"
-            className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
-          >
-            Motto
-          </label>
-          <input
-            type="text"
-            id="motto"
-            name="Motto"
-            value={formData.Motto}
-            onChange={handleChange}
-            placeholder="Enter your motto"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[12px] font-montserrat text-[#2b2b2b]"
             required
           />
