@@ -41,7 +41,7 @@ export const TransporterAsideNav = () => {
   const router = useRouter();
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     Store: true,
-    Orders: true,
+    Bookings: true,
     Transactions: true,
     Customers: true,
     Others: true,
