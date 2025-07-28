@@ -1,4 +1,3 @@
-
 import {
   CallOutlineIcon,
   DeliveryIcon,
@@ -120,7 +119,7 @@ export const TransporterProfile_AsideNav = () => {
               <ArrowRightIcon />
             </Link>
           </li>
-          
+
           <li
             className={`p-6 cursor-pointer ${
               pathname === "/transporter-profile/transporter-bank-account"

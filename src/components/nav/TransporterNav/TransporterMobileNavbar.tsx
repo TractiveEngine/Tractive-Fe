@@ -183,7 +183,6 @@ export const TransporterMobileNavbar = () => {
                 </li>
               ))}
             </ul>
-
             {/* Auth Buttons */}
             {!isLoggedIn && (
               <ul className="flex flex-col gap-4">

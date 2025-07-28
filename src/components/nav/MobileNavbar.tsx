@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
 import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
 import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
