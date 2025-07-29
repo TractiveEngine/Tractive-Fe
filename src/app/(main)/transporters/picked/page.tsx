@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { MapTrackingTimeline } from "./_components/MapTrackingTimeline";
+import { TransportInfoAndPackageProduct } from "./_components/TransportInfoAndPackageProduct";
 import "./TrackOrder.css";
 import { TabTitles } from "./_components/TabTitles";
-import { BuyerInfoAndPackageProduct } from "./_components/BuyerInfoAndPackageProduct";
 
 export default function TrackOrderPage() {
   const [isPicked, setIsPicked] = useState<boolean>(false);
@@ -38,7 +38,7 @@ export default function TrackOrderPage() {
             isOnTransit={isOnTransit}
             isDelivered={isDelivered}
           />
-          <BuyerInfoAndPackageProduct />
+          <TransportInfoAndPackageProduct />
         </div>
       </div>
     </div>

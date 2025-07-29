@@ -15,7 +15,7 @@ export const Transporter_ProfileDropDownMobile = ({
       <ul className="flex flex-col">
         <li className="w-[95%] mx-auto">
           <Link
-            href="/agent-profile"
+            href="/transporter-profile"
             className="block px-3 py-1 text-[12px] text-[#2b2b2b] rounded-[4px] hover:bg-[#2b2b2b] transition-all duration-200 hover:text-[#fefefe]"
           >
             Profile settings
@@ -33,7 +33,7 @@ export const Transporter_ProfileDropDownMobile = ({
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
       {/* ===== Account Switch ====== */}
       <div className="flex flex-col gap-2 px-3 pb-3">
-        <div className="flex items-center justify-between cursor-pointer">
+        <Link href="/buyers" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -52,8 +52,8 @@ export const Transporter_ProfileDropDownMobile = ({
             </div>
           </div>
           <SwapIcon />
-        </div>
-        <div className="flex items-center justify-between cursor-pointer">
+        </Link>
+        <Link href="/agents" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -72,7 +72,7 @@ export const Transporter_ProfileDropDownMobile = ({
             </div>
           </div>
           <SwapIcon />
-        </div>
+        </Link>
       </div>
     </div>
   );

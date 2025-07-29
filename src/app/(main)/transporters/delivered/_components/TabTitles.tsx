@@ -130,35 +130,35 @@ export const TabTitles = ({
       <h2 className="font-montserrat text-center font-medium text-[17px] sm:text-[20px] text-[#2b2b2b]">
         Order Tracking
       </h2>
-      <div className="relative w-full px-4">
+      <div className="relative w-full px-2 sm:px-4 max-w-[100vw]">
         <input
           type="text"
           placeholder="Search for chat"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-8 sm:pl-10 py-3 bg-[#f1f1f1] text-[#2b2b2b] rounded-[4px] text-[13px] sm:text-[15px] focus:outline-none focus:ring-[#2B9B1E] placeholder:text-[#2b2b2b] placeholder:text-[13px] sm:placeholder:text-[15px] placeholder:font-montserrat placeholder:font-normal"
+          className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-3 bg-[#f1f1f1] text-[#2b2b2b] rounded-[4px] text-[12px] sm:text-[14px] md:text-[15px] focus:outline-none focus:ring-2 focus:ring-[#2B9B1E] placeholder:text-[#2b2b2b] placeholder:text-[12px] sm:placeholder:text-[14px] md:placeholder:text-[15px] placeholder:font-montserrat placeholder:font-normal"
           aria-label="Search for chat"
         />
-        <div className="absolute left-2 sm:left-7 top-1/2 transform -translate-y-1/2">
-          <SearchIcon stroke="#808080" className="w-5 h-5" />
+        <div className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2">
+          <SearchIcon stroke="#808080" className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
-      <div className="">
+      <div className="overflow-x-auto">
         <div
-          className="relative flex items-center gap-4 sm:gap-6 mb-2"
+          className="relative flex items-center gap-1 sm:gap-5 mb-2 flex-nowrap"
           ref={containerRef}
           role="tablist"
           aria-label="Order tracking tabs"
         >
           <div
-            className="flex items-center gap-1 relative"
+            className="flex items-center gap-1 relative flex-nowrap"
             ref={newContainerRef}
           >
             <button
               role="tab"
               id="new-tab"
               onClick={() => handleSwitchTab("New")}
-              className={`text-[14px] font-medium cursor-pointer p-2 pb-0 sm:text-base ${
+              className={`text-[14px] font-medium cursor-pointer p-3 pb-0 sm:text-base flex-shrink-0 ${
                 activeTab === "New" ? "text-[#538e53]" : "text-[#2b2b2b]"
               }`}
               aria-selected={activeTab === "New"}
@@ -175,7 +175,7 @@ export const TabTitles = ({
               role="tab"
               id="picked-tab"
               onClick={() => handleSwitchTab("Picked")}
-              className={`text-[14px] font-medium cursor-pointer p-2 pb-0 sm:text-base ${
+              className={`text-[14px] font-medium cursor-pointer p-3 pb-0 sm:text-base ${
                 activeTab === "Picked" ? "text-[#538e53]" : "text-[#2b2b2b]"
               }`}
               aria-selected={activeTab === "Picked"}
@@ -192,7 +192,7 @@ export const TabTitles = ({
               role="tab"
               id="on-transit-tab"
               onClick={() => handleSwitchTab("On Transit")}
-              className={`text-[14px] font-medium cursor-pointer p-2 pb-0 sm:text-base ${
+              className={`text-[14px] font-medium cursor-pointer p-3 pb-0 sm:text-base ${
                 activeTab === "On Transit" ? "text-[#538e53]" : "text-[#2b2b2b]"
               }`}
               aria-selected={activeTab === "On Transit"}
@@ -209,7 +209,7 @@ export const TabTitles = ({
               role="tab"
               id="delivered-tab"
               onClick={() => handleSwitchTab("Delivered")}
-              className={`text-[14px] font-medium cursor-pointer p-2 pb-0 sm:text-base ${
+              className={`text-[14px] font-medium cursor-pointer p-3 pb-0 sm:text-base ${
                 activeTab === "Delivered" ? "text-[#538e53]" : "text-[#2b2b2b]"
               }`}
               aria-selected={activeTab === "Delivered"}

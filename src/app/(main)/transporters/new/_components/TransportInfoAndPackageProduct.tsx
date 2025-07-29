@@ -7,7 +7,7 @@ export const TransportInfoAndPackageProduct = () => {
   
   return (
     <div className="w-full flex flex-col  gap-4 rounded-[8px]">
-      <div className="flex ProductTransport_Details gap-4 w-full">
+      <div className="flex ProductBuyer_Details gap-4 w-full">
         {/* Buyer Information */}
         <div className="flex flex-col bg-[#fefefe] shadow-md rounded-[10px] p-3 sm:p-4 w-full">
           <h2 className="font-montserrat font-normal text-[12px] sm:text-[14px] mb-2 text-[#2b2b2b]">

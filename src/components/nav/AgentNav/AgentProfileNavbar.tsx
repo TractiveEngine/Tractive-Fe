@@ -3,8 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "../Navbar.css";
+import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AgentMobileNavbar";

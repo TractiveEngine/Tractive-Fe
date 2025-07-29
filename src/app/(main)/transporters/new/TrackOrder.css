@@ -1,3 +1,14 @@
+@media (max-width: 876px) {
+  .ProductBuyer_Details {
+    flex-direction: column;
+  }
+  }
+@media (max-width: 750px) {
+  .ProductBuyer_Details {
+    flex-direction: row;
+  }
+  }
+
 @media (max-width: 640px) {
   .timeline_dashed_line_1 {
     left: 10%;
@@ -34,6 +45,27 @@
 
   .timeline_dashed_line_m2 {
     left: 50%;
+    right: 18%;
+  }
+}
+
+@media (max-width: 450px) {
+  .ProductBuyer_Details {
+    flex-direction: column;
+  }
+  }
+
+@media (max-width: 350px) {
+  .timeline_dashed_line_m2 {
+    left: 52%;
+    right: 18%;
+  }
+    .timeline_dashed_line_1 {
+    left: 14%;
+    right: 52%;
+  }
+  .timeline_dashed_line_2 {
+    left: 53%;
     right: 18%;
   }
 }

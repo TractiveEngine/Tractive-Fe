@@ -3,8 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn } from "@/utils/loginAuth"; // Adjust path as needed
-import "../Navbar.css";
+import { isUserLoggedIn } from "@/utils/loginAuth";
 import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 
@@ -117,12 +116,10 @@ export const TransporterMobileNavbar = () => {
                       </div>
                     </div>
                     {isNotificationOpen && (
-                      <div className="absolute !top-[4rem] !-left-[27rem] md:!top-10 md:!-left-[27rem] w-[470px] md:w-[500px] bg-white border border-gray-200 rounded-[4px] shadow-lg z-99">
+                      <div className="absolute top-[3rem] right-0 w-[90vw] max-w-[500px] min-w-[300px] bg-white border border-gray-200 rounded-[4px] shadow-lg z-50 sm:top-[2.5rem]">
                         <ul className="py-2">
                           {hasNotifications ? (
-                            <>
-                              <Notifications />
-                            </>
+                            <Notifications />
                           ) : (
                             <li className="px-4 py-2 text-[0.89rem] text-gray-500">
                               No new notifications

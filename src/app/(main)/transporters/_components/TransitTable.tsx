@@ -67,7 +67,7 @@ export const TransitTable: React.FC = () => {
               </div>
             </th>
             <th className="font-montserrat text-[#2b2b2b] text-[12px] font-normal text-left px-2.5">
-              IOT
+              <span className="hidden sm:flex">IOT</span>
             </th>
             <th className="font-montserrat text-[#2b2b2b] text-[12px] font-normal text-left px-2.5">
               <span className="hidden lg:flex">Route</span>
@@ -105,7 +105,7 @@ export const TransitTable: React.FC = () => {
                 </div>
               </td>
               <td className="py-[5px] px-2.5">
-                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
+                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal hidden sm:flex">
                   {item.iot}
                 </span>
               </td>

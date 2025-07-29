@@ -20,13 +20,13 @@ const packageColumns: ColumnConfig<BuyersPackage>[] = [
           alt={`Image of ${packagedProduct.name}`}
           width={40} // Reduced for mobile
           height={24}
-          className="object-cover sm:w-[79px] sm:h-[43px] rounded-[7px]"
+          className="object-cover w-[79px] h-[43px] sm:w-[79px] sm:h-[43px] rounded-[7px]"
         />
         <div className="flex flex-col">
           <span className="truncate text-[12px] sm:text-[13px] font-normal font-montserrat text-[#2b2b2b]">
             {packagedProduct.name}
           </span>
-          <span className="truncate text-[12px] sm:text-[13px] font-normal font-montserrat text-[#2b2b2b] hidden sm:block">
+          <span className="truncate text-[12px] sm:text-[13px] font-normal font-montserrat text-[#2b2b2b]">
             ID:{packagedProduct.id}
           </span>
         </div>

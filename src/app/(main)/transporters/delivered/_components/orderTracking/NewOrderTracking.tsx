@@ -5,7 +5,6 @@ import "../../TrackOrder.css";
 import { TickIcon } from "../../../_components/Icons/TransporterIcons";
 import { TabTitlesProps } from "../TabTitles";
 
-
 export const NewOrderTracking = ({
   isPicked,
   onPickedClick,
@@ -18,7 +17,7 @@ export const NewOrderTracking = ({
         <div className="flex flex-col gap-3 border-[2px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <Image
                   src="/images/GIGM.png"
                   alt="GIGM Logo"
@@ -27,7 +26,7 @@ export const NewOrderTracking = ({
                   className="object-cover w-10 h-7 sm:w-12 sm:h-8"
                 />
                 <div className="flex flex-col">
-                  <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
+                  <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b] truncate">
                     GIGM Transport Company
                   </span>
                   <div className="flex items-center gap-1">
@@ -63,7 +62,7 @@ export const NewOrderTracking = ({
                   isPicked
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isPicked && <TickIcon />}
               </div>
@@ -77,7 +76,7 @@ export const NewOrderTracking = ({
                   isOnTransit
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isOnTransit && <TickIcon />}
               </div>
@@ -91,7 +90,7 @@ export const NewOrderTracking = ({
                   isDelivered
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isDelivered && <TickIcon />}
               </div>
@@ -101,8 +100,8 @@ export const NewOrderTracking = ({
             </div>
           </div>
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src="/images/Trucker.png"
@@ -121,7 +120,8 @@ export const NewOrderTracking = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src="/images/foodTracked.png"

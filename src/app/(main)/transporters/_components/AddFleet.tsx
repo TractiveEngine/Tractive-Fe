@@ -94,7 +94,7 @@ export const AddFleet: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="relative bg-[#fefefe] rounded-lg w-[90%] max-w-[500px] p-4"
+            className="relative bg-[#fefefe] rounded-lg w-[95%] overflow-y-auto max-h-[500px] max-w-[500px] p-4"
           >
             {currentStep === 1 && (
               <>
@@ -107,9 +107,9 @@ export const AddFleet: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                 <h2 className="text-[15px] pt-[1.6rem] font-normal text-center text-[#808080] font-montserrat mb-2">
                   Upload Fleet
                 </h2>
-                <form className="space-y-1 px-4 pb-6">
+                <form className="space-y-1 sm:px-4 pb-6">
                   {/* Name and Phone Number */}
-                  <div className="flex flex-col md:flex-row gap-[20px] w-full max-w-[480px] mx-auto">
+                  <div className="flex flex-col md:flex-row gap-[15px] w-full max-w-[480px] mx-auto">
                     <div className="w-full md:w-1/2">
                       <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
                         Name
@@ -206,14 +206,14 @@ export const AddFleet: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                         <span className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
                           Add Image
                         </span>
-                        <div className="flex gap-[20px] items-center justify-center">
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[70px]">
+                        <div className="flex gap-[15px] items-center justify-center">
+                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
                             <GalleryAddIcon />
                           </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[70px]">
+                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
                             <GalleryAddIcon />
                           </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[70px]">
+                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
                             <GalleryAddIcon />
                           </div>
                         </div>

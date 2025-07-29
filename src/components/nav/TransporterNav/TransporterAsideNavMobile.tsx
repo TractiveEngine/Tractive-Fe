@@ -21,8 +21,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
 import { Transporter_ProfileDropDownMobile } from "../../Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDownMobile";
+import AddFleet from "@/app/(main)/transporters/_components/AddFleet";
 
 interface NavSection {
   title: string;
@@ -100,7 +100,7 @@ export const TransporterAsideNavMobile = ({
       items: [
         {
           icon: AddToStoreIcon,
-          label: "Add to store",
+          label: "Add Fleet",
           onClick: () => setIsModalOpen(true),
         },
         {
@@ -126,7 +126,7 @@ export const TransporterAsideNavMobile = ({
           label: "New",
           hasDot: true,
         },
-        { href: "/transporters/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/transporters/picked", icon: PackedIcon, label: "Picked" },
         {
           href: "/transporters/on-transit",
           icon: BoxTickIcon,
@@ -209,7 +209,7 @@ export const TransporterAsideNavMobile = ({
 
   return (
     <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20">
-      <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <AddFleet isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {user && (
         <div className="relative px-[0.5rem] pt-[1rem]" ref={profileRef}>
           <div className="flex items-center justify-between w-full gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 px-2.5 rounded-[4px] hover:bg-[#4a4a4a] transition">
@@ -345,7 +345,7 @@ export const TransporterAsideNavMobile = ({
                                 <button
                                   onClick={item.onClick}
                                   className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
-                                    isModalOpen && item.label === "Add to store"
+                                    isModalOpen && item.label === "Add Fleet"
                                       ? "bg-[#3a3a3a] text-[#fefefe]"
                                       : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
                                   }`}

@@ -34,7 +34,7 @@ export const TransporterProfile_AsideNav = () => {
   })();
 
   return (
-    <div className="flex flex-col justify-center gap-4 w-[100%] pt-12 pb-4 bg-[#fefefe] shadow-md rounded-md">
+    <div className="flex flex-col justify-center gap-4 w-[100%] pt-12 pb-4 bg-[#fefefe] shadow-none md:shadow-md rounded-md">
       <div className=" flex flex-col items-center justify-center gap-4">
         <ProfilePicture />
         <div className="flex flex-col items-center justify-center gap-2">

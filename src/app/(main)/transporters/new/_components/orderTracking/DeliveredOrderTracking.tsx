@@ -16,7 +16,7 @@ export const DeliveredOrderTracking = ({
         <div className="flex flex-col gap-3 border-[2px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <Image
                   src="/images/GIGM.png"
                   alt="GIGM Logo"
@@ -60,7 +60,7 @@ export const DeliveredOrderTracking = ({
                   isPicked
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isPicked && <TickIcon />}
               </div>
@@ -74,7 +74,7 @@ export const DeliveredOrderTracking = ({
                   isOnTransit
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isOnTransit && <TickIcon />}
               </div>
@@ -89,7 +89,7 @@ export const DeliveredOrderTracking = ({
                   isDelivered
                     ? "bg-[#538e53] text-[#fefefe]"
                     : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-                } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+                } w-4 h-4 z-10`}
               >
                 {isDelivered && <TickIcon />}
               </div>
@@ -99,8 +99,8 @@ export const DeliveredOrderTracking = ({
             </div>
           </div>
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src="/images/Trucker.png"
@@ -119,7 +119,7 @@ export const DeliveredOrderTracking = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src="/images/foodTracked.png"

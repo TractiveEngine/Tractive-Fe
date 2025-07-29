@@ -112,7 +112,7 @@ export default function AgentLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f1f1f1]">
+    <div className="w-full min-h-screen bg-[#f1f1f1]">
       <TransporterAsideNav />
       <motion.div
         className="flex-1 flex flex-col"
@@ -122,7 +122,7 @@ export default function AgentLayout({
         <nav className="w-full">
           <TransporterNavbar />
         </nav>
-        <div className="flex flex-col">
+        <div className="w-full flex flex-col">
           <TransporterAsideNavMobile
             user={user}
             isDropdownOpen={isDropdownOpen}
@@ -130,7 +130,7 @@ export default function AgentLayout({
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="pt-[2rem] lg:pt-[4rem]">{children}</main>
+          <main className="w-full pt-[2rem] lg:pt-[4rem]">{children}</main>
         </div>
       </motion.div>
     </div>

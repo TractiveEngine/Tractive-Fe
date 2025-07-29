@@ -226,14 +226,14 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
         onSubmit={handleSubmit}
         className="space-y-4 w-full max-w-[580px] mx-auto"
       >
-        <div className="flex items-center gap-3 w-full max-w-[370px] mx-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-[370px] mx-auto">
           {/* From and To State Route */}
-          <div className="flex flex-col md:flex-row gap-[15px] w-full max-w-[260px] mx-auto">
+          <div className="flex flex-col md:flex-row gap-[10px] md:gap-[15px] w-full max-w-[260px] mx-auto">
             <div className="relative w-full md:w-1/2" ref={fromDropdownRef}>
               <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
                 From
               </label>
-              <div className="flex gap-[1px] w-full max-w-[142px] items-center">
+              <div className="flex gap-[1px] w-full max-w-[240px] md:max-w-[142px] items-center">
                 <Image
                   src="/images/locationPointer.png"
                   alt="Driver preview"
@@ -243,7 +243,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 />
                 <div
                   onClick={() => setIsFromOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
+                  className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
                   role="button"
                   tabIndex={0}
                 >
@@ -276,7 +276,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
               </label>
               <div
                 onClick={() => setIsToOpen((prev) => !prev)}
-                className="flex items-center justify-between w-full max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
+                className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
                 role="button"
                 tabIndex={0}
               >
@@ -305,7 +305,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
           </div>
 
           {/* Delivery Days */}
-          <div className="w-[30%]">
+          <div className="w-[100%] md:w-[30%]">
             <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
               Delivery
             </label>

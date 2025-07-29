@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -42,9 +41,13 @@ export default function FleetListPage() {
   const counts = useMemo(
     () => ({
       All: initialFleets.length,
-      Available: initialFleets.filter((fleet) => fleet.status === "Available").length,
-      UnderMaintenance: initialFleets.filter((fleet) => fleet.status === "Under maintenance").length,
-      OnTransit: initialFleets.filter((fleet) => fleet.status === "On transit").length,
+      Available: initialFleets.filter((fleet) => fleet.status === "Available")
+        .length,
+      UnderMaintenance: initialFleets.filter(
+        (fleet) => fleet.status === "Under maintenance"
+      ).length,
+      OnTransit: initialFleets.filter((fleet) => fleet.status === "On transit")
+        .length,
     }),
     []
   );
@@ -134,9 +137,9 @@ export default function FleetListPage() {
       <h1 className="mb-4 px-6 pt-6 text-base font-normal font-montserrat sm:text-lg">
         Stock Management
       </h1>
-      <div className="flex flex-col">
+      <div className="flex flex-col overflow-x-auto flex-nowrap">
         <div
-          className="relative mb-2 flex items-center gap-3 px-6"
+          className="relative mb-2 flex items-center gap-3 px-6 flex-nowrap"
           ref={containerRef}
           role="tablist"
           aria-label="Stock management tabs"
@@ -144,7 +147,7 @@ export default function FleetListPage() {
           {tabs.map((tab, index) => (
             <div
               key={tab.id}
-              className="cursor-pointer relative flex items-center gap-1"
+              className="cursor-pointer relative flex items-center gap-1 flex-shrink-0"
               role="tab"
               id={tab.id}
               ref={(el) => {
@@ -155,7 +158,7 @@ export default function FleetListPage() {
                 role="tab"
                 id={tab.id}
                 onClick={() => handleSwitchTab(tab.label)}
-                className={`cursor-pointer p-2 text-sm font-medium sm:text-base ${
+                className={`cursor-pointer px-2 text-sm font-medium sm:text-base ${
                   activeTab === tab.label ? tab.textColor : "text-[#2b2b2b]"
                 } transition-colors duration-200`}
                 aria-selected={activeTab === tab.label}
@@ -183,7 +186,7 @@ export default function FleetListPage() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
           />
         </div>
-        <div className="h-[1px] w-full bg-gray-200" />
+        <div className="h-[1px] w-screen bg-gray-200" />
       </div>
 
       <div
@@ -196,4 +199,4 @@ export default function FleetListPage() {
       </div>
     </div>
   );
-};
+}

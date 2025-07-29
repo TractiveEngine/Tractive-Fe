@@ -4,12 +4,11 @@ import "../TrackOrder.css";
 import { TickIcon } from "../../_components/Icons/TransporterIcons";
 import { TabTitlesProps } from "./TabTitles";
 
-
 export const MapTrackingTimeline = ({
   isPicked,
   isOnTransit,
-  isDelivered
-}:TabTitlesProps ) => {
+  isDelivered,
+}: TabTitlesProps) => {
   return (
     <div className="w-full h-fit flex flex-col gap-4 bg-[#fefefe] rounded-[10px] shadow-md">
       <Image
@@ -28,7 +27,7 @@ export const MapTrackingTimeline = ({
               isPicked
                 ? "bg-[#538e53] text-[#fefefe]"
                 : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-            } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+            } w-4 h-4 z-10`}
           >
             {isPicked && <TickIcon />}
           </div>
@@ -47,7 +46,7 @@ export const MapTrackingTimeline = ({
               isOnTransit
                 ? "bg-[#538e53] text-[#fefefe]"
                 : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-            } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+            } w-4 h-4 z-10`}
           >
             {isOnTransit && <TickIcon />}
           </div>
@@ -66,7 +65,7 @@ export const MapTrackingTimeline = ({
               isDelivered
                 ? "bg-[#538e53] text-[#fefefe]"
                 : "bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe]"
-            } w-3 h-3 sm:w-4 sm:h-4 z-10`}
+            } w-4 h-4 z-10`}
           >
             {isDelivered && <TickIcon />}
           </div>
@@ -80,11 +79,11 @@ export const MapTrackingTimeline = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 pb-4">
-        <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+      <div className="flex items-center justify-center gap-2 sm:gap-4 pb-4">
+        <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
           From: Umuahia, Abia State
         </span>
-        <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+        <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
           To: Ikorodu, Lagos State
         </span>
       </div>

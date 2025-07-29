@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { MapTrackingTimeline } from "./_components/MapTrackingTimeline";
+import { TransportInfoAndPackageProduct } from "./_components/TransportInfoAndPackageProduct";
 import "./TrackOrder.css";
 import { TabTitles } from "./_components/TabTitles";
-import { BuyerInfoAndPackageProduct } from "./_components/BuyerInfoAndPackageProduct";
 
 export default function TrackOrderPage() {
   const [isPicked, setIsPicked] = useState<boolean>(false);
@@ -33,8 +33,12 @@ export default function TrackOrderPage() {
           onDeliveredClick={handleDeliveredClick}
         />
         <div className="flex flex-col mapProductTransport_Details gap-2 sm:gap-4 w-full">
-          <MapTrackingTimeline isPicked={isPicked} isOnTransit={isOnTransit} isDelivered={ isDelivered} />
-          <BuyerInfoAndPackageProduct />
+          <MapTrackingTimeline
+            isPicked={isPicked}
+            isOnTransit={isOnTransit}
+            isDelivered={isDelivered}
+          />
+          <TransportInfoAndPackageProduct />
         </div>
       </div>
     </div>

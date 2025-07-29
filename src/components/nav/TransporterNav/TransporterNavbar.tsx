@@ -3,8 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "../Navbar.css";
+import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 import { Transporter_ProfileDropDown } from "@/components/Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDown";
@@ -119,7 +118,10 @@ export const TransporterNavbar = () => {
           ) : (
             <>
               {/* Logo */}
-              <Link href="/" className="hidden md:flex items-center">
+              <Link
+                href="/transporters"
+                className="hidden md:flex items-center"
+              >
                 <Image
                   src="/images/navLogo.png"
                   alt="Agrictech Logo"
@@ -159,12 +161,10 @@ export const TransporterNavbar = () => {
                       <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                     )}
                     {isNotificationOpen && (
-                      <div className="absolute !top-10 !-left-[15rem] w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
+                      <div className="absolute top-10 left-0 sm:-left-[2rem] md:-left-[5rem] lg:-left-[10rem] w-[90vw] max-w-[400px] sm:max-w-[450px] md:max-w-[500px] min-w-[300px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
                         <ul className="py-2">
                           {hasNotifications ? (
-                            <>
-                              <Notifications />
-                            </>
+                            <Notifications />
                           ) : (
                             <li className="px-4 py-2 text-[0.89rem] text-gray-500">
                               No new notifications

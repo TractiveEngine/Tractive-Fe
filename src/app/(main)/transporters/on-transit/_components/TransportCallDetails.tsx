@@ -3,7 +3,6 @@ import Image from "next/image";
 import { CopyIcon, XIcon } from "@/icons/Icon1";
 import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 
-
 type TransportCallDetailsProps = {
   isOpen: boolean;
   onClose: () => void;
