@@ -9,7 +9,6 @@ export interface ActionMenuProps {
   handleCustomerInfo?: (id: string) => void;
   handleParked?: (id: string) => void;
   handleDelivered?: (id: string) => void;
-  handleTrackOrder?: (id: string) => void;
   handleCustomerCare?: (id: string) => void;
   handleSupport?: (id: string) => void;
 }

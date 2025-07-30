@@ -2,12 +2,12 @@
   .ProductBuyer_Details {
     flex-direction: column;
   }
-  }
+}
 @media (max-width: 750px) {
   .ProductBuyer_Details {
     flex-direction: row;
   }
-  }
+}
 
 @media (max-width: 640px) {
   .timeline_dashed_line_1 {
@@ -27,6 +27,7 @@
     right: 18%;
   }
 }
+
 @media (min-width: 641px) {
   .timeline_dashed_line_1 {
     left: 10%;
@@ -53,14 +54,14 @@
   .ProductBuyer_Details {
     flex-direction: column;
   }
-  }
+}
 
 @media (max-width: 350px) {
   .timeline_dashed_line_m2 {
     left: 52%;
     right: 18%;
   }
-    .timeline_dashed_line_1 {
+  .timeline_dashed_line_1 {
     left: 14%;
     right: 52%;
   }

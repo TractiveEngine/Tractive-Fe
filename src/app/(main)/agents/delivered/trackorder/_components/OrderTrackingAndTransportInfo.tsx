@@ -74,7 +74,8 @@ export const OrderTrackingAndTransportInfo = () => {
 
   return (
     <div className="w-full flex flex-col gap-4 bg-[#fefefe] p-3 sm:p-4 rounded-[10px] shadow-md h-fit">
-      <div className="flex items-center gap-4 sm:gap-8 mr-auto">
+      {/* Updated header container */}
+      <div className="flex items-center justify-between relative">
         <button
           className="flex items-center gap-1 cursor-pointer"
           onClick={() => router.push("/agents/delivered")}
@@ -85,7 +86,7 @@ export const OrderTrackingAndTransportInfo = () => {
             Back
           </span>
         </button>
-        <h2 className="font-montserrat font-medium text-[14px] sm:text-[16px] text-[#2b2b2b]">
+        <h2 className="absolute left-1/2 transform -translate-x-1/2 font-montserrat font-medium text-[14px] sm:text-[16px] text-[#2b2b2b]">
           Order Tracking
         </h2>
       </div>
@@ -106,7 +107,7 @@ export const OrderTrackingAndTransportInfo = () => {
         <div className="flex flex-col gap-3 border-[2px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <Image
                   src="/images/GIGM.png"
                   alt="GIGM Logo"
@@ -133,10 +134,10 @@ export const OrderTrackingAndTransportInfo = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 p-2 border-[#808080] border-[1px] rounded-full">
+                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full">
                   <PhoneCall />
                 </div>
-                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 p-2 border-[#808080] border-[1px] rounded-full">
+                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full">
                   <MessageOutline />
                 </div>
               </div>
@@ -147,7 +148,7 @@ export const OrderTrackingAndTransportInfo = () => {
             <div className="absolute top-[0.5rem] left-[10%] right-[55%] h-[2px] timeline_dashed_line_1 border-dashed border-[1px] border-[#808080]"></div>
             <div className="absolute top-[0.5rem] left-[45%] right-[10%] h-[2px] timeline_dashed_line_2 border-dashed border-[1px] border-[#808080]"></div>
             <div className="absolute left-[5%] top-0 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-3 h-3 sm:w-4 sm:h-4 z-10">
+              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-4 h-4 z-10">
                 <TickIcon />
               </div>
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
@@ -155,7 +156,7 @@ export const OrderTrackingAndTransportInfo = () => {
               </span>
             </div>
             <div className="absolute left-1/2 top-0 transform -translate-x-1/2 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-3 h-3 sm:w-4 sm:h-4 z-10">
+              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-4 h-4 z-10">
                 <TickIcon />
               </div>
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
@@ -163,15 +164,15 @@ export const OrderTrackingAndTransportInfo = () => {
               </span>
             </div>
             <div className="absolute right-[5%] top-0 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe] w-3 h-3 sm:w-4 sm:h-4 z-10"></div>
+              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe] w-4 h-4 z-10"></div>
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
                 Delivered
               </span>
             </div>
           </div>
           <div className="flex flex-col border-[1px] p-3 sm:p-4 rounded-[10px] border-[#538e53]">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src="/images/Trucker.png"
@@ -190,7 +191,7 @@ export const OrderTrackingAndTransportInfo = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
                     src={product.image}

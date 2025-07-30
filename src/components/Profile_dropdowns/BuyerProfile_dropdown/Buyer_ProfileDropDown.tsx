@@ -30,7 +30,7 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
       </ul>
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
       <div className="flex flex-col gap-2 px-3 pb-3">
-        <div className="flex items-center justify-between cursor-pointer">
+        <Link href="/agents" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -49,8 +49,8 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
             </div>
           </div>
           <SwapIcon />
-        </div>
-        <div className="flex items-center justify-between cursor-pointer">
+        </Link>
+        <Link href="/transporters" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -69,7 +69,7 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
             </div>
           </div>
           <SwapIcon />
-        </div>
+        </Link>
       </div>
     </div>
   );

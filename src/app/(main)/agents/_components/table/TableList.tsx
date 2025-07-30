@@ -32,7 +32,6 @@ interface BidsListTableProps<T extends BaseData> {
   handleBuyerInfo?: (id: string) => void;
   handleParked?: (id: string) => void;
   handleDelivered?: (id: string) => void;
-  handleTrackOrder?: (id: string) => void;
   handleCustomerCare?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
@@ -56,7 +55,6 @@ export const  TableList = <T extends BaseData>({
   handleBuyerInfo,
   handleParked,
   handleDelivered,
-  handleTrackOrder,
   handleCustomerCare,
   handleCheckboxChange,
   handleCustomerInfo,
@@ -111,12 +109,6 @@ export const  TableList = <T extends BaseData>({
     setActiveMenu(null);
   };
 
-  const defaultHandleTrackOrder = (id: string) => {
-    console.log(`Default handleTrackOrder called for id: ${id}`);
-    router.push(`/agents/delivered/trackorder/${id}`);
-    setActiveMenu(null);
-  };
-
   const defaultHandleCustomerCare = (id: string) => {
     console.log(`Default handleCustomerCare called for id: ${id}`);
     setActiveMenu(null);
@@ -165,7 +157,7 @@ export const  TableList = <T extends BaseData>({
                 {col.header}
               </th>
             ))}
-            <th className="py-1.5 px-4 min-w-[50px]"></th>
+            <th className="py-1.5 px-2.5 min-w-[50px]"></th>
           </tr>
         </thead>
         <tbody>
@@ -194,7 +186,7 @@ export const  TableList = <T extends BaseData>({
               {columns.map((col) => (
                 <td
                   key={col.key as string}
-                  className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]"
+                  className="py-1.5 px-2.5 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]"
                 >
                   {col.render ? col.render(item) : String(item[col.key])}
                 </td>
@@ -237,11 +229,7 @@ export const  TableList = <T extends BaseData>({
                         ? handleDelivered || defaultHandleDelivered
                         : undefined
                     }
-                    handleTrackOrder={
-                      dataType === "delivered"
-                        ? handleTrackOrder || defaultHandleTrackOrder
-                        : undefined
-                    }
+                    
                     handleCustomerCare={
                       dataType === "pending"
                         ? handleCustomerCare || defaultHandleCustomerCare

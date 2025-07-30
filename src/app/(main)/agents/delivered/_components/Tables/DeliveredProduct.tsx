@@ -2,12 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Add for navigation
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  SearchIcon,
-} from "@/icons/Icons";
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { DeliveredProductActionMenu } from "../ActionMenu/DeliveredProductActionMenu";
 import "../../../Table.css";
@@ -35,14 +30,19 @@ const productColumns: ColumnConfig<Product>[] = [
           alt={product.name}
           width={53}
           height={30}
-          className="object-cover w-[73px] h-[40px]"
+          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
         />
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {product.name}
           </span>
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {product.description}
+            {/* Show first two words on mobile, full description on larger screens */}
+            <span className="inline sm:hidden">
+              {product.description.split(" ").slice(0, 2).join(" ")}
+              {product.description.split(" ").length > 2 ? "..." : ""}
+            </span>
+            <span className="hidden sm:inline">{product.description}</span>
           </span>
         </div>
       </div>
@@ -90,7 +90,6 @@ const productColumns: ColumnConfig<Product>[] = [
 ];
 
 export const DeliveredProduct: React.FC = () => {
-  const router = useRouter(); // Initialize router
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
@@ -150,10 +149,6 @@ export const DeliveredProduct: React.FC = () => {
     alert(`View buyer info for product ID: ${id}`);
   };
 
-  const handleTrackOrder = (id: string) => {
-    router.push(`/agents/delivered/trackorder/${id}`); // Navigate to track order page
-  };
-
   const handleCustomerCare = (id: string) => {
     alert(`Contact customer care for product ID: ${id}`);
   };
@@ -176,7 +171,8 @@ export const DeliveredProduct: React.FC = () => {
       product.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.id.includes(searchQuery);
-    const matchesYear = !selectedYear || product.date.includes(selectedYear); // Fixed
+    const matchesYear =
+      !selectedYear || product.date.includes(searchQuery.toLowerCase());
     const matchesMonth =
       !selectedMonth ||
       product.date.includes(
@@ -354,7 +350,6 @@ export const DeliveredProduct: React.FC = () => {
           initialData={filteredProducts}
           ActionMenuComponent={DeliveredProductActionMenu}
           handleBuyerInfo={handleBuyerInfo}
-          handleTrackOrder={handleTrackOrder}
           handleCustomerCare={handleCustomerCare}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}

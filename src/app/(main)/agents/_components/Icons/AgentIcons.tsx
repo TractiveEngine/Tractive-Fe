@@ -6,7 +6,7 @@ interface ArrowIconProps {
   stroke?: string;
 }
 
-export const XModalIcon = () => {
+export const XModalIcon = ({className="", stroke="#2b2b2b"}: ArrowIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -14,13 +14,14 @@ export const XModalIcon = () => {
       height="18"
       viewBox="0 0 18 18"
       fill="none"
-    >
+      className={className}
+          >
       <line
         x1="3.98183"
         y1="5.01873"
         x2="12.5076"
         y2="13.5154"
-        stroke="#2B2B2B"
+        stroke={ stroke}
         strokeWidth="0.752294"
       />
       <line
@@ -108,7 +109,7 @@ export const ArrowRightIcon = ({
   );
 };
 
-export const GalleryAddIcon = () => {
+export const GalleryAddIcon = ({className="", stroke="#808080"}: ArrowIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -116,10 +117,11 @@ export const GalleryAddIcon = () => {
       height="44"
       viewBox="0 0 44 44"
       fill="none"
+      className={className}
     >
       <path
         d="M16.3381 18.2772C17.2819 18.2772 18.1871 17.9023 18.8545 17.2349C19.5219 16.5675 19.8968 15.6623 19.8968 14.7184C19.8968 13.7746 19.5219 12.8694 18.8545 12.202C18.1871 11.5346 17.2819 11.1597 16.3381 11.1597C15.3942 11.1597 14.489 11.5346 13.8216 12.202C13.1542 12.8694 12.7793 13.7746 12.7793 14.7184C12.7793 15.6623 13.1542 16.5675 13.8216 17.2349C14.489 17.9023 15.3942 18.2772 16.3381 18.2772Z"
-        stroke="#808080"
+        stroke={stroke}
         strokeWidth="0.492754"
         strokeLinecap="round"
         strokeLinejoin="round"

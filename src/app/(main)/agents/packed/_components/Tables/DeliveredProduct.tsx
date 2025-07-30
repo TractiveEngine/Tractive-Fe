@@ -2,11 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  SearchIcon,
-} from "@/icons/Icons";
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { DeliveredProductActionMenu } from "../ActionMenu/DeliveredProductActionMenu";
 import "../../../Table.css";
@@ -34,14 +30,19 @@ const productColumns: ColumnConfig<Product>[] = [
           alt={product.name}
           width={53}
           height={30}
-          className="object-cover w-[73px] h-[40px]"
+          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
         />
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {product.name}
           </span>
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {product.description}
+            {/* Show first two words on mobile, full description on larger screens */}
+            <span className="inline sm:hidden">
+              {product.description.split(" ").slice(0, 2).join(" ")}
+              {product.description.split(" ").length > 2 ? "..." : ""}
+            </span>
+            <span className="hidden sm:inline">{product.description}</span>
           </span>
         </div>
       </div>
@@ -146,10 +147,6 @@ export const DeliveredProduct: React.FC = () => {
 
   const handleBuyerInfo = (id: string) => {
     alert(`View buyer info for product ID: ${id}`);
-  };
-
-  const handleTrackOrder = (id: string) => {
-    alert(`Track order for product ID: ${id}`);
   };
 
   const handleCustomerCare = (id: string) => {
@@ -353,7 +350,6 @@ export const DeliveredProduct: React.FC = () => {
           initialData={filteredProducts}
           ActionMenuComponent={DeliveredProductActionMenu}
           handleBuyerInfo={handleBuyerInfo}
-          handleTrackOrder={handleTrackOrder}
           handleCustomerCare={handleCustomerCare}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}

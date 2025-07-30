@@ -3,13 +3,13 @@ import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ActionMenuProps } from "../../../_components/ActionMenuProps";
 import { ThreeDotIcon } from "../../../produce-list/_components/table/ActionMenu";
+import Link from "next/link";
 
 export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
   productId,
   activeMenu,
   setActiveMenu,
   handleBuyerInfo,
-  handleTrackOrder,
   handleCustomerCare,
 }) => {
   const isActive = activeMenu === productId;
@@ -59,15 +59,12 @@ export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
             >
               Buyer Info
             </button>
-            <button
-              onClick={() => {
-                handleTrackOrder?.(productId);
-                setActiveMenu(null);
-              }}
+            <Link
+            href={`/agents/delivered/trackorder/${productId}`}
               className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
             >
               Track Order
-            </button>
+            </Link>
             <button
               onClick={() => {
                 handleCustomerCare?.(productId);

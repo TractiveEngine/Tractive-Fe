@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { NewProduct } from "./_components/Tables/NewProduct";
 import { DeliveredProduct } from "./_components/Tables/DeliveredProduct";
+import { NewProduct } from "./_components/Tables/NewProduct";
 import { PackedProduct } from "./_components/Tables/PackedProduct";
 
 interface SideProps {

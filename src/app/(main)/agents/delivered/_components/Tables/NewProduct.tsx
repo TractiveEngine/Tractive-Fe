@@ -30,14 +30,19 @@ const productColumns: ColumnConfig<Product>[] = [
           alt={product.name}
           width={53}
           height={30}
-          className="object-cover w-[73px] h-[40px]"
+          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
         />
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {product.name}
           </span>
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {product.description}
+            {/* Show first two words on mobile, full description on larger screens */}
+            <span className="inline sm:hidden">
+              {product.description.split(" ").slice(0, 2).join(" ")}
+              {product.description.split(" ").length > 2 ? "..." : ""}
+            </span>
+            <span className="hidden sm:inline">{product.description}</span>
           </span>
         </div>
       </div>

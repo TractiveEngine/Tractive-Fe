@@ -106,6 +106,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
   }, []);
 
   if (!isOpen) return null;
+
   const validateFirstForm = () => {
     let isValid = true;
     const newErrors = {
@@ -253,7 +254,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100]"
+      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100] p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -261,7 +262,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
       aria-labelledby="onboard-farmer-title"
     >
       <motion.div
-        className="bg-[#fefefe] p-8 rounded-[8px] w-full max-w-[500px] relative"
+        className="bg-[#fefefe] p-4 md:p-6 rounded-lg w-full max-w-md mx-auto relative max-h-[90vh] overflow-y-auto"
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.8 }}
@@ -284,23 +285,24 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
             });
             setImage("/images/farmer_modal_profile.png");
           }}
-          className="absolute top-4 right-4 text-[#2b2b2b] hover:text-[#538e53]"
+          className="absolute top-2 right-2 md:top-4 md:right-4 text-[#2b2b2b] hover:text-[#538e53]"
           aria-label="Close modal"
           title="Close"
         >
-          <XModalIcon />
+          <XModalIcon className="w-5 h-5" />
         </button>
-        <div className="flex justify-center mb-2">
-          <div className="relative w-[5rem] h-[5rem] group">
+
+        <div className="flex justify-center mb-4">
+          <div className="relative w-16 h-16 md:w-20 md:h-20 group">
             <Image
               src={image}
               alt="Farmer profile"
-              width={86}
-              height={86}
-              className="w-[5rem] h-[5rem] rounded-[100px] object-cover border-2 border-gray-300"
+              width={80}
+              height={80}
+              className="w-full h-full rounded-full object-cover border-2 border-gray-300"
             />
             <div className="absolute inset-0 bg-[#2b2b2b] bg-opacity-50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <span className="text-[#fefefe] text-[9px] text-center font-montserrat">
+              <span className="text-[#fefefe] text-[12px] sm:text-[14px] text-center font-montserrat">
                 Change Image
               </span>
             </div>
@@ -314,12 +316,13 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
             />
           </div>
         </div>
+
         <AnimatePresence>
           {step === 1 ? (
             <motion.form
               key="form1"
               onSubmit={handleFirstFormSubmit}
-              className="flex flex-col gap-2"
+              className="space-y-2.5"
               variants={formVariants}
               initial="initial"
               animate="animate"
@@ -329,7 +332,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Full Name
                 </label>
@@ -339,17 +342,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                    {errors.name}
+                  </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="state"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   State
                 </label>
@@ -359,17 +365,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.state}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.state && (
-                  <p className="text-red-500 text-xs mt-1">{errors.state}</p>
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                    {errors.state}
+                  </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="address"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Address
                 </label>
@@ -379,17 +388,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.address}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.address && (
-                  <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                    {errors.address}
+                  </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="localMarket"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Local Market
                 </label>
@@ -399,19 +411,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.localMarket}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.localMarket && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
                     {errors.localMarket}
                   </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="ninOrCac"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   NIN
                 </label>
@@ -421,18 +434,21 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.ninOrCac}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.ninOrCac && (
-                  <p className="text-red-500 text-xs mt-1">{errors.ninOrCac}</p>
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                    {errors.ninOrCac}
+                  </p>
                 )}
               </div>
-              <div className="flex items-center w-[100%] gap-2">
-                <div className="w-full">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
                   <label
                     htmlFor="mobile"
-                    className="block text-sm font-montserrat text-[#2b2b2b]"
+                    className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                   >
                     Mobile
                   </label>
@@ -442,17 +458,19 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                     type="tel"
                     value={formData.mobile}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                     aria-required="true"
                   />
                   {errors.mobile && (
-                    <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>
+                    <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                      {errors.mobile}
+                    </p>
                   )}
                 </div>
-                <div className="w-full">
+                <div>
                   <label
                     htmlFor="altMobile"
-                    className="block text-sm font-montserrat text-[#2b2b2b]"
+                    className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                   >
                     Alternative
                   </label>
@@ -462,20 +480,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                     type="tel"
                     value={formData.altMobile}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   />
                   {errors.altMobile && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
                       {errors.altMobile}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-2 w-[100%] bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
+                  className="w-full px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px]"
                 >
                   Continue
                 </button>
@@ -495,19 +513,19 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
               <div className="relative" ref={dropdownRef}>
                 <label
                   htmlFor="bankName"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Bank Name
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm text-left focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] text-left focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-expanded={isDropdownOpen}
                   aria-controls="bank-dropdown"
                 >
                   {formData.bankName || "Select Bank"}
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[12px] sm:text-[14px]">
                     {isDropdownOpen ? "▲" : "▼"}
                   </span>
                 </button>
@@ -515,7 +533,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   {isDropdownOpen && (
                     <motion.div
                       id="bank-dropdown"
-                      className="absolute z-[110] mt-1 w-full bg-white border border-gray-300 rounded-[4px] shadow-md max-h-40 overflow-y-auto"
+                      className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-md max-h-40 overflow-y-auto"
                       variants={dropdownVariants}
                       initial="closed"
                       animate="open"
@@ -526,7 +544,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                         <div
                           key={bank}
                           onClick={() => handleBankSelect(bank)}
-                          className={`px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 ${
+                          className={`px-3 py-2 text-[12px] sm:text-[14px] cursor-pointer hover:bg-gray-100 ${
                             formData.bankName === bank ? "bg-gray-200" : ""
                           }`}
                           role="option"
@@ -539,13 +557,16 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   )}
                 </AnimatePresence>
                 {errors.bankName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.bankName}</p>
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
+                    {errors.bankName}
+                  </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="accountNumber"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Account Number
                 </label>
@@ -555,19 +576,20 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.accountNumber}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.accountNumber && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
                     {errors.accountNumber}
                   </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="accountName"
-                  className="block text-sm font-montserrat text-[#2b2b2b]"
+                  className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
                   Account Name
                 </label>
@@ -577,19 +599,27 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   type="text"
                   value={formData.accountName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                   aria-required="true"
                 />
                 {errors.accountName && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-[12px] sm:text-[14px] mt-1">
                     {errors.accountName}
                   </p>
                 )}
               </div>
-              <div className="flex justify-end gap-2 mt-6">
+
+              <div className="flex justify-between pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-4 py-2 border border-gray-300 rounded text-[#2b2b2b] hover:bg-gray-100 transition-colors text-[12px] sm:text-[14px]"
+                >
+                  Back
+                </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
+                  className="px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px]"
                 >
                   Submit
                 </button>

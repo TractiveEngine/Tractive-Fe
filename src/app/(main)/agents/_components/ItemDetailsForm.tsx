@@ -107,7 +107,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 50 }}
-      className="p-4"
+      className="py-4 px-4 sm:px-12"
     >
       <div className="flex items-center mb-4">
         <div
@@ -176,11 +176,11 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
           <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
             Unit
           </label>
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-4 overflow-x-auto hide-scrollbar">
             {(["Kilogram", "Metric Ton", "Megagram"] as const).map((u) => (
               <label
                 key={u}
-                className="flex items-center gap-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+                className="flex items-center gap-2 text-[11px] sm:text-[14px] font-normal text-[#2b2b2b] font-montserrat"
               >
                 <input
                   type="checkbox"
@@ -273,7 +273,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         {/* Upload Button */}
         <button
           type="submit"
-          className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-[84%] font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
+          className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-full font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
         >
           Upload
         </button>

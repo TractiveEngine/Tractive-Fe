@@ -199,10 +199,10 @@ export const AgentAsideNavMobile = ({
                 className="rounded-full"
               />
               <div className="flex flex-col">
-                <span className="text-[#fefefe] text-[0.8rem] text-left font-normal">
+                <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
                   {user.fullName}
                 </span>
-                <span className="text-[#fefefe] text-[0.8rem] text-left font-normal">
+                <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
                   {user.email}
                 </span>
               </div>

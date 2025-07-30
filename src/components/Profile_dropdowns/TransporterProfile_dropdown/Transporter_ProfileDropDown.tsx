@@ -32,7 +32,7 @@ export const Transporter_ProfileDropDown = ({
       </ul>
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
       <div className="flex flex-col gap-2 px-3 pb-3">
-        <div className="flex items-center justify-between cursor-pointer">
+        <Link href="/buyers" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -51,8 +51,8 @@ export const Transporter_ProfileDropDown = ({
             </div>
           </div>
           <SwapIcon />
-        </div>
-        <div className="flex items-center justify-between cursor-pointer">
+        </Link>
+        <Link href="/agents" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"
@@ -71,7 +71,7 @@ export const Transporter_ProfileDropDown = ({
             </div>
           </div>
           <SwapIcon />
-        </div>
+        </Link>
       </div>
     </div>
   );

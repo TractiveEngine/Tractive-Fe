@@ -6,12 +6,12 @@ import { GalleryAddIcon, XModalIcon } from "./Icons/TransporterIcons";
 import { DriverDetailsForm } from "./DriverDetailsForm";
 
 // Props for AddFleet
-interface AddToStoreProps {
+interface AddFleetProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const AddFleet: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
+export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [formData, setFormData] = useState({

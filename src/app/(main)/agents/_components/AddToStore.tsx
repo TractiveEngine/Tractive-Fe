@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons"; // Adjust import path
+import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
 import Image from "next/image";
 import {
   ArrowLeftIcon,
@@ -13,13 +13,11 @@ import {
 } from "./Icons/AgentIcons";
 import { ItemDetailsForm } from "./ItemDetailsForm";
 
-// Props for AddToStore
 interface AddToStoreProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Define produce map type
 interface ProduceMap {
   [key: string]: string[];
 }
@@ -35,13 +33,11 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   const [isProduceOpen, setIsProduceOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
-  // Profile type
   interface Profile {
     id: number;
     name: string;
   }
 
-  // Sample profile data
   const profiles: Profile[] = [
     { id: 1, name: "Item One" },
     { id: 2, name: "Item Two" },
@@ -49,7 +45,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     { id: 4, name: "Item Four" },
   ];
 
-  // Category and produce data
   const categories: string[] = [
     "Grain",
     "Fish",
@@ -75,37 +70,31 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     Vegetables: ["Spinach", "Cabbage", "Carrot", "Tomato", "Pepper", "Onion"],
   };
 
-  // Handle profile click
   const handleProfileClick = (index: number): void => {
     setSelectedProfiles((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
 
-  // Handle category selection
   const handleCategorySelect = (category: string): void => {
     setSelectedCategory(category);
     setSelectedProduce(null);
     setIsCategoryOpen(false);
   };
 
-  // Handle produce selection
   const handleProduceSelect = (produce: string): void => {
     setSelectedProduce(produce);
     setIsProduceOpen(false);
   };
 
-  // Handle next button
   const handleNext = (): void => {
     setCurrentStep(2);
   };
 
-  // Handle back button
   const handleBack = (): void => {
     setCurrentStep(1);
   };
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
       if (
@@ -151,57 +140,72 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50 p-4"
         >
           <motion.div
             ref={modalRef}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="relative bg-[#fefefe] rounded-lg w-[90%] max-w-[721px]"
+            className="relative bg-[#fefefe] rounded-lg w-full max-w-[600px] md:max-w-[721px] overflow-y-auto max-h-[90vh] hide-scrollbar"
           >
             <div
               onClick={onClose}
-              className="absolute top-[1.6rem] right-[0.8rem] cursor-pointer"
+              className="absolute top-4 right-4 cursor-pointer"
             >
-              <XModalIcon />
+              <XModalIcon className="w-5 h-5" />
             </div>
+            
             {currentStep === 1 && (
-              <>
-                <h2 className="text-[15px] pt-[1.6rem] font-normal text-center text-[#808080] font-montserrat mb-4">
+              <div className="p-4 md:p-6 space-y-4">
+                <h2 className="text-sm md:text-[15px] pt-2 font-normal text-center text-[#808080] font-montserrat">
                   Item upload
                 </h2>
-                <form className="space-y-4 px-4 pb-6">
-                  {/* Profile section */}
-                  <div className="flex items-center justify-center gap-[20px] w-full max-w-[694px] mx-auto">
-                    <div className="flex items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1]">
-                      <ArrowLeftIcon />
-                    </div>
+                
+                {/* Profile section */}
+                <div className="relative w-full">
+                  <button
+                    title="scroll left"
+                    onClick={() => {
+                      const container = document.getElementById('profile-container');
+                      if (container) container.scrollLeft -= 150;
+                    }}
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
+                  >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                  </button>
+                  
+                  <div
+                    id="profile-container"
+                    className="flex overflow-x-auto scroll-smooth gap-4 px-10 py-2 w-full hide-scrollbar"
+                    style={{ scrollBehavior: 'smooth' }}
+                  >
                     {profiles.map((profile, index) => (
                       <div
                         key={profile.id}
                         onClick={() => handleProfileClick(index)}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+                        onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             handleProfileClick(index);
                           }
                         }}
-                        className={`w-[131px] h-[90px] flex flex-col items-center justify-center gap-[4px] rounded-[8px] cursor-pointer ${
+                        className={`flex-shrink-0 w-[110px] h-[80px] md:w-[135px] md:h-[90px] flex flex-col items-center justify-center gap-1 rounded-lg cursor-pointer ${
                           selectedProfiles.includes(index)
-                            ? "border-[#538e53] border-[2px]"
-                            : "border-[#2b2b2b] border-[1.5px]"
+                            ? "border-[#538e53] border-2"
+                            : "border-[#2b2b2b] border"
                         }`}
                         role="button"
                         tabIndex={0}
                       >
                         <div
-                          className={`w-[50px] h-[50px] flex items-center justify-center rounded-[100px] ${
+                          className={`w-10 h-10 md:w-[50px] md:h-[50px] flex items-center justify-center rounded-full ${
                             selectedProfiles.includes(index)
                               ? "bg-[#538e53]"
                               : "bg-transparent"
                           }`}
                         >
                           <ProfileIcon
+                            className="w-5 h-5 md:w-6 md:h-6"
                             stroke={
                               selectedProfiles.includes(index)
                                 ? "#fefefe"
@@ -210,7 +214,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                           />
                         </div>
                         <span
-                          className={`text-[14px] font-normal font-montserrat ${
+                          className={`text-xs md:text-sm font-normal font-montserrat ${
                             selectedProfiles.includes(index)
                               ? "text-[#538e53]"
                               : "text-[#2b2b2b]"
@@ -220,174 +224,196 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                         </span>
                       </div>
                     ))}
-                    <div className="flex items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1]">
-                      <ArrowRightIcon />
-                    </div>
                   </div>
+                  
+                  <button
+                  title="scroll right"
+                    onClick={() => {
+                      const container = document.getElementById('profile-container');
+                      if (container) container.scrollLeft += 150;
+                    }}
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
+                  >
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </button>
+                </div>
 
-                  {/* Product section */}
-                  <div className="flex flex-col md:flex-row w-[84%] max-w-[694px] mx-auto items-center justify-center gap-[20px]">
-                    {/* Category Dropdown */}
+                {/* Product section */}
+                <div className="flex flex-col sm:flex-row w-[88%] mx-auto items-center justify-center gap-4">
+                  {/* Category Dropdown */}
+                  <div
+                    ref={categoryDropdownRef}
+                    className="relative w-full md:w-1/2"
+                  >
                     <div
-                      ref={categoryDropdownRef}
-                      className="relative w-full md:w-1/2"
-                    >
-                      <div
-                        onClick={() => setIsCategoryOpen((prev) => !prev)}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            setIsCategoryOpen((prev) => !prev);
-                          }
-                        }}
-                        className="flex items-center justify-between w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <span className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-                          {selectedCategory || "Select Category"}
-                        </span>
-                        {isCategoryOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
-                      </div>
-                      {isCategoryOpen && (
-                        <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
-                          {categories.map((category) => (
-                            <div
-                              key={category}
-                              onClick={() => handleCategorySelect(category)}
-                              onKeyDown={(
-                                e: React.KeyboardEvent<HTMLDivElement>
-                              ) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  handleCategorySelect(category);
-                                }
-                              }}
-                              className="px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
-                              role="option"
-                              aria-selected
-                              tabIndex={0}
-                            >
-                              {category}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Produce Dropdown */}
-                    <div
-                      ref={produceDropdownRef}
-                      className="relative w-full md:w-1/2"
-                    >
-                      <div
-                        onClick={() =>
-                          selectedCategory && setIsProduceOpen((prev) => !prev)
+                      onClick={() => setIsCategoryOpen((prev) => !prev)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          setIsCategoryOpen((prev) => !prev);
                         }
-                        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                          if (
-                            selectedCategory &&
-                            (e.key === "Enter" || e.key === " ")
-                          ) {
-                            setIsProduceOpen((prev) => !prev);
-                          }
-                        }}
-                        className={`flex items-center justify-between w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer ${
-                          !selectedCategory
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <span className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-                          {selectedProduce || "Select Produce"}
-                        </span>
-                        {isProduceOpen && selectedCategory ? (
-                          <ArrowUpIcon />
-                        ) : (
-                          <ArrowDownIcon />
-                        )}
-                      </div>
-                      {isProduceOpen && selectedCategory && (
-                        <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
-                          {produceMap[selectedCategory].map((produce) => (
-                            <div
-                              key={produce}
-                              onClick={() => handleProduceSelect(produce)}
-                              onKeyDown={(
-                                e: React.KeyboardEvent<HTMLDivElement>
-                              ) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  handleProduceSelect(produce);
-                                }
-                              }}
-                              className="px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
-                              role="option"
-                              aria-selected
-                              tabIndex={0}
-                            >
-                              {produce}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      }}
+                      className="flex items-center justify-between w-full border border-[#2b2b2b] rounded px-3 py-2 cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <span className="text-sm font-normal text-[#2b2b2b] font-montserrat">
+                        {selectedCategory || "Select Category"}
+                      </span>
+                      {isCategoryOpen ? <ArrowUpIcon className="w-4 h-4" /> : <ArrowDownIcon className="w-4 h-4" />}
                     </div>
+                    {isCategoryOpen && (
+                      <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded mt-1 max-h-[200px] overflow-y-auto">
+                        {categories.map((category) => (
+                          <div
+                            key={category}
+                            onClick={() => handleCategorySelect(category)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                handleCategorySelect(category);
+                              }
+                            }}
+                            className="px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
+                            role="option"
+                            aria-selected
+                            tabIndex={0}
+                          >
+                            {category}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Add Image Section */}
-                  <div className="flex gap-[4px] flex-col w-full max-w-[694px] mx-auto justify-center">
-                    <div className="flex gap-[20px] items-center justify-between w-full">
-                      <div className="hidden items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1]">
-                        <ArrowLeftIcon />
+                  {/* Produce Dropdown */}
+                  <div
+                    ref={produceDropdownRef}
+                    className="relative w-full md:w-1/2"
+                  >
+                    <div
+                      onClick={() =>
+                        selectedCategory && setIsProduceOpen((prev) => !prev)
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          selectedCategory &&
+                          (e.key === "Enter" || e.key === " ")
+                        ) {
+                          setIsProduceOpen((prev) => !prev);
+                        }
+                      }}
+                      className={`flex items-center justify-between w-full border border-[#2b2b2b] rounded px-3 py-2 cursor-pointer ${
+                        !selectedCategory
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <span className="text-sm font-normal text-[#2b2b2b] font-montserrat">
+                        {selectedProduce || "Select Produce"}
+                      </span>
+                      {isProduceOpen && selectedCategory ? (
+                        <ArrowUpIcon className="w-4 h-4" />
+                      ) : (
+                        <ArrowDownIcon className="w-4 h-4" />
+                      )}
+                    </div>
+                    {isProduceOpen && selectedCategory && (
+                      <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded mt-1 max-h-[200px] overflow-y-auto">
+                        {produceMap[selectedCategory].map((produce) => (
+                          <div
+                            key={produce}
+                            onClick={() => handleProduceSelect(produce)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                handleProduceSelect(produce);
+                              }
+                            }}
+                            className="px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
+                            role="option"
+                            aria-selected
+                            tabIndex={0}
+                          >
+                            {produce}
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex flex-col justify-center ml-auto gap-[4px] w-[84%]">
+                    )}
+                  </div>
+                </div>
+
+                {/* Add Image Section */}
+                <div className="w-full">
+                  <div className="relative flex items-center">
+                    <button
+                      title="scroll left"
+                      onClick={() => {
+                        const container = document.getElementById('image-container');
+                        if (container) container.scrollLeft -= 150;
+                      }}
+                      className="absolute left-0 top-[60%] transform -translate-y-1/2 z-10 flex md:hidden items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
+                    >
+                      <ArrowLeftIcon className="w-4 h-4" />
+                    </button>
+                       <div className="flex flex-col justify-center mx-auto gap-[4px] w-[88%]">
                         <span className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
                           Add Image
                         </span>
-                        <div className="flex gap-[20px] items-center justify-center">
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[90px]">
-                            <GalleryAddIcon />
-                          </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[90px]">
-                            <GalleryAddIcon />
-                          </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[90px]">
-                            <GalleryAddIcon />
-                          </div>
+                    <div
+                      id="image-container"
+                      className="flex overflow-x-auto scroll-smooth gap-4 py-2 w-full hide-scrollbar"
+                      style={{ scrollBehavior: 'smooth' }}
+                    >
+                      {[1, 2, 3].map((item) => (
+                        <div
+                          key={item}
+                          className="flex-shrink-0 w-[156px] h-[80px] md:w-[180px] lg:w-[187px] md:h-[90px] flex items-center justify-center bg-[#f1f1f1] rounded"
+                        >
+                          <GalleryAddIcon className="w-6 h-6" />
                         </div>
-                      </div>
-                      <div className="flex items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1]">
-                        <ArrowRightIcon />
-                      </div>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* Video Upload */}
-                  <div className="w-full">
-                    <div className="flex flex-col justify-center mx-auto w-[84%] gap-[4px]">
-                      <p className="text-[14px] font-normal text-[#2b2b2b] text-shadow-[0px_4px_4px_rgba(0,0,0,0.25)] font-montserrat">
-                        30 seconds Farmers testimonial video (optional)
-                      </p>
-                      <div className="w-[100%] max-w-[584px] h-[120px] bg-[#f1f1f1] rounded-[4px] flex items-center justify-center">
-                        <Image
-                          src="/images/VideoUpload.png"
-                          alt="Upload video"
-                          width={24}
-                          height={24}
-                        />
-                      </div>
                     </div>
+                    
+                    <button
+                    title="scroll right"
+                      onClick={() => {
+                        const container = document.getElementById('image-container');
+                        if (container) container.scrollLeft += 150;
+                      }}
+                      className="absolute right-0 top-[60%] transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
+                    >
+                      <ArrowRightIcon className="w-4 h-4" />
+                    </button>
                   </div>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-[84%] font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
-                  >
-                    Next
-                  </button>
-                </form>
-              </>
+                {/* Video Upload */}
+                <div className="w-[88%] mx-auto">
+                  <p className="text-[12px] sm:text-sm font-normal text-[#2b2b2b] font-montserrat">
+                    30 seconds Farmers testimonial video (optional)
+                  </p>
+                  <div className="w-full h-[100px] md:h-[120px] bg-[#f1f1f1] rounded mt-1 flex items-center justify-center">
+                    <Image
+                      src="/images/VideoUpload.png"
+                      alt="Upload video"
+                      width={24}
+                      height={24}
+                      className="w-6 h-6"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-[88%] mx-auto flex justify-center bg-[#538e53] text-[#fefefe] font-montserrat font-normal text-sm md:text-base rounded py-3"
+                >
+                  Next
+                </button>
+              </div>
             )}
+            
             {currentStep === 2 && (
               <ItemDetailsForm
                 onBack={handleBack}

@@ -33,7 +33,6 @@ interface ListTableProps<T extends BaseData> {
   handleBuyerInfo?: (id: string) => void;
   handleParked?: (id: string) => void;
   handleDelivered?: (id: string) => void;
-  handleTrackOrder?: (id: string) => void;
   handleCustomerCare?: (id: string) => void;
   handleReject?: (id: string) => void;
   handleAccept?: (id: string) => void;
@@ -59,7 +58,6 @@ export const TableList = <T extends BaseData>({
   handleBuyerInfo,
   handleParked,
   handleDelivered,
-  handleTrackOrder,
   handleCustomerCare,
   handleCustomerInfo,
   handleCheckboxChange,
@@ -117,12 +115,6 @@ export const TableList = <T extends BaseData>({
 
   const defaultHandleDelivered = (id: string) => {
     console.log(`Default handleDelivered called for id: ${id}`);
-    setActiveMenu(null);
-  };
-
-  const defaultHandleTrackOrder = (id: string) => {
-    console.log(`Default handleTrackOrder called for id: ${id}`);
-    router.push(`/agents/delivered/trackorder/${id}`);
     setActiveMenu(null);
   };
 
@@ -256,11 +248,6 @@ export const TableList = <T extends BaseData>({
                     handleDelivered={
                       dataType === "parked"
                         ? handleDelivered || defaultHandleDelivered
-                        : undefined
-                    }
-                    handleTrackOrder={
-                      dataType === "delivered"
-                        ? handleTrackOrder || defaultHandleTrackOrder
                         : undefined
                     }
                     handleCustomerCare={

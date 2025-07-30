@@ -143,7 +143,7 @@ export const AgentAsideNav = () => {
   ];
 
   return (
-    <aside className="w-25 lg:w-50 bg-[#fefefe] fixed h-full hidden sm:block shadow-md z-20 overflow-y-auto">
+    <aside className="w-25 lg:w-50 bg-[#fefefe] fixed h-full hidden sm:block shadow-md z-20 overflow-y-auto Aside_hide-scrollbar">
       <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <Link
         href="/agents"
