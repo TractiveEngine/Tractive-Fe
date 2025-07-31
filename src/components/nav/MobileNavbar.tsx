@@ -124,7 +124,7 @@ export const MobileNavbar = () => {
     <>
       <div
         className={`w-[100%] mx-auto py-2 flex md:hidden justify-between font-montserrat items-center ${
-          isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
+          isLoggedIn ? "bg-[#FEFEFE]" : ""
         }`}
       >
         {/* Logo */}

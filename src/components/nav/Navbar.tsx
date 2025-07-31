@@ -107,7 +107,7 @@ export const Navbar = () => {
   return (
     <div
       className={`w-[90%] mx-auto py-2 flex justify-between font-montserrat items-center ${
-        isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
+        isLoggedIn ? "bg-[#FEFEFE]" : ""
       }`}
     >
       {/* Logo */}

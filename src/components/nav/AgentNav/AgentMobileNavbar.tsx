@@ -85,13 +85,13 @@ export const ATMobileNavbar = () => {
     <>
       <div
         className={`w-[100%] px-4 py-2 pb-5 rounded-b-[1rem] flex md:hidden justify-between font-montserrat items-center ${
-          isLoggedIn ? "bg-[#cce5cc]" : "bg-[#F1F1F1]"
+          isLoggedIn ? "bg-[#cce5cc]" : ""
         }`}
       >
         {/* Logo */}
         <div className="flex flex-col md:hidden items-center justify-between w-[100%] md:w-[75%] lg:w-[60%]">
           <div className="flex items-center justify-between w-[100%] md:w-[75%] lg:w-[60%]">
-            <Link href="/" className="flex items-center">
+            <Link href="/agents" className="flex items-center">
               <Image
                 src="/images/navLogo.png"
                 alt="Agrictech Logo"

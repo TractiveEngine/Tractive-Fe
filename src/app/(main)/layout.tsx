@@ -5,5 +5,5 @@ export default function RoleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="bg-[#f1f1f1]">{children}</div>;
+  return <div className="bg-[#fefefe]">{children}</div>;
 }

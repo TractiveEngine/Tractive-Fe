@@ -108,7 +108,7 @@ export const AgentNavbar = () => {
       <div className="w-full bg-[#fefefe]">
         <div
           className={`w-[95%] mx-auto py-2 hidden md:flex justify-between font-montserrat items-center ${
-            isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
+            isLoggedIn ? "bg-[#FEFEFE]" : ""
           }`}
         >
           {isLoggedIn ? (
