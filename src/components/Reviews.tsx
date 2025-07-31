@@ -148,7 +148,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ onClose }) => {
   console.log("Reviewer Avatars:", reviewerAvatars);
 
   return (
-    <div className="relative bg-[#fefefe] flex flex-col items-center w-[600px] max-h-[500px] overflow-y-auto px-6 py-6 gap-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
+    <div className="relative bg-[#fefefe] flex flex-col items-center w-full max-w-[600px] md:max-w-[721px] overflow-y-auto max-h-[90vh] hide-scrollbar px-6 py-6 gap-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
       <div className="absolute top-3 right-3 cursor-pointer" onClick={onClose}>
         <XIcon />
       </div>

@@ -287,7 +287,7 @@ export const WishListIcon: React.FC<{
   </svg>
 );
 
-export const YellowStarIcon = () => {
+export const YellowStarIcon = ({ className = "" }: menuIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -295,6 +295,7 @@ export const YellowStarIcon = () => {
       height="13"
       viewBox="0 0 15 15"
       fill="none"
+      className={className}
     >
       <path
         d="M8.58058 2.19414L9.68058 4.39414C9.83058 4.70039 10.2306 4.99414 10.5681 5.05039L12.5618 5.38164C13.8368 5.59414 14.1368 6.51914 13.2181 7.43164L11.6681 8.98164C11.4056 9.24414 11.2618 9.75039 11.3431 10.1129L11.7868 12.0316C12.1368 13.5504 11.3306 14.1379 9.98683 13.3441L8.11808 12.2379C7.78058 12.0379 7.22433 12.0379 6.88058 12.2379L5.01183 13.3441C3.67433 14.1379 2.86183 13.5441 3.21183 12.0316L3.65558 10.1129C3.73683 9.75039 3.59308 9.24414 3.33058 8.98164L1.78058 7.43164C0.868083 6.51914 1.16183 5.59414 2.43683 5.38164L4.43058 5.05039C4.76183 4.99414 5.16183 4.70039 5.31183 4.39414L6.41183 2.19414C7.01183 1.00039 7.98683 1.00039 8.58058 2.19414Z"
@@ -304,7 +305,7 @@ export const YellowStarIcon = () => {
   );
 };
 
-export const StarIcon = () => {
+export const StarIcon = ({ className = "" }: menuIconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -312,6 +313,7 @@ export const StarIcon = () => {
       height="12"
       viewBox="0 0 15 15"
       fill="none"
+      className={className}
     >
       <g clipPath="url(#clip0_6176_95574)">
         <path

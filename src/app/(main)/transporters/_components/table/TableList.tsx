@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "../../Table.css";
-import { useRouter } from "next/navigation";
 import { TransportActionMenuProps } from "../TransportActionMenuProps";
 import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
 
@@ -67,7 +66,6 @@ export const TableList = <T extends BaseData>({
   handleReject,
   handleAccept,
 }: ListTableProps<T>): React.ReactElement => {
-  const router = useRouter();
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 

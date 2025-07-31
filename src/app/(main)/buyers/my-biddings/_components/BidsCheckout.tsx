@@ -66,7 +66,7 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
   };
 
   return (
-    <div className="w-[50%] bg-[#fefefe] h-fit shadow-md my-8 rounded-[5px] mx-auto">
+    <div className="w-full md:w-[50%] bg-[#fefefe] h-fit shadow-md my-8 rounded-[5px] mx-auto">
       <p className="font-montserrat font-normal text-[15px] text-[#2b2b2b] p-4">
         Summary
       </p>

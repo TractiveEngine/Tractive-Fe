@@ -18,8 +18,9 @@ export const TruckShowCase = () => {
     setCurrentIndex((prevIndex) => {
       const nextIndex = (prevIndex + 1) % images.length;
       if (scrollContainerRef.current) {
-        const scrollAmount =
-          (scrollContainerRef.current.children[nextIndex] as HTMLElement).offsetLeft;
+        const scrollAmount = (
+          scrollContainerRef.current.children[nextIndex] as HTMLElement
+        ).offsetLeft;
         scrollContainerRef.current.scrollTo({
           left: scrollAmount,
           behavior: "smooth",
@@ -33,7 +34,7 @@ export const TruckShowCase = () => {
     <div className="w-full overflow-x-hidden">
       <div className="mx-auto py-4 flex items-center gap-4">
         <div
-          className="flex overflow-x-auto snap-x snap-mandatory gap-3 md:gap-4 scrollbar-thin scrollbar-thumb-[#538e53] scrollbar-track-[#f5f5f5]"
+          className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:gap-4 scrollbar-thin scrollbar-thumb-[#538e53] scrollbar-track-[#f5f5f5]"
           ref={scrollContainerRef}
         >
           {images.map((image, index) => (

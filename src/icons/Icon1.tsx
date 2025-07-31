@@ -233,7 +233,7 @@ export const LocationIcon = () => {
   );
 };
 
-export const TrashIcon = () => {
+export const TrashIcon = ({className=""}: IconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -241,6 +241,7 @@ export const TrashIcon = () => {
       height="19"
       viewBox="0 0 25 24"
       fill="none"
+      className={className}
     >
       <path
         d="M21.5 5.98C18.17 5.65 14.82 5.48 11.48 5.48C9.5 5.48 7.52 5.58 5.54 5.78L3.5 5.98M9 4.97L9.22 3.66C9.38 2.71 9.5 2 11.19 2H13.81C15.5 2 15.63 2.75 15.78 3.67L16 4.97M19.35 9.14L18.7 19.21C18.59 20.78 18.5 22 15.71 22H9.29C6.5 22 6.41 20.78 6.3 19.21L5.65 9.14M10.83 16.5H14.16M10 12.5H15"
