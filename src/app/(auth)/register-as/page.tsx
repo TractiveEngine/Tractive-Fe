@@ -65,19 +65,19 @@ export default function OnboardingForm() {
   };
 
   return (
-    <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
+    <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex min-h-screen">
       <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/signinLogin.png"
           alt="signin Login"
           width={668}
           height={1080}
-          className="w-[668px] h-full"
+          className="w-[668px] h-full object-cover"
         />
       </div>
 
-      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] justify-center h-screen">
-        <div className="w-[90%] md:w-[80%] mx-auto flex flex-col">
+      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] items-center justify-center min-h-screen">
+        <div className="w-[90%] md:w-[80%] lg:w-[60%] mx-auto flex flex-col">
           <div className="hidden lg:flex w-[80px] h-[70px] mx-auto items-center justify-center">
             <Image
               src="/images/signinloginlogo.png"
@@ -88,7 +88,7 @@ export default function OnboardingForm() {
             />
           </div>
 
-          <div className="flex flex-col gap-[50px] justify-center">
+          <div className="flex flex-col gap-[50px] justify-center items-center">
             <div className="flex flex-col gap-0.5">
               <p className="text-[15px] text-center font-montserrat text-[#000] font-normal">
                 Register either as a transporter, buyer, or agent
@@ -106,10 +106,10 @@ export default function OnboardingForm() {
             </div>
 
             {/* Role selection */}
-            <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory md:justify-between">
+            <div className="Role_selection hide-scrollbar">
               {/* Buyer */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("buyers")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
@@ -134,7 +134,7 @@ export default function OnboardingForm() {
 
               {/* Transporter */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("transporters")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
@@ -159,7 +159,7 @@ export default function OnboardingForm() {
 
               {/* Agent */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] snap-center"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("agents")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">

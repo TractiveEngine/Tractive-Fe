@@ -74,7 +74,7 @@ export default function ProfileSettingLayout({
       <nav className="bg-[#fefefe] w-full">
         <TransporterProfileNavbar />
       </nav>
-      <div className="w-full h-screen relative">
+      <div className="w-full relative">
         <div className="w-[95%] mx-auto flex flex-col md:flex-row gap-6 pt-4">
           {/* Hamburger menu icon for mobile */}
           {isAsideOpen ? (

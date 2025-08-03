@@ -77,7 +77,7 @@ export const StoreHeader = () => {
   };
 
   return (
-    <div className="relative w-[90%] mx-auto mt-6 pb-6">
+    <div className="relative w-[90%] mx-auto pt-6 pb-6">
       <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
         <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
           <div className="bg-[#fefefe] flex flex-col gap-2 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] lg:w-[17rem] h-[100px]">

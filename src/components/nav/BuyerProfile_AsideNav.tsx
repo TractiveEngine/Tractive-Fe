@@ -65,13 +65,13 @@ export const BuyerProfile_AsideNav = () => {
         <ul className="flex flex-col w-[100%]">
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/buyer-profile-settings"
+              pathname === "/buyer-profile"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/buyer-profile-settings"
+              href="/buyer-profile"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -84,13 +84,13 @@ export const BuyerProfile_AsideNav = () => {
 
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/buyer-security-setting"
+              pathname === "/buyer-profile/buyer-security-setting"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/buyer-security-setting"
+              href="/buyer-profile/buyer-security-setting"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">
@@ -102,13 +102,13 @@ export const BuyerProfile_AsideNav = () => {
           </li>
           <li
             className={`p-6 cursor-pointer ${
-              pathname === "/buyer-delivery-location"
+              pathname === "/buyer-profile/buyer-delivery-location"
                 ? "bg-[#cce5cc]"
                 : "hover:bg-[#e2e2e2] "
             }`}
           >
             <Link
-              href="/buyer-delivery-location"
+              href="/buyer-profile/buyer-delivery-location"
               className="flex items-center justify-between"
             >
               <div className="flex items-center font-montserrat font-normal gap-2 text-[14px] text-[#2b2b2b]">

@@ -3,7 +3,7 @@ import React from "react";
 
 export const StoreRecommendation = () => {
   return (
-    <div className="flex flex-col w-full rounded-lg shadow-md mt-4">
+    <div className="flex flex-col w-full rounded-lg mt-4">
       <div className="w-[90%] flex flex-col justify-between mx-auto gap-3 mb-4">
         <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#141414] font-normal font-montserrat">
           Recommendations
