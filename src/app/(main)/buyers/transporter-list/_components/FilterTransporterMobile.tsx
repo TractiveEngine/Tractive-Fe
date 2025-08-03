@@ -209,7 +209,7 @@ export const FilterTransporterMobile: React.FC<
           }
         `}
       </style>
-      <div className="flex md:hidden w-full sm:w-2/3 lg:w-[95%] gap-4">
+      <div className="flex sm:hidden w-full sm:w-2/3 lg:w-[95%] gap-4">
         <div className="flex flex-col gap-4 w-full">
           {/* Filter Header */}
           <div

@@ -4,10 +4,38 @@
   --font-montserrat: "Montserrat Subrayada", "sans-serif";
 }
 
-  .hide-scrollbar::-webkit-scrollbar,  .Aside_hide-scrollbar::-webkit-scrollbar {
-    display: none;
+.hide-scrollbar::-webkit-scrollbar,
+.Aside_hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar,
+.Aside_hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.TransportList_Card,
+.Seller_Card {
+  @apply grid grid-cols-1 gap-3 px-4;
+}
+
+@media screen and (min-width: 420px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-2;
   }
-  .hide-scrollbar,  .Aside_hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+}
+
+@media screen and (min-width: 934px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-3;
   }
+}
+
+@media screen and (min-width: 1120px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-4;
+  }
+}

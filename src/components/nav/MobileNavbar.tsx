@@ -227,7 +227,7 @@ export const MobileNavbar = () => {
                         <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                       )}
                       {isNotificationOpen && (
-                        <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
+                        <div className="absolute top-[3rem] right-0 w-[90vw] max-w-[500px] min-w-[300px] bg-white border border-gray-200 rounded-[4px] shadow-lg z-50 sm:top-[2.5rem]">
                           <ul className="py-2">
                             {hasNotifications ? (
                               <>

@@ -89,7 +89,7 @@ export const TransporterList: React.FC<SellerListProps> = ({
           Connect with Sellers
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-4">
+      <div className="TransportList_Card">
         {filteredTransporters.map((transporter) => (
           <TransporterCard
             key={transporter.id}

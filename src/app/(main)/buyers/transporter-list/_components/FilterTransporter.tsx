@@ -200,7 +200,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           }
         `}
       </style>
-      <div className="hidden md:flex bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
+      <div className="hidden sm:flex bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
         <div className="w-full flex flex-col gap-6 p-4">
           <div className="flex items-center gap-1">
             <p className="font-montserrat text-[14px] sm:text-[16px] font-normal text-[#2b2b2b]">
@@ -211,7 +211,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Rating ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Rating
               </span>
               {openRating ? (
@@ -256,7 +256,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Location ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Location
               </span>
               {openLocation ? (
@@ -297,7 +297,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Years ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Years
               </span>
               {openYears ? (

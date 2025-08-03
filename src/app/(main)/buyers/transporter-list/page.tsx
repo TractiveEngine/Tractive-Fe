@@ -28,7 +28,7 @@ export default function TransportersListPage() {
 
   return (
     <div className="w-full bg-[#f1f1f1] min-h-screen">
-      <div className="w-full sm:w-[90%] flex flex-col gap-[1.5rem] sm:flex-row sm:gap-4 lg:gap-8 mx-auto my-6 px-4 sm:px-0">
+      <div className="w-full sm:w-[90%] flex flex-col gap-[1.5rem] sm:flex-row sm:gap-4 lg:gap-8 mx-auto py-6 px-4 sm:px-0">
         <FilterTransporter
           selectedRatings={selectedRatings}
           setSelectedRatings={setSelectedRatings}
