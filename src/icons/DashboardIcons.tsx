@@ -461,6 +461,7 @@ export const MoneyReceive2Icon: React.FC<IconProps> = ({
     </svg>
   );
 };
+
 export const Profile2UserIcon: React.FC<IconProps> = ({
   stroke = "#292d32",
   fill = "#2b2b2b",
@@ -535,6 +536,7 @@ export const MessageStarIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => 
     </div>
   );
 };
+
 export const MessagesIcon: React.FC<IconProps> = ({
   stroke = "#292d32",
 }) => {
@@ -600,6 +602,7 @@ export const MessageQuestionIcon: React.FC<IconProps> = ({ stroke = "#292d32" })
     </svg>
   );
 };
+
 export const LogoutIcon: React.FC<IconProps> = ({
   stroke = "#292d32",
 }) => {

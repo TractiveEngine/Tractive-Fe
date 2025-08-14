@@ -1,18 +1,18 @@
-import { Bag2Icon, MoneyReceive2Icon, Profile2UserIcon } from "@/icons/DashboardIcons";
+
 import React from "react";
 import { RedSmallChart, SmallChart } from "./SmallChart";
+import { MoneyReceived, Profile2User, Bag2Icon, EyeIcon } from "../../admin/_components/icons/AdminIcons";
 
-export const FarmerOverview = () => {
+export const AdminOverview = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 w-full items-center">
-
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
+      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
-          <div className="bg-[#CCE5CC4D] p-1 rounded-[100px]">
-            <MoneyReceive2Icon stroke="#538e53" />
+          <div className="bg-[#F2D8C599] p-1 rounded-[100px]">
+            <Profile2User stroke="#D77F40" />
           </div>
           <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Revenue
+            User
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -31,13 +31,13 @@ export const FarmerOverview = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
+      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
-          <div className="bg-[#F2D8C599] p-1 rounded-[100px]">
-            <Profile2UserIcon stroke="#D77F40" />
+          <div className="bg-[#CCE5CC80] p-1 rounded-[100px]">
+            <MoneyReceived stroke="#538e53" />
           </div>
           <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Customers
+            Received Payment
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -55,7 +55,7 @@ export const FarmerOverview = () => {
           <SmallChart />
         </div>
       </div>
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
+      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
           <div className="bg-[#7912FF33] p-1 rounded-[100px]">
             <Bag2Icon stroke="#7912FF" />
@@ -79,13 +79,13 @@ export const FarmerOverview = () => {
           <RedSmallChart />
         </div>
       </div>
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] p-3 rounded-[4px] shadow-md">
+      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
         <div className="flex items-center gap-1">
-          <div className="bg-[#F2D8C599] p-1 rounded-[100px]">
-            <Profile2UserIcon stroke="#D77F40" />
+          <div className="bg-[#F8EBE1] p-1 rounded-[100px]">
+            <EyeIcon />
           </div>
           <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Farmers
+            Visitors
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -106,4 +106,3 @@ export const FarmerOverview = () => {
     </div>
   );
 };
-
