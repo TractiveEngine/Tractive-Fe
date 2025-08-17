@@ -1,4 +1,3 @@
-
 // Define interfaces for type safety
 export interface User {
   id: string;

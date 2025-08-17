@@ -1,14 +1,13 @@
 "use client";
-
 import { useEffect, useRef, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { initialUsers, User } from "@/utils/userTypes";
-import { UserActionMenu } from "../UserActionMenu";
 import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";
+import { Transaction } from "@/utils/TransactionDataTypes";
+import { TransactionActionMenu } from "../TransactionActionMenu";
 
 const months = [
   "Jan",
@@ -25,11 +24,11 @@ const months = [
   "Dec",
 ];
 
-const columns: ColumnConfig<User>[] = [
+const columns: ColumnConfig<Transaction>[] = [
   {
     key: "fullname",
-    header: "Full Name",
-    render: (item: User) => (
+    header: "Sender",
+    render: (item: Transaction) => (
       <div className="flex items-center gap-3">
         <img
           src={item.image}
@@ -48,52 +47,64 @@ const columns: ColumnConfig<User>[] = [
     ),
     minWidth: "min-w-[200px]",
   },
-  { key: "location", header: "Location", minWidth: "min-w-[120px]" },
-  { key: "profession", header: "Profession", minWidth: "min-w-[100px]" },
-  { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
-  { key: "status", header: "Status", minWidth: "min-w-[100px]" },
+  { key: "paidTo", header: "Paid To", minWidth: "min-w-[120px]" },
+  { key: "paymentMethod", header: "Method", minWidth: "min-w-[100px]" },
+  { key: "id", header: "ID", minWidth: "min-w-[100px]" },
+  { key: "Amount", header: "Amount", minWidth: "min-w-[100px]" },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 
-export const BuyerType = () => {
-  const [admins, setAdmins] = useState<User[]>(
-    initialUsers.map((admin) => ({ ...admin, checked: false }))
-  );
+interface PendingProps {
+  transactions: Transaction[];
+  handleApprove: (id: string) => void;
+  handleDecline: (id: string) => void;
+  handleCheckboxChange: (id: string) => void;
+  handleSelectAll: () => void;
+  allChecked: boolean;
+}
+
+export const Pending: React.FC<PendingProps> = ({
+  transactions,
+  handleApprove,
+  handleDecline,
+  handleCheckboxChange,
+  handleSelectAll,
+  allChecked,
+}) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [allChecked, setAllChecked] = useState<boolean>(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
 
-  // Filter fleets based on status, year, month, and search term
-
-  const filteredAdmin = useMemo(() => {
-    return admins.filter((admin) => {
-      const matchesProfession = admin.profession === "Buyer";
+  // Filter transactions based on status, year, month, and search term
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      const matchesProfession = transaction.status === "Pending";
       const matchesYear = selectedYear
-        ? admin.date.includes(selectedYear)
+        ? transaction.date.includes(selectedYear)
         : true;
       const matchesMonth = selectedMonth
-        ? admin.date.startsWith(
+        ? transaction.date.startsWith(
             `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
               months.indexOf(selectedMonth) + 1
             }`
           )
         : true;
       const matchesSearch = searchTerm
-        ? admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          admin.userID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          admin.email.toLowerCase().includes(searchTerm.toLowerCase())
+        ? transaction.fullname
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          transaction.email.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
       return matchesProfession && matchesYear && matchesMonth && matchesSearch;
     });
-  }, [admins, selectedYear, selectedMonth, searchTerm]);
+  }, [transactions, selectedYear, selectedMonth, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -127,51 +138,12 @@ export const BuyerType = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle view profile (edit)
-  const handleViewProfile = (id: string) => {
-    alert(`View profile for user with ID: ${id}`);
-    // TODO: Implement view profile functionality
-  };
-
-  // Handle suspend user (delete)
-  const handleSuspended = (id: string) => {
-    setAdmins(admins.filter((admin) => admin.userID !== id));
-  };
-
-  // Handle toggle status
-  const handleToggleStatus = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.userID === id
-          ? {
-              ...admin,
-              status: admin.status === "Active" ? "Suspended" : "Active",
-            }
-          : admin
-      )
-    );
-  };
-
-  // Handle checkbox change
-  const handleCheckboxChange = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.userID === id ? { ...admin, checked: !admin.checked } : admin
-      )
-    );
-  };
-
-  // Handle select all
-  const handleSelectAll = () => {
-    const newAllChecked = !allChecked;
-    setAllChecked(newAllChecked);
-    setAdmins(admins.map((admin) => ({ ...admin, checked: newAllChecked })));
-  };
   // Dropdown animation variants
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
+
   return (
     <div className="w-full mx-auto">
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
@@ -186,11 +158,11 @@ export const BuyerType = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                aria-label="Search all agents"
+                aria-label="Search all transactions"
                 aria-describedby="search-description"
               />
               <span id="search-description" className="sr-only">
-                Search for agents by name, userID, or email
+                Search for transactions by name or email
               </span>
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <SearchIcon
@@ -347,14 +319,13 @@ export const BuyerType = () => {
         </div>
       </div>
       <div className="mt-6 w-full">
-        <AdminTable<User>
-          dataType="initialUsers"
+        <AdminTable<Transaction>
+          dataType="TransactionalData"
           columns={columns}
-          initialData={filteredAdmin}
-          ActionMenuComponent={UserActionMenu}
-          handleViewProfile={handleViewProfile}
-          handleSuspended={handleSuspended}
-          handleToggleStatus={handleToggleStatus}
+          initialData={filteredTransactions}
+          ActionMenuComponent={TransactionActionMenu}
+          handleApprove={handleApprove}
+          handleDecline={handleDecline}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
 import { AdminActionMenuProps } from "../AdminActionMenuProps";
-import "../../Table.css"
+import "../../Table.css";
 
 interface BaseData {
   id: string;
@@ -25,8 +25,16 @@ interface ListTableProps<T extends BaseData> {
   fetchData?: (dataType: string) => Promise<T[]>;
   ActionMenuComponent?: React.ComponentType<AdminActionMenuProps>;
   handleViewProfile?: (id: string) => void;
+  handleProfile?: (id: string) => void;
   handleSuspended?: (id: string) => void;
   handleToggleStatus?: (id: string) => void;
+  handleRefund?: (id: string) => void;
+  handleApprove?: (id: string) => void;
+  handleDecline?: (id: string) => void;
+  handleAgentApprove?: (id: string) => void;
+  handleAgentDecline?: (id: string) => void;
+  handleFarmerApprove?: (id: string) => void;
+  handleFarmerDecline?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
@@ -44,16 +52,26 @@ export const AdminTable = <T extends BaseData>({
   fetchData,
   ActionMenuComponent,
   handleViewProfile,
+  handleProfile,
   handleSuspended,
   handleToggleStatus,
+  handleRefund,
+  handleApprove,
+  handleDecline,
+  handleAgentApprove,
+  handleAgentDecline,
+  handleFarmerApprove,
+  handleFarmerDecline,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  // const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const isCheckboxTable = ["initialUsers"].includes(dataType);
+  const isCheckboxTable = ["initialUsers", "TransactionalData", "AgentsData", "FarmersData"].includes(
+    dataType
+  );
 
   useEffect(() => {
     if (fetchData) {
@@ -66,13 +84,55 @@ export const AdminTable = <T extends BaseData>({
   const defaultHandleViewProfile = (id: string) => {
     console.log(`Default handleEdit called for id: ${id}`);
     alert(`Edit ${dataType} with ID: ${id}`);
-    setActiveMenu(null);
+  
   };
 
   const defaultHandleSuspended = (id: string) => {
     console.log(`Default handleRemove called for id: ${id}`);
     alert(`Remove ${dataType} with ID: ${id}`);
-    setActiveMenu(null);
+
+  };
+
+  const defaultHandleApprove = (id: string) => {
+    console.log(`Default handleApprove called for id: ${id}`);
+    alert(`Approve ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleDeclined = (id: string) => {
+    console.log(`Default handleDeclined called for id: ${id}`);
+    alert(`Decline ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleRefund = (id: string) => {
+    console.log(`Default handleRefund called for id: ${id}`);
+    alert(`Refund ${dataType} with ID: ${id}`);
+
+  };
+
+  const defaultHandleAgentApprove = (id: string) => {
+    console.log(`Default handleAgentApprove called for id: ${id}`);
+    alert(`Approve ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleAgentDecline = (id: string) => {
+    console.log(`Default handleAgentDecline called for id: ${id}`);
+    alert(`Decline ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleFarmerApprove = (id: string) => {
+    console.log(`Default handleFarmerApprove called for id: ${id}`);
+    alert(`Approve ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleFarmerDecline = (id: string) => {
+    console.log(`Default handleFarmerDecline called for id: ${id}`);
+    alert(`Decline ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleProfile = (id: string) => {
+    console.log(`Default handleRefund called for id: ${id}`);
+    alert(`Refund ${dataType} with ID: ${id}`);
+
   };
 
   return (
@@ -148,8 +208,6 @@ export const AdminTable = <T extends BaseData>({
                 {ActionMenuComponent && (
                   <ActionMenuComponent
                     userTypeId={(item as any).userID}
-                    activeMenu={activeMenu}
-                    setActiveMenu={setActiveMenu}
                     handleViewProfile={
                       dataType === "initialUsers"
                         ? handleViewProfile || defaultHandleViewProfile
@@ -163,6 +221,46 @@ export const AdminTable = <T extends BaseData>({
                     handleToggleStatus={
                       dataType === "initialUsers"
                         ? handleToggleStatus
+                        : undefined
+                    }
+                    handleApprove={
+                      dataType === "TransactionalData"
+                        ? handleApprove || defaultHandleApprove
+                        : undefined
+                    }
+                    handleDecline={
+                      dataType === "TransactionalData"
+                        ? handleDecline || defaultHandleDeclined
+                        : undefined
+                    }
+                    handleRefund={
+                      dataType === "TransactionalData"
+                        ? handleRefund || defaultHandleRefund
+                        : undefined
+                    }
+                    handleProfile={
+                      dataType === "TransactionalData"
+                        ? handleProfile || defaultHandleProfile
+                        : undefined
+                    }
+                    handleAgentApprove={
+                      dataType === "AgentsData"
+                        ? handleAgentApprove || defaultHandleAgentApprove
+                        : undefined
+                    }
+                    handleAgentDecline={
+                      dataType === "AgentsData"
+                        ? handleAgentDecline || defaultHandleAgentDecline
+                        : undefined
+                    }
+                    handleFarmerApprove={
+                      dataType === "FarmersData"
+                        ? handleFarmerApprove || defaultHandleFarmerApprove
+                        : undefined
+                    }
+                    handleFarmerDecline={
+                      dataType === "FarmersData"
+                        ? handleFarmerDecline || defaultHandleFarmerDecline
                         : undefined
                     }
                     status={(item as any).status}
