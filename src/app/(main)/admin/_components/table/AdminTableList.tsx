@@ -35,6 +35,10 @@ interface ListTableProps<T extends BaseData> {
   handleAgentDecline?: (id: string) => void;
   handleFarmerApprove?: (id: string) => void;
   handleFarmerDecline?: (id: string) => void;
+  handleAdminSuspended?: (id: string) => void;
+  handleAdminRemoved?: (id: string) => void;
+  handleReactivate?: (id: string) => void;
+  handleAdminOnboarding?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
@@ -62,6 +66,10 @@ export const AdminTable = <T extends BaseData>({
   handleAgentDecline,
   handleFarmerApprove,
   handleFarmerDecline,
+  handleAdminSuspended,
+  handleAdminRemoved,
+  handleReactivate,
+  handleAdminOnboarding,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
@@ -130,8 +138,27 @@ export const AdminTable = <T extends BaseData>({
   };
 
   const defaultHandleProfile = (id: string) => {
-    console.log(`Default handleRefund called for id: ${id}`);
-    alert(`Refund ${dataType} with ID: ${id}`);
+    console.log(`Default handleProfile called for id: ${id}`);
+    alert(`Profile ${dataType} with ID: ${id}`);
+
+  };
+  const defaultHandleAdminSuspended = (id: string) => {
+    console.log(`Default handleAdminSuspended called for id: ${id}`);
+    alert(`Suspend ${dataType} with ID: ${id}`);
+
+  };
+  const defaultHandleReactivate = (id: string) => {
+    console.log(`Default handleAdminReactivate called for id: ${id}`);
+    alert(`Reactivate ${dataType} with ID: ${id}`);
+  };
+  const defaultHandleAdminRemoved = (id: string) => {
+    console.log(`Default handleAdminRemoved called for id: ${id}`);
+    alert(`Remove ${dataType} with ID: ${id}`);
+
+  };
+  const defaultHandleAdminOnboarding = (id: string) => {
+    console.log(`Default handleAdminOnboarding called for id: ${id}`);
+    alert(`Onboarding ${dataType} with ID: ${id}`);
 
   };
 
@@ -261,6 +288,26 @@ export const AdminTable = <T extends BaseData>({
                     handleFarmerDecline={
                       dataType === "FarmersData"
                         ? handleFarmerDecline || defaultHandleFarmerDecline
+                        : undefined
+                    }
+                    handleAdminSuspended={
+                      dataType === "ASRDataControl"
+                        ? handleAdminSuspended || defaultHandleAdminSuspended
+                        : undefined
+                    }
+                    handleReactivate={
+                      dataType === "ASRDataControl"
+                        ? handleReactivate || defaultHandleReactivate
+                        : undefined
+                    }
+                    handleAdminRemoved={
+                      dataType === "ASRDataControl"
+                        ? handleAdminRemoved || defaultHandleAdminRemoved
+                        : undefined
+                    }
+                    handleAdminOnboarding={
+                      dataType === "ASRDataControl"
+                        ? handleAdminOnboarding || defaultHandleAdminOnboarding
                         : undefined
                     }
                     status={(item as any).status}

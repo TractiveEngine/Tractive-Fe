@@ -1,16 +1,11 @@
-import {
-  AgentsData,
-  AgentsProps,
-  ApprovalsAgentsProps,
-} from "@/utils/Approvals";
+"use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdminTable, {
-  ColumnConfig,
-} from "../../_components/table/AdminTableList";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { AgentActionMenu } from "./AgentActionMenu";
+import { AdminControl, AdminMethodProps } from "@/utils/AdminControl";
+import AdminTable, { ColumnConfig } from "../../../_components/table/AdminTableList";
+import { SuspendedActionMenu } from "../ASRActionMenu/SuspendedActionMenu";
 
 const months = [
   "Jan",
@@ -68,20 +63,20 @@ const nigeriaStates = [
   "Zamfara",
 ];
 
-const columns: ColumnConfig<AgentsProps>[] = [
+const columns: ColumnConfig<AdminControl>[] = [
   {
     key: "fullname",
     header: "FullName",
-    render: (item: AgentsProps) => (
+    render: (item: AdminControl) => (
       <div className="flex items-center gap-3">
         <img
           src={item.image}
-          alt={item.fullname}
+          alt={item.fullName}
           className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]">
-            {item.fullname}
+            {item.fullName}
           </span>
           <span className="text-[9px] sm:text-[10px] md:text-[11px] font-montserrat font-normal text-[#808080]">
             {item.email}
@@ -92,16 +87,14 @@ const columns: ColumnConfig<AgentsProps>[] = [
     minWidth: "min-w-[200px]",
   },
   { key: "location", header: "Location", minWidth: "min-w-[120px]" },
-  { key: "profession", header: "Profession", minWidth: "min-w-[100px]" },
   { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
-  { key: "NIN", header: "NIN", minWidth: "min-w-[100px]" },
+  { key: "status", header: "Status", minWidth: "min-w-[100px]" },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
-
-export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
+export const SuspendedTable: React.FC<AdminMethodProps> = ({
   data,
-  handleAgentApprove,
-  handleAgentDecline,
+  handleReactivate,
+  handleAdminRemoved,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
@@ -120,28 +113,36 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
 
-  const filteredAgents = useMemo(() => {
-    return data.filter((agent) => {
+  // Filter transactions based on status, year, month, and search term
+  const filteredASRControl = useMemo(() => {
+    return data.filter((control) => {
+      const matchesStatus = control.status === "Suspended";
       const matchesYear = selectedYear
-        ? agent.date.includes(selectedYear)
+        ? control.date.includes(selectedYear)
         : true;
       const matchesMonth = selectedMonth
-        ? agent.date.startsWith(
+        ? control.date.startsWith(
             `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
               months.indexOf(selectedMonth) + 1
             }`
           )
         : true;
       const matchesState = selectedState
-        ? agent.location.toLowerCase() === selectedState.toLowerCase()
+        ? control.location.toLowerCase() === selectedState.toLowerCase()
         : true;
       const matchesSearch = searchTerm
-        ? agent.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          agent.email.toLowerCase().includes(searchTerm.toLowerCase())
+        ? control.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          control.email.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
-      return matchesYear && matchesMonth && matchesState && matchesSearch;
+      return (
+        matchesStatus &&
+        matchesYear &&
+        matchesMonth &&
+        matchesState &&
+        matchesSearch
+      );
     });
-  }, [AgentsData, selectedYear, selectedMonth, selectedState, searchTerm]);
+  }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -434,13 +435,13 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
         </div>
       </div>
       <div className="mt-6 w-full">
-        <AdminTable<AgentsProps>
-          dataType="AgentsData"
+        <AdminTable<AdminControl>
+          dataType="ASRDataControl"
           columns={columns}
-          initialData={filteredAgents}
-          ActionMenuComponent={AgentActionMenu}
-          handleApprove={handleAgentApprove}
-          handleDecline={handleAgentDecline}
+          initialData={filteredASRControl}
+          ActionMenuComponent={SuspendedActionMenu}
+          handleReactivate={handleReactivate}
+          handleAdminRemoved={handleAdminRemoved}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}

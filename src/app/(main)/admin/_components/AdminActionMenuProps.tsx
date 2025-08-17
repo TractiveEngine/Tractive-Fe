@@ -12,4 +12,8 @@ export interface AdminActionMenuProps {
   handleAgentDecline?: (id: string) => void;
   handleFarmerApprove?: (id: string) => void;
   handleFarmerDecline?: (id: string) => void;
+  handleAdminSuspended?: (id: string) => void;
+  handleAdminRemoved?: (id: string) => void;
+  handleReactivate?: (id: string) => void;
+  handleAdminOnboarding?: (id: string) => void;
 }
