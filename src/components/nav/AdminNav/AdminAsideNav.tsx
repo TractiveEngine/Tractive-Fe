@@ -104,7 +104,7 @@ export const AdminAsideNav = () => {
         {
           href: "/admin/query",
           icon: MessageQuestionIcon,
-          label: "Customers",
+          label: "Query",
         },
         { href: "/admin/live-chat", icon: MessageIcon, label: "Live Chat" },
       ],

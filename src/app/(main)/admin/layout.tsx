@@ -1,14 +1,12 @@
 "use client";
-import { AgentAsideNav } from "@/components/nav/AgentNav/AgentAsideNav";
-import { AgentAsideNavMobile } from "@/components/nav/AgentNav/AgentAsideNavMobile";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
-import { AgentNavbar } from "@/components/nav/AgentNav/AgentNavbar";
 import { AdminAsideNav } from "@/components/nav/AdminNav/AdminAsideNav";
 import { AdminNavbar } from "@/components/nav/AdminNav/AdminNavbar";
+import { AdminAsideNavMobile } from "@/components/nav/AdminNav/AdminAsideNavMobile";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
@@ -125,7 +123,7 @@ export default function AgentLayout({
           <AdminNavbar />
         </nav>
         <div className="flex flex-col">
-          <AgentAsideNavMobile
+          <AdminAsideNavMobile
             user={user}
             isDropdownOpen={isDropdownOpen}
             handleUserDropdownClick={handleUserDropdownClick}
