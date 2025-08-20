@@ -118,7 +118,7 @@ export const AdminAsideNav = () => {
           label: "Chat",
           hasDot: true,
         },
-        { href: "/admin/track-orders", icon: Bag2Icon, label: "Track Orders" },
+        { href: "/admin/track-orders/track-agent", icon: Bag2Icon, label: "Track Orders" },
       ],
     },
   ];

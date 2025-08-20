@@ -16,4 +16,9 @@ export interface AdminActionMenuProps {
   handleAdminRemoved?: (id: string) => void;
   handleReactivate?: (id: string) => void;
   handleAdminOnboarding?: (id: string) => void;
+  handleBuyerInfo?: (id: string) => void;
+  handleTBuyerInfo?: (id: string) => void;
+  handleSellerInfo?: (id: string) => void;
+  handleTransporterInfo?: (id: string) => void;
+  handleTrackOrder?: (id: string) => void;
 }

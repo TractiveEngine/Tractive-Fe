@@ -20,28 +20,33 @@ export interface ColumnConfig<T> {
 
 interface ListTableProps<T extends BaseData> {
   dataType: string;
-  columns: ColumnConfig<T>[];
+  allChecked?: boolean;
   initialData?: T[];
-  fetchData?: (dataType: string) => Promise<T[]>;
-  ActionMenuComponent?: React.ComponentType<AdminActionMenuProps>;
-  handleViewProfile?: (id: string) => void;
-  handleProfile?: (id: string) => void;
-  handleSuspended?: (id: string) => void;
-  handleToggleStatus?: (id: string) => void;
+  columns: ColumnConfig<T>[];
+  handleSelectAll?: () => void;
   handleRefund?: (id: string) => void;
-  handleApprove?: (id: string) => void;
+  handleProfile?: (id: string) => void;
   handleDecline?: (id: string) => void;
+  handleApprove?: (id: string) => void;
+  handleSuspended?: (id: string) => void;
+  handleBuyerInfo?: (id: string) => void;
+  handleTBuyerInfo?: (id: string) => void;
+  handleSellerInfo?: (id: string) => void;
+  handleReactivate?: (id: string) => void;
+  handleTrackOrder?: (id: string) => void;
+  handleViewProfile?: (id: string) => void;
+  handleToggleStatus?: (id: string) => void;
   handleAgentApprove?: (id: string) => void;
+  handleAdminRemoved?: (id: string) => void;
   handleAgentDecline?: (id: string) => void;
   handleFarmerApprove?: (id: string) => void;
   handleFarmerDecline?: (id: string) => void;
   handleAdminSuspended?: (id: string) => void;
-  handleAdminRemoved?: (id: string) => void;
-  handleReactivate?: (id: string) => void;
   handleAdminOnboarding?: (id: string) => void;
+  handleTransporterInfo?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
-  handleSelectAll?: () => void;
-  allChecked?: boolean;
+  fetchData?: (dataType: string) => Promise<T[]>;
+  ActionMenuComponent?: React.ComponentType<AdminActionMenuProps>;
 }
 
 const rowVariants = {
@@ -52,34 +57,42 @@ const rowVariants = {
 export const AdminTable = <T extends BaseData>({
   dataType,
   columns,
-  initialData = [],
   fetchData,
-  ActionMenuComponent,
-  handleViewProfile,
-  handleProfile,
-  handleSuspended,
-  handleToggleStatus,
+  allChecked,
   handleRefund,
+  handleProfile,
   handleApprove,
   handleDecline,
-  handleAgentApprove,
+  handleSuspended,
+  handleSelectAll,
+  handleBuyerInfo,
+  handleTBuyerInfo,
+  handleSellerInfo,
+  initialData = [],
+  handleReactivate,
+  handleTrackOrder,
+  handleViewProfile,
+  handleAdminRemoved,
+  handleToggleStatus,
   handleAgentDecline,
+  handleAgentApprove,
+  ActionMenuComponent,
   handleFarmerApprove,
   handleFarmerDecline,
   handleAdminSuspended,
-  handleAdminRemoved,
-  handleReactivate,
-  handleAdminOnboarding,
   handleCheckboxChange,
-  handleSelectAll,
-  allChecked,
+  handleAdminOnboarding,
+  handleTransporterInfo,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   // const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const isCheckboxTable = ["initialUsers", "TransactionalData", "AgentsData", "FarmersData"].includes(
-    dataType
-  );
+  const isCheckboxTable = [
+    "initialUsers",
+    "TransactionalData",
+    "AgentsData",
+    "FarmersData",
+  ].includes(dataType);
 
   useEffect(() => {
     if (fetchData) {
@@ -92,13 +105,11 @@ export const AdminTable = <T extends BaseData>({
   const defaultHandleViewProfile = (id: string) => {
     console.log(`Default handleEdit called for id: ${id}`);
     alert(`Edit ${dataType} with ID: ${id}`);
-  
   };
 
   const defaultHandleSuspended = (id: string) => {
     console.log(`Default handleRemove called for id: ${id}`);
     alert(`Remove ${dataType} with ID: ${id}`);
-
   };
 
   const defaultHandleApprove = (id: string) => {
@@ -114,7 +125,6 @@ export const AdminTable = <T extends BaseData>({
   const defaultHandleRefund = (id: string) => {
     console.log(`Default handleRefund called for id: ${id}`);
     alert(`Refund ${dataType} with ID: ${id}`);
-
   };
 
   const defaultHandleAgentApprove = (id: string) => {
@@ -140,12 +150,10 @@ export const AdminTable = <T extends BaseData>({
   const defaultHandleProfile = (id: string) => {
     console.log(`Default handleProfile called for id: ${id}`);
     alert(`Profile ${dataType} with ID: ${id}`);
-
   };
   const defaultHandleAdminSuspended = (id: string) => {
     console.log(`Default handleAdminSuspended called for id: ${id}`);
     alert(`Suspend ${dataType} with ID: ${id}`);
-
   };
   const defaultHandleReactivate = (id: string) => {
     console.log(`Default handleAdminReactivate called for id: ${id}`);
@@ -154,12 +162,31 @@ export const AdminTable = <T extends BaseData>({
   const defaultHandleAdminRemoved = (id: string) => {
     console.log(`Default handleAdminRemoved called for id: ${id}`);
     alert(`Remove ${dataType} with ID: ${id}`);
-
   };
   const defaultHandleAdminOnboarding = (id: string) => {
     console.log(`Default handleAdminOnboarding called for id: ${id}`);
     alert(`Onboarding ${dataType} with ID: ${id}`);
+  };
 
+  const defaultHandleSellerInfo = (id: string) => {
+    console.log(`Default handleSellerInfo called for id: ${id}`);
+    alert(`Seller Info ${dataType} with ID: ${id}`);
+  };
+  const defaultHandleBuyerInfo = (id: string) => {
+    console.log(`Default handleBuyerInfo called for id: ${id}`);
+    alert(`Buyer Info ${dataType} with ID: ${id}`);
+  };
+  const defaultHandleTBuyerInfo = (id: string) => {
+    console.log(`Default handleTBuyerInfo called for id: ${id}`);
+    alert(`Buyer Info ${dataType} with ID: ${id}`);
+  };
+  const defaultHandleTransporterInfo = (id: string) => {
+    console.log(`Default handleTransporterInfo called for id: ${id}`);
+    alert(`Transporter Info ${dataType} with ID: ${id}`);
+  };
+  const defaultHandleTrackOrder = (id: string) => {
+    console.log(`Default handleTrackOrder called for id: ${id}`);
+    alert(`Track Order Info ${dataType} with ID: ${id}`);
   };
 
   return (
@@ -234,7 +261,7 @@ export const AdminTable = <T extends BaseData>({
               <td className="py-1.5 px-4 relative">
                 {ActionMenuComponent && (
                   <ActionMenuComponent
-                    userTypeId={(item as any).userID}
+                    userTypeId={item.id}
                     handleViewProfile={
                       dataType === "initialUsers"
                         ? handleViewProfile || defaultHandleViewProfile
@@ -308,6 +335,31 @@ export const AdminTable = <T extends BaseData>({
                     handleAdminOnboarding={
                       dataType === "ASRDataControl"
                         ? handleAdminOnboarding || defaultHandleAdminOnboarding
+                        : undefined
+                    }
+                    handleSellerInfo={
+                      dataType === "TrackAgentData"
+                        ? handleSellerInfo || defaultHandleSellerInfo
+                        : undefined
+                    }
+                    handleBuyerInfo={
+                      dataType === "TrackAgentData"
+                        ? handleBuyerInfo || defaultHandleBuyerInfo
+                        : undefined
+                    }
+                    handleTBuyerInfo={
+                      dataType === "TrackTransporterData"
+                        ? handleTBuyerInfo || defaultHandleTBuyerInfo
+                        : undefined
+                    }
+                    handleTransporterInfo={
+                      dataType === "TrackTransporterData"
+                        ? handleTransporterInfo || defaultHandleTransporterInfo
+                        : undefined
+                    }
+                    handleTrackOrder={
+                      dataType === "TrackTransporterData"
+                        ? handleTrackOrder || defaultHandleTrackOrder
                         : undefined
                     }
                     status={(item as any).status}
