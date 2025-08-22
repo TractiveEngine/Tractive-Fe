@@ -9,6 +9,7 @@ import "../../Table.css";
 interface BaseData {
   id: string;
   checked?: boolean;
+  status?: string;
 }
 
 export interface ColumnConfig<T> {
@@ -92,6 +93,7 @@ export const AdminTable = <T extends BaseData>({
     "TransactionalData",
     "AgentsData",
     "FarmersData",
+    "ASRDataControl",
   ].includes(dataType);
 
   useEffect(() => {
@@ -194,7 +196,7 @@ export const AdminTable = <T extends BaseData>({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="Table_Container"
+      className="Table_Container hide-scrollbar"
     >
       <table className="Table_Style">
         <thead>
@@ -206,7 +208,7 @@ export const AdminTable = <T extends BaseData>({
                     type="checkbox"
                     checked={allChecked}
                     onChange={handleSelectAll}
-                    className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
+                    className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
                   />
                   {allChecked && <TickIcon />}
                 </div>
@@ -242,7 +244,7 @@ export const AdminTable = <T extends BaseData>({
                       type="checkbox"
                       checked={item.checked}
                       onChange={() => handleCheckboxChange?.(item.id)}
-                      className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
+                      className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
                     />
                     {item.checked && <TickIcon />}
                   </div>
@@ -362,7 +364,7 @@ export const AdminTable = <T extends BaseData>({
                         ? handleTrackOrder || defaultHandleTrackOrder
                         : undefined
                     }
-                    status={(item as any).status}
+                    status={item.status}
                   />
                 )}
               </td>

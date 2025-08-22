@@ -1,30 +1,28 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminActionMenuProps } from "../../_components/AdminActionMenuProps";
 import { ThreeDotIcon } from "@/app/(main)/agents/produce-list/_components/table/ActionMenu";
 
 export const UserActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
-  activeMenu,
-  setActiveMenu,
   handleViewProfile,
   handleToggleStatus,
   status,
 }) => {
-  const isActive = activeMenu === userTypeId;
+  const [isActive, setIsActive] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setActiveMenu(null);
+        setIsActive(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [setActiveMenu]);
+  }, [setIsActive]);
 
   const menuVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -36,13 +34,13 @@ export const UserActionMenu: React.FC<AdminActionMenuProps> = ({
       <button
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => setActiveMenu(isActive ? null : userTypeId)}
+        onClick={() => setIsActive(isActive ? null : userTypeId)}
         className="bg-[#f1f1f1] rounded-full cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
       </button>
       <AnimatePresence>
-        {isActive && (
+        {isActive !== null && (
           <motion.div
             className="absolute min-w-[110px] right-11 -top-3 bg-[#fefefe] rounded-[7px] shadow-lg z-[100]"
             variants={menuVariants}
@@ -55,7 +53,7 @@ export const UserActionMenu: React.FC<AdminActionMenuProps> = ({
               <button
                 onClick={() => {
                   handleViewProfile(userTypeId);
-                  setActiveMenu(null);
+                  setIsActive(null);
                 }}
                 className="w-full text-left px-2 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
               >
@@ -66,7 +64,7 @@ export const UserActionMenu: React.FC<AdminActionMenuProps> = ({
               <button
                 onClick={() => {
                   handleToggleStatus(userTypeId);
-                  setActiveMenu(null);
+                  setIsActive(null);
                 }}
                 className="w-full text-left px-2 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
               >

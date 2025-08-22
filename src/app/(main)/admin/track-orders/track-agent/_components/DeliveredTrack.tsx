@@ -9,6 +9,7 @@ import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";
 import { TrackAgentActionMenu } from "./TrackAgentActionMenu";
+import Image from "next/image";
 
 const months = [
   "Jan",
@@ -31,10 +32,12 @@ const columns: ColumnConfig<OrderData>[] = [
     header: "Produce",
     render: (item: OrderData) => (
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={item.image}
           alt={item.title}
-          className="w-[63px] h-[40px] rounded-[5px]"
+          width={10}
+          height={10}
+          className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]">

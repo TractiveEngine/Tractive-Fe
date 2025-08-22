@@ -8,7 +8,6 @@ export const AgentActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
   handleAgentApprove,
   handleAgentDecline,
-  status,
 }) => {
   const [isActive, setIsActive] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

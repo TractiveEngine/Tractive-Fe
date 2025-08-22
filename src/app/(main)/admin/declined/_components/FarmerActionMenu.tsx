@@ -8,7 +8,6 @@ export const FarmerActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
   handleFarmerApprove,
   handleFarmerDecline,
-  status,
 }) => {
   const [isActive, setIsActive] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

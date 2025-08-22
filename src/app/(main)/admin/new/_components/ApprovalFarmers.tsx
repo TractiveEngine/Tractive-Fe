@@ -7,6 +7,7 @@ import AdminTable, {
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { FarmerActionMenu } from "./FarmerActionMenu";
+import Image from "next/image";
 
 const months = [
   "Jan",
@@ -70,9 +71,11 @@ const columns: ColumnConfig<FarmersProps>[] = [
     header: "FullName",
     render: (item: FarmersProps) => (
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={item.image}
           alt={item.fullname}
+          width={10}
+          height={10}
           className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">

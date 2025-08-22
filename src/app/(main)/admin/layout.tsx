@@ -112,7 +112,7 @@ export default function AgentLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f1f1f1]">
+    <div className="min-h-screen bg-[#f1f1f1]">
       <AdminAsideNav />
       <motion.div
         className="flex-1 flex flex-col"
@@ -130,7 +130,7 @@ export default function AgentLayout({
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="pt-[2rem] lg:pt-[4rem]">{children}</main>
+          <main className="pt-[2rem] lg:pt-[4rem] w-full">{children}</main>
         </div>
       </motion.div>
     </div>

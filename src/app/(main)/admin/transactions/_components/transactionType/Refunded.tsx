@@ -8,6 +8,7 @@ import AdminTable, {
 } from "../../../_components/table/AdminTableList";
 import { Transaction } from "@/utils/TransactionDataTypes";
 import { RefundedActionMenu } from "../RefundedActionMenu";
+import Image from "next/image";
 
 const months = [
   "Jan",
@@ -30,9 +31,11 @@ const columns: ColumnConfig<Transaction>[] = [
     header: "Sender",
     render: (item: Transaction) => (
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={item.image}
           alt={item.fullname}
+          width={10}
+          height={10}
           className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">
@@ -68,79 +71,78 @@ export const Refunded: React.FC<RefundedProps> = ({
   handleSelectAll,
   allChecked,
 }) => {
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
+  const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
+  const monthDropdownRef = useRef<HTMLDivElement>(null);
 
-    const [selectedYear, setSelectedYear] = useState<string>("");
-    const [selectedMonth, setSelectedMonth] = useState<string>("");
-    const [searchTerm, setSearchTerm] = useState<string>("");
-    const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
-    const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-    const yearDropdownRef = useRef<HTMLDivElement>(null);
-    const monthDropdownRef = useRef<HTMLDivElement>(null);
-  
-    // Generate years from 2019 to 2025
-    const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  
-    // Filter transactions based on status, year, month, and search term
-    const filteredTransactions = useMemo(() => {
-      return transactions.filter((transaction) => {
-        const matchesProfession = transaction.status === "Refunded";
-        const matchesYear = selectedYear
-          ? transaction.date.includes(selectedYear)
-          : true;
-        const matchesMonth = selectedMonth
-          ? transaction.date.startsWith(
-              `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-                months.indexOf(selectedMonth) + 1
-              }`
-            )
-          : true;
-        const matchesSearch = searchTerm
-          ? transaction.fullname
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            transaction.email.toLowerCase().includes(searchTerm.toLowerCase())
-          : true;
-        return matchesProfession && matchesYear && matchesMonth && matchesSearch;
-      });
-    }, [transactions, selectedYear, selectedMonth, searchTerm]);
-  
-    // Close dropdowns when clicking outside
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (
-          yearDropdownRef.current &&
-          !yearDropdownRef.current.contains(event.target as Node)
-        ) {
-          setIsYearOpen(false);
-        }
-        if (
-          monthDropdownRef.current &&
-          !monthDropdownRef.current.contains(event.target as Node)
-        ) {
-          setIsMonthOpen(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-  
-    // Handle keyboard navigation
-    useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-          setIsYearOpen(false);
-          setIsMonthOpen(false);
-        }
-      };
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, []);
-  
-    // Dropdown animation variants
-    const dropdownVariants = {
-      open: { opacity: 1, y: 0 },
-      closed: { opacity: 0, y: -10 },
+  // Generate years from 2019 to 2025
+  const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
+
+  // Filter transactions based on status, year, month, and search term
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      const matchesProfession = transaction.status === "Refunded";
+      const matchesYear = selectedYear
+        ? transaction.date.includes(selectedYear)
+        : true;
+      const matchesMonth = selectedMonth
+        ? transaction.date.startsWith(
+            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
+              months.indexOf(selectedMonth) + 1
+            }`
+          )
+        : true;
+      const matchesSearch = searchTerm
+        ? transaction.fullname
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          transaction.email.toLowerCase().includes(searchTerm.toLowerCase())
+        : true;
+      return matchesProfession && matchesYear && matchesMonth && matchesSearch;
+    });
+  }, [transactions, selectedYear, selectedMonth, searchTerm]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        yearDropdownRef.current &&
+        !yearDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsYearOpen(false);
+      }
+      if (
+        monthDropdownRef.current &&
+        !monthDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsMonthOpen(false);
+      }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsYearOpen(false);
+        setIsMonthOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Dropdown animation variants
+  const dropdownVariants = {
+    open: { opacity: 1, y: 0 },
+    closed: { opacity: 0, y: -10 },
+  };
   return (
     <div className="w-full mx-auto">
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
@@ -329,4 +331,4 @@ export const Refunded: React.FC<RefundedProps> = ({
       </div>
     </div>
   );
-}
+};

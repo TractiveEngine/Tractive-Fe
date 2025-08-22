@@ -4,8 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { AdminControl, AdminMethodProps } from "@/utils/AdminControl";
-import AdminTable, { ColumnConfig } from "../../../_components/table/AdminTableList";
+import AdminTable, {
+  ColumnConfig,
+} from "../../../_components/table/AdminTableList";
 import { ActiveActionMenu } from "../ASRActionMenu/ActiveActionMenu";
+import Image from "next/image";
 
 const months = [
   "Jan",
@@ -69,9 +72,11 @@ const columns: ColumnConfig<AdminControl>[] = [
     header: "FullName",
     render: (item: AdminControl) => (
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={item.image}
           alt={item.fullName}
+          width={10}
+          height={10}
           className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">
@@ -159,12 +164,12 @@ export const ActiveTable: React.FC<AdminMethodProps> = ({
       ) {
         setIsMonthOpen(false);
       }
-          if (
-            stateDropdownRef.current &&
-            !stateDropdownRef.current.contains(event.target as Node)
-          ) {
-            setIsStateOpen(false);
-          }
+      if (
+        stateDropdownRef.current &&
+        !stateDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsStateOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -174,9 +179,9 @@ export const ActiveTable: React.FC<AdminMethodProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-          setIsYearOpen(false);
-          setIsMonthOpen(false);
-          setIsStateOpen(false);
+        setIsYearOpen(false);
+        setIsMonthOpen(false);
+        setIsStateOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -431,6 +436,14 @@ export const ActiveTable: React.FC<AdminMethodProps> = ({
                 </AnimatePresence>
               </div>
             </div>
+          </div>
+          <div className="flex items-center gap-4 justify-end">
+            <button
+              className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.92] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
+              aria-label="Onboard"
+            >
+              Onboard
+            </button>
           </div>
         </div>
       </div>

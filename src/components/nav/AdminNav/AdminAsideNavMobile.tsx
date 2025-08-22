@@ -2,9 +2,8 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { logoutUser } from "@/utils/loginAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   OverviewIcon,
@@ -13,7 +12,6 @@ import {
   MessageIcon,
   MessagesIcon,
   Bag2Icon,
-  LogoutIcon,
   Profile2User,
   moneyChange,
   userRemoveIcon,
@@ -57,9 +55,10 @@ export const AdminAsideNavMobile = ({
     Others: false,
   });
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Now used for modal
   const profileRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const toggleNav = () => {
     setIsNavOpen((prev) => !prev);
@@ -73,6 +72,12 @@ export const AdminAsideNavMobile = ({
     }));
   };
 
+  // Handle opening/closing the modal
+  const toggleModal = () => {
+    setIsModalOpen((prev) => !prev);
+  };
+
+  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -85,14 +90,22 @@ export const AdminAsideNavMobile = ({
       ) {
         closeDropdown();
       }
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(target) &&
+        isModalOpen
+      ) {
+        setIsModalOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isDropdownOpen, closeDropdown]);
-const navSections: NavSection[] = [
+  }, [isDropdownOpen, closeDropdown, isModalOpen]);
+
+  const navSections: NavSection[] = [
     {
       title: "Managements",
       items: [
@@ -156,6 +169,12 @@ const navSections: NavSection[] = [
           hasDot: true,
         },
         { href: "/admin/track-orders", icon: Bag2Icon, label: "Track Orders" },
+        {
+          icon: Bag2Icon, // Example icon, replace with appropriate icon
+          label: "Add to store",
+          onClick: toggleModal, // Toggle modal on click
+          hasDot: true,
+        },
       ],
     },
   ];
@@ -178,6 +197,12 @@ const navSections: NavSection[] = [
     initial: { y: 10, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: 10, opacity: 0 },
+  };
+
+  const modalVariants = {
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
   };
 
   return (
@@ -238,7 +263,7 @@ const navSections: NavSection[] = [
             ref={navRef}
             className="flex flex-col gap-[2.5rem]"
           >
-            <div className="flex flex-col gap-[2.5rem]" ref={navRef}>
+            <div className="flex flex-col gap-[2.5rem]">
               <div className="flex flex-col px-1">
                 <ul className="mt-[1rem] px-[0.5rem]">
                   <li>
@@ -344,6 +369,53 @@ const navSections: NavSection[] = [
                 ))}
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal for "Add to store" */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              ref={modalRef}
+              className="bg-[#fefefe] rounded-[8px] p-6 w-[90%] max-w-[400px] shadow-lg"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <h2 className="text-[16px] font-montserrat font-medium text-[#2b2b2b] mb-4">
+                Add to Store
+              </h2>
+              <p className="text-[14px] font-montserrat text-[#2b2b2b] mb-6">
+                This is a placeholder for the &quot;Add to store&quot; modal. Add your
+                form or content here.
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={toggleModal}
+                  className="px-4 py-2 bg-[#e0e0e0] text-[#2b2b2b] rounded-[4px] font-montserrat text-[14px] hover:bg-[#d0d0d0]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    console.log("Add to store submitted");
+                    toggleModal();
+                  }}
+                  className="px-4 py-2 bg-[#538e53] text-[#fefefe] rounded-[4px] font-montserrat text-[14px] hover:bg-[#468246]"
+                >
+                  Submit
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

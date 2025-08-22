@@ -142,11 +142,11 @@ export default function AllUserTypeContainer() {
   };
 
   return (
-    <div className="mb-5 rounded-[10px] bg-[#fefefe] shadow-md">
+    <div className="w-full mb-5 rounded-[10px] bg-[#fefefe] shadow-md">
       <h1 className="mb-4 px-6 pt-6 text-base font-normal font-montserrat sm:text-lg">
         User
       </h1>
-      <div className="flex flex-col overflow-x-auto flex-nowrap">
+      <div className="flex flex-col overflow-x-auto flex-nowrap hide-scrollbar">
         <div
           className="relative mb-2 flex items-center gap-3 px-6 flex-nowrap"
           ref={containerRef}

@@ -1,5 +1,4 @@
 import {
-  AgentsData,
   AgentsProps,
   ApprovalsAgentsProps,
 } from "@/utils/Approvals";
@@ -11,6 +10,7 @@ import AdminTable, {
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { AgentActionMenu } from "./AgentActionMenu";
+import Image from "next/image";
 
 const months = [
   "Jan",
@@ -74,9 +74,11 @@ const columns: ColumnConfig<AgentsProps>[] = [
     header: "FullName",
     render: (item: AgentsProps) => (
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={item.image}
           alt={item.fullname}
+          width={10}
+          height={10}
           className="w-10 h-10 rounded-full"
         />
         <div className="flex flex-col">
@@ -141,7 +143,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
         : true;
       return matchesYear && matchesMonth && matchesState && matchesSearch;
     });
-  }, [AgentsData, selectedYear, selectedMonth, selectedState, searchTerm]);
+  }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -158,12 +160,12 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
       ) {
         setIsMonthOpen(false);
       }
-          if (
-            stateDropdownRef.current &&
-            !stateDropdownRef.current.contains(event.target as Node)
-          ) {
-            setIsStateOpen(false);
-          }
+      if (
+        stateDropdownRef.current &&
+        !stateDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsStateOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -173,9 +175,9 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-          setIsYearOpen(false);
-          setIsMonthOpen(false);
-          setIsStateOpen(false);
+        setIsYearOpen(false);
+        setIsMonthOpen(false);
+        setIsStateOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
