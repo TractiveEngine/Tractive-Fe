@@ -27,7 +27,7 @@ export const TransporterCard: React.FC<TransporterCardProps> = ({
   transporterBio,
 }) => {
   return (
-    <div className="border-[1px] border-[#808080] w-full rounded-lg">
+    <div className="border-[1px] border-[#808080] w-full rounded-lg h-fit">
       <div className="flex flex-col justify-center w-full p-3 rounded-lg">
         <Image
           width={100}

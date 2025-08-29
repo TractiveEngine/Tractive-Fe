@@ -67,8 +67,10 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
   selectedYears,
   setSelectedYears,
 }) => {
-  const [pendingRatings, setPendingRatings] = useState<number[]>(selectedRatings);
-  const [pendingLocations, setPendingLocations] = useState<string[]>(selectedLocations);
+  const [pendingRatings, setPendingRatings] =
+    useState<number[]>(selectedRatings);
+  const [pendingLocations, setPendingLocations] =
+    useState<string[]>(selectedLocations);
   const [pendingYears, setPendingYears] = useState<string[]>(selectedYears);
   const [openRating, setOpenRating] = useState<boolean>(true);
   const [openLocation, setOpenLocation] = useState<boolean>(true);
@@ -198,8 +200,8 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           }
         `}
       </style>
-      <div className="bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
-        <div className="flex flex-col gap-6 p-4">
+      <div className="hidden sm:flex bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
+        <div className="w-full flex flex-col gap-6 p-4">
           <div className="flex items-center gap-1">
             <p className="font-montserrat text-[14px] sm:text-[16px] font-normal text-[#2b2b2b]">
               Filter
@@ -209,7 +211,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Rating ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Rating
               </span>
               {openRating ? (
@@ -221,7 +223,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
             <AnimatePresence>
               {openRating && (
                 <motion.div
-                  className="grid grid-cols-2 gap-2 w-[85%]"
+                  className="grid grid-cols-1 xl:grid-cols-2 gap-2 w-[85%]"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -254,7 +256,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Location ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Location
               </span>
               {openLocation ? (
@@ -295,7 +297,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
           {/* ===== Filter by Years ====== */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between w-full">
-              <span className="font-montserrat text-[12px] sm:text-[14px] font-normal text-[#2b2b2b]">
+              <span className="font-montserrat text-[12px] md:text-[14px] font-normal text-[#2b2b2b]">
                 Filter by Years
               </span>
               {openYears ? (
@@ -307,7 +309,7 @@ export const FilterTransporter: React.FC<FilterSellerProps> = ({
             <AnimatePresence>
               {openYears && (
                 <motion.div
-                  className="flex items-center gap-2 w-[85%]"
+                  className="grid grid-cols-1 xl:grid-cols-2 gap-2 w-[85%]"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}

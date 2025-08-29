@@ -46,6 +46,9 @@ export default function Signup() {
 
       setEmail(newUser.email);
 
+      // Use otpSentTo in a toast notification
+      toast.success(`OTP sent to ${otpSentTo}. Please check your inbox.`);
+
       await new Promise((res) => setTimeout(res, 2000));
       console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
 
@@ -55,13 +58,13 @@ export default function Signup() {
         router.push("/email-confirmation");
       }, 1000);
     } catch (err) {
-      console.log("signup failed. Try again.", err)
-       toast.dismiss();
-       toast.error("signup failed. Try again.");
-       console.log(err)
-     } finally {
-       setLoading(false);
-     }
+      console.log("signup failed. Try again.", err);
+      toast.dismiss();
+      toast.error("signup failed. Try again.");
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -2,10 +2,6 @@
 import TruckCard from "@/components/cards/TruckCard";
 import React from "react";
 
-// Function to generate a random 4-digit number
-const generateBookingCode = () => {
-  return Math.floor(1000 + Math.random() * 9000).toString();
-};
 interface AlmostFullTruckProps {
   fromState?: string;
   toState?: string;
@@ -14,7 +10,7 @@ interface AlmostFullTruckProps {
 
 export const TruckData = [
   {
-    id: `BookingCode${generateBookingCode()}`,
+    id: "BookingCode0021234110",
     image: "/images/transportTruck.png",
     rating: "4.0",
     truckName: "Monster Truck",
@@ -25,7 +21,7 @@ export const TruckData = [
     locationTo: "Abuja",
   },
   {
-    id: `BookingCode${generateBookingCode()}`,
+    id: "BookingCode0021234120",
     image: "/images/transportTruck.png",
     rating: "4.5",
     truckName: "Heavy Duty Hauler",
@@ -36,7 +32,7 @@ export const TruckData = [
     locationTo: "Ibadan",
   },
   {
-    id: `BookingCode${generateBookingCode()}`,
+    id: "BookingCode0021234129",
     image: "/images/transportTruck.png",
     rating: "4.2",
     truckName: "Freight Master",
@@ -47,7 +43,7 @@ export const TruckData = [
     locationTo: "Enugu",
   },
   {
-    id: `BookingCode${generateBookingCode()}`,
+    id: "BookingCode0021234130",
     image: "/images/transportTruck.png",
     rating: "4.8",
     truckName: "Cargo King",

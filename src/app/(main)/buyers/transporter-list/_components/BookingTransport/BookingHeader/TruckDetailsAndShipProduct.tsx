@@ -252,7 +252,7 @@ export const TruckDetailsAndShipProduct: React.FC<
               </span>
             </div>
 
-            <div className="absolute bottom-0 right-0 flex flex-col lg:flex-row items-center gap-2 lg:gap-8">
+            <div className="absolute bottom-0 right-0 flex items-center gap-2 lg:gap-8">
               <span
                 className={`font-montserrat text-[11px] sm:text-[12px] md:text-[13px] font-normal ${
                   isTruckFull || selectedProductsState.length === 0

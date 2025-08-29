@@ -1,5 +1,5 @@
 "use client";
-import { LeadingProfileIcon, WishIcon } from "@/icons/Icons";
+import { WishIcon } from "@/icons/Icons";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,7 @@ interface CardProps {
   image: string; // Required
   timeImage: string; // Required
   crownImage: string; // Required
+  leadingProfileImage: string; // Required
   time: string; // Required
   title: string; // Required
   description?: string;
@@ -19,6 +20,7 @@ interface CardProps {
   className?: string;
   imageClass?: string;
   crownImageClass?: string;
+  leadingProfileImageClass?: string;
   imageClockClass?: string;
   titleClass?: string;
   descriptionClass?: string;
@@ -31,6 +33,7 @@ export default function BidingCard({
   image,
   timeImage,
   crownImage,
+  leadingProfileImage,
   time,
   title,
   description,
@@ -40,6 +43,7 @@ export default function BidingCard({
   className = "",
   imageClass = "",
   crownImageClass = "",
+  leadingProfileImageClass = "",
   imageClockClass = "",
   titleClass = "",
   descriptionClass = "",
@@ -154,7 +158,13 @@ export default function BidingCard({
                 height={14}
                 className={`object-cover ${crownImageClass}`}
               />
-              <LeadingProfileIcon />
+              <Image
+                src={leadingProfileImage}
+                alt="leading profile"
+                width={14}
+                height={14}
+                className={`object-cover ${leadingProfileImageClass}`}
+              />
             </div>
             <p
               className={`text-sm text-gray-500 font-montserrat ${quantityClass}`}

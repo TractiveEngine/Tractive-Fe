@@ -46,9 +46,9 @@ export const Categories: React.FC<CategoriesProps> = ({
 
   return (
     <div
-      className={`w-full md:w-1/5 bg-[#fefefe] ${
+      className={`w-full md:w-[40%] lg:w-1/4 bg-[#fefefe] ${
         selectedSubCategory
-          ? "h-fit !rounded-[5px] bg-transparent flex md:flex-col justify-center items-center gap-2"
+          ? "h-fit !rounded-[5px] bg-transparent flex flex-col justify-center items-center gap-2"
           : ""
       }`}
     >
@@ -59,7 +59,7 @@ export const Categories: React.FC<CategoriesProps> = ({
             : ""
         }`}
       >
-        <p className="flex items-center justify-center text-[#2B2B2B] bg-[#CCE5CC80] px-[1rem] py-[0.7rem] rounded-tl-[7px] rounded-br-[7px] text-[0.89rem] w-[7rem] font-normal">
+        <p className="flex items-center justify-center text-[#2B2B2B] bg-[#CCE5CC80] px-[1rem] py-[0.7rem] rounded-tl-[7px] rounded-br-[7px] text-[0.6rem] sm:text-[0.7rem] md:text-[0.89rem] w-[7rem] font-normal">
           {headerText}
         </p>
         <div
@@ -93,7 +93,7 @@ export const Categories: React.FC<CategoriesProps> = ({
                         handleCategoryClick(category);
                         setSelectedCategory(category); // Update selected category
                       }}
-                      className="flex w-[100%] items-center justify-between text-[#2B2B2B] text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer"
+                      className="flex w-[100%] items-center justify-between text-[#2B2B2B] text-[0.6rem] sm:text-[0.7rem]  md:text-[0.89rem] font-normal hover:text-[#538E53] transition cursor-pointer"
                     >
                       <span className="flex-1">{category}</span>
                       <svg
@@ -134,7 +134,7 @@ export const Categories: React.FC<CategoriesProps> = ({
           </div>
         </div>
       </div>
-      {selectedSubCategory && <OfficialStore />}
+      {selectedSubCategory && <OfficialStore id={selectedSubCategory} />}
     </div>
   );
 };

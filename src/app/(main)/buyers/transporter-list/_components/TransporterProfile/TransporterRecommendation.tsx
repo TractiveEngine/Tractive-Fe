@@ -3,13 +3,13 @@ import React from "react";
 
 export const TransporterRecommendation = () => {
   return (
-    <div className="flex flex-col w-full rounded-lg shadow-md p-4 mt-4">
+    <div className="flex flex-col w-full rounded-lg mt-4">
       <div className="w-[90%] flex flex-col justify-between mx-auto gap-3 mb-4">
-        <p className="text-[15px] text-[#141414] font-normal font-montserrat">
+        <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#141414] font-normal font-montserrat">
           Recommendation (based on your location)
         </p>
-        <div className="w-[100%] flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+        <div className="w-full grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6 lg:gap-4">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Tomatoes"
@@ -18,7 +18,7 @@ export const TransporterRecommendation = () => {
               className="w-full h-auto rounded-md aspect-[2/1] object-cover"
             />
           </div>
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Maize"
@@ -27,7 +27,7 @@ export const TransporterRecommendation = () => {
               className="w-full h-auto rounded-md aspect-[2/1] object-cover"
             />
           </div>
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Beans"
@@ -36,7 +36,7 @@ export const TransporterRecommendation = () => {
               className="w-full h-auto rounded-md aspect-[2/1] object-cover"
             />
           </div>
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Goat"
@@ -45,7 +45,7 @@ export const TransporterRecommendation = () => {
               className="w-full h-auto rounded-md aspect-[2/1] object-cover"
             />
           </div>
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Chicken"
@@ -54,7 +54,7 @@ export const TransporterRecommendation = () => {
               className="w-full h-auto rounded-md aspect-[2/1] object-cover"
             />
           </div>
-          <div className="w-[45%] sm:w-[30%] lg:w-[15%]">
+          <div className="w-[100%]">
             <Image
               src="/images/monsterTruck.png"
               alt="Fish"

@@ -50,6 +50,7 @@ export const Notifications = () => {
           alt="Map Image"
           width={503}
           height={147}
+          className="w-full max-w-[503px] h-auto mt-4"
           onError={() => console.error("Failed to load mapImage.png")}
         />
       ),
@@ -66,9 +67,9 @@ export const Notifications = () => {
       action: (
         <Link
           href="/buyers/my-biddings"
-          className="flex items-center justify-center w-[27%] h-[35px] bg-[#2a942a] rounded-[2px] mt-4"
+          className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
         >
-          <span className="font-montserrat font-normal text-[13px] text-[#fefefe]">
+          <span className="font-montserrat font-normal text-[12px] sm:text-[13px] text-[#fefefe]">
             Checkout Item
           </span>
         </Link>
@@ -84,14 +85,14 @@ export const Notifications = () => {
       read: false,
       image: "/images/GreenImage.png",
       action: (
-        <div className="flex items-center gap-3">
-          <button className="flex items-center justify-center w-[27%] h-[35px] bg-[#2a942a] rounded-[2px] mt-4">
-            <span className="font-montserrat font-normal text-[14px] text-[#fefefe]">
+        <div className="flex items-center gap-3 mt-4">
+          <button className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] px-4">
+            <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#fefefe]">
               Try again
             </span>
           </button>
-          <button className="flex items-center justify-center w-[27%] h-[35px] bg-[#CCE5CC] border-[1px] border-[#808080] rounded-[2px] mt-4">
-            <span className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+          <button className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#CCE5CC] border-[1px] border-[#808080] rounded-[2px] px-4">
+            <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#2b2b2b]">
               Contact admin
             </span>
           </button>
@@ -110,9 +111,9 @@ export const Notifications = () => {
       action: (
         <Link
           href="/buyers/wish-list"
-          className="flex items-center justify-center w-[27%] h-[35px] bg-[#2a942a] rounded-[2px] mt-4"
+          className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
         >
-          <span className="font-montserrat font-normal text-[14px] text-[#fefefe]">
+          <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#fefefe]">
             View Bidding
           </span>
         </Link>
@@ -136,7 +137,7 @@ export const Notifications = () => {
   console.log("Rendering notifications:", notifications);
 
   return (
-    <div className="flex flex-col gap-4 max-h-[500px] overflow-y-auto">
+    <div className="w-full flex flex-col gap-4 max-h-[500px] overflow-y-auto">
       <style jsx>{`
         .custom-AllRadio {
           appearance: none;
@@ -187,7 +188,7 @@ export const Notifications = () => {
         notifications.map((notification, index) => (
           <React.Fragment key={notification.id}>
             <div
-              className={`w-[100%] ${
+              className={`w-full min-w-0 ${
                 notification.read ||
                 notification.title ===
                   `Dear ${onboardingData?.businessName || "User"}`
@@ -196,8 +197,8 @@ export const Notifications = () => {
               }`}
             >
               <div className="flex flex-col px-5 pt-5">
-                <div className="flex gap-[19px]">
-                  <div className="flex flex-col gap-8">
+                <div className="flex flex-col sm:flex-row gap-[19px]">
+                  <div className="flex flex-col gap-8 min-w-0">
                     <div className="flex flex-col gap-2">
                       <p
                         className={`font-montserrat font-medium text-[13.6px] ${
@@ -211,11 +212,11 @@ export const Notifications = () => {
                       >
                         {notification.title}
                       </p>
-                      <p className="font-montserrat font-normal text-[13.6px] text-[#2b2b2b]">
+                      <p className="font-montserrat font-normal text-[12px] sm:text-[13.6px] text-[#2b2b2b]">
                         {notification.message}
                       </p>
                     </div>
-                    <span className="font-montserrat font-normal text-[13.6px] text-[#808080]">
+                    <span className="font-montserrat font-normal text-[12.5px] sm:text-[13.6px] text-[#808080]">
                       {notification.time}. {notification.category}
                     </span>
                   </div>
@@ -224,6 +225,7 @@ export const Notifications = () => {
                     alt="Notification Image"
                     width={135}
                     height={144}
+                    className="w-full h-auto max-w-[135px] max-h-[144px]"
                     onError={() =>
                       console.error(
                         `Failed to load image: ${notification.image}`
@@ -235,7 +237,7 @@ export const Notifications = () => {
               </div>
             </div>
             {index < notifications.length - 1 && (
-              <div className="w-[100%] h-[1px] border-t-[1px] border-[#808080]"></div>
+              <div className="w-full h-[1px] border-t-[1px] border-[#808080]"></div>
             )}
           </React.Fragment>
         ))

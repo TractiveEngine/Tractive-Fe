@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import "./Navbar.css";
+
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
-import { ProfileDropDown } from "../ProfileDropDown";
+import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -107,7 +107,7 @@ export const Navbar = () => {
   return (
     <div
       className={`w-[90%] mx-auto py-2 flex justify-between font-montserrat items-center ${
-        isLoggedIn ? "bg-[#FEFEFE]" : "bg-[#F1F1F1]"
+        isLoggedIn ? "bg-[#FEFEFE]" : ""
       }`}
     >
       {/* Logo */}
@@ -212,7 +212,9 @@ export const Navbar = () => {
                 />
               </svg>
             </div>
-            {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
+            {isDropdownOpen && (
+              <Buyer_ProfileDropDown onLogout={handleLogout} />
+            )}
           </div>
         </>
       ) : (

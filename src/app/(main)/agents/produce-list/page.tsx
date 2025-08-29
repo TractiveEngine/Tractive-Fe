@@ -50,8 +50,8 @@ export default function ProduceListPage() {
   }, [switchSides]);
 
   return (
-    <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md max-w-7xl">
-      <h1 className="text-[16px] font-normal mb-4 px-6 pt-6 sm:text-lg">
+    <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
+      <h1 className="text-[16px] font-normal font-montserrat mb-4 px-6 pt-6 sm:text-lg">
         Stock management
       </h1>
       <div className="flex flex-col">
@@ -117,7 +117,7 @@ export default function ProduceListPage() {
       </div>
 
       <div
-        className="mb-4 px-6"
+        className="mb-4"
         role="tabpanel"
         id={switchSides === "Active" ? "active-panel" : "outofstock-panel"}
       >

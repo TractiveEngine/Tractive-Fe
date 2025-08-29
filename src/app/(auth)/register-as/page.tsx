@@ -15,7 +15,7 @@ export default function OnboardingForm() {
 
   // 🔐 Redirect unauthorized users
   useEffect(() => {
-    const token = getAuthToken(); // adjust this key if needed
+    const token = getAuthToken();
     if (!token) {
       toast.error("Unauthorized access. Login.", {
         duration: 3000,
@@ -45,47 +45,39 @@ export default function OnboardingForm() {
       return;
     }
 
-    // Save selected role to local storage
     localStorage.setItem("userRole", activeRole);
-
-    // Show loading toast
     const loadingToastId = toast.loading("⏳ Preparing your dashboard...", {
       position: "top-center",
     });
 
     setIsLoading(true);
-
-    // Navigate first
     router.push("/onboarding-success");
 
-    // Simulate request and update toast after delay
     setTimeout(() => {
-      toast.dismiss(loadingToastId); // Remove the loading toast
-
+      toast.dismiss(loadingToastId);
       toast.success("Role selected successfully!", {
         duration: 3000,
         position: "top-center",
       });
-
       sendPostRequest(activeRole);
       setIsLoading(false);
     }, 7000);
   };
 
   return (
-    <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex">
+    <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex min-h-screen">
       <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/signinLogin.png"
           alt="signin Login"
           width={668}
           height={1080}
-          className="w-[668px] h-full"
+          className="w-[668px] h-full object-cover"
         />
       </div>
 
-      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] justify-center h-screen">
-        <div className="w-[90%] md:w-[80%] mx-auto flex flex-col">
+      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] items-center justify-center min-h-screen">
+        <div className="w-[90%] md:w-[80%] lg:w-[60%] mx-auto flex flex-col">
           <div className="hidden lg:flex w-[80px] h-[70px] mx-auto items-center justify-center">
             <Image
               src="/images/signinloginlogo.png"
@@ -96,7 +88,7 @@ export default function OnboardingForm() {
             />
           </div>
 
-          <div className="flex flex-col gap-[50px] justify-center">
+          <div className="flex flex-col gap-[50px] justify-center items-center">
             <div className="flex flex-col gap-0.5">
               <p className="text-[15px] text-center font-montserrat text-[#000] font-normal">
                 Register either as a transporter, buyer, or agent
@@ -114,17 +106,17 @@ export default function OnboardingForm() {
             </div>
 
             {/* Role selection */}
-            <div className="flex items-center justify-between gap-[2rem]">
+            <div className="Role_selection hide-scrollbar">
               {/* Buyer */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("buyers")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Buyer
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "buyers"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -135,21 +127,21 @@ export default function OnboardingForm() {
                     alt="As a Buyer"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>
 
               {/* Transporter */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("transporters")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Transporter
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "transporters"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -160,21 +152,21 @@ export default function OnboardingForm() {
                     alt="As a Transporter"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>
 
               {/* Agent */}
               <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
                 onClick={() => setActiveRole("agents")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
                   Agent
                 </span>
                 <div
-                  className={`w-[150px] h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
+                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
                     activeRole === "agents"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
@@ -185,7 +177,7 @@ export default function OnboardingForm() {
                     alt="As an Agent"
                     width={203}
                     height={184}
-                    className="rounded-[10px]"
+                    className="rounded-[10px] object-cover w-full h-full"
                   />
                 </div>
               </div>

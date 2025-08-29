@@ -3,3 +3,131 @@
 @theme {
   --font-montserrat: "Montserrat Subrayada", "sans-serif";
 }
+
+.hide-scrollbar::-webkit-scrollbar,
+.Aside_hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar,
+.Aside_hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.TransportList_Card,
+.Seller_Card {
+  @apply grid grid-cols-1 gap-3 px-4;
+}
+
+@media screen and (min-width: 420px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-2;
+  }
+}
+
+@media screen and (min-width: 934px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-3;
+  }
+}
+
+@media screen and (min-width: 1120px) {
+  .TransportList_Card,
+  .Seller_Card {
+    @apply grid-cols-4;
+  }
+}
+
+.Role_selection {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 16px;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  padding: 0 16px;
+  scroll-behavior: smooth;
+}
+
+@media screen and (min-width: 440px) {
+  .Role_selection {
+    justify-content: center;
+    overflow-x: visible;
+  }
+}
+
+/* Fine-tune for medium screens */
+@media screen and (min-width: 768px) {
+  .Role_selection {
+    gap: 32px;
+  }
+}
+
+.ssp_Class {
+  display: flex;
+  gap: 0.5rem; /* gap-2 in Tailwind is 0.5rem */
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media screen and (min-width: 396px) {
+  .ssp_Class {
+    @apply flex-row items-center;
+  }
+}
+/* .SYM_Class {
+  @apply flex gap-2 flex-col items-start;
+} */
+
+.grid-cols-style {
+  @apply grid grid-cols-1;
+}
+
+.ccecc-flex-style {
+  display: flex;
+  gap: 0.5rem; /* gap-2 in Tailwind is 0.5rem */
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media screen and (min-width: 360px) {
+  .grid-cols-style {
+    @apply grid-cols-2;
+  }
+}
+@media screen and (min-width: 600px) {
+  .SYM_Class {
+    @apply flex-row items-center;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .grid-cols-style {
+    @apply grid-cols-3;
+  }
+}
+@media screen and (min-width: 868px) {
+  .grid-cols-style {
+    @apply grid-cols-5;
+  }
+}
+@media screen and (min-width: 1024px) {
+  .grid-cols-style {
+    @apply grid-cols-4;
+  }
+}
+
+@media screen and (min-width: 1240px) {
+  .ccecc-flex-style {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .grid-cols-style {
+    @apply grid-cols-5;
+  }
+}

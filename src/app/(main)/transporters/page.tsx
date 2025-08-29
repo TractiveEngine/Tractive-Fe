@@ -1,26 +1,41 @@
 "use client";
-import Image from "next/image";
+import { MostHired } from "./_components/MostHired";
+import { TopCustomers } from "./_components/TopCustomers";
+import { TransitTable } from "./_components/TransitTable";
+import { TransporterOverview } from "./_components/TransporterOverview";
+import { TransporterRevenueChart } from "./_components/TransporterRevenueChart";
 
-export default function BuyerDashboard() {
-
-
-
+export default function AgentDashboard() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#ffffff]">
-      <div className="text-center">
-        <Image
-          src="/images/AgricTechCart.png" // Optional dashboard image
-          alt="Dashboard"
-          width={120}
-          height={120}
-          className="mx-auto mb-6"
-        />
-        <h1 className="text-3xl font-bold text-[#2b2b2b] mb-4 font-montserrat">
-          Welcome to your Buyer Dashboard!
-        </h1>
-        <p className="text-lg text-[#555] font-montserrat">
-          Start purchasing products, track orders, and manage your profile here.
-        </p>
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 mb-8">
+      <div className="hidden lg:flex flex-row gap-6">
+        <div className="flex flex-col gap-6 w-full lg:w-[75%]">
+          <TransporterOverview />
+          <TransporterRevenueChart />
+        </div>
+        <div className="w-full lg:w-1/3 bg-[#fefefe] shadow-md rounded-[6px]">
+          <MostHired />
+        </div>
+      </div>
+
+      <div className="flex lg:hidden flex-col gap-6">
+        <div className="flex flex-col gap-6 w-full lg:w-[75%]">
+          <TransporterOverview />
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <TransporterRevenueChart />
+          <div className="w-full lg:w-1/3 bg-[#fefefe] shadow-md rounded-[6px]">
+            <MostHired />
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-1/2">
+          <TopCustomers />
+        </div>
+        <div className="w-full">
+          <TransitTable />
+        </div>
       </div>
     </div>
   );

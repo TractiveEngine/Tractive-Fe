@@ -1,10 +1,12 @@
 "use client"
-import React, { useEffect, useState } from "react";
-import { FilterSeller } from "./_components/FilterSeller";
-import { SellerList } from "./_components/SellerList";
-import { isUserLoggedIn } from "@/utils/loginAuth";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { isUserLoggedIn } from "@/utils/loginAuth";
+import React, { useEffect, useState } from "react";
+
+import { SellerList } from "./_components/SellerList";
+import { FilterSeller } from "./_components/FilterSeller";
+import { FilterSellerMobile } from "./_components/FilterSellerMobile";
 
 
 export default function SellerPage() {
@@ -27,8 +29,16 @@ export default function SellerPage() {
 
   return (
     <div className="w-full bg-[#f1f1f1] min-h-screen">
-      <div className="w-full sm:w-[90%] flex flex-col sm:flex-row sm:gap-4 lg:gap-8 mx-auto px-4 sm:px-0">
+      <div className="w-full sm:w-[90%] flex flex-col gap-[1.5rem] sm:flex-row sm:gap-4 lg:gap-8 mx-auto py-6 px-4 sm:px-0">
         <FilterSeller
+          selectedRatings={selectedRatings}
+          setSelectedRatings={setSelectedRatings}
+          selectedLocations={selectedLocations}
+          setSelectedLocations={setSelectedLocations}
+          selectedYears={selectedYears}
+          setSelectedYears={setSelectedYears}
+        />
+        <FilterSellerMobile
           selectedRatings={selectedRatings}
           setSelectedRatings={setSelectedRatings}
           selectedLocations={selectedLocations}

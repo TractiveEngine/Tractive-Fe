@@ -9,6 +9,7 @@ export interface BiddingItem {
   description: string;
   timeImage: string;
   crownImage: string;
+  leadingProfileImage: string;
   quantity: string;
   amount: string;
   biddingPrice: string;
@@ -24,6 +25,7 @@ export const BiddingData: BiddingItem[] = [
     description: "Introducing the humble and delightful Pepper.",
     timeImage: "/images/redclock.png",
     crownImage: "/images/leadingcrown.png",
+    leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "50 Bags",
     amount: "$400",
     biddingPrice: "$350",
@@ -36,6 +38,7 @@ export const BiddingData: BiddingItem[] = [
     description: "Fresh and juicy tomatoes for all your needs.",
     timeImage: "/images/redclock.png",
     crownImage: "/images/leadingcrown.png",
+    leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "30 Bags",
     amount: "$250",
     biddingPrice: "$200",
@@ -48,6 +51,7 @@ export const BiddingData: BiddingItem[] = [
     description: "High-quality maize for various uses.",
     timeImage: "/images/redclock.png",
     crownImage: "/images/leadingcrown.png",
+    leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "75 Bags",
     amount: "$600",
     biddingPrice: "$550",
@@ -60,6 +64,7 @@ export const BiddingData: BiddingItem[] = [
     description: "Fresh chicken straight from the farm.",
     timeImage: "/images/redclock.png",
     crownImage: "/images/leadingcrown.png",
+    leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "20 Bags",
     amount: "$150",
     biddingPrice: "$120",

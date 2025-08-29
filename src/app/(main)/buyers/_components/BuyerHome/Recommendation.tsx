@@ -20,6 +20,7 @@ export const Recommendation = () => {
             description={card.description}
             timeImage={card.timeImage}
             crownImage={card.crownImage}
+            leadingProfileImage={card.leadingProfileImage}
             quantity={card.quantity}
             amount={card.amount}
             biddingPrice={card.biddingPrice}

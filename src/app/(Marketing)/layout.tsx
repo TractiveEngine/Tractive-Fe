@@ -12,13 +12,13 @@ export default function RootLayout({
       <body>
         <main>
           <Toaster position="top-center" />
-          <nav className="bg-[#f1f1f1] w-full">
+          <nav className="bg-[#fefefe] w-full">
             <Navbar />
           </nav>
           {children}
-                <div className="bg-[#f1f1f1] w-full">
-                        <Footer />
-                      </div>
+          <div className="bg-[#f1f1f1] w-full">
+            <Footer />
+          </div>
         </main>
       </body>
     </html>

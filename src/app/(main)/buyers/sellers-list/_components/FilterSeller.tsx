@@ -198,8 +198,8 @@ export const FilterSeller: React.FC<FilterSellerProps> = ({
           }
         `}
       </style>
-      <div className="bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
-        <div className="flex flex-col gap-6 p-4">
+      <div className="hidden sm:flex bg-[#fefefe] w-full sm:w-1/3 lg:w-1/4 rounded-lg">
+        <div className="w-full flex flex-col gap-6 p-4">
           <div className="flex items-center gap-1">
             <p className="font-montserrat text-[14px] sm:text-[16px] font-normal text-[#2b2b2b]">
               Filter

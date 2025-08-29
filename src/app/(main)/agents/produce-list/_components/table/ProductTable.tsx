@@ -159,12 +159,12 @@ export const ProductTable: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="mb-4 mx-auto p-4 overflow-x-auto"
+      className="Table_Container"
     >
-      <table className="min-w-[800px] rounded-lg table-auto">
+      <table className="Table_Style">
         <thead>
           <tr className="text-left text-[13px] font-normal font-montserrat text-[#2b2b2b] md:text-sm">
-            <th className="py-3 pl-4 w-[50px] min-w-[50px]"> 
+            <th className="py-3 pl-4 w-[50px] min-w-[50px]">
               <div className="relative w-5 h-5">
                 <input
                   type="checkbox"
@@ -188,19 +188,19 @@ export const ProductTable: React.FC = () => {
             <th className="py-1.5 px-4 min-w-[150px] font-montserrat font-normal">
               Item
             </th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden sm:table-cell font-montserrat font-normal">
+            <th className="py-1.5 px-4 min-w-[100px] sm:table-cell font-montserrat font-normal">
               ID
             </th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">
+            <th className="py-1.5 px-4 min-w-[100px] md:table-cell font-montserrat font-normal">
               Revenue
             </th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">
+            <th className="py-1.5 px-4 min-w-[100px] lg:table-cell font-montserrat font-normal">
               Sold
             </th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden lg:table-cell font-montserrat font-normal">
+            <th className="py-1.5 px-4 min-w-[100px] lg:table-cell font-montserrat font-normal">
               Stock
             </th>
-            <th className="py-1.5 px-4 min-w-[100px] hidden md:table-cell font-montserrat font-normal">
+            <th className="py-1.5 px-4 min-w-[100px] md:table-cell font-montserrat font-normal">
               Reviews
             </th>
             <th className="py-1.5 px-4 min-w-[50px]"></th>
