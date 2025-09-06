@@ -142,12 +142,14 @@ export default function ApprovalPage() {
   // Handle approval action (placeholder for actual logic)
   const handleFarmerApprove = (id: string) => {
     console.log(`Approved item with ID: ${id}`);
+    alert(`Approve Farmer with ID: ${id}`);
     // Add actual approval logic here (e.g., API call)
   };
 
   // Handle decline action (placeholder for actual logic)
   const handleFarmerDecline = (id: string) => {
     console.log(`Declined item with ID: ${id}`);
+     alert(`Declined Farmer with ID: ${id}`);
     // Add actual decline logic here (e.g., API call)
   };
 
