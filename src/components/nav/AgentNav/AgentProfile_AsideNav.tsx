@@ -1,4 +1,3 @@
-
 import {
   CallOutlineIcon,
   ProfileSettingIcon,
@@ -12,13 +11,12 @@ import React from "react";
 import { ProfilePicture } from "@/app/(profiles)/agent-profile/_components/ProfilePicture";
 
 interface OnboardingData {
-  state: string;
-  CAC: string;
-  address: string;
-  mobile: string;
-  alternativeMobile: string;
+  nin: string;
+  villageOrLocalMarket: string;
+  phone: string;
   businessName: string;
   interests: string[];
+  role: string;
 }
 
 export const AgentProfile_AsideNav = () => {
@@ -42,20 +40,13 @@ export const AgentProfile_AsideNav = () => {
             {onboardingData?.businessName}
           </span>
           <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            oyinjoe23@gmail.com
+            {onboardingData?.role}
           </span>
           <div className="flex items-center justify-center gap-4">
             <div className="flex items-center justify-center gap-2">
               <CallOutlineIcon />
               <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.mobile}
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <CallOutlineIcon />
-
-              <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.alternativeMobile}
+                {onboardingData?.phone}
               </span>
             </div>
           </div>

@@ -23,7 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { logoutUser } from "@/utils/loginAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import AddFleet from "@/app/(main)/transporters/_components/AddFleet";
+import AddFleet from "@/app/(main)/transporter/_components/AddFleet";
 
 interface NavSection {
   title: string;

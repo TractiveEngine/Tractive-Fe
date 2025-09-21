@@ -1,13 +1,14 @@
 "use client";
+import { changePassword, ChangePasswordData } from "@/utils/changePasswordApi";
 import React, { useState } from "react";
-
+import { toast } from "sonner";
 const SecuritySetting = () => {
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmNewPassword: "",
-    twoFactorAuth: false,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -20,16 +21,64 @@ const SecuritySetting = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     // Basic password match validation
     if (formData.newPassword !== formData.confirmNewPassword) {
-      alert("New password and confirm password do not match!");
+      toast.error("New password and confirm password do not match!");
       return;
     }
-    // Handle form submission (e.g., save to localStorage or API)
-    console.log("Security settings submitted:", formData);
-    localStorage.setItem("security-settings", JSON.stringify(formData));
+
+    // Basic password strength validation (optional)
+    if (formData.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Get token from localStorage or your preferred auth storage
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken") ||
+        "";
+
+      if (!token) {
+        toast.error("Authentication required. Please log in again.");
+        return;
+      }
+
+      const changePasswordData: ChangePasswordData = {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      };
+
+      const response = await changePassword(changePasswordData, token);
+
+      if (response.success || response.message) {
+        toast.success(response.message || "Password changed successfully!");
+        // Reset form
+        setFormData({
+          currentPassword: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+      } else {
+        toast.error(
+          response.error || "Failed to change password. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error(
+        (error as Error).message ||
+          "Failed to change password. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,7 +93,7 @@ const SecuritySetting = () => {
             htmlFor="currentPassword"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Password
+            Current Password
           </label>
           <input
             type="password"
@@ -55,6 +104,7 @@ const SecuritySetting = () => {
             placeholder="Enter current password"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
             required
+            disabled={isLoading}
           />
         </div>
         <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
@@ -69,7 +119,7 @@ const SecuritySetting = () => {
             htmlFor="newPassword"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Password
+            New Password
           </label>
           <input
             type="password"
@@ -80,6 +130,7 @@ const SecuritySetting = () => {
             placeholder="Enter new password"
             className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
             required
+            disabled={isLoading}
           />
         </div>
 
@@ -89,7 +140,7 @@ const SecuritySetting = () => {
             htmlFor="confirmNewPassword"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Confirm Password
+            Confirm New Password
           </label>
           <input
             type="password"
@@ -98,17 +149,19 @@ const SecuritySetting = () => {
             value={formData.confirmNewPassword}
             onChange={handleChange}
             placeholder="Confirm new password"
-            className="w-full p-2 rounded-[4px]  border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
+            className="w-full p-2 rounded-[4px] border-[1px] border-[#e2e2e2] focus:outline-none focus:border-[#538E53] text-[13px] placeholder:text-[13px] font-montserrat text-[#2b2b2b]"
             required
+            disabled={isLoading}
           />
         </div>
 
         {/* Done Button */}
         <button
           type="submit"
-          className="bg-[#538E53] text-[#FEFEFE] p-2 rounded-[4px] w-full font-montserrat font-medium text-[14px] hover:bg-[#214821] transition"
+          disabled={isLoading}
+          className="bg-[#538E53] text-[#FEFEFE] p-2 rounded-[4px] w-full font-montserrat font-medium text-[14px] hover:bg-[#214821] transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Done
+          {isLoading ? "Changing Password..." : "Done"}
         </button>
       </form>
     </div>

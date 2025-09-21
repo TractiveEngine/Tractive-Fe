@@ -1,12 +1,12 @@
 "use client";
-import { AgentAsideNav } from "@/components/nav/AgentNav/AgentAsideNav";
-import { AgentAsideNavMobile } from "@/components/nav/AgentNav/AgentAsideNavMobile";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
-import { AgentNavbar } from "@/components/nav/AgentNav/AgentNavbar";
+import { TransporterAsideNav } from "@/components/nav/TransporterNav/TransporterAsideNav";
+import { TransporterAsideNavMobile } from "@/components/nav/TransporterNav/TransporterAsideNavMobile";
+import { TransporterNavbar } from "@/components/nav/TransporterNav/TransporterNavbar";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
@@ -38,7 +38,7 @@ export default function AgentLayout({
   const router = useRouter();
   const breakpoint = useBreakpoint();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -50,8 +50,8 @@ export default function AgentLayout({
         setIsLoggedIn(loggedIn);
         if (loggedIn) {
           const userData = getLoggedInUser();
-          if (userData && "fullName" in userData && "email" in userData) {
-            setUser({ fullName: userData.fullName, email: userData.email });
+          if (userData && "name" in userData && "email" in userData) {
+            setUser({ name: userData.name, email: userData.email });
           } else {
             setUser(null);
             setIsLoggedIn(false);
@@ -103,34 +103,41 @@ export default function AgentLayout({
     lg: "12.5rem",
   };
 
-  if (isLoggedIn === null) {
-    return <div>Loading...</div>;
-  }
+ if (isLoggedIn === null) {
+   return (
+     <div className="w-full h-screen flex items-center justify-center">
+       <div className="flex items-center gap-2">
+         <div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div>
+         <span>Loading...</span>
+       </div>
+     </div>
+   );
+ }
 
   if (!isLoggedIn) {
     return null;
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f1f1f1]">
-      <AgentAsideNav />
+    <div className="w-full min-h-screen bg-[#f1f1f1]">
+      <TransporterAsideNav />
       <motion.div
         className="flex-1 flex flex-col"
         animate={{ marginLeft: marginLeft[breakpoint] }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         <nav className="w-full">
-          <AgentNavbar />
+          <TransporterNavbar />
         </nav>
-        <div className="flex flex-col">
-          <AgentAsideNavMobile
+        <div className="w-full flex flex-col">
+          <TransporterAsideNavMobile
             user={user}
             isDropdownOpen={isDropdownOpen}
             handleUserDropdownClick={handleUserDropdownClick}
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="pt-[2rem] lg:pt-[4rem]">{children}</main>
+          <main className="w-full pt-[2rem] lg:pt-[4rem]">{children}</main>
         </div>
       </motion.div>
     </div>

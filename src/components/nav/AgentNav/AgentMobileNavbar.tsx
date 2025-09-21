@@ -91,7 +91,7 @@ export const ATMobileNavbar = () => {
         {/* Logo */}
         <div className="flex flex-col md:hidden items-center justify-between w-[100%] md:w-[75%] lg:w-[60%]">
           <div className="flex items-center justify-between w-[100%] md:w-[75%] lg:w-[60%]">
-            <Link href="/agents" className="flex items-center">
+            <Link href="/agent  " className="flex items-center">
               <Image
                 src="/images/navLogo.png"
                 alt="Agrictech Logo"

@@ -24,7 +24,7 @@ export default function ProfileSettingLayout({
         setIsLoggedIn(loggedIn);
         if (loggedIn) {
           const userData = getLoggedInUser();
-          if (userData && "fullName" in userData && "email" in userData) {
+          if (userData && "name" in userData && "email" in userData) {
             // setUser not needed since user is not used
           } else {
             setIsLoggedIn(false);
@@ -41,7 +41,7 @@ export default function ProfileSettingLayout({
 
   useEffect(() => {
     if (!isUserLoggedIn()) {
-      toast.error("Login to become a buyer.", {
+      toast.error("Login to become an agent.", {
         duration: 3000,
         position: "top-center",
       });
@@ -62,7 +62,14 @@ export default function ProfileSettingLayout({
   };
 
   if (isLoggedIn === null) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!isLoggedIn) {

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
-import { ATMobileNavbar } from "./AgentMobileNavbar";
+import { ATMobileNavbar } from "./AdminMobileNavbar";
 import { Admin_ProfileDropDown } from "@/components/Profile_dropdowns/AdminProfile_dropdown/Admin_ProfileDropDown";
 
 export const AdminNavbar = () => {

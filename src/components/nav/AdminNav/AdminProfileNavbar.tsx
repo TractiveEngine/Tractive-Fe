@@ -1,18 +1,19 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
-import { ATMobileNavbar } from "./AgentMobileNavbar";
-import { Agent_ProfileDropDown } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
+import { ATMobileNavbar } from "./AdminMobileNavbar";
+import ProfileDropDown from "@/components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 
 export const AgentProfileNavbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -34,8 +35,8 @@ export const AgentProfileNavbar = () => {
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
         const userData = getLoggedInUser();
-        if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+        if (userData && "name" in userData && "email" in userData) {
+          setUser({ name: userData.name, email: userData.email });
         } else {
           setUser(null);
         }
@@ -84,14 +85,20 @@ export const AgentProfileNavbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
-    setIsDropdownOpen(false);
-    setIsNotificationOpen(false);
-    setHasNotifications(false);
-  };
+  // const handleLogout = (e?: React.MouseEvent) => {
+  //   if (e) {
+  //     e.stopPropagation();
+  //     e.preventDefault();
+  //   }
+  //   logoutUser();
+  //   setIsLoggedIn(false);
+  //   setUser(null);
+  //   setIsDropdownOpen(false);
+  //   setIsNotificationOpen(false);
+  //   setHasNotifications(false);
+  //   router.refresh();
+  //   router.push("/login");
+  // };
 
   const handleNotificationClick = () => {
     setIsNotificationOpen(!isNotificationOpen);
@@ -187,7 +194,7 @@ export const AgentProfileNavbar = () => {
                     className="rounded-full"
                   />
                   <span className="text-[#2b2b2b] hidden lg:block text-[0.89rem] font-normal">
-                    {user?.fullName}
+                    {user?.name}
                   </span>
                   <svg
                     className="h-4 w-4 text-[#2b2b2b]"
@@ -203,9 +210,12 @@ export const AgentProfileNavbar = () => {
                     />
                   </svg>
                 </div>
-                {isDropdownOpen && (
-                  <Agent_ProfileDropDown onLogout={handleLogout} />
-                )}
+                {/* {isDropdownOpen && (
+                  <ProfileDropDown
+                    handleLogout={handleLogout}
+                    currentRole="agent"
+                  />
+                )} */}
               </div>
             </>
           ) : (

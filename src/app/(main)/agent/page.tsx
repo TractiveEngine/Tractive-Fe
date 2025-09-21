@@ -20,7 +20,7 @@ export default function AgentDashboard() {
         <TopCustomers />
         <MostSoldCategoryPieChart />
         <MostSoldItem />
-      </div>aa
+      </div>
     </div>
   );
 }

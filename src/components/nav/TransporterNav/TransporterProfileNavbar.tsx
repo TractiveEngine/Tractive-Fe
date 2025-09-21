@@ -6,13 +6,13 @@ import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
-import { Agent_ProfileDropDown } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDown";
+import { Agent_ProfileDropDown } from "../../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
 
 export const TransporterProfileNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -34,8 +34,8 @@ export const TransporterProfileNavbar = () => {
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
         const userData = getLoggedInUser();
-        if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+        if (userData && "name" in userData && "email" in userData) {
+          setUser({ name: userData.name, email: userData.email });
         } else {
           setUser(null);
         }
@@ -184,7 +184,7 @@ export const TransporterProfileNavbar = () => {
                     className="rounded-full"
                   />
                   <span className="text-[#2b2b2b] hidden lg:block text-[0.89rem] font-normal">
-                    {user?.fullName}
+                    {user?.name}
                   </span>
                   <svg
                     className="h-4 w-4 text-[#2b2b2b]"
@@ -201,7 +201,7 @@ export const TransporterProfileNavbar = () => {
                   </svg>
                 </div>
                 {isDropdownOpen && (
-                  <Agent_ProfileDropDown onLogout={handleLogout} />
+                  <ProfileDropDown onLogout={handleLogout} />
                 )}
               </div>
             </>

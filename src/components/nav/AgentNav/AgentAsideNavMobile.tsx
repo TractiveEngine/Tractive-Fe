@@ -21,8 +21,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
-import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/AgentProfile_dropdown/Agent_ProfileDropDownMobile";
+import { AddToStore } from "@/app/(main)/agent/_components/AddToStore";
+import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/ProfileDropDown/Agent_ProfileDropDownMobile";
 
 interface NavSection {
   title: string;
@@ -36,7 +36,7 @@ interface NavSection {
 }
 
 interface AgentAsideNavMobileProps {
-  user: { fullName: string; email: string } | null;
+  user: { name: string; email: string } | null;
   isDropdownOpen: boolean;
   handleUserDropdownClick: () => void;
   handleLogout: () => void;
@@ -105,32 +105,32 @@ export const AgentAsideNavMobile = ({
           onClick: () => setIsModalOpen(true),
         },
         {
-          href: "/agents/produce-list",
+          href: "/agent/produce-list",
           icon: ProduceListIcon,
           label: "Produce list",
         },
-        { href: "/agents/farmers", icon: FarmersIcon, label: "Farmers" },
-        { href: "/agents/bids", icon: BidsIcon, label: "Bids", hasDot: true },
+        { href: "/agent/farmers", icon: FarmersIcon, label: "Farmers" },
+        { href: "/agent/bids", icon: BidsIcon, label: "Bids", hasDot: true },
       ],
     },
     {
       title: "Orders",
       items: [
-        { href: "/agents/new", icon: Bag2Icon, label: "New", hasDot: true },
-        { href: "/agents/packed", icon: PackedIcon, label: "Packed" },
-        { href: "/agents/delivered", icon: BoxTickIcon, label: "Delivered" },
+        { href: "/agent/new", icon: Bag2Icon, label: "New", hasDot: true },
+        { href: "/agent/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/agent/delivered", icon: BoxTickIcon, label: "Delivered" },
       ],
     },
     {
       title: "Transactions",
       items: [
         {
-          href: "/agents/pending",
+          href: "/agent/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/agents/received",
+          href: "/agent/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -140,23 +140,23 @@ export const AgentAsideNavMobile = ({
       title: "Customers",
       items: [
         {
-          href: "/agents/customers",
+          href: "/agent/customers",
           icon: Profile2UserIcon,
           label: "Customers",
         },
-        { href: "/agents/reviews", icon: MessageStarIcon, label: "Reviews" },
+        { href: "/agent/reviews", icon: MessageStarIcon, label: "Reviews" },
       ],
     },
     {
       title: "Others",
       items: [
         {
-          href: "/agents/chat",
+          href: "/agent/chat",
           icon: MessagesIcon,
           label: "Chat",
           hasDot: true,
         },
-        { href: "/agents/help", icon: MessageQuestionIcon, label: "Help" },
+        { href: "/agent/help", icon: MessageQuestionIcon, label: "Help" },
       ],
     },
   ];
@@ -200,7 +200,7 @@ export const AgentAsideNavMobile = ({
               />
               <div className="flex flex-col">
                 <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
-                  {user.fullName}
+                  {user.name}
                 </span>
                 <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
                   {user.email}
@@ -245,9 +245,9 @@ export const AgentAsideNavMobile = ({
                 <ul className="mt-[1rem] px-[0.5rem]">
                   <li>
                     <Link
-                      href="/agents"
+                      href="/agent"
                       className={`flex items-start w-[4rem] flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
-                        pathname === "/agents"
+                        pathname === "/agent"
                           ? "bg-[#3a3a3a]"
                           : "hover:bg-[#4a4a4a]"
                       }`}

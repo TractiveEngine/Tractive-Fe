@@ -1,25 +1,56 @@
-// schemas/onboardingSchema.ts
 import { z } from "zod";
 
-export const onboardingSchema = z.object({
-  state: z.string().min(1, "State is required"),
-  CAC: z.string().optional(),
-  address: z.string().min(1, "Address is required"),
-  mobile: z
+// Base schema with common fields
+const baseOnboardingSchema = z.object({
+  villageOrLocalMarket: z.string().min(1, "Village or local market is required"),
+  phone: z
     .string()
-    .min(11, "Mobile number must be at least 10 digits")
-    .max(11, "Mobile number must not exceed 15 digits"),
-  alternativeMobile: z
-    .string()
-    .min(11, "Alternative number must be at least 10 digits")
-    .max(11, "Alternative number must not exceed 15 digits")
-    .optional(),
-  businessName: z.string().min(1, "Business name is required"),
+    .min(11, "Phone number must be at least 11 digits")
+    .max(11, "Phone number must not exceed 11 digits")
+    .regex(/^\d{11}$/, "Phone number must be 11 digits"),
   interests: z
     .array(
       z.enum(["fish", "Tubers", "Grains", "Edible", "Livestock", "Vegetable"])
     )
-    .nonempty(),
+    .nonempty("Please select at least one interest"),
+  role: z.enum(["agent", "transporter", "buyer"]),
 });
 
-export type OnboardingSchemaType = z.infer<typeof onboardingSchema>;
+// Schema for agents (businessName and nin optional)
+export const agentOnboardingSchema = baseOnboardingSchema.extend({
+  businessName: z.string().optional(),
+  nin: z
+    .string()
+    .min(11, "NIN must be at least 11 digits")
+    .max(11, "NIN must not exceed 11 digits")
+    .optional()
+    .or(z.literal("")),
+});
+
+// Schema for transporters and buyers (businessName and nin required)
+export const businessOnboardingSchema = baseOnboardingSchema.extend({
+  businessName: z.string().min(1, "Business name is required for your role"),
+  nin: z
+    .string()
+    .min(11, "NIN must be at least 11 digits")
+    .max(11, "NIN must not exceed 11 digits"),
+});
+
+// Function to get the appropriate schema based on user role
+export const getOnboardingSchema = (userRole: string | null) => {
+  if (userRole === "agent") {
+    return agentOnboardingSchema;
+  } else if (userRole === "transporter" || userRole === "buyer") {
+    return businessOnboardingSchema;
+  }
+  return businessOnboardingSchema; // Default to business schema
+};
+
+// Type definitions
+export type AgentOnboardingSchemaType = z.infer<typeof agentOnboardingSchema>;
+export type BusinessOnboardingSchemaType = z.infer<
+  typeof businessOnboardingSchema
+>;
+export type OnboardingSchemaType =
+  | AgentOnboardingSchemaType
+  | BusinessOnboardingSchemaType;

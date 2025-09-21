@@ -1,0 +1,35 @@
+import { ForgetPasswordSchemaType } from "@/schemas/forgetPasswordSchema";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+
+interface ApiResponse {
+  message?: string;
+  error?: string;
+}
+
+export const forgotPassword = async (
+  data: ForgetPasswordSchemaType
+): Promise<ApiResponse> => {
+  try {
+    const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: data.email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to send reset email");
+    }
+
+    const result = await response.json();
+    return {
+      message: result.message || "Password reset email sent successfully",
+    };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred" };
+  }
+};

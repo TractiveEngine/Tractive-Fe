@@ -11,7 +11,7 @@ import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdow
 export const MobileNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,8 +36,8 @@ export const MobileNavbar = () => {
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
         const userData = getLoggedInUser();
-        if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+        if (userData && "name" in userData && "email" in userData) {
+          setUser({ name: userData.name, email: userData.email });
         } else {
           setUser(null);
         }
@@ -186,7 +186,7 @@ export const MobileNavbar = () => {
                         className="rounded-full"
                       />
                       <span className="text-[#2b2b2b] text-[0.89rem] font-normal">
-                        {user?.fullName}
+                        {user?.name}
                       </span>
                     </div>
 
@@ -205,7 +205,7 @@ export const MobileNavbar = () => {
                     </svg>
                   </div>
                   {isDropdownOpen && (
-                    <Buyer_ProfileDropDown onLogout={handleLogout} />
+                    <ProfileDropDown onLogout={handleLogout} />
                   )}
                 </div>
 

@@ -2,16 +2,18 @@
 import React from "react";
 
 interface ButtonProps {
+  type?: "button" | "submit" | "reset";
   icon?: React.ReactNode;
   text: React.ReactNode;
   className?: string;
   iconClass?: string;
   textClass?: string;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
 }
 
 export const Button = ({
+  type = "button",
   icon,
   text,
   className,
@@ -22,7 +24,7 @@ export const Button = ({
 }: ButtonProps) => {
   return (
     <button
-      type="button"
+      type={type}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
         ${
           disabled
