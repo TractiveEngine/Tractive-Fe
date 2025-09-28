@@ -1,8 +1,10 @@
+// components/table/ProductRow.tsx
+"use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Product } from "./ProductTable";
 import { ActionMenu } from "./ActionMenu";
 import Image from "next/image";
+import { Product } from "@/services/productService";
 
 // Animation variants for table rows
 const rowVariants = {
@@ -20,6 +22,7 @@ interface ProductRowProps {
   handleEdit: (id: string) => void;
   handleOutOfStock: (id: string) => void;
   handleDelete: (id: string) => void;
+  isOutOfStockPage: boolean;
 }
 
 export const TickIcon = () => {
@@ -40,29 +43,29 @@ export const TickIcon = () => {
 };
 
 export const IdCopyIcon = () => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 18 18"
-        fill="none"
-        className="cursor-pointer"
-      >
-        <g clipPath="url(#clip0_10196_93765)">
-          <path
-            d="M12 0.75H3C2.175 0.75 1.5 1.425 1.5 2.25V12.75H3V2.25H12V0.75ZM11.25 3.75H6C5.175 3.75 4.5075 4.425 4.5075 5.25L4.5 15.75C4.5 16.575 5.1675 17.25 5.9925 17.25H14.25C15.075 17.25 15.75 16.575 15.75 15.75V8.25L11.25 3.75ZM6 15.75V5.25H10.5V9H14.25V15.75H6Z"
-            fill="#2B2B2B"
-          />
-        </g>
-        <defs>
-          <clipPath id="clip0_10196_93765">
-            <rect width="18" height="18" fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
-    );
- }
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 18 18"
+      fill="none"
+      className="cursor-pointer"
+    >
+      <g clipPath="url(#clip0_10196_93765)">
+        <path
+          d="M12 0.75H3C2.175 0.75 1.5 1.425 1.5 2.25V12.75H3V2.25H12V0.75ZM11.25 3.75H6C5.175 3.75 4.5075 4.425 4.5075 5.25L4.5 15.75C4.5 16.575 5.1675 17.25 5.9925 17.25H14.25C15.075 17.25 15.75 16.575 15.75 15.75V8.25L11.25 3.75ZM6 15.75V5.25H10.5V9H14.25V15.75H6Z"
+          fill="#2B2B2B"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_10196_93765">
+          <rect width="18" height="18" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+};
 
 export const StarStrokeIcon = () => {
   return (
@@ -85,6 +88,24 @@ export const StarStrokeIcon = () => {
   );
 };
 
+// Helper function to slice description to three words
+const sliceDescription = (description: string): string => {
+  if (!description) return "-";
+  const words = description.split(/\s+/).filter((word) => word.length > 0);
+  return words.slice(0, 3).join(" ") + (words.length > 3 ? "..." : "");
+};
+
+// Helper function to truncate owner ID to 10 characters
+const truncateOwnerId = (owner: string): string => {
+  if (!owner) return "-";
+  return owner.length > 10 ? owner.substring(0, 10) + "..." : owner;
+};
+// Helper function to truncate ID to 10 characters
+const truncateId = (id: string): string => {
+  if (!id) return "-";
+  return id.length > 10 ? id.substring(0, 10) + "..." : id;
+};
+
 export const ProductRow: React.FC<ProductRowProps> = ({
   product,
   index,
@@ -95,6 +116,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   handleEdit,
   handleOutOfStock,
   handleDelete,
+  isOutOfStockPage,
 }) => {
   return (
     <motion.tr
@@ -118,7 +140,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       <td className="py-1.5 pr-4">
         <div className="flex items-center gap-2">
           <Image
-            src={product.image}
+            src={product.images?.[0] || "/images/tomatoProduct.png"}
             alt={product.name}
             width={83}
             height={47}
@@ -129,7 +151,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
               {product.name}
             </p>
             <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
-              {product.description}
+              {sliceDescription(product.description || "")}
             </p>
           </div>
         </div>
@@ -137,7 +159,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       <td className="py-1.5 px-4">
         <div className="flex items-center gap-1.5 cursor-pointer">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-            {product.id}
+            {truncateId(product.id || "")}
           </span>
           <button
             onClick={() => copyToClipboard(product.id)}
@@ -150,25 +172,32 @@ export const ProductRow: React.FC<ProductRowProps> = ({
         </div>
       </td>
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        ${product.revenue.toFixed(2)}
+        ${product.price?.toFixed(2) || "0.00"}
       </td>
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        {product.sold}
+        {product.quantity || "-"}
       </td>
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
-        {product.stock}
+        {product.stock || product.quantity || "-"}
       </td>
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         <div className="flex items-center space-x-2">
           <StarStrokeIcon />
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-            {product.rating}
+            {product.rating || "-"}
           </span>
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-            ({product.reviews} reviews)
+            ({product.reviews || 0} reviews)
           </span>
         </div>
       </td>
+      {/* New columns for backend-only fields */}
+      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+        {(product.categories ?? []).length > 0
+          ? (product.categories ?? []).join(", ")
+          : "-"}
+      </td>
+  
       <td className="py-1.5 px-4 relative z-11">
         <ActionMenu
           productId={product.id}
@@ -177,6 +206,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
           handleEdit={handleEdit}
           handleOutOfStock={handleOutOfStock}
           handleDelete={handleDelete}
+          isOutOfStockPage={isOutOfStockPage}
         />
       </td>
     </motion.tr>

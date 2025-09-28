@@ -6,42 +6,33 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
-import { getAuthToken, getLoggedInUser } from "@/utils/loginAuth";
+import {
+  getAuthToken,
+  getLoggedInUser,
+  setUserSession,
+} from "@/utils/loginAuth";
 import axios from "axios";
 
+type UserRole = "buyers" | "transporters" | "agents";
+
 export default function RegisterAs() {
-  const [activeRole, setActiveRole] = useState<string | null>(null);
+  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
   const router = useRouter();
 
+  // Check authentication on mount
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
-      toast.error("Unauthorized access. Login.", {
+      toast.error("Unauthorized access. Please login.", {
         duration: 3000,
         position: "top-center",
       });
       router.replace("/login");
-      return;
-    }
-
-    const user = getLoggedInUser();
-    if (user && user.roles) {
-      setUserRoles(user.roles);
-    }
-
-    // Pre-select role from pendingRole if set (from Agent_ProfileDropDown)
-    const pendingRole = localStorage.getItem("pendingRole");
-    if (
-      pendingRole &&
-      ["agent", "transporter", "buyer"].includes(pendingRole)
-    ) {
-      setActiveRole(pendingRole);
     }
   }, [router]);
 
-  const handleRoleAction = async () => {
+  const handleContinue = async () => {
     if (!activeRole) {
       toast.warning("Please select a role before continuing.", {
         duration: 3000,
@@ -52,7 +43,7 @@ export default function RegisterAs() {
 
     const token = getAuthToken();
     if (!token) {
-      toast.error("Unauthorized access. Login.", {
+      toast.error("Authentication required. Please login again.", {
         duration: 3000,
         position: "top-center",
       });
@@ -60,80 +51,98 @@ export default function RegisterAs() {
       return;
     }
 
-    const loadingToastId = toast.loading(
-      userRoles.includes(activeRole)
-        ? `Switching to ${activeRole} role...`
-        : `Adding ${activeRole} role...`,
-      {
-        position: "top-center",
-      }
-    );
-
     setIsLoading(true);
+    const loadingToastId = toast.loading("Setting up your account...", {
+      position: "top-center",
+    });
 
     try {
-      // Update session regardless of whether it's a new role or existing role
-      const user = getLoggedInUser();
-      if (user) {
-        const updatedSession = {
-          ...user,
-          activeRole, // Always set the active role
-          roles: userRoles.includes(activeRole)
-            ? user.roles
-            : [...user.roles, activeRole], // Add role if new
-        };
-        localStorage.setItem("session", JSON.stringify(updatedSession));
-        localStorage.setItem("userRole", activeRole); // Maintain legacy
+      // Convert role from plural to singular for API
+      const apiRole =
+        activeRole === "buyers"
+          ? "buyer"
+          : activeRole === "transporters"
+          ? "transporter"
+          : "agent";
 
-        console.log("Updated session:", updatedSession);
-      }
+      console.log("🚀 Adding account role:", apiRole);
 
-      if (userRoles.includes(activeRole)) {
-        // Existing role - call API to switch
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
-        const response = await axios.post(
-          `${API_URL}/api/auth/add-account`,
-          { role: activeRole },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+      // Call add-account API to set user role
+      const response = await axios.post(
+        "https://tractive-be.vercel.app/api/auth/add-account",
+        { role: apiRole },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
 
-        if (!response.data.success) {
-          throw new Error(response.data.error || "Failed to switch role.");
+      console.log("✅ Add account response:", response.data);
+
+      if (response.data.user) {
+        const { user } = response.data;
+
+        // Update local session with new role information
+        const currentUser = getLoggedInUser();
+        if (currentUser) {
+          setUserSession({
+            email: currentUser.email,
+            name: currentUser.name,
+            token: currentUser.authToken || token,
+            role: user.role || [apiRole],
+            activeRole: user.activeRole || apiRole,
+          });
         }
 
+        // Store the selected role locally
+        localStorage.setItem("userRole", apiRole);
+
         toast.dismiss(loadingToastId);
-        toast.success(`Switched to ${activeRole} role!`, {
-          duration: 2000,
+        toast.success("Role selected successfully!", {
+          duration: 3000,
           position: "top-center",
         });
 
-        const onboardingCompleted =
-          localStorage.getItem(`onboardingCompleted-${activeRole}`) === "true";
-        const redirectPath = onboardingCompleted
-          ? `/${activeRole}`
-          : "/onboarding";
-
-        router.push(redirectPath);
+        // Redirect based on role
+        setTimeout(() => {
+          // For agents and admins, they can skip onboarding or have optional fields
+          // For buyers and transporters, onboarding is required
+          if (apiRole === "agent") {
+            router.push("/onboarding"); // Optional onboarding for agents
+          } else {
+            router.push("/onboarding"); // Required onboarding for buyers/transporters
+          }
+        }, 1500);
       } else {
-        // New role - go directly to onboarding
-        toast.dismiss(loadingToastId);
-        toast.success(`Selected ${activeRole} role. Complete onboarding.`, {
-          duration: 2000,
-          position: "top-center",
-        });
-        router.push("/onboarding");
+        throw new Error("Invalid response from server");
       }
     } catch (error: any) {
-      console.error("Role action error:", error);
+      console.error("❌ Role selection error:", error);
       toast.dismiss(loadingToastId);
-      toast.error(error.message || "Failed to process role.", {
-        duration: 3000,
+
+      let errorMessage = "Failed to set up your account. Please try again.";
+
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please login again.";
+        setTimeout(() => {
+          router.replace("/login");
+        }, 2000);
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
         position: "top-center",
       });
     } finally {
@@ -153,7 +162,7 @@ export default function RegisterAs() {
         />
       </div>
 
-      <div className="w-full lg:w-[70%] lg:mx-auto flex items-center justify-center min-h-screen">
+      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] items-center justify-center min-h-screen">
         <div className="w-[90%] md:w-[80%] lg:w-[60%] mx-auto flex flex-col">
           <div className="hidden lg:flex w-[80px] h-[70px] mx-auto items-center justify-center">
             <Image
@@ -182,17 +191,19 @@ export default function RegisterAs() {
               </p>
             </div>
 
-            <div className="Role_selection hide-scrollbar flex gap-4">
+            {/* Role selection */}
+            <div className="Role_selection hide-scrollbar flex gap-8 justify-center items-center">
+              {/* Buyer */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("buyer")}
+                onClick={() => setActiveRole("buyers")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Buyer {userRoles.includes("buyer") && "(Added)"}
+                  Buyer
                 </span>
                 <div
                   className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "buyer"
+                    activeRole === "buyers"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
@@ -207,16 +218,17 @@ export default function RegisterAs() {
                 </div>
               </div>
 
+              {/* Transporter */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("transporter")}
+                onClick={() => setActiveRole("transporters")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Transporter {userRoles.includes("transporter") && "(Added)"}
+                  Transporter
                 </span>
                 <div
                   className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "transporter"
+                    activeRole === "transporters"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
@@ -231,16 +243,17 @@ export default function RegisterAs() {
                 </div>
               </div>
 
+              {/* Agent */}
               <div
                 className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("agent")}
+                onClick={() => setActiveRole("agents")}
               >
                 <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Agent {userRoles.includes("agent") && "(Added)"}
+                  Agent
                 </span>
                 <div
                   className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "agent"
+                    activeRole === "agents"
                       ? "border-[3.7px] border-[#538e53] shadow-lg"
                       : "border-[2px] border-transparent"
                   }`}
@@ -256,39 +269,21 @@ export default function RegisterAs() {
               </div>
             </div>
 
-            {activeRole && (
-              <div className="text-center px-4">
-                {activeRole === "agent" && (
-                  <p className="text-[13px] text-[#666] font-montserrat">
-                    As an agent, CAC registration and business name are optional
-                    fields in your profile.
-                  </p>
-                )}
-                {(activeRole === "buyer" || activeRole === "transporter") && (
-                  <p className="text-[13px] text-[#666] font-montserrat">
-                    As a {activeRole}, you'll need to provide CAC registration
-                    and business name details.
-                  </p>
-                )}
-              </div>
-            )}
-
+            {/* Continue Button */}
             <Button
               text={
                 isLoading ? (
                   <span className="flex items-center gap-2">
                     <FaSpinner className="animate-spin" />
-                    Loading...
+                    Setting up account...
                   </span>
-                ) : userRoles.includes(activeRole || "") ? (
-                  "Switch Role"
                 ) : (
-                  "Add Role"
+                  "Continue"
                 )
               }
-              onClick={handleRoleAction}
+              onClick={handleContinue}
               className="justify-center mx-auto w-[85%] !rounded-[4px]"
-              disabled={isLoading}
+              disabled={isLoading || !activeRole}
             />
           </div>
         </div>

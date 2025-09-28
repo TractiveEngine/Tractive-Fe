@@ -38,7 +38,7 @@ export const businessOnboardingSchema = baseOnboardingSchema.extend({
 
 // Function to get the appropriate schema based on user role
 export const getOnboardingSchema = (userRole: string | null) => {
-  if (userRole === "agent") {
+  if (userRole === "agent" || userRole === "admin") {
     return agentOnboardingSchema;
   } else if (userRole === "transporter" || userRole === "buyer") {
     return businessOnboardingSchema;

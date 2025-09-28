@@ -5,44 +5,40 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
 import { AddToStore } from "../../_components/AddToStore";
+import { productService, SearchFilters } from "@/services/productService";
 
-export const ProductOutOfStock: React.FC = () => {
+interface ProductOutOfStockProps {
+  onProductsUpdate: (counts: { active: number; out_of_stock: number }) => void;
+}
+
+export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({ onProductsUpdate }) => {
+  const [filters, setFilters] = useState<SearchFilters>({
+    search: '',
+    status: 'out_of_stock',
+    year: '',
+    month: ''
+  });
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        yearDropdownRef.current &&
-        !yearDropdownRef.current.contains(event.target as Node)
-      ) {
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target as Node)) {
         setIsYearOpen(false);
       }
-      if (
-        monthDropdownRef.current &&
-        !monthDropdownRef.current.contains(event.target as Node)
-      ) {
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target as Node)) {
         setIsMonthOpen(false);
       }
     };
@@ -61,6 +57,86 @@ export const ProductOutOfStock: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Update filters when search, year, or month changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFilters(prev => ({
+        ...prev,
+        search: prev.search,
+        year: selectedYear,
+        month: selectedMonth,
+        status: 'out_of_stock'
+      }));
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedYear, selectedMonth]);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, search: event.target.value }));
+  };
+
+  // Handle bulk back in stock operation
+  const handleBulkBackInStock = async () => {
+    if (selectedProductIds.length === 0) {
+      alert('Please select products to mark as back in stock');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to mark ${selectedProductIds.length} product(s) as back in stock?`)) {
+      return;
+    }
+
+    try {
+      await productService.updateMultipleProductsStatus(selectedProductIds, 'active');
+      
+      // Clear selection after successful update
+      setSelectedProductIds([]);
+      
+      alert(`Successfully marked ${selectedProductIds.length} product(s) as back in stock`);
+      
+      // Force a refresh
+      setFilters(prev => ({ ...prev, timestamp: Date.now() }));
+      
+    } catch (error) {
+      console.error('Bulk back in stock error:', error);
+      alert('Failed to update products status. Please try again.');
+    }
+  };
+
+  // Handle bulk delete operation
+  const handleBulkDelete = async () => {
+    if (selectedProductIds.length === 0) {
+      alert('Please select products to delete');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedProductIds.length} product(s)?`)) {
+      return;
+    }
+
+    try {
+      await productService.deleteMultipleProducts(selectedProductIds);
+      
+      // Clear selection after successful deletion
+      setSelectedProductIds([]);
+      
+      alert(`Successfully deleted ${selectedProductIds.length} product(s)`);
+      
+      // Force a refresh
+      setFilters(prev => ({ ...prev, timestamp: Date.now() }));
+      
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      alert('Failed to delete products. Please try again.');
+    }
+  };
+
+  // Handle product selection updates from ProductTable
+  const handleProductSelectionUpdate = (selectedIds: string[]) => {
+    setSelectedProductIds(selectedIds);
+  };
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
@@ -76,14 +152,13 @@ export const ProductOutOfStock: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search"
+                value={filters.search}
+                onChange={handleSearchChange}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                aria-label="Search active products"
+                aria-label="Search out of stock products"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <SearchIcon
-                  stroke="#808080"
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                />
+                <SearchIcon stroke="#808080" className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
             <div className="flex items-center w-full sm:w-auto">
@@ -98,11 +173,7 @@ export const ProductOutOfStock: React.FC = () => {
                 >
                   {selectedYear || "Year"}
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
-                    {isYearOpen ? (
-                      <ArrowUpIcon className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownIcon className="w-4 h-4" />
-                    )}
+                    {isYearOpen ? <ArrowUpIcon className="w-4 h-4" /> : <ArrowDownIcon className="w-4 h-4" />}
                   </div>
                   <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
                     <CalenderIcon />
@@ -125,9 +196,7 @@ export const ProductOutOfStock: React.FC = () => {
                           setSelectedYear("");
                           setIsYearOpen(false);
                         }}
-                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                          selectedYear === "" ? "bg-gray-200" : ""
-                        }`}
+                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${selectedYear === "" ? "bg-gray-200" : ""}`}
                         role="option"
                         aria-selected={selectedYear === ""}
                       >
@@ -140,11 +209,7 @@ export const ProductOutOfStock: React.FC = () => {
                             setSelectedYear(year.toString());
                             setIsYearOpen(false);
                           }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedYear === year.toString()
-                              ? "bg-gray-200"
-                              : ""
-                          }`}
+                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${selectedYear === year.toString() ? "bg-gray-200" : ""}`}
                           role="option"
                           aria-selected={selectedYear === year.toString()}
                         >
@@ -166,11 +231,7 @@ export const ProductOutOfStock: React.FC = () => {
                 >
                   {selectedMonth || "Month"}
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
-                    {isMonthOpen ? (
-                      <ArrowUpIcon className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownIcon className="w-4 h-4" />
-                    )}
+                    {isMonthOpen ? <ArrowUpIcon className="w-4 h-4" /> : <ArrowDownIcon className="w-4 h-4" />}
                   </div>
                 </button>
                 <AnimatePresence>
@@ -190,9 +251,7 @@ export const ProductOutOfStock: React.FC = () => {
                           setSelectedMonth("");
                           setIsMonthOpen(false);
                         }}
-                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                          selectedMonth === "" ? "bg-gray-200" : ""
-                        }`}
+                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${selectedMonth === "" ? "bg-gray-200" : ""}`}
                         role="option"
                         aria-selected={selectedMonth === ""}
                       >
@@ -205,9 +264,7 @@ export const ProductOutOfStock: React.FC = () => {
                             setSelectedMonth(month);
                             setIsMonthOpen(false);
                           }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedMonth === month ? "bg-gray-200" : ""
-                          }`}
+                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${selectedMonth === month ? "bg-gray-200" : ""}`}
                           role="option"
                           aria-selected={selectedMonth === month}
                         >
@@ -222,6 +279,30 @@ export const ProductOutOfStock: React.FC = () => {
           </div>
           <div className="flex items-center gap-4 justify-start md:justify-end">
             <button
+              onClick={handleBulkDelete}
+              disabled={selectedProductIds.length === 0}
+              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+                selectedProductIds.length === 0
+                  ? 'bg-[#b28362]/50 cursor-not-allowed'
+                  : 'bg-[#b28362] hover:bg-[#9f6f50]'
+              }`}
+              aria-label={`Delete ${selectedProductIds.length} selected products`}
+            >
+              Delete {selectedProductIds.length > 0 ? `(${selectedProductIds.length})` : ''}
+            </button>
+            <button
+              onClick={handleBulkBackInStock}
+              disabled={selectedProductIds.length === 0}
+              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+                selectedProductIds.length === 0
+                  ? 'bg-[#8B4513]/50 cursor-not-allowed'
+                  : 'bg-[#8B4513] hover:bg-[#7a3a10]'
+              }`}
+              aria-label={`Mark ${selectedProductIds.length} selected products as back in stock`}
+            >
+              Back in Stock {selectedProductIds.length > 0 ? `(${selectedProductIds.length})` : ''}
+            </button>
+            <button
               onClick={() => setIsModalOpen(true)}
               className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
               aria-label="Add item to store"
@@ -231,9 +312,22 @@ export const ProductOutOfStock: React.FC = () => {
             </button>
           </div>
         </div>
+        
+        {/* Selection Info */}
+        {selectedProductIds.length > 0 && (
+          <div className="px-6 mt-3">
+            <p className="text-sm text-[#8B4513] font-medium">
+              {selectedProductIds.length} product(s) selected
+            </p>
+          </div>
+        )}
       </div>
       <div className="mt-6">
-        <ProductTable />
+        <ProductTable 
+          filters={filters} 
+          onProductsUpdate={onProductsUpdate}
+          onSelectionUpdate={handleProductSelectionUpdate}
+        />
       </div>
     </div>
   );

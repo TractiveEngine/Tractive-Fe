@@ -4,13 +4,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
-import "../../Table.css"
+import { productService, SearchFilters } from "@/services/productService";
+import "../../Table.css";
 
-export const ActiveProduct: React.FC = () => {
+interface ActiveProductProps {
+  onProductsUpdate: (counts: { active: number; out_of_stock: number }) => void;
+}
+
+export const ActiveProduct: React.FC<ActiveProductProps> = ({
+  onProductsUpdate,
+}) => {
+  const [filters, setFilters] = useState<SearchFilters>({
+    search: "",
+    status: "active",
+    year: "",
+    month: "",
+  });
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -63,15 +77,99 @@ export const ActiveProduct: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleDelete = () => {
-    console.log("Delete clicked");
+  // Update filters when search, year, or month changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFilters((prev) => ({
+        ...prev,
+        search: prev.search,
+        year: selectedYear,
+        month: selectedMonth,
+        status: "active",
+      }));
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedYear, selectedMonth]);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters((prev) => ({ ...prev, search: event.target.value }));
   };
 
-  const handleOutOfStock = () => {
-    console.log("Out of Stock clicked");
+  // Handle bulk delete operation
+  const handleBulkDelete = async () => {
+    if (selectedProductIds.length === 0) {
+      alert("Please select products to delete");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Are you sure you want to delete ${selectedProductIds.length} product(s)?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await productService.deleteMultipleProducts(selectedProductIds);
+
+      // Clear selection after successful deletion
+      setSelectedProductIds([]);
+
+      // Refresh the products list by triggering a re-fetch
+      // This will be handled by the parent component's onProductsUpdate
+      alert(`Successfully deleted ${selectedProductIds.length} product(s)`);
+
+      // Force a refresh by updating a timestamp in filters
+      setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      alert("Failed to delete products. Please try again.");
+    }
   };
 
-  // Dropdown animation variants
+  // Handle bulk out of stock operation
+  const handleBulkOutOfStock = async () => {
+    if (selectedProductIds.length === 0) {
+      alert("Please select products to mark as out of stock");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Are you sure you want to mark ${selectedProductIds.length} product(s) as out of stock?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await productService.updateMultipleProductsStatus(
+        selectedProductIds,
+        "out_of_stock"
+      );
+
+      // Clear selection after successful update
+      setSelectedProductIds([]);
+
+      alert(
+        `Successfully marked ${selectedProductIds.length} product(s) as out of stock`
+      );
+
+      // Force a refresh
+      setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
+    } catch (error) {
+      console.error("Bulk out of stock error:", error);
+      alert("Failed to update products status. Please try again.");
+    }
+  };
+
+  // Handle product selection updates from ProductTable
+  const handleProductSelectionUpdate = (selectedIds: string[]) => {
+    setSelectedProductIds(selectedIds);
+  };
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
@@ -88,6 +186,8 @@ export const ActiveProduct: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search"
+                value={filters.search}
+                onChange={handleSearchChange}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search active products"
               />
@@ -235,29 +335,59 @@ export const ActiveProduct: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Buttons */}
           <div className="flex items-center gap-4 justify-start md:justify-end">
             <button
-              onClick={handleDelete}
-              className="cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] bg-[#b28362] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#9f6f50]"
-              aria-label="Delete selected products"
+              onClick={handleBulkDelete}
+              disabled={selectedProductIds.length === 0}
+              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+                selectedProductIds.length === 0
+                  ? "bg-[#b28362]/50 cursor-not-allowed"
+                  : "bg-[#b28362] hover:bg-[#9f6f50]"
+              }`}
+              aria-label={`Delete ${selectedProductIds.length} selected products`}
             >
-              Delete
+              Delete{" "}
+              {selectedProductIds.length > 0
+                ? `(${selectedProductIds.length})`
+                : ""}
             </button>
             <button
-              onClick={handleOutOfStock}
-              className="cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-              aria-label="Mark as out of stock"
+              onClick={handleBulkOutOfStock}
+              disabled={selectedProductIds.length === 0}
+              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+                selectedProductIds.length === 0
+                  ? "bg-[#538e53]/50 cursor-not-allowed"
+                  : "bg-[#538e53] hover:bg-[#467a46]"
+              }`}
+              aria-label={`Mark ${selectedProductIds.length} selected products as out of stock`}
             >
-              Out of Stock
+              Out of Stock{" "}
+              {selectedProductIds.length > 0
+                ? `(${selectedProductIds.length})`
+                : ""}
             </button>
           </div>
         </div>
+
+        {/* Selection Info */}
+        {selectedProductIds.length > 0 && (
+          <div className="px-6 mt-3">
+            <p className="text-sm text-[#538e53] font-medium">
+              {selectedProductIds.length} product(s) selected
+            </p>
+          </div>
+        )}
       </div>
+
       {/* Product List */}
       <div className="mt-6 w-full">
-        <ProductTable />
+        <ProductTable
+          filters={filters}
+          onProductsUpdate={onProductsUpdate}
+          onSelectionUpdate={handleProductSelectionUpdate}
+        />
       </div>
     </div>
   );

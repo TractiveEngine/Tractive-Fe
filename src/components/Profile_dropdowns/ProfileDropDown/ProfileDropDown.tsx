@@ -46,7 +46,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
 export const ProfileDropDown = ({ onLogout, currentRole }: ProfileDropDownProps) => {
   const router = useRouter();
   const user = getLoggedInUser();
-  const userRoles = user?.roles || [];
+  const userRoles = user?.role || [];
   const activeRole = currentRole || user?.activeRole;
 
   // Debug logging

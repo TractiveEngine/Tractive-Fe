@@ -3,7 +3,7 @@ export type SessionData = {
   email: string;
   token: string;
   loginExpiry: number;
-  roles: string[];
+  role: string[];
   activeRole: string | null;
 };
 
@@ -18,7 +18,7 @@ export const setUserSession = (user: {
   email: string;
   name: string;
   token: string;
-  roles?: string[];
+  role?: string[];
   activeRole?: string | null;
 }) => {
   const session: SessionData = {
@@ -26,7 +26,7 @@ export const setUserSession = (user: {
     name: user.name,
     token: user.token,
     loginExpiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    roles: user.roles || [], // Default to empty array for new users
+    role: user.role || [], // Default to empty array for new users
     activeRole: user.activeRole || null, // No default role
   };
   localStorage.setItem("session", JSON.stringify(session));
@@ -66,6 +66,23 @@ export const getLoggedInUser = (): UserSessionWithToken | null => {
     ...parsedSession,
     authToken,
   };
+};
+
+export const getAuthHeaders = (): HeadersInit => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+};
+
+export const redirectToLogin = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
 };
 
 export const isUserLoggedIn = (): boolean => {

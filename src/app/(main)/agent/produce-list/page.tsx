@@ -1,17 +1,19 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ActiveProduct } from "./_components/ActiveProduct";
 import { ProductOutOfStock } from "./_components/ProductOutOfStock";
 
 interface SideProps {
-  switchSides: "Active" | "OutOfStock";
-  setSwitchSides: React.Dispatch<React.SetStateAction<"Active" | "OutOfStock">>;
+  switchSides: "active" | "out_of_stock";
+  setSwitchSides: React.Dispatch<
+    React.SetStateAction<"active" | "out_of_stock">
+  >;
 }
 
 export default function ProduceListPage() {
   const [switchSides, setSwitchSides] =
-    useState<SideProps["switchSides"]>("Active");
+    useState<SideProps["switchSides"]>("active");
   const activeContainerRef = useRef<HTMLDivElement>(null);
   const outOfStockContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,7 +33,7 @@ export default function ProduceListPage() {
   useEffect(() => {
     const updateIndicator = () => {
       const activeContainer =
-        switchSides === "Active"
+        switchSides === "active"
           ? activeContainerRef.current
           : outOfStockContainerRef.current;
       const container = containerRef.current;
@@ -48,6 +50,39 @@ export default function ProduceListPage() {
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
   }, [switchSides]);
+
+  const [productCounts, setProductCounts] = useState<{
+    active: number;
+    out_of_stock: number;
+  }>({
+    active: 0,
+    out_of_stock: 0,
+  });
+
+  // FIXED: Memoize the callback to prevent infinite re-renders
+  const handleProductsUpdate = useCallback(
+    (counts: { active: number; out_of_stock: number }) => {
+      setProductCounts((prevCounts) => {
+        // Only update if counts actually changed to prevent unnecessary re-renders
+        if (
+          prevCounts.active !== counts.active ||
+          prevCounts.out_of_stock !== counts.out_of_stock
+        ) {
+          return {
+            active: counts.active,
+            out_of_stock: counts.out_of_stock,
+          };
+        }
+        return prevCounts;
+      });
+    },
+    []
+  ); // Empty dependency array since this function doesn't depend on any props or state
+
+  // Remove this console.log or move it to useEffect to avoid logging on every render
+  useEffect(() => {
+    console.log("Product counts updated:", productCounts);
+  }, [productCounts]);
 
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
@@ -68,19 +103,19 @@ export default function ProduceListPage() {
             <button
               role="tab"
               id="active-tab"
-              onClick={() => handleSwitchSides("Active")}
+              onClick={() => handleSwitchSides("active")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "Active"
+                switchSides === "active"
                   ? "text-[#538e53]"
                   : "text-[#538e53]/70"
               }`}
-              aria-selected={switchSides === "Active"}
+              aria-selected={switchSides === "active"}
               aria-controls="active-panel"
             >
               Active
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+              {productCounts.active}
             </span>
           </div>
           <div
@@ -89,25 +124,25 @@ export default function ProduceListPage() {
           >
             <button
               role="tab"
-              id="outofstock-tab"
-              onClick={() => handleSwitchSides("OutOfStock")}
+              id="out_of_stock-tab"
+              onClick={() => handleSwitchSides("out_of_stock")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "OutOfStock"
+                switchSides === "out_of_stock"
                   ? "text-[#8B4513]"
                   : "text-[#8B4513]/70"
               }`}
-              aria-selected={switchSides === "OutOfStock"}
-              aria-controls="outofstock-panel"
+              aria-selected={switchSides === "out_of_stock"}
+              aria-controls="out_of_stock-panel"
             >
               Out of Stock
             </button>
             <span className="bg-[#8B4513] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+              {productCounts.out_of_stock}
             </span>
           </div>
           <motion.div
             className={`absolute -bottom-[0.5rem] rounded-t-[10px] h-[3.7px] ${
-              switchSides === "Active" ? "bg-[#538e53]" : "bg-[#8B4513]"
+              switchSides === "active" ? "bg-[#538e53]" : "bg-[#8B4513]"
             }`}
             animate={{ left: indicatorStyle.left, width: indicatorStyle.width }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -119,9 +154,13 @@ export default function ProduceListPage() {
       <div
         className="mb-4"
         role="tabpanel"
-        id={switchSides === "Active" ? "active-panel" : "outofstock-panel"}
+        id={switchSides === "active" ? "active-panel" : "out_of_stock-panel"}
       >
-        {switchSides === "Active" ? <ActiveProduct /> : <ProductOutOfStock />}
+        {switchSides === "active" ? (
+          <ActiveProduct onProductsUpdate={handleProductsUpdate} />
+        ) : (
+          <ProductOutOfStock onProductsUpdate={handleProductsUpdate} />
+        )}
       </div>
     </div>
   );

@@ -2,105 +2,283 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { ArrowLeftIcon } from "./Icons/AgentIcons";
+import axios from "axios";
 
-import { ArrowLeftIcon } from "./Icons/AgentIcons"; // Adjust import path
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-
-// Props for ItemDetailsForm
 interface ItemDetailsFormProps {
   onBack: () => void;
   onClose: () => void;
   selectedCategory: string | null;
-  selectedProduce: string | null;
+  productName: string;
   selectedProfiles: number[];
-}
-
-// Unit type
-type Unit = "Kilogram" | "Metric Ton" | "Megagram";
-
-// Weight options type (alternative: explicit keys instead of mapped type)
-interface WeightOptions {
-  Kilogram: string[];
-  "Metric Ton": string[];
-  Megagram: string[];
+  imageFiles: File[];
+  videoFile: File | null;
 }
 
 export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   onBack,
   onClose,
   selectedCategory,
-  selectedProduce,
+  productName,
   selectedProfiles,
+  imageFiles,
+  videoFile,
 }) => {
-  const formRef = useRef<HTMLFormElement>(null); // Explicitly type as HTMLFormElement
-  const weightDropdownRef = useRef<HTMLDivElement>(null);
-  const [available, setAvailable] = useState<string>("");
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [quantity, setQuantity] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [unit, setUnit] = useState<Unit | null>(null);
-  const [totalWeight, setTotalWeight] = useState<string | null>(null);
   const [price, setPrice] = useState<string>("");
-  const [isWeightOpen, setIsWeightOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  // Weight options
-  const weightOptions: WeightOptions = {
-    Kilogram: ["1", "5", "10", "25", "50", "100"],
-    "Metric Ton": ["0.001", "0.005", "0.01", "0.025", "0.05", "0.1"],
-    Megagram: ["0.001", "0.005", "0.01", "0.025", "0.05", "0.1"],
+  // API URL configuration
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+
+  // Function to convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const base64Data = base64.split(",")[1]; // Get only the base64 data part
+        resolve(base64Data);
+      };
+      reader.onerror = (error) => reject(error);
+    });
   };
 
-  // Handle unit change
-  const handleUnitChange = (selectedUnit: Unit): void => {
-    setUnit(selectedUnit);
-    setTotalWeight(null); // Reset weight when unit changes
+  // Function to convert multiple files to base64
+  const filesToBase64 = async (files: File[]): Promise<string[]> => {
+    const base64Promises = files.map((file) => fileToBase64(file));
+    return await Promise.all(base64Promises);
   };
 
-  // Handle weight selection
-  const handleWeightSelect = (weight: string): void => {
-    setTotalWeight(weight);
-    setIsWeightOpen(false);
+  // Function to convert files to base64 with metadata
+  const filesToBase64WithMetadata = async (
+    files: File[]
+  ): Promise<
+    Array<{
+      name: string;
+      type: string;
+      size: number;
+      base64: string;
+    }>
+  > => {
+    const base64Promises = files.map(async (file) => {
+      const base64 = await fileToBase64(file);
+      return {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        base64: base64,
+      };
+    });
+    return await Promise.all(base64Promises);
   };
+
+  // === ADD THE DEBUG FUNCTION HERE ===
+  const debugAuthStatus = async (): Promise<void> => {
+    const token = localStorage.getItem("authToken");
+    const session = localStorage.getItem("session");
+
+    console.log("=== AUTH STATUS DEBUG ===");
+    console.log("Token exists:", !!token);
+    console.log("Session exists:", !!session);
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("Token payload:", payload);
+        console.log("Token has role field:", "role" in payload);
+        console.log("Token role value:", payload.role);
+      } catch (e) {
+        console.error("Token decode error:", e);
+      }
+    }
+
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        console.log("Session data:", sessionData);
+        console.log("Session roles:", sessionData.roles);
+        console.log("Session role:", sessionData.role);
+      } catch (e) {
+        console.error("Session parse error:", e);
+      }
+    }
+
+    console.log(
+      "Agent onboarding completed:",
+      localStorage.getItem("agentOnboardingCompleted")
+    );
+    console.log(
+      "User role from localStorage:",
+      localStorage.getItem("userRole")
+    );
+    console.log("=== END AUTH DEBUG ===");
+  };
+  // === END DEBUG FUNCTION ===
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
-    console.log({
-      available,
-      description,
-      unit,
-      totalWeight,
-      price,
-      selectedCategory,
-      selectedProduce,
-      selectedProfiles,
-    });
-    // Implement upload logic here
-    onClose();
+    setIsLoading(true);
+    setUploadProgress(10);
+
+    try {
+      // Check authentication
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      // Validate required fields
+      if (!productName.trim()) {
+        alert("Product name is required");
+        return;
+      }
+      if (!selectedCategory) {
+        alert("Category is required");
+        return;
+      }
+      if (!description.trim()) {
+        alert("Description is required");
+        return;
+      }
+      if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) {
+        alert("Valid price is required");
+        return;
+      }
+      if (
+        !quantity.trim() ||
+        isNaN(Number(quantity)) ||
+        Number(quantity) <= 0
+      ) {
+        alert("Valid quantity is required");
+        return;
+      }
+
+      // Convert files to base64 with progress tracking
+      let imageBase64: string[] = [];
+      let videoBase64: string[] = [];
+
+      if (imageFiles.length > 0) {
+        setUploadProgress(30);
+        console.log(`Converting ${imageFiles.length} images to base64...`);
+        imageBase64 = await filesToBase64(imageFiles);
+        setUploadProgress(50);
+      }
+
+      if (videoFile) {
+        setUploadProgress(60);
+        console.log("Converting video to base64...");
+        const videoBase64String = await fileToBase64(videoFile);
+        videoBase64 = [videoBase64String];
+        setUploadProgress(70);
+      }
+
+      // Prepare API payload with base64 files (REMOVED profiles field)
+      const apiPayload = {
+        name: productName.trim(),
+        description: description.trim(),
+        price: Number(price),
+        quantity: Number(quantity),
+        images: imageBase64, // Now contains base64 strings
+        videos: videoBase64, // Contains base64 video or empty array
+        categories: [selectedCategory],
+        // profiles: selectedProfiles, // REMOVED THIS LINE
+      };
+
+      console.log("Creating product with base64 files...");
+      console.log(
+        `Payload contains: ${imageBase64.length} images, ${videoBase64.length} videos`
+      );
+      console.log(
+        "API Payload:",
+        JSON.stringify(
+          {
+            ...apiPayload,
+            images: [`${imageBase64.length} base64 images`],
+            videos: [`${videoBase64.length} base64 videos`],
+          },
+          null,
+          2
+        )
+      );
+      setUploadProgress(80);
+
+      // Make API call using axios
+      const response = await axios.post(`${API_URL}/api/products`, apiPayload, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 30000, // 30 second timeout for large files
+      });
+
+      console.log("Product created successfully:", response.data);
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        alert("Product uploaded successfully!");
+        onClose();
+      }, 500);
+    } catch (error) {
+      console.error("Error creating product:", error);
+
+      // Handle specific file conversion errors
+      if (error instanceof Error && error.message.includes("FileReader")) {
+        alert("Failed to process files. Please try again with smaller files.");
+        return;
+      }
+
+      // Handle axios errors
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          // Unauthorized - redirect to login
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("session");
+          router.push("/login");
+          return;
+        }
+
+        if (error.code === "ECONNABORTED") {
+          alert(
+            "Request timeout. The files might be too large. Please try again with smaller files."
+          );
+          return;
+        }
+
+        const errorMessage =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          `HTTP error! status: ${error.response?.status}`;
+        alert(errorMessage);
+      } else {
+        alert("Failed to create product. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+      setUploadProgress(0);
+    }
   };
 
-  // Close weight dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (
-        weightDropdownRef.current &&
-        !weightDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsWeightOpen(false);
-      }
-    };
+  // Calculate total file size for warning
+  const getTotalFileSize = (): number => {
+    let totalSize = 0;
+    imageFiles.forEach((file) => (totalSize += file.size));
+    if (videoFile) totalSize += videoFile.size;
+    return totalSize;
+  };
 
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") {
-        setIsWeightOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  const totalFileSizeMB = (getTotalFileSize() / 1024 / 1024).toFixed(2);
 
   return (
     <motion.div
@@ -127,28 +305,85 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
       <h2 className="text-[15px] font-normal text-center text-[#808080] font-montserrat mb-4">
         Item Details
       </h2>
+
+      {/* Display selected product info */}
+      <div className="mb-4 p-3 bg-[#f9f9f9] rounded">
+        <p className="text-sm text-[#2b2b2b] font-montserrat">
+          <strong>Product:</strong> {productName}
+        </p>
+        <p className="text-sm text-[#2b2b2b] font-montserrat">
+          <strong>Category:</strong> {selectedCategory}
+        </p>
+        {imageFiles.length > 0 && (
+          <p className="text-sm text-[#2b2b2b] font-montserrat">
+            <strong>Images:</strong> {imageFiles.length} file(s) selected
+          </p>
+        )}
+        {videoFile && (
+          <p className="text-sm text-[#2b2b2b] font-montserrat">
+            <strong>Video:</strong> {videoFile.name}
+          </p>
+        )}
+        {(imageFiles.length > 0 || videoFile) && (
+          <p className="text-sm text-[#666] font-montserrat mt-2">
+            <strong>Total file size:</strong> {totalFileSizeMB} MB
+            {parseFloat(totalFileSizeMB) > 10 && (
+              <span className="text-[#ff6b6b] ml-2">
+                (Large files may take longer to upload)
+              </span>
+            )}
+          </p>
+        )}
+      </div>
+
+      {/* Upload Progress */}
+      {isLoading && (
+        <div className="mb-4 p-3 bg-[#f0f8f0] rounded">
+          <p className="text-sm text-[#538e53] font-montserrat mb-2">
+            {uploadProgress < 30
+              ? "Preparing upload..."
+              : uploadProgress < 60
+              ? "Converting files to base64..."
+              : uploadProgress < 80
+              ? "Finalizing..."
+              : uploadProgress < 100
+              ? "Sending to server..."
+              : "Upload complete!"}
+          </p>
+          <div className="w-full bg-[#e0e0e0] rounded-full h-2">
+            <div
+              className="bg-[#538e53] h-2 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
       <form
         ref={formRef}
         onSubmit={handleSubmit}
         className="space-y-4 w-full max-w-[694px] mx-auto"
       >
-        {/* Available */}
+        {/* Quantity */}
         <div className="flex flex-col gap-2">
           <label
-            htmlFor="available"
+            htmlFor="quantity"
             className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            Available
+            Available Quantity *
           </label>
           <input
-            type="text"
-            id="available"
-            value={available}
+            type="number"
+            id="quantity"
+            value={quantity}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setAvailable(e.target.value)
+              setQuantity(e.target.value)
             }
             className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
-            placeholder="Enter availability"
+            placeholder="Enter quantity available"
+            min="1"
+            required
+            disabled={isLoading}
           />
         </div>
 
@@ -158,7 +393,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             htmlFor="description"
             className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            Description
+            Description *
           </label>
           <textarea
             id="description"
@@ -167,116 +402,96 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
               setDescription(e.target.value)
             }
             className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat h-[100px] resize-none"
-            placeholder="Enter description"
+            placeholder="Enter product description"
+            required
+            disabled={isLoading}
           />
         </div>
 
-        {/* Unit Checkboxes */}
+        {/* Price */}
         <div className="flex flex-col gap-2">
-          <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-            Unit
-          </label>
-          <div className="flex gap-2 sm:gap-4 overflow-x-auto hide-scrollbar">
-            {(["Kilogram", "Metric Ton", "Megagram"] as const).map((u) => (
-              <label
-                key={u}
-                className="flex items-center gap-2 text-[11px] sm:text-[14px] font-normal text-[#2b2b2b] font-montserrat"
-              >
-                <input
-                  type="checkbox"
-                  name="unit"
-                  value={u}
-                  checked={unit === u}
-                  onChange={() => handleUnitChange(u)}
-                  className="accent-[#538e53]"
-                />
-                {u}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Total Weight and Price */}
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Total Weight Dropdown */}
-          <div
-            ref={weightDropdownRef}
-            className="relative w-full md:w-1/2 flex flex-col gap-2"
+          <label
+            htmlFor="price"
+            className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-              Total Weight
-            </label>
-            <div
-              onClick={() => unit && setIsWeightOpen((prev) => !prev)}
-              onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                if (unit && (e.key === "Enter" || e.key === " ")) {
-                  setIsWeightOpen((prev) => !prev);
-                }
-              }}
-              className={`flex items-center justify-between w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer ${
-                !unit ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              role="button"
-              tabIndex={0}
-            >
-              <span className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-                {totalWeight && unit
-                  ? `${totalWeight} ${unit}`
-                  : "Select Weight"}
-              </span>
-              {isWeightOpen && unit ? <ArrowUpIcon /> : <ArrowDownIcon />}
-            </div>
-            {isWeightOpen && unit && (
-              <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto top-full">
-                {weightOptions[unit].map((weight) => (
-                  <div
-                    key={weight}
-                    onClick={() => handleWeightSelect(weight)}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        handleWeightSelect(weight);
-                      }
-                    }}
-                    className="px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
-                    role="option"
-                    aria-selected
-                    tabIndex={0}
-                  >
-                    {weight} {unit}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Price Input */}
-          <div className="w-full md:w-1/2 flex flex-col gap-2">
-            <label
-              htmlFor="price"
-              className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
-            >
-              Price
-            </label>
-            <input
-              type="text"
-              id="price"
-              value={price}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPrice(e.target.value)
-              }
-              className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
-              placeholder="Enter price"
-            />
-          </div>
+            Price (₦) *
+          </label>
+          <input
+            type="number"
+            id="price"
+            value={price}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPrice(e.target.value)
+            }
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+            placeholder="Enter price in Naira"
+            min="0.01"
+            step="0.01"
+            required
+            disabled={isLoading}
+          />
         </div>
 
-        {/* Upload Button */}
+        {/* File Upload Summary */}
+        {(imageFiles.length > 0 || videoFile) && (
+          <div className="flex flex-col gap-2">
+            <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
+              Files to Upload (will be sent as base64)
+            </label>
+            <div className="border border-[#e0e0e0] rounded-[4px] p-3 bg-[#f9f9f9]">
+              {imageFiles.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-sm text-[#2b2b2b] font-montserrat font-semibold">
+                    Images ({imageFiles.length}):
+                  </p>
+                  <ul className="text-xs text-[#666] font-montserrat ml-4">
+                    {imageFiles.map((file, index) => (
+                      <li key={index}>
+                        • {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                        MB)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {videoFile && (
+                <div>
+                  <p className="text-sm text-[#2b2b2b] font-montserrat font-semibold">
+                    Video:
+                  </p>
+                  <p className="text-xs text-[#666] font-montserrat ml-4">
+                    • {videoFile.name} (
+                    {(videoFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <button
           type="submit"
-          className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-full font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
+          disabled={isLoading}
+          className="w-full mx-auto flex justify-center bg-[#538e53] text-[#fefefe] font-montserrat font-normal text-[16px] rounded-[4px] py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Upload
+          {isLoading
+            ? uploadProgress > 0
+              ? `Uploading... ${Math.round(uploadProgress)}%`
+              : "Processing..."
+            : "Upload Product"}
         </button>
+
+        {/* Warning for large files */}
+        {parseFloat(totalFileSizeMB) > 20 && !isLoading && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="text-sm text-yellow-800 font-montserrat">
+              ⚠️ <strong>Large files detected:</strong> The total file size is{" "}
+              {totalFileSizeMB} MB. This may take longer to upload and could
+              timeout if the files are too large. Consider reducing file sizes
+              for better performance.
+            </p>
+          </div>
+        )}
       </form>
     </motion.div>
   );

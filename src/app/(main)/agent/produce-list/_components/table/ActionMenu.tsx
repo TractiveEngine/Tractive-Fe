@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import { motion } from "framer-motion";
 
@@ -14,6 +15,7 @@ interface ActionMenuProps {
   handleEdit: (id: string) => void;
   handleOutOfStock: (id: string) => void;
   handleDelete: (id: string) => void;
+   isOutOfStockPage: boolean;
 }
 
 export const ThreeDotIcon = () => {

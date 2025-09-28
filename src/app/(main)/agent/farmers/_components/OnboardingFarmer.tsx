@@ -21,7 +21,7 @@ interface Farmer {
   localMarket: string;
   ninOrCac: string;
   mobile: string;
-  altMobile: string;
+  altMobile: string; 
   bankName: string;
   accountNumber: string;
   accountName: string;

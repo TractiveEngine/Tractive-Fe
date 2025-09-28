@@ -53,114 +53,74 @@ export default function Login() {
         }
       );
 
-      console.log("📊 Complete response:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        data: response.data,
-      });
-
-      if (response.status === 204) {
-        throw new Error("Server returned 204 No Content - no data received");
-      }
-
-      if (!response.data) {
-        throw new Error("Response body is empty");
-      }
-
       console.log("✅ Login response received:", response.data);
 
-      let user, token, roles, activeRole;
-
-      if (response.data.user && response.data.token) {
-        user = response.data.user;
-        token = response.data.token;
-        roles = user.roles || [];
-        activeRole = user.activeRole || null;
-      } else if (response.data.token) {
-        token = response.data.token;
-        user = {
-          email: data.email,
-          name: data.email.split("@")[0],
-          roles: [],
-          activeRole: null,
-        };
-        roles = user.roles;
-        activeRole = user.activeRole;
-      } else {
+      if (!response.data.token) {
         throw new Error("No authentication token received from server");
       }
 
-      console.log("🔍 User data:", user);
-      console.log("🔍 Token:", token);
-      console.log("🔍 Roles:", roles);
-      console.log("🔍 Active Role:", activeRole);
+      const { token } = response.data;
 
-      if (!token) {
-        throw new Error("No authentication token received from server");
-      }
+      // Extract user info from email since backend only provides token
+      const userEmail = data.email;
+      const userName = data.email.split("@")[0];
 
-      // Store auth data
+      // Store auth token
       localStorage.setItem("authToken", token);
+
+      // Check localStorage for existing user data
+      const existingSession = localStorage.getItem("session");
+      let userRoles: string[] = [];
+      let activeRole: string | null = null;
+
+      if (existingSession) {
+        try {
+          const parsed = JSON.parse(existingSession);
+          if (parsed.email === userEmail) {
+            userRoles = parsed.role || [];
+            activeRole = parsed.activeRole || null;
+          }
+        } catch (e) {
+          console.log("Could not parse existing session");
+        }
+      }
+
+      // Set user session with available data
       setUserSession({
-        email: user.email,
-        name: user.name,
+        email: userEmail,
+        name: userName,
         token,
-        roles,
+        role: userRoles,
         activeRole,
       });
 
       toast.dismiss(toastId);
-      toast.success(`Welcome back, ${user.name}!`);
+      toast.success(`Welcome back, ${userName}!`);
       reset();
 
-      // Improved redirect logic that preserves active role
-      // Replace the redirect logic in your onSubmit function with this:
+      // Determine redirect path based on stored data
+      console.log("🔍 Redirect logic:", { activeRole, roles: userRoles });
 
-      // Improved redirect logic - always go to active role if user has one
-      console.log("🔍 Redirect logic:", {
-        activeRole,
-        roles,
-      });
+      let redirectPath = "/register-as"; // Default for new users
 
-      let redirectPath = "/register-as";
-
-      // If user has an active role, go directly to their dashboard
       if (activeRole) {
-        localStorage.setItem("userRole", activeRole);
-        redirectPath = `/${activeRole}`;
-      } else if (roles && roles.length > 0) {
-        // User has roles but no active role
-        // Check if any role has completed onboarding to set as default
-        const completedRole: string | undefined = (roles as string[]).find(
-          (role: string) =>
-            localStorage.getItem(`onboardingCompleted-${role}`) === "true"
-        );
+        // Check if onboarding is completed for this role
+        const onboardingCompleted =
+          localStorage.getItem(`${activeRole}OnboardingCompleted`) === "true";
 
-        if (completedRole) {
-          // Set the first completed role as active and go to its dashboard
-          activeRole = completedRole;
-          localStorage.setItem("userRole", completedRole);
-
-          // Update session with active role
-          const currentSession = JSON.parse(
-            localStorage.getItem("session") || "{}"
-          );
-          localStorage.setItem(
-            "session",
-            JSON.stringify({
-              ...currentSession,
-              activeRole: completedRole,
-            })
-          );
-
-          redirectPath = `/${completedRole}`;
+        if (onboardingCompleted) {
+          // Go to dashboard
+          localStorage.setItem("userRole", activeRole);
+          redirectPath = `/${activeRole}`;
         } else {
-          // User has roles but none completed - let them choose
-          redirectPath = "/register-as";
+          // Go to onboarding
+          redirectPath = "/onboarding";
         }
-      } else {
-        // New user with no roles
+      } else if (userRoles.length > 0) {
+        // User has roles but no active role selected
+        redirectPath = "/register-as";
+      }
+      else {
         redirectPath = "/register-as";
       }
 
@@ -171,16 +131,21 @@ export default function Login() {
     } catch (err: any) {
       console.error("❌ Login error:", err);
       toast.dismiss(toastId);
-      toast.error(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to login. Please try again.",
-        {
-          duration: 5000,
-          position: "top-center",
-        }
-      );
+
+      let errorMessage = "Failed to login. Please try again.";
+
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      });
     } finally {
       setLoading(false);
     }
