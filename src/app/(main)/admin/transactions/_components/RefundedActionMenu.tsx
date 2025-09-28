@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { AdminActionMenuProps } from "../../_components/AdminActionMenuProps";
-import { ThreeDotIcon } from "@/app/(main)/agents/produce-list/_components/table/ActionMenu";
+import { ThreeDotIcon } from "@/app/(main)/agent/produce-list/_components/table/ActionMenu";
 
 export const RefundedActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
