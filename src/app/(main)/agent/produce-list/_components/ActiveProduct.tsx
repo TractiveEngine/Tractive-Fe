@@ -1,3 +1,4 @@
+// components/ActiveProduct.tsx
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -5,7 +6,9 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { ProductTable } from "./table/ProductTable";
 import { productService, SearchFilters } from "@/services/productService";
-import "../../Table.css";
+import { toast } from "sonner";
+import { getAuthToken } from "@/utils/loginAuth";
+import { useRouter } from "next/navigation";
 
 interface ActiveProductProps {
   onProductsUpdate: (counts: { active: number; out_of_stock: number }) => void;
@@ -14,6 +17,7 @@ interface ActiveProductProps {
 export const ActiveProduct: React.FC<ActiveProductProps> = ({
   onProductsUpdate,
 }) => {
+  const router = useRouter();
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     status: "active",
@@ -27,6 +31,19 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check auth on mount
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      console.log("❌ No auth token in ActiveProduct");
+      toast.error("Please login to manage products", {
+        duration: 3000,
+        position: "top-center",
+      });
+      router.push("/login");
+    }
+  }, [router]);
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
@@ -82,7 +99,6 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
     const timeoutId = setTimeout(() => {
       setFilters((prev) => ({
         ...prev,
-        search: prev.search,
         year: selectedYear,
         month: selectedMonth,
         status: "active",
@@ -99,40 +115,60 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
   // Handle bulk delete operation
   const handleBulkDelete = async () => {
     if (selectedProductIds.length === 0) {
-      alert("Please select products to delete");
+      toast.warning("Please select products to delete", {
+        duration: 3000,
+        position: "top-center",
+      });
       return;
     }
 
     if (
       !confirm(
-        `Are you sure you want to delete ${selectedProductIds.length} product(s)?`
+        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`
       )
     ) {
       return;
     }
 
     try {
+      console.log(`🗑️ Bulk deleting ${selectedProductIds.length} products`);
+
       await productService.deleteMultipleProducts(selectedProductIds);
 
       // Clear selection after successful deletion
       setSelectedProductIds([]);
 
-      // Refresh the products list by triggering a re-fetch
-      // This will be handled by the parent component's onProductsUpdate
-      alert(`Successfully deleted ${selectedProductIds.length} product(s)`);
+      toast.success(
+        `Successfully deleted ${selectedProductIds.length} product(s)`,
+        {
+          duration: 3000,
+          position: "top-center",
+        }
+      );
 
-      // Force a refresh by updating a timestamp in filters
+      console.log("✅ Bulk delete successful");
+
+      // Force a refresh by updating timestamp
       setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error) {
-      console.error("Bulk delete error:", error);
-      alert("Failed to delete products. Please try again.");
+    } catch (error: any) {
+      console.error("❌ Bulk delete error:", error);
+      toast.error(
+        error.message || "Failed to delete products. Please try again.",
+        {
+          duration: 5000,
+          position: "top-center",
+        }
+      );
     }
   };
 
   // Handle bulk out of stock operation
   const handleBulkOutOfStock = async () => {
     if (selectedProductIds.length === 0) {
-      alert("Please select products to mark as out of stock");
+      toast.warning("Please select products to mark as out of stock", {
+        duration: 3000,
+        position: "top-center",
+      });
       return;
     }
 
@@ -145,6 +181,10 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
     }
 
     try {
+      console.log(
+        `⚠️ Marking ${selectedProductIds.length} products as out of stock`
+      );
+
       await productService.updateMultipleProductsStatus(
         selectedProductIds,
         "out_of_stock"
@@ -153,15 +193,27 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
       // Clear selection after successful update
       setSelectedProductIds([]);
 
-      alert(
-        `Successfully marked ${selectedProductIds.length} product(s) as out of stock`
+      toast.success(
+        `Successfully marked ${selectedProductIds.length} product(s) as out of stock`,
+        {
+          duration: 3000,
+          position: "top-center",
+        }
       );
+
+      console.log("✅ Bulk status update successful");
 
       // Force a refresh
       setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error) {
-      console.error("Bulk out of stock error:", error);
-      alert("Failed to update products status. Please try again.");
+    } catch (error: any) {
+      console.error("❌ Bulk out of stock error:", error);
+      toast.error(
+        error.message || "Failed to update products status. Please try again.",
+        {
+          duration: 5000,
+          position: "top-center",
+        }
+      );
     }
   };
 

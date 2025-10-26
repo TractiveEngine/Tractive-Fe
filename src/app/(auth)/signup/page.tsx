@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,10 +9,11 @@ import { FcGoogle } from "react-icons/fc";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
 import { toast } from "sonner";
-import { useEmailUser } from "@/hooks/userEmailContext";
-import { registerUserWithOtp } from "@/utils/signupAuth";
+import { useEmailUser } from "../../../hooks/userEmailContext";
+import { SignupFormData, SignupSchema } from "../../../schemas/SignupSchemas";
+import { registerUserWithOtp } from "../../../utils/signupAuth";
+import { Button } from "../../../components/Button";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);

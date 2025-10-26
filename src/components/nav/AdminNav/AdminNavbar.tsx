@@ -12,7 +12,7 @@ import { Admin_ProfileDropDown } from "@/components/Profile_dropdowns/AdminProfi
 export const AdminNavbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -35,7 +35,7 @@ export const AdminNavbar = () => {
       if (loggedIn) {
         const userData = getLoggedInUser();
         if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+          setUser({ name: userData.name, email: userData.email });
         } else {
           setUser(null);
         }
@@ -190,7 +190,7 @@ export const AdminNavbar = () => {
                     className="rounded-full"
                   />
                   <span className="text-[#2b2b2b] hidden lg:block text-[0.89rem] font-normal">
-                    {user?.fullName}
+                    {user?.name}
                   </span>
                   <svg
                     className="h-4 w-4 text-[#2b2b2b]"

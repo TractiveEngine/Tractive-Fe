@@ -8,7 +8,7 @@ import { TableList } from "../_components/table/TableList";
 import { CustomerActionMenu } from "./_components/CustomerActionMenu";
 import { CustomerInfoModal } from "./_components/CustomerInfoModal";
 import { SupportModal } from "./_components/SupportModal";
-import { Customer, customers } from "@/utils/CustomersData";
+import { CustomerService, Customer } from "@/services/customerService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -48,6 +48,12 @@ const customerColumns: ColumnConfig<Customer>[] = [
     header: "Revenue",
     key: "revenue",
     minWidth: "min-w-[100px]",
+    render: (customer) =>
+      new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        minimumFractionDigits: 2,
+      }).format(customer.revenue),
   },
   {
     header: "Orders",
@@ -71,13 +77,19 @@ export default function CustomersListPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const customersData = customers;
+  const [customersData, setCustomersData] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isCustomerInfoOpen, setIsCustomerInfoOpen] = useState<boolean>(false);
   const [isSupportOpen, setIsSupportOpen] = useState<boolean>(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCustomers, setTotalCustomers] = useState<number>(0);
+
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -96,6 +108,78 @@ export default function CustomersListPage() {
     "Nov",
     "Dec",
   ];
+
+  // Fetch customers from API
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log("🔄 Fetching customers with parameters (not sent to API):", {
+        search: searchQuery,
+        location: `${selectedMonth} ${selectedYear}`.trim(),
+        page: currentPage,
+        limit: 20,
+      });
+
+      // Parameters are collected for logging but not sent to API for testing
+      const params = {
+        search: searchQuery || undefined,
+        location:
+          selectedMonth || selectedYear
+            ? `${selectedMonth} ${selectedYear}`.trim()
+            : undefined,
+        page: currentPage,
+        limit: 20,
+      };
+
+      const response = await CustomerService.getCustomers(params);
+      console.log("✅ Customers fetched successfully:", response);
+
+      setCustomersData(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalCustomers(response.pagination.total);
+    } catch (err: any) {
+      console.error("❌ Error in fetchCustomers:", err);
+
+      let errorMessage = "Failed to fetch customers";
+
+      if (err.statusCode === 404) {
+        errorMessage = `API endpoint not found. Please check if the backend server is running.`;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+
+      // Set empty data on error
+      setCustomersData([]);
+      setTotalPages(1);
+      setTotalCustomers(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Test API endpoint on component mount
+  useEffect(() => {
+    CustomerService.testApiEndpoint();
+  }, []);
+
+  // Debounced search - parameters are tracked but not sent to API for now
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      fetchCustomers();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, selectedYear, selectedMonth]);
+
+  // Fetch on page change
+  useEffect(() => {
+    fetchCustomers();
+  }, [currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -129,33 +213,28 @@ export default function CustomersListPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleCustomerInfo = (id: string) => {
-    console.log(`Customer info requested for ID: ${id}`);
-    const customer = customersData.find((c) => c.id === id);
-    if (customer) {
+  const handleCustomerInfo = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const customer = await CustomerService.getCustomerProfile(id);
       setSelectedCustomer(customer);
       setIsCustomerInfoOpen(true);
+    } catch (err: any) {
+      console.error("Error fetching customer profile:", err);
+      alert("Failed to load customer information");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSupport = (id: string) => {
     console.log(`Support requested for customer ID: ${id}`);
+    const customer = customersData.find((c) => c.id === id);
+    if (customer) {
+      setSelectedCustomer(customer);
+    }
     setIsSupportOpen(true);
   };
-
-  const filteredCustomers = customersData.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.state.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear =
-      !selectedYear || customer.date.includes(selectedYear.toString());
-    const matchesMonth =
-      !selectedMonth ||
-      customer.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
-      );
-    return matchesSearch && matchesYear && matchesMonth;
-  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -167,18 +246,24 @@ export default function CustomersListPage() {
       <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <h2 className="text-[17px] font-montserrat text-[#2b2b2b] px-6 pt-6 mb-4">
           Customers
+          {totalCustomers > 0 && (
+            <span className="ml-2 text-[14px] text-[#808080]">
+              ({totalCustomers} total)
+            </span>
+          )}
         </h2>
         <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
+
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
               <div className="relative w-[100%] sm:w-[70%] flex-grow">
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search by name or state"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[1px] focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search customers"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -188,6 +273,7 @@ export default function CustomersListPage() {
                   />
                 </div>
               </div>
+
               <div className="flex items-center w-full sm:w-auto">
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
@@ -257,6 +343,7 @@ export default function CustomersListPage() {
                     )}
                   </AnimatePresence>
                 </div>
+
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
@@ -326,25 +413,94 @@ export default function CustomersListPage() {
             </div>
           </div>
         </div>
+
         <div className="my-6 overflow-x-auto">
-          <TableList<Customer>
-            dataType="customers"
-            columns={customerColumns}
-            initialData={filteredCustomers}
-            ActionMenuComponent={CustomerActionMenu}
-            handleCustomerInfo={handleCustomerInfo}
-            handleSupport={handleSupport}
-          />
-          <CustomerInfoModal
-            customer={selectedCustomer}
-            isOpen={isCustomerInfoOpen}
-            onClose={() => setIsCustomerInfoOpen(false)}
-          />
-          <SupportModal
-            isOpen={isSupportOpen}
-            onClose={() => setIsSupportOpen(false)}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-[14px] font-montserrat text-[#808080]">
+                  Loading customers...
+                </div>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="flex flex-col items-center gap-3">
+                <div className="text-[14px] font-montserrat text-red-500">
+                  {error}
+                </div>
+                <button
+                  onClick={fetchCustomers}
+                  className="px-4 py-2 bg-[#538e53] text-white text-[12px] font-montserrat rounded-[4px] hover:bg-[#467746] transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : customersData.length === 0 ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="text-[14px] font-montserrat text-[#808080]">
+                No customers found
+              </div>
+            </div>
+          ) : (
+            <>
+              <TableList<Customer>
+                dataType="customers"
+                columns={customerColumns}
+                initialData={customersData}
+                ActionMenuComponent={CustomerActionMenu}
+                handleCustomerInfo={handleCustomerInfo}
+                handleSupport={handleSupport}
+              />
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-6 mb-2 px-4">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 text-[12px] sm:text-[13px] font-montserrat bg-[#538e53] text-white rounded-[4px] hover:bg-[#467746] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-[12px] sm:text-[13px] font-montserrat text-[#2b2b2b]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 text-[12px] sm:text-[13px] font-montserrat bg-[#538e53] text-white rounded-[4px] hover:bg-[#467746] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
+
+        <CustomerInfoModal
+          customer={selectedCustomer}
+          isOpen={isCustomerInfoOpen}
+          onClose={() => {
+            setIsCustomerInfoOpen(false);
+            setSelectedCustomer(null);
+          }}
+        />
+        <SupportModal
+          customer={selectedCustomer}
+          isOpen={isSupportOpen}
+          onClose={() => {
+            setIsSupportOpen(false);
+            setSelectedCustomer(null);
+          }}
+        />
       </div>
     </div>
   );

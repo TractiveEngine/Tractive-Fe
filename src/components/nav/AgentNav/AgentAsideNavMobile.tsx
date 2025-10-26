@@ -14,14 +14,14 @@ import {
   PackedIcon,
   ProduceListIcon,
   Profile2UserIcon,
-} from "@/icons/DashboardIcons";
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
+} from "../../../icons/DashboardIcons";
+import { ArrowDownIcon, ArrowUpIcon } from "../../../icons/Icons";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agent/_components/AddToStore";
+import { AddToStore } from "../../../app/(main)/agent/_components/AddToStore";
 import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/ProfileDropDown/Agent_ProfileDropDownMobile";
 
 interface NavSection {

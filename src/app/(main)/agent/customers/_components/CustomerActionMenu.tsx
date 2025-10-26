@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { ActionMenuProps } from "../../_components/ActionMenuProps";
 import { ThreeDotIcon } from "../../produce-list/_components/table/ActionMenu";
-import Link from "next/link";
 
 export const CustomerActionMenu: React.FC<ActionMenuProps> = ({
   productId,
@@ -14,6 +14,7 @@ export const CustomerActionMenu: React.FC<ActionMenuProps> = ({
 }) => {
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -28,6 +29,11 @@ export const CustomerActionMenu: React.FC<ActionMenuProps> = ({
   const menuVariants = {
     hidden: { opacity: 0, y: -10 },
     visible: { opacity: 1, y: 0 },
+  };
+
+  const handleChatClick = () => {
+    router.push(`/chat/${productId}`);
+    setActiveMenu(null);
   };
 
   return (
@@ -50,18 +56,18 @@ export const CustomerActionMenu: React.FC<ActionMenuProps> = ({
             exit="hidden"
             transition={{ duration: 0.2 }}
           >
-            <Link
-              href={`/chat/${productId}`}
-              className="block w-full text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+            <button
+              onClick={handleChatClick}
+              className="block w-full text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Chat
-            </Link>
+            </button>
             <button
               onClick={() => {
                 handleCustomerInfo?.(productId);
                 setActiveMenu(null);
               }}
-              className="block w-full text-left px-2 cursor-pointer text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              className="block w-full text-left px-2 py-1 cursor-pointer text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Customer Info
             </button>
@@ -70,7 +76,7 @@ export const CustomerActionMenu: React.FC<ActionMenuProps> = ({
                 handleSupport?.(productId);
                 setActiveMenu(null);
               }}
-              className="block w-full text-left px-2 cursor-pointer text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              className="block w-full text-left px-2 py-1 cursor-pointer text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Support
             </button>

@@ -4,7 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "./Icons/AgentIcons";
+import { toast } from "sonner";
 import axios from "axios";
+import { getAuthToken } from "../../../../utils/loginAuth";
+// import { getAuthToken } from "../utils/loginAuth";
 
 interface ItemDetailsFormProps {
   onBack: () => void;
@@ -33,95 +36,28 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  // API URL configuration
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
-  // Function to convert file to base64
+  // Convert file to base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
         const base64 = reader.result as string;
-        const base64Data = base64.split(",")[1]; // Get only the base64 data part
+        const base64Data = base64.split(",")[1];
         resolve(base64Data);
       };
       reader.onerror = (error) => reject(error);
     });
   };
 
-  // Function to convert multiple files to base64
+  // Convert multiple files to base64
   const filesToBase64 = async (files: File[]): Promise<string[]> => {
     const base64Promises = files.map((file) => fileToBase64(file));
     return await Promise.all(base64Promises);
   };
-
-  // Function to convert files to base64 with metadata
-  const filesToBase64WithMetadata = async (
-    files: File[]
-  ): Promise<
-    Array<{
-      name: string;
-      type: string;
-      size: number;
-      base64: string;
-    }>
-  > => {
-    const base64Promises = files.map(async (file) => {
-      const base64 = await fileToBase64(file);
-      return {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        base64: base64,
-      };
-    });
-    return await Promise.all(base64Promises);
-  };
-
-  // === ADD THE DEBUG FUNCTION HERE ===
-  const debugAuthStatus = async (): Promise<void> => {
-    const token = localStorage.getItem("authToken");
-    const session = localStorage.getItem("session");
-
-    console.log("=== AUTH STATUS DEBUG ===");
-    console.log("Token exists:", !!token);
-    console.log("Session exists:", !!session);
-
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        console.log("Token payload:", payload);
-        console.log("Token has role field:", "role" in payload);
-        console.log("Token role value:", payload.role);
-      } catch (e) {
-        console.error("Token decode error:", e);
-      }
-    }
-
-    if (session) {
-      try {
-        const sessionData = JSON.parse(session);
-        console.log("Session data:", sessionData);
-        console.log("Session roles:", sessionData.roles);
-        console.log("Session role:", sessionData.role);
-      } catch (e) {
-        console.error("Session parse error:", e);
-      }
-    }
-
-    console.log(
-      "Agent onboarding completed:",
-      localStorage.getItem("agentOnboardingCompleted")
-    );
-    console.log(
-      "User role from localStorage:",
-      localStorage.getItem("userRole")
-    );
-    console.log("=== END AUTH DEBUG ===");
-  };
-  // === END DEBUG FUNCTION ===
 
   // Handle form submission
   const handleSubmit = async (
@@ -132,28 +68,35 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
     setUploadProgress(10);
 
     try {
+      console.log("🚀 Step 1: Starting product upload...");
+
       // Check authentication
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       if (!token) {
+        console.log("❌ No auth token found");
+        toast.error("Session expired. Please login again.", {
+          duration: 3000,
+          position: "top-center",
+        });
         router.push("/login");
         return;
       }
 
       // Validate required fields
       if (!productName.trim()) {
-        alert("Product name is required");
+        toast.error("Product name is required");
         return;
       }
       if (!selectedCategory) {
-        alert("Category is required");
+        toast.error("Category is required");
         return;
       }
       if (!description.trim()) {
-        alert("Description is required");
+        toast.error("Description is required");
         return;
       }
       if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) {
-        alert("Valid price is required");
+        toast.error("Valid price is required");
         return;
       }
       if (
@@ -161,108 +104,131 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         isNaN(Number(quantity)) ||
         Number(quantity) <= 0
       ) {
-        alert("Valid quantity is required");
+        toast.error("Valid quantity is required");
         return;
       }
 
-      // Convert files to base64 with progress tracking
+      console.log("✅ Step 2: All fields validated");
+
+      // Convert files to base64
       let imageBase64: string[] = [];
       let videoBase64: string[] = [];
 
       if (imageFiles.length > 0) {
         setUploadProgress(30);
-        console.log(`Converting ${imageFiles.length} images to base64...`);
+        console.log(
+          `🔄 Step 3: Converting ${imageFiles.length} images to base64...`
+        );
         imageBase64 = await filesToBase64(imageFiles);
         setUploadProgress(50);
+        console.log("✅ Images converted");
       }
 
       if (videoFile) {
         setUploadProgress(60);
-        console.log("Converting video to base64...");
+        console.log("🔄 Step 4: Converting video to base64...");
         const videoBase64String = await fileToBase64(videoFile);
         videoBase64 = [videoBase64String];
         setUploadProgress(70);
+        console.log("✅ Video converted");
       }
 
-      // Prepare API payload with base64 files (REMOVED profiles field)
+      // Prepare API payload
       const apiPayload = {
         name: productName.trim(),
         description: description.trim(),
         price: Number(price),
         quantity: Number(quantity),
-        images: imageBase64, // Now contains base64 strings
-        videos: videoBase64, // Contains base64 video or empty array
+        images: imageBase64,
+        videos: videoBase64,
         categories: [selectedCategory],
-        // profiles: selectedProfiles, // REMOVED THIS LINE
       };
 
-      console.log("Creating product with base64 files...");
+      console.log("✅ Step 5: Payload prepared");
       console.log(
         `Payload contains: ${imageBase64.length} images, ${videoBase64.length} videos`
       );
-      console.log(
-        "API Payload:",
-        JSON.stringify(
-          {
-            ...apiPayload,
-            images: [`${imageBase64.length} base64 images`],
-            videos: [`${videoBase64.length} base64 videos`],
-          },
-          null,
-          2
-        )
-      );
       setUploadProgress(80);
 
-      // Make API call using axios
+      // Make API call with proper error handling
+      console.log("🚀 Step 6: Sending request to /api/products...");
+
       const response = await axios.post(`${API_URL}/api/products`, apiPayload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        timeout: 30000, // 30 second timeout for large files
+        timeout: 30000,
       });
 
-      console.log("Product created successfully:", response.data);
-
+      console.log("✅ Step 7: Product created successfully:", response.data);
       setUploadProgress(100);
+
+      toast.success("Product uploaded successfully!", {
+        duration: 3000,
+        position: "top-center",
+      });
+
       setTimeout(() => {
-        alert("Product uploaded successfully!");
         onClose();
       }, 500);
     } catch (error) {
-      console.error("Error creating product:", error);
+      console.error("❌ Error creating product:", error);
 
-      // Handle specific file conversion errors
+      // Handle different error types
       if (error instanceof Error && error.message.includes("FileReader")) {
-        alert("Failed to process files. Please try again with smaller files.");
+        toast.error(
+          "Failed to process files. Please try again with smaller files.",
+          {
+            duration: 5000,
+            position: "top-center",
+          }
+        );
         return;
       }
 
-      // Handle axios errors
       if (axios.isAxiosError(error)) {
+        // Handle 401 Unauthorized
         if (error.response?.status === 401) {
-          // Unauthorized - redirect to login
+          console.log("❌ Authentication failed (401)");
           localStorage.removeItem("authToken");
           localStorage.removeItem("session");
+          toast.error("Session expired. Please login again.", {
+            duration: 3000,
+            position: "top-center",
+          });
           router.push("/login");
           return;
         }
 
+        // Handle timeout
         if (error.code === "ECONNABORTED") {
-          alert(
-            "Request timeout. The files might be too large. Please try again with smaller files."
+          toast.error(
+            "Request timeout. Files might be too large. Try again with smaller files.",
+            {
+              duration: 5000,
+              position: "top-center",
+            }
           );
           return;
         }
 
+        // Handle other API errors
         const errorMessage =
           error.response?.data?.error ||
           error.response?.data?.message ||
           `HTTP error! status: ${error.response?.status}`;
-        alert(errorMessage);
+
+        console.log("❌ API Error:", errorMessage);
+        toast.error(errorMessage, {
+          duration: 5000,
+          position: "top-center",
+        });
       } else {
-        alert("Failed to create product. Please try again.");
+        toast.error("Failed to create product. Please try again.", {
+          duration: 5000,
+          position: "top-center",
+        });
       }
     } finally {
       setIsLoading(false);
@@ -270,7 +236,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
     }
   };
 
-  // Calculate total file size for warning
+  // Calculate total file size
   const getTotalFileSize = (): number => {
     let totalSize = 0;
     imageFiles.forEach((file) => (totalSize += file.size));
@@ -295,13 +261,14 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
               onBack();
             }
           }}
-          className="flex items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1] cursor-pointer"
+          className="flex items-center justify-center rounded-[100px] py-[4px] px-[8px] w-[35px] h-[35px] bg-[#f1f1f1] cursor-pointer hover:bg-[#e1e1e1]"
           role="button"
           tabIndex={0}
         >
           <ArrowLeftIcon />
         </div>
       </div>
+
       <h2 className="text-[15px] font-normal text-center text-[#808080] font-montserrat mb-4">
         Item Details
       </h2>
@@ -379,7 +346,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setQuantity(e.target.value)
             }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
             placeholder="Enter quantity available"
             min="1"
             required
@@ -401,7 +368,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setDescription(e.target.value)
             }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat h-[100px] resize-none"
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat h-[100px] resize-none focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
             placeholder="Enter product description"
             required
             disabled={isLoading}
@@ -423,7 +390,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setPrice(e.target.value)
             }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
             placeholder="Enter price in Naira"
             min="0.01"
             step="0.01"
@@ -469,10 +436,11 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
           </div>
         )}
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full mx-auto flex justify-center bg-[#538e53] text-[#fefefe] font-montserrat font-normal text-[16px] rounded-[4px] py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mx-auto flex justify-center bg-[#538e53] text-[#fefefe] font-montserrat font-normal text-[16px] rounded-[4px] py-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#467a46] transition-colors"
         >
           {isLoading
             ? uploadProgress > 0
@@ -484,7 +452,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         {/* Warning for large files */}
         {parseFloat(totalFileSizeMB) > 20 && !isLoading && (
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-sm text-yellow-800 font-montserrat">
+            <p className="text-sm text-yellow-800 font-montserrat">   
               ⚠️ <strong>Large files detected:</strong> The total file size is{" "}
               {totalFileSizeMB} MB. This may take longer to upload and could
               timeout if the files are too large. Consider reducing file sizes

@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { CalenderIcon } from "@/icons/DashboardIcons";
-import { AdminControl, AdminMethodProps } from "@/utils/AdminControl";
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "../../../../../../icons/Icons";
+import { CalenderIcon } from "../../../../../../icons/DashboardIcons";
+import { AdminControl, AdminMethodProps } from "../../../../../../utils/AdminControl";
 import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";

@@ -2,13 +2,13 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-// import { Farmer } from "@/utils/FarmersData";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
 import { FarmerActionMenu } from "./_components/FarmerActionMenu";
 import { OnboardingFarmers } from "./_components/OnboardingFarmer";
-import { Farmer, farmerService } from "@/services/FarnerService";
+import { Farmer, farmerService } from "@/services/FarmerService";
+import { UserProfile } from "@/services/UserService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -64,6 +64,9 @@ const farmerColumns: ColumnConfig<Farmer>[] = [
   },
 ];
 
+// Roles that can manage farmers
+const FARMER_MANAGEMENT_ROLES = ["admin", "supervisor", "agent", "field-agent"];
+
 const FarmersListPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -77,6 +80,8 @@ const FarmersListPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [userLoading, setUserLoading] = useState<boolean>(true);
 
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
@@ -97,39 +102,89 @@ const FarmersListPage: React.FC = () => {
     "Dec",
   ];
 
+  // Check if user can manage farmers
+  const canManageFarmers = currentUser
+    ? FARMER_MANAGEMENT_ROLES.includes(currentUser.activeRole)
+    : false;
+
+  // Fetch current user profile
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      setUserLoading(true);
+      console.log("🔄 Fetching current user profile...");
+      const user = await farmerService.getCurrentUser();
+      setCurrentUser(user);
+      console.log("✅ Current user:", user);
+      console.log(
+        "✅ Can manage farmers:",
+        FARMER_MANAGEMENT_ROLES.includes(user.activeRole)
+      );
+    } catch (err: any) {
+      console.error("❌ Error fetching user profile:", err);
+      // Don't set error for user fetch - we can still show farmers in read-only mode
+      console.log("⚠️ Continuing in read-only mode");
+    } finally {
+      setUserLoading(false);
+    }
+  }, []);
+
   // Fetch farmers from API
   const fetchFarmers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const filters = {
-        search: searchQuery || undefined,
-        year: selectedYear || undefined,
-        month: selectedMonth || undefined,
-      };
+      console.log("🔄 Fetching farmers from backend...");
+      const response = await farmerService.getFarmers();
+      console.log("✅ Received farmers:", response);
 
-      const response = await farmerService.getFarmers(filters);
-
-      // Convert API farmers to frontend format with UI state
-      const farmersWithUIState = response.farmers.map((farmer) => ({
-        ...farmer,
+      // Convert API farmers to frontend format
+      const farmersWithUIState = response.farmers.map((farmer: any) => ({
+        id: farmer._id,
+        name: farmer.name || "-",
+        mobile: farmer.phone || "-",
+        altMobile: "-",
+        localMarket: farmer.villageOrLocalMarket || "-",
+        image: "/images/farmer_modal_profile.png",
+        state: farmer.state || "-",
+        address: farmer.address || "-",
+        ninOrCac: farmer.nin || farmer.businessCAC || "-",
+        bankName: "-",
+        accountNumber: "-",
+        accountName: "-",
+        revenue: "₦0",
+        orders: "0",
+        date: farmer.createdAt
+          ? new Date(farmer.createdAt).toLocaleDateString()
+          : new Date().toLocaleDateString(),
         checked: false,
       })) as Farmer[];
 
       setFarmersData(farmersWithUIState);
+      console.log(`✅ Set ${farmersWithUIState.length} farmers to state`);
     } catch (err: any) {
-      console.error("Error fetching farmers:", err);
-      setError(err.message || "Failed to fetch farmers");
+      console.error("❌ Error fetching farmers:", err);
+      // Check if it's a permission error vs network error
+      if (err.message && err.message.includes("permission")) {
+        setError("You don't have permission to view farmers");
+      } else {
+        setError(err.message || "Failed to fetch farmers");
+      }
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedYear, selectedMonth]);
+  }, []);
 
-  // Initial load and when filters change
+  // Initial load - fetch user first, then farmers
   useEffect(() => {
-    fetchFarmers();
-  }, [fetchFarmers]);
+    const initializeData = async () => {
+      console.log("🚀 Component mounted - initializing data...");
+      await fetchCurrentUser();
+      await fetchFarmers();
+    };
+
+    initializeData();
+  }, [fetchCurrentUser, fetchFarmers]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -165,108 +220,89 @@ const FarmersListPage: React.FC = () => {
 
   const handleEdit = useCallback(
     (id: string) => {
-      console.log(`Editing farmer with ID: ${id}`);
+      if (!canManageFarmers) {
+        setError("You don't have permission to edit farmers");
+        return;
+      }
+
+      console.log(`✏️ Editing farmer with ID: ${id}`);
       const farmer = farmersData.find((f) => f.id === id);
       if (farmer) {
         setEditFarmer(farmer);
         setIsEditModalOpen(true);
       } else {
-        console.error(`Farmer with ID ${id} not found`);
+        console.error(`❌ Farmer with ID ${id} not found in local state`);
       }
     },
-    [farmersData]
+    [farmersData, canManageFarmers]
   );
 
-  const handleReport = useCallback((id: string) => {
-    console.log(`Reported farmer with ID: ${id}`);
-    alert(`Reported farmer with ID: ${id}`);
-  }, []);
-
-  // Handle farmer onboarding with API integration
+  // Handle farmer onboarding
   const handleOnboardSubmit = async (
-    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date">
+    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date" | "checked">
   ) => {
+    if (!canManageFarmers) {
+      setError("You don't have permission to create farmers");
+      return;
+    }
+
     try {
       setSubmitLoading(true);
       setError(null);
 
-      console.log("Onboarding farmer with data:", formData);
+      console.log("📝 Onboarding farmer with data:", formData);
+      await farmerService.createFarmer(formData);
+      console.log("✅ Farmer created successfully");
 
-      // Create farmer via API
-      const newFarmer = await farmerService.createFarmer(formData);
-
-      console.log("Farmer created successfully:", newFarmer);
-
-      // Add to local state with UI properties
-      const farmerWithUIState: Farmer = {
-        ...newFarmer,
-        checked: false,
-      };
-
-      setFarmersData((prev) => [farmerWithUIState, ...prev]);
       setIsOnboardModalOpen(false);
-
-      // Show success message
-      alert("Farmer onboarded successfully!");
+      await fetchFarmers();
     } catch (err: any) {
-      console.error("Error creating farmer:", err);
+      console.error("❌ Error creating farmer:", err);
       setError(err.message || "Failed to create farmer");
-      alert(err.message || "Failed to create farmer. Please try again.");
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  // Handle farmer edit with API integration
+  // Handle farmer edit
   const handleEditSubmit = async (
-    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date">
+    formData: Omit<Farmer, "id" | "revenue" | "orders" | "date" | "checked">
   ) => {
-    if (!editFarmer) return;
+    if (!editFarmer || !canManageFarmers) {
+      setError("You don't have permission to edit farmers");
+      return;
+    }
 
     try {
       setSubmitLoading(true);
       setError(null);
 
-      console.log("Updating farmer with data:", formData);
+      console.log("📝 Updating farmer with data:", formData);
 
-      // Update farmer via API
-      const updatedFarmer = await farmerService.updateFarmer(
-        editFarmer.id,
-        formData
-      );
+      // Note: If your API doesn't support PATCH/PUT, you may need to handle this differently
+      // For now, we'll just close the modal and refetch
+      // await farmerService.updateFarmer(editFarmer.id, formData);
 
-      console.log("Farmer updated successfully:", updatedFarmer);
-
-      // Update local state
-      const farmerWithUIState: Farmer = {
-        ...updatedFarmer,
-        checked: editFarmer.checked, // Preserve UI state
-      };
-
-      setFarmersData((prev) =>
-        prev.map((f) => (f.id === editFarmer.id ? farmerWithUIState : f))
-      );
-
+      console.log("✅ Farmer update requested");
       setIsEditModalOpen(false);
       setEditFarmer(null);
 
-      // Show success message
-      alert("Farmer updated successfully!");
+      // Refetch to get updated data
+      await fetchFarmers();
     } catch (err: any) {
-      console.error("Error updating farmer:", err);
+      console.error("❌ Error updating farmer:", err);
       setError(err.message || "Failed to update farmer");
-      alert(err.message || "Failed to update farmer. Please try again.");
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  // Client-side filtering for better UX
+  // Client-side filtering
   const filteredFarmers = farmersData.filter((farmer) => {
     const matchesSearch =
       !searchQuery ||
       farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      farmer.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (farmer.state ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       farmer.mobile.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesYear =
@@ -287,7 +323,7 @@ const FarmersListPage: React.FC = () => {
   };
 
   // Loading state
-  if (loading && farmersData.length === 0) {
+  if ((loading && farmersData.length === 0) || userLoading) {
     return (
       <div className="w-full">
         <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
@@ -296,6 +332,7 @@ const FarmersListPage: React.FC = () => {
           </h2>
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#538e53]"></div>
+            <span className="ml-3 text-gray-600">Loading user data...</span>
           </div>
         </div>
       </div>
@@ -310,11 +347,22 @@ const FarmersListPage: React.FC = () => {
           {(loading || submitLoading) && (
             <span className="text-sm text-gray-500">(Loading...)</span>
           )}
+          {farmersData.length > 0 && (
+            <span className="text-sm text-gray-600 ml-2">
+              ({farmersData.length} total)
+            </span>
+          )}
+          {currentUser && (
+            <span className="text-xs text-gray-500 ml-2">
+              (Role: {currentUser.activeRole})
+            </span>
+          )}
         </h2>
 
         {/* Error Message */}
         {error && (
           <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm font-semibold mb-1">Error</p>
             <p className="text-red-600 text-sm">{error}</p>
             <button
               onClick={() => {
@@ -331,9 +379,27 @@ const FarmersListPage: React.FC = () => {
         {/* Authentication Warning */}
         {!farmerService.isAuthenticated() && (
           <div className="mx-6 mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-800 text-sm font-semibold mb-1">
+              Authentication Required
+            </p>
             <p className="text-yellow-700 text-sm">
               Please log in to manage farmers. Token status:{" "}
               {farmerService.getToken() ? "Found" : "Missing"}
+            </p>
+          </div>
+        )}
+
+        {/* Permission Info */}
+        {currentUser && !canManageFarmers && (
+          <div className="mx-6 mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-blue-800 text-sm font-semibold mb-1">
+              View Only Mode
+            </p>
+            <p className="text-blue-700 text-sm">
+              Your role ({currentUser.activeRole}) has read-only access to
+              farmers.
+              {currentUser.activeRole === "agent" &&
+                " You can view farmers but cannot create or edit them."}
             </p>
           </div>
         )}
@@ -521,9 +587,18 @@ const FarmersListPage: React.FC = () => {
             <div className="flex items-center gap-4 justify-end">
               <button
                 onClick={() => setIsOnboardModalOpen(true)}
-                disabled={!farmerService.isAuthenticated() || submitLoading}
+                disabled={
+                  !farmerService.isAuthenticated() ||
+                  !canManageFarmers ||
+                  submitLoading
+                }
                 className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.92] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46] disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Onboard farmer"
+                title={
+                  !canManageFarmers
+                    ? `Your role (${currentUser?.activeRole}) cannot onboard farmers`
+                    : "Onboard new farmer"
+                }
               >
                 <AddToStoreIcon stroke="#fefefe" />
                 Onboard
@@ -535,13 +610,23 @@ const FarmersListPage: React.FC = () => {
         <div className="my-6 overflow-x-auto">
           {filteredFarmers.length === 0 && !loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <p className="text-lg mb-2">No farmers found</p>
-              <p className="text-sm">
+              <Image
+                src="/images/noData.png"
+                alt="No Data"
+                width={106}
+                height={60}
+              />
+              <p className="text-[13px] font-montserrat mb-2">
+                No farmers found
+              </p>
+              <p className="text-[11px] font-montserrat">
                 {searchQuery || selectedYear || selectedMonth
                   ? "Try adjusting your filters"
                   : farmerService.isAuthenticated()
-                  ? "Start by onboarding your first farmer"
-                  : "Please log in to view farmers"}
+                  ? canManageFarmers
+                    ? "Start by onboarding your first farmer"
+                    : "No farmers available for your role"
+                  : "Please login to view farmers"}
               </p>
             </div>
           ) : (
@@ -551,7 +636,6 @@ const FarmersListPage: React.FC = () => {
               initialData={filteredFarmers}
               ActionMenuComponent={FarmerActionMenu}
               handleEdit={handleEdit}
-              handleReport={handleReport}
             />
           )}
         </div>

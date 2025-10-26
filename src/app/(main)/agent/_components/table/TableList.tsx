@@ -5,7 +5,6 @@ import { TickIcon } from "../../produce-list/_components/table/ProductRow";
 import { ActionMenuProps } from "../ActionMenuProps";
 import "../../Table.css";
 
-
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
@@ -18,7 +17,7 @@ interface BaseData {
   checked?: boolean;
 }
 
-interface BidsListTableProps<T extends BaseData> {
+interface TableListProps<T extends BaseData> {
   dataType: string;
   columns: ColumnConfig<T>[];
   initialData?: T[];
@@ -36,6 +35,7 @@ interface BidsListTableProps<T extends BaseData> {
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
+  handleDelete?: (id: string) => void;
 }
 
 const rowVariants = {
@@ -43,7 +43,7 @@ const rowVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-export const  TableList = <T extends BaseData>({
+export const TableList = <T extends BaseData>({
   dataType,
   columns,
   initialData = [],
@@ -56,12 +56,13 @@ export const  TableList = <T extends BaseData>({
   handleParked,
   handleDelivered,
   handleCustomerCare,
-  handleCheckboxChange,
   handleCustomerInfo,
   handleSupport,
+  handleCheckboxChange,
   handleSelectAll,
   allChecked,
-}: BidsListTableProps<T>): React.ReactElement => {
+  handleDelete,
+}: TableListProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -121,6 +122,14 @@ export const  TableList = <T extends BaseData>({
   const defaultHandleSupport = (id: string) => {
     console.log(`Default handleSupport called for id: ${id}`);
     setActiveMenu(null);
+  };
+
+  const defaultHandleDelete = (id: string) => {
+    if (window.confirm(`Are you sure you want to delete this ${dataType}?`)) {
+      console.log(`Default handleDelete called for id: ${id}`);
+      alert(`Delete ${dataType} with ID: ${id}`);
+      setActiveMenu(null);
+    }
   };
 
   return (
@@ -206,6 +215,11 @@ export const  TableList = <T extends BaseData>({
                         ? handleReport || defaultHandleReport
                         : undefined
                     }
+                    // handleDelete={
+                    //   dataType === "farmers"
+                    //     ? handleDelete || defaultHandleDelete
+                    //     : undefined
+                    // }
                     handleViewBidders={
                       dataType === "bids"
                         ? handleViewBidders || defaultHandleViewBidders
@@ -228,9 +242,8 @@ export const  TableList = <T extends BaseData>({
                         ? handleDelivered || defaultHandleDelivered
                         : undefined
                     }
-                    
                     handleCustomerCare={
-                      dataType === "pending"
+                      dataType === "pending" || dataType === "received"
                         ? handleCustomerCare || defaultHandleCustomerCare
                         : undefined
                     }

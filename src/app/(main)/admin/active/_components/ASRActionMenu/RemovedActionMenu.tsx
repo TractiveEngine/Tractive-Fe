@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminActionMenuProps } from "../../../_components/AdminActionMenuProps";
-import { ThreeDotIcon } from "@/app/(main)/agent/produce-list/_components/table/ActionMenu";
+import { ThreeDotIcon } from "../../../../../../app/(main)/agent/produce-list/_components/table/ActionMenu";
 
 export const RemovedActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,

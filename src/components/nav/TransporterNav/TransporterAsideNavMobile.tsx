@@ -14,15 +14,15 @@ import {
   PackedIcon,
   ProduceListIcon,
   Profile2UserIcon,
-} from "@/icons/DashboardIcons";
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
+} from "../../../icons/DashboardIcons";
+import { ArrowDownIcon, ArrowUpIcon } from "../../../icons/Icons";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Transporter_ProfileDropDownMobile } from "../../Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDownMobile";
-import AddFleet from "@/app/(main)/transporter/_components/AddFleet";
+import AddFleet from "../../../app/(main)/transporter/_components/AddFleet";
 
 interface NavSection {
   title: string;

@@ -3,11 +3,11 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import { NotificationIcon, SearchIcon } from "@/icons/Icons";
+import { isUserLoggedIn, getLoggedInUser, logoutUser } from "../../../utils/loginAuth"; // Adjust path as needed
+import { NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
-import { Agent_ProfileDropDown } from "../../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
+import ProfileDropDown from "../../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 
 export const TransporterProfileNavbar = () => {
   const pathname = usePathname();

@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/Button";
+import { Button } from "../../../components/Button";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import React, { useState } from "react";
@@ -7,8 +7,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { ChangePasswordFormData, ChangePasswordSchema } from "@/schemas/changePasswordSchema";
-import { resetPassword } from "@/utils/resetPasswordAuthApi";
+import { ChangePasswordFormData, ChangePasswordSchema } from "../../../schemas/changePasswordSchema";
+import { resetPassword } from "../../../utils/resetPasswordAuthApi";
 
 export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);

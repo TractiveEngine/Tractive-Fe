@@ -1,13 +1,14 @@
 "use client";
-import { AgentAsideNav } from "@/components/nav/AgentNav/AgentAsideNav";
-import { AgentAsideNavMobile } from "@/components/nav/AgentNav/AgentAsideNavMobile";
 import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
-import { AgentNavbar } from "@/components/nav/AgentNav/AgentNavbar";
-import { debugAuth, requiresProductCreationPermission, canCreateProducts } from "@/utils/userRoleAuth";
+import "./Table.css"
+import { getLoggedInUser, isUserLoggedIn, logoutUser } from "../../../utils/loginAuth";
+import { debugAuth, requiresProductCreationPermission } from "../../../utils/userRoleAuth";
+import { AgentAsideNav } from "../../../components/nav/AgentNav/AgentAsideNav";
+import { AgentNavbar } from "../../../components/nav/AgentNav/AgentNavbar";
+import { AgentAsideNavMobile } from "../../../components/nav/AgentNav/AgentAsideNavMobile";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");

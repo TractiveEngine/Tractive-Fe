@@ -21,9 +21,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { logoutUser } from "@/utils/loginAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agent/_components/AddToStore";
+import { logoutUser } from "@/utils/loginAuth";
+import AddToStore from "@/app/(main)/agent/_components/AddToStore";
+
 
 interface NavSection {
   title: string;

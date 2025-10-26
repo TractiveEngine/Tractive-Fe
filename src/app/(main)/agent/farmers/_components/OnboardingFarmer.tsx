@@ -3,12 +3,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XModalIcon } from "../../_components/Icons/AgentIcons";
+import { getAuthToken } from "@/utils/loginAuth";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
-interface AddToStoreProps {
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+
+interface OnboardingFarmersProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (
-    farmer: Omit<Farmer, "id" | "revenue" | "orders" | "date">
+    farmer: Omit<Farmer, "id" | "revenue" | "orders" | "date" | "checked">
   ) => void;
   editFarmer?: Farmer | null;
 }
@@ -21,7 +27,7 @@ interface Farmer {
   localMarket: string;
   ninOrCac: string;
   mobile: string;
-  altMobile: string; 
+  altMobile: string;
   bankName: string;
   accountNumber: string;
   accountName: string;
@@ -29,6 +35,7 @@ interface Farmer {
   orders: string;
   date: string;
   image: string;
+  checked?: boolean;
 }
 
 const nigerianBanks = [
@@ -54,7 +61,7 @@ const nigerianBanks = [
   "Zenith Bank",
 ].sort();
 
-export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
+export const OnboardingFarmers: React.FC<OnboardingFarmersProps> = ({
   isOpen,
   onClose,
   onSubmit,
@@ -62,19 +69,19 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
 }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: editFarmer?.name || "",
-    state: editFarmer?.state || "",
-    address: editFarmer?.address || "",
-    localMarket: editFarmer?.localMarket || "",
-    ninOrCac: editFarmer?.ninOrCac || "",
-    mobile: editFarmer?.mobile || "",
-    altMobile: editFarmer?.altMobile || "",
-    bankName: editFarmer?.bankName || "",
-    accountNumber: editFarmer?.accountNumber || "",
-    accountName: editFarmer?.accountName || "",
+    name: "",
+    state: "",
+    address: "",
+    localMarket: "",
+    ninOrCac: "",
+    mobile: "",
+    altMobile: "",
+    bankName: "",
+    accountNumber: "",
+    accountName: "",
   });
   const [image, setImage] = useState<string>(
-    editFarmer?.image || "/images/farmer_modal_profile.png"
+    "/images/farmer_modal_profile.png"
   );
   const [errors, setErrors] = useState({
     name: "",
@@ -92,6 +99,91 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Auth state
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Check authentication when modal opens
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isOpen) {
+        setIsAuthChecked(false);
+        return;
+      }
+
+      try {
+        console.log("🔍 Checking authentication for farmer onboarding...");
+
+        const token = getAuthToken();
+
+        if (!token) {
+          console.log("❌ No auth token found");
+          toast.error("Please login first to onboard farmers");
+          onClose();
+          return;
+        }
+
+        console.log("✅ Auth token verified");
+
+        // Verify token is valid by calling profile
+        const profileResponse = await axios.get(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        });
+
+        console.log("✅ Profile verified:", profileResponse.data);
+
+        const userData = profileResponse.data.user || profileResponse.data;
+        setUserProfile(userData);
+        setIsAuthChecked(true);
+
+        console.log("👤 User Profile:", {
+          name: userData.name,
+          email: userData.email,
+          activeRole: userData.activeRole,
+          roles: userData.roles,
+        });
+      } catch (error: any) {
+        console.error("❌ Auth check error:", error);
+
+        if (error.response?.status === 401) {
+          console.log("❌ Token expired or invalid");
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("session");
+          toast.error("Session expired. Please login again.");
+        } else {
+          toast.error("Failed to verify authentication");
+        }
+
+        onClose();
+      }
+    };
+
+    checkAuth();
+  }, [isOpen, onClose]);
+
+  // Initialize form with edit data
+  useEffect(() => {
+    if (editFarmer && isOpen && isAuthChecked) {
+      setFormData({
+        name: editFarmer.name || "",
+        state: editFarmer.state || "",
+        address: editFarmer.address || "",
+        localMarket: editFarmer.localMarket || "",
+        ninOrCac: editFarmer.ninOrCac || "",
+        mobile: editFarmer.mobile || "",
+        altMobile: editFarmer.altMobile || "",
+        bankName: editFarmer.bankName || "",
+        accountNumber: editFarmer.accountNumber || "",
+        accountName: editFarmer.accountName || "",
+      });
+      setImage(editFarmer.image || "/images/farmer_modal_profile.png");
+    }
+  }, [editFarmer, isOpen, isAuthChecked]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -107,6 +199,35 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
 
   if (!isOpen) return null;
 
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      state: "",
+      address: "",
+      localMarket: "",
+      ninOrCac: "",
+      mobile: "",
+      altMobile: "",
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
+    });
+    setImage("/images/farmer_modal_profile.png");
+    setErrors({
+      name: "",
+      state: "",
+      address: "",
+      localMarket: "",
+      ninOrCac: "",
+      mobile: "",
+      altMobile: "",
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
+    });
+    setStep(1);
+  };
+
   const validateFirstForm = () => {
     let isValid = true;
     const newErrors = {
@@ -117,6 +238,9 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
       ninOrCac: "",
       mobile: "",
       altMobile: "",
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
     };
 
     if (!formData.name.trim()) {
@@ -138,13 +262,6 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
     if (!formData.ninOrCac.trim()) {
       newErrors.ninOrCac = "NIN or CAC number is required";
       isValid = false;
-    } else if (
-      !/^\d{11}$/.test(formData.ninOrCac) &&
-      !/^[A-Z0-9]{7,10}$/i.test(formData.ninOrCac)
-    ) {
-      newErrors.ninOrCac =
-        "NIN must be 11 digits or CAC must be 7-10 alphanumeric";
-      isValid = false;
     }
     if (!formData.mobile.trim()) {
       newErrors.mobile = "Mobile number is required";
@@ -165,6 +282,13 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
   const validateSecondForm = () => {
     let isValid = true;
     const newErrors = {
+      name: "",
+      state: "",
+      address: "",
+      localMarket: "",
+      ninOrCac: "",
+      mobile: "",
+      altMobile: "",
       bankName: "",
       accountNumber: "",
       accountName: "",
@@ -224,20 +348,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
     if (validateSecondForm()) {
       onSubmit({ ...formData, image });
       onClose();
-      setFormData({
-        name: "",
-        state: "",
-        address: "",
-        localMarket: "",
-        ninOrCac: "",
-        mobile: "",
-        altMobile: "",
-        bankName: "",
-        accountNumber: "",
-        accountName: "",
-      });
-      setImage("/images/farmer_modal_profile.png");
-      setStep(1);
+      resetForm();
     }
   };
 
@@ -251,6 +362,24 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
+
+  // Show loading state while checking auth
+  if (isOpen && !isAuthChecked) {
+    return (
+      <motion.div
+        className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100] p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <div className="bg-[#fefefe] rounded-lg p-8">
+          <p className="text-[#2b2b2b] font-montserrat">
+            Verifying authentication...
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -270,27 +399,25 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
         <button
           onClick={() => {
             onClose();
-            setStep(1);
-            setFormData({
-              name: "",
-              state: "",
-              address: "",
-              localMarket: "",
-              ninOrCac: "",
-              mobile: "",
-              altMobile: "",
-              bankName: "",
-              accountNumber: "",
-              accountName: "",
-            });
-            setImage("/images/farmer_modal_profile.png");
+            resetForm();
           }}
-          className="absolute top-2 right-2 md:top-4 md:right-4 text-[#2b2b2b] hover:text-[#538e53]"
+          className="absolute top-2 right-2 md:top-4 md:right-4 text-[#2b2b2b] hover:text-[#538e53] cursor-pointer"
           aria-label="Close modal"
           title="Close"
         >
           <XModalIcon className="w-5 h-5" />
         </button>
+
+        {/* Show user info */}
+        {userProfile && (
+          <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-green-700 text-xs">
+              ✓ Logged in as:{" "}
+              <span className="font-semibold">{userProfile.name}</span> (
+              {userProfile.activeRole})
+            </p>
+          </div>
+        )}
 
         <div className="flex justify-center mb-4">
           <div className="relative w-16 h-16 md:w-20 md:h-20 group">
@@ -301,19 +428,21 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
               height={80}
               className="w-full h-full rounded-full object-cover border-2 border-gray-300"
             />
-            <div className="absolute inset-0 bg-[#2b2b2b] bg-opacity-50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <span className="text-[#fefefe] text-[12px] sm:text-[14px] text-center font-montserrat">
-                Change Image
-              </span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              aria-label="Upload profile image"
-            />
+            <>
+              <div className="absolute inset-0 bg-[#2b2b2b] bg-opacity-50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="text-[#fefefe] text-[12px] sm:text-[14px] text-center font-montserrat">
+                  Change Image
+                </span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                aria-label="Upload profile image"
+              />
+            </>
           </div>
         </div>
 
@@ -334,7 +463,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="name"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Full Name
+                  Full Name *
                 </label>
                 <input
                   id="name"
@@ -357,7 +486,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="state"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  State
+                  State *
                 </label>
                 <input
                   id="state"
@@ -380,7 +509,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="address"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Address
+                  Address *
                 </label>
                 <input
                   id="address"
@@ -403,7 +532,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="localMarket"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Local Market
+                  Local Market *
                 </label>
                 <input
                   id="localMarket"
@@ -426,7 +555,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="ninOrCac"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  NIN
+                  NIN/CAC *
                 </label>
                 <input
                   id="ninOrCac"
@@ -450,7 +579,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                     htmlFor="mobile"
                     className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                   >
-                    Mobile
+                    Mobile *
                   </label>
                   <input
                     id="mobile"
@@ -493,7 +622,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px]"
+                  className="w-full px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px] cursor-pointer"
                 >
                   Continue
                 </button>
@@ -515,12 +644,12 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="bankName"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Bank Name
+                  Bank Name *
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] text-left focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-[12px] sm:text-[14px] text-left focus:outline-none focus:ring-1 focus:ring-[#538e53] relative"
                   aria-expanded={isDropdownOpen}
                   aria-controls="bank-dropdown"
                 >
@@ -568,7 +697,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="accountNumber"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Account Number
+                  Account Number *
                 </label>
                 <input
                   id="accountNumber"
@@ -591,7 +720,7 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                   htmlFor="accountName"
                   className="block text-[12px] sm:text-[14px] font-montserrat text-[#2b2b2b]"
                 >
-                  Account Name
+                  Account Name *
                 </label>
                 <input
                   id="accountName"
@@ -613,15 +742,15 @@ export const OnboardingFarmers: React.FC<AddToStoreProps> = ({
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-2 border border-gray-300 rounded text-[#2b2b2b] hover:bg-gray-100 transition-colors text-[12px] sm:text-[14px]"
+                  className="px-4 py-2 border border-gray-300 rounded text-[#2b2b2b] hover:bg-gray-100 transition-colors text-[12px] sm:text-[14px] cursor-pointer"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px]"
+                  className="px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467a46] transition-colors text-[12px] sm:text-[14px] cursor-pointer"
                 >
-                  Submit
+                  {editFarmer ? "Update" : "Submit"}
                 </button>
               </div>
             </motion.form>

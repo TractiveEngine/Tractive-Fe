@@ -1,131 +1,201 @@
 "use client";
-import { Button } from "@/components/Button";
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FaSpinner } from "react-icons/fa";
 import {
   getAuthToken,
   getLoggedInUser,
   setUserSession,
-} from "@/utils/loginAuth";
+} from "../../../utils/loginAuth";
 import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
 
-type UserRole = "buyers" | "transporters" | "agents";
+interface RoleOption {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+}
+
+const roles: RoleOption[] = [
+  {
+    id: "buyer",
+    label: "Buyer",
+    description: "Purchase quality produce",
+    icon: "/images/buyer-icon.png",
+  },
+  {
+    id: "agent",
+    label: "Agent",
+    description: "Connect farmers and buyers",
+    icon: "/images/agent-icon.png",
+  },
+  {
+    id: "transporter",
+    label: "Transporter",
+    description: "Deliver agricultural products",
+    icon: "/images/transporter-icon.png",
+  },
+];
 
 export default function RegisterAs() {
-  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  // Check authentication on mount
   useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      toast.error("Unauthorized access. Please login.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-    }
-  }, [router]);
+    const initializeRoleSelection = async () => {
+      const token = getAuthToken();
 
-  const handleContinue = async () => {
-    if (!activeRole) {
-      toast.warning("Please select a role before continuing.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      return;
-    }
-
-    const token = getAuthToken();
-    if (!token) {
-      toast.error("Authentication required. Please login again.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-      return;
-    }
-
-    setIsLoading(true);
-    const loadingToastId = toast.loading("Setting up your account...", {
-      position: "top-center",
-    });
-
-    try {
-      // Convert role from plural to singular for API
-      const apiRole =
-        activeRole === "buyers"
-          ? "buyer"
-          : activeRole === "transporters"
-          ? "transporter"
-          : "agent";
-
-      console.log("🚀 Adding account role:", apiRole);
-
-      // Call add-account API to set user role
-      const response = await axios.post(
-        "https://tractive-be.vercel.app/api/auth/add-account",
-        { role: apiRole },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
-      );
-
-      console.log("✅ Add account response:", response.data);
-
-      if (response.data.user) {
-        const { user } = response.data;
-
-        // Update local session with new role information
-        const currentUser = getLoggedInUser();
-        if (currentUser) {
-          setUserSession({
-            email: currentUser.email,
-            name: currentUser.name,
-            token: currentUser.authToken || token,
-            role: user.role || [apiRole],
-            activeRole: user.activeRole || apiRole,
-          });
-        }
-
-        // Store the selected role locally
-        localStorage.setItem("userRole", apiRole);
-
-        toast.dismiss(loadingToastId);
-        toast.success("Role selected successfully!", {
+      if (!token) {
+        toast.error("Unauthorized access. Please login.", {
           duration: 3000,
           position: "top-center",
         });
-
-        // Redirect based on role
-        setTimeout(() => {
-          // For agents and admins, they can skip onboarding or have optional fields
-          // For buyers and transporters, onboarding is required
-          if (apiRole === "agent") {
-            router.push("/onboarding"); // Optional onboarding for agents
-          } else {
-            router.push("/onboarding"); // Required onboarding for buyers/transporters
-          }
-        }, 1500);
-      } else {
-        throw new Error("Invalid response from server");
+        router.replace("/login");
+        return;
       }
+
+      try {
+        console.log("🔍 Step 1: Fetching user profile from /api/profile...");
+
+        // Fetch user profile to get existing roles and activeRole
+        const profileResponse = await axios.get(
+          "https://tractive-be.vercel.app/api/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 10000,
+          }
+        );
+
+        console.log("✅ Step 2: Profile data received:", profileResponse.data);
+
+        const { user: userData } = profileResponse.data;
+        setUser(userData);
+
+        // If user already has an active role, redirect to onboarding or dashboard
+        if (userData.activeRole) {
+          console.log("✅ User has activeRole:", userData.activeRole);
+
+          const onboardingCompleted =
+            localStorage.getItem(
+              `${userData.activeRole}OnboardingCompleted`
+            ) === "true";
+
+          if (onboardingCompleted) {
+            console.log("✅ Onboarding completed, redirecting to dashboard");
+            router.replace(`/${userData.activeRole}`);
+          } else {
+            console.log("✅ Redirecting to onboarding");
+            router.replace("/onboarding");
+          }
+          return;
+        }
+
+        // Update session with fresh profile data
+        const currentUser = getLoggedInUser();
+        if (currentUser) {
+          setUserSession({
+            email: userData.email || currentUser.email,
+            name: userData.name || currentUser.name,
+            token: currentUser.authToken || token,
+            role: Array.isArray(userData.roles) ? userData.roles : [],
+            activeRole: null, // No active role yet
+          });
+        }
+
+        console.log("✅ Step 3: User ready for role selection");
+      } catch (error: any) {
+        console.error("❌ Error fetching profile:", error);
+
+        if (error.response?.status === 401) {
+          toast.error("Session expired. Please login again.", {
+            duration: 3000,
+            position: "top-center",
+          });
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("session");
+          router.replace("/login");
+        } else {
+          toast.error("Failed to load your profile. Please try again.", {
+            duration: 3000,
+            position: "top-center",
+          });
+        }
+      }
+    };
+
+    initializeRoleSelection();
+  }, [router]);
+
+  const handleRoleSelect = async (roleId: string) => {
+    if (loading) return;
+
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Session expired. Please login again.", {
+        duration: 3000,
+        position: "top-center",
+      });
+      router.replace("/login");
+      return;
+    }
+
+    setLoading(true);
+    const toastId = toast.loading(`Setting up your ${roleId} account...`);
+
+    try {
+      console.log("🚀 Step 1: Setting selected role to:", roleId);
+
+      setSelectedRole(roleId);
+
+      // Optional: You might want to call an endpoint to set active role
+      // or this might be handled during onboarding with /api/auth/add-account
+      // For now, we'll just update local state and proceed to onboarding
+
+      // Update session with selected role
+      const currentUser = getLoggedInUser();
+      if (currentUser) {
+        setUserSession({
+          email: currentUser.email,
+          name: currentUser.name,
+          token: currentUser.authToken || token,
+          role: currentUser.role,
+          activeRole: roleId, // Set the selected role as active
+        });
+
+        console.log("✅ Step 2: Session updated with activeRole:", roleId);
+      }
+
+      // Save to localStorage for reference
+      localStorage.setItem("userRole", roleId);
+
+      toast.dismiss(toastId);
+      toast.success(`Great! Let's set up your ${roleId} profile.`);
+
+      console.log(`🎯 Step 3: Redirecting to onboarding for ${roleId}`);
+
+      // Redirect to onboarding form
+      setTimeout(() => {
+        router.push("/onboarding");
+      }, 1500);
     } catch (error: any) {
-      console.error("❌ Role selection error:", error);
-      toast.dismiss(loadingToastId);
+      console.error("❌ Error selecting role:", error);
+      toast.dismiss(toastId);
 
-      let errorMessage = "Failed to set up your account. Please try again.";
+      let errorMessage = "Failed to select role. Please try again.";
 
-      if (error.response?.data?.error) {
+      if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please login again.";
+        setTimeout(() => {
+          router.replace("/login");
+        }, 2000);
+      } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -133,20 +203,14 @@ export default function RegisterAs() {
         errorMessage = error.message;
       }
 
-      // Handle specific error cases
-      if (error.response?.status === 401) {
-        errorMessage = "Session expired. Please login again.";
-        setTimeout(() => {
-          router.replace("/login");
-        }, 2000);
-      }
-
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
       });
+
+      setSelectedRole(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -155,137 +219,89 @@ export default function RegisterAs() {
       <div className="hidden lg:block w-[868px] h-screen">
         <Image
           src="/images/signinLogin.png"
-          alt="signin Login"
-          width={668}
+          alt="Register as"
+          width={868}
           height={1080}
-          className="w-[668px] h-full object-cover"
+          className="w-[868px] h-full object-cover"
         />
       </div>
 
-      <div className="w-full lg:w-[70%] lg:mx-auto flex pt-[3rem] items-center justify-center min-h-screen">
-        <div className="w-[90%] md:w-[80%] lg:w-[60%] mx-auto flex flex-col">
-          <div className="hidden lg:flex w-[80px] h-[70px] mx-auto items-center justify-center">
+      <div className="w-full lg:w-[70%] lg:mx-auto flex items-center justify-center py-10">
+        <div className="w-[90%] md:w-[70%] mx-auto flex flex-col">
+          <div className="hidden lg:flex w-[80px] h-[70px] mx-auto items-center justify-center mb-6">
             <Image
               src="/images/signinloginlogo.png"
-              alt="signin Login"
+              alt="Tractive Logo"
               width={127}
-              height={80}
+              height={127}
               className="w-[127px] h-[80px]"
             />
           </div>
 
-          <div className="flex flex-col gap-[50px] justify-center items-center">
-            <div className="flex flex-col gap-0.5">
-              <p className="text-[15px] text-center font-montserrat text-[#000] font-normal">
-                Register either as a transporter, buyer, or agent
-              </p>
-              <p className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                Want more clarification?
-                <Link
-                  href="/help-center"
-                  className="text-[#538e53] font-medium"
-                >
-                  {" "}
-                  Click here
-                </Link>
-              </p>
-            </div>
+          <h1 className="text-[24px] lg:text-[20px] py-4 text-center font-montserrat text-[#2b2b2b] md:text-[#538e53] font-normal mb-2">
+            How would you like to use Tractive?
+          </h1>
 
-            {/* Role selection */}
-            <div className="Role_selection hide-scrollbar flex gap-8 justify-center items-center">
-              {/* Buyer */}
-              <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("buyers")}
+          <p className="text-center text-[13px] text-[#808080] mb-8 font-montserrat">
+            Select a role to get started
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {roles.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => handleRoleSelect(role.id)}
+                disabled={loading}
+                className={`p-6 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-3 ${
+                  selectedRole === role.id
+                    ? "border-[#538e53] bg-[#538e53] text-white"
+                    : "border-[#e0e0e0] bg-white hover:border-[#538e53]"
+                } ${
+                  loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
               >
-                <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Buyer
-                </span>
-                <div
-                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "buyers"
-                      ? "border-[3.7px] border-[#538e53] shadow-lg"
-                      : "border-[2px] border-transparent"
-                  }`}
-                >
+                <div className="w-16 h-16 rounded-full flex items-center justify-center">
                   <Image
-                    src="/images/AsABuying.png"
-                    alt="As a Buyer"
-                    width={203}
-                    height={184}
-                    className="rounded-[10px] object-cover w-full h-full"
+                    src={role.icon}
+                    alt={role.label}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12"
                   />
                 </div>
-              </div>
 
-              {/* Transporter */}
-              <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("transporters")}
-              >
-                <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Transporter
-                </span>
-                <div
-                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "transporters"
-                      ? "border-[3.7px] border-[#538e53] shadow-lg"
-                      : "border-[2px] border-transparent"
+                <h3 className="font-montserrat font-semibold text-[16px]">
+                  {role.label}
+                </h3>
+
+                <p
+                  className={`text-center text-[12px] font-montserrat ${
+                    selectedRole === role.id
+                      ? "text-[#fefefe]"
+                      : "text-[#808080]"
                   }`}
                 >
-                  <Image
-                    src="/images/AsATransporter.png"
-                    alt="As a Transporter"
-                    width={203}
-                    height={184}
-                    className="rounded-[10px] object-cover w-full h-full"
-                  />
-                </div>
-              </div>
+                  {role.description}
+                </p>
 
-              {/* Agent */}
-              <div
-                className="flex flex-col items-center justify-center gap-1 cursor-pointer min-w-[120px] md:min-w-[160px] snap-center"
-                onClick={() => setActiveRole("agents")}
-              >
-                <span className="text-[14px] text-center font-montserrat text-[#2b2b2b] font-normal">
-                  Agent
-                </span>
-                <div
-                  className={`w-[120px] h-[108px] sm:w-[150px] sm:h-[136px] overflow-hidden rounded-[10px] transition-all duration-300 ${
-                    activeRole === "agents"
-                      ? "border-[3.7px] border-[#538e53] shadow-lg"
-                      : "border-[2px] border-transparent"
-                  }`}
-                >
-                  <Image
-                    src="/images/AsAAgent.png"
-                    alt="As an Agent"
-                    width={203}
-                    height={184}
-                    className="rounded-[10px] object-cover w-full h-full"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Continue Button */}
-            <Button
-              text={
-                isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <FaSpinner className="animate-spin" />
-                    Setting up account...
-                  </span>
-                ) : (
-                  "Continue"
-                )
-              }
-              onClick={handleContinue}
-              className="justify-center mx-auto w-[85%] !rounded-[4px]"
-              disabled={isLoading || !activeRole}
-            />
+                {selectedRole === role.id && (
+                  <div className="mt-2 text-[12px] font-montserrat">
+                    {loading ? "Setting up..." : "Selected ✓"}
+                  </div>
+                )}
+              </button>
+            ))}
           </div>
+
+          <p className="text-center text-[12px] text-[#808080] font-montserrat">
+            Want to change your role later?{" "}
+            <Link
+              href="/account-settings"
+              className="text-[#538e53] hover:underline"
+            >
+              Go to settings
+            </Link>
+          </p>
         </div>
       </div>
     </div>

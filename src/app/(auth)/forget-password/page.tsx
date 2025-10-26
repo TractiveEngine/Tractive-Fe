@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/Button";
+import { Button } from "../../../components/Button";
 import Image from "next/image";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -7,8 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   forgetPasswordSchema,
   ForgetPasswordSchemaType,
-} from "@/schemas/forgetPasswordSchema";
-import { forgotPassword } from "@/utils/foegetPasswordAuth";
+} from "../../../schemas/forgetPasswordSchema";
+import { forgotPassword } from "../../../utils/foegetPasswordAuth";
 
 export default function ForgetPassword() {
   const {

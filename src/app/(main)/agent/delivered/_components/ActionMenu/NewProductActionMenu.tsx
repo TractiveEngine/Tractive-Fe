@@ -30,6 +30,27 @@ export const NewProductActionMenu: React.FC<ActionMenuProps> = ({
     visible: { opacity: 1, y: 0 },
   };
 
+  const handleParkedClick = () => {
+    if (handleParked) {
+      handleParked(productId);
+      // Menu will close after the async operation in parent component
+    }
+  };
+
+  const handleBuyerInfoClick = () => {
+    if (handleBuyerInfo) {
+      handleBuyerInfo(productId);
+      setActiveMenu(null);
+    }
+  };
+
+  const handleCustomerCareClick = () => {
+    if (handleCustomerCare) {
+      handleCustomerCare(productId);
+      setActiveMenu(null);
+    }
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -51,29 +72,20 @@ export const NewProductActionMenu: React.FC<ActionMenuProps> = ({
             transition={{ duration: 0.2 }}
           >
             <button
-              onClick={() => {
-                handleBuyerInfo?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleBuyerInfoClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Buyer Info
             </button>
             <button
-              onClick={() => {
-                handleParked?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleParkedClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
-              Parked
+              Packed
             </button>
             <button
-              onClick={() => {
-                handleCustomerCare?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleCustomerCareClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Customer Care
             </button>

@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { PendingTableList } from "./_components/TransactionTables/PendingTableList";
 import { ApprovedTableList } from "./_components/TransactionTables/ReceivedTableList";
+import { transactionService } from "../../../../services/transactionService";
+// import { transactionService } from "@/services/transactionService";
 
 interface SideProps {
   switchSides: "Pending" | "Approved";
@@ -12,6 +14,9 @@ interface SideProps {
 export default function PendingTransactionListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Pending");
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [approvedCount, setApprovedCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const PendingContainerRef = useRef<HTMLDivElement>(null);
   const ApprovedContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,6 +27,33 @@ export default function PendingTransactionListPage() {
     left: 0,
     width: 0,
   });
+
+  // Fetch transaction counts
+  const fetchTransactionCounts = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch both pending and approved transactions to get counts
+      const [pendingTransactions, approvedTransactions] = await Promise.all([
+        transactionService.getTransactions({ status: "pending" }),
+        transactionService.getTransactions({ status: "approved" }),
+      ]);
+
+      setPendingCount(pendingTransactions.length);
+      setApprovedCount(approvedTransactions.length);
+    } catch (error) {
+      console.error("Error fetching transaction counts:", error);
+      // Set default counts to 0 if there's an error
+      setPendingCount(0);
+      setApprovedCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactionCounts();
+  }, []);
 
   const handleSwitchSides = (side: SideProps["switchSides"]) => {
     setSwitchSides(side);
@@ -47,6 +79,27 @@ export default function PendingTransactionListPage() {
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
+  }, [switchSides]);
+
+  // Refresh counts when switching tabs (optional - for real-time updates)
+  useEffect(() => {
+    if (switchSides === "Pending") {
+      // Refresh pending count when switching to pending tab
+      transactionService
+        .getTransactions({ status: "pending" })
+        .then((transactions) => setPendingCount(transactions.length))
+        .catch((error) =>
+          console.error("Error refreshing pending count:", error)
+        );
+    } else {
+      // Refresh approved count when switching to approved tab
+      transactionService
+        .getTransactions({ status: "approved" })
+        .then((transactions) => setApprovedCount(transactions.length))
+        .catch((error) =>
+          console.error("Error refreshing approved count:", error)
+        );
+    }
   }, [switchSides]);
 
   return (
@@ -77,8 +130,8 @@ export default function PendingTransactionListPage() {
             >
               Pending
             </button>
-            <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px] min-w-[20px] text-center">
+              {loading ? "..." : pendingCount}
             </span>
           </div>
           <div
@@ -97,8 +150,8 @@ export default function PendingTransactionListPage() {
             >
               Approved
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px] min-w-[20px] text-center">
+              {loading ? "..." : approvedCount}
             </span>
           </div>
           <motion.div
@@ -118,9 +171,9 @@ export default function PendingTransactionListPage() {
         id={switchSides === "Pending" ? "Pending-panel" : "Approved-panel"}
       >
         {switchSides === "Pending" ? (
-          <PendingTableList />
+          <PendingTableList onCountChange={setPendingCount} />
         ) : (
-          <ApprovedTableList />
+          <ApprovedTableList onCountChange={setApprovedCount} />
         )}
       </div>
     </div>

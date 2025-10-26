@@ -3,11 +3,11 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
-import { NotificationIcon, SearchIcon } from "@/icons/Icons";
+import { isUserLoggedIn, getLoggedInUser, logoutUser } from "../../../utils/loginAuth"; // Adjust path as needed
+import { NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AgentMobileNavbar";
-import ProfileDropDown from "@/components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
+import ProfileDropDown from "../../../components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 
    interface AgentNavbarProps {
      onLogout?: () => void;

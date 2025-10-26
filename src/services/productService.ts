@@ -1,25 +1,27 @@
 // services/productService.ts
 import axios from "axios";
+import { getAuthToken } from "../utils/loginAuth";
+import { toast } from "sonner";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
 export interface ApiProduct {
   id: string;
-  images: string[];
   name: string;
   description: string;
   price: number;
-  quantity: string;
-  stock: string;
-  rating: string;
-  reviews: number;
+  quantity: number;
+  categories: string[];
+  images: string[];
+  farmerId?: string;
   status: "active" | "out_of_stock";
-  createdAt: string;
-  updatedAt: string;
-  categories?: any[];
-  owner?: string;
-  videos?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  // Optional fields that might be in your UI
+  stock?: string;
+  rating?: string;
+  reviews?: number;
 }
 
 export interface Product extends ApiProduct {
@@ -35,48 +37,43 @@ export interface ProductsResponse {
 
 export interface SearchFilters {
   search?: string;
+  status?: "active" | "out_of_stock";
   year?: string;
   month?: string;
-  status?: "active" | "out_of_stock";
   page?: number;
   limit?: number;
+}
+
+export interface CreateProductData {
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  categories: string[];
+  images: string[];
+  farmerId?: string;
 }
 
 export interface UpdateProductData {
   name?: string;
   description?: string;
   price?: number;
-  quantity?: string;
-  stock?: string;
-  rating?: string;
-  status?: "active" | "out_of_stock";
-  categories?: any[];
+  quantity?: string | number;
+  stock?: string | number;
+  rating?: string | number;
+  categories?: string[];
   images?: string[];
-  reviews?: number;
+  status?: "active" | "out_of_stock";
 }
 
-// Helper function to get auth token - check multiple possible locations
-const getAuthToken = (): string | null => {
-  if (typeof window === "undefined") return null;
-
-  // Check multiple possible token storage locations
-  return (
-    localStorage.getItem("token") ||
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("jwt") ||
-    sessionStorage.getItem("token") ||
-    sessionStorage.getItem("authToken") ||
-    null
-  );
-};
-
-// Helper function to create authenticated headers
+// Auth headers
 const getAuthHeaders = () => {
   const token = getAuthToken();
   if (!token) {
-    console.warn("No auth token found. Check if user is logged in.");
-    return {};
+    console.warn("No auth token found. API calls may fail.");
+    return {
+      "Content-Type": "application/json",
+    };
   }
   return {
     Authorization: `Bearer ${token}`,
@@ -84,174 +81,277 @@ const getAuthHeaders = () => {
   };
 };
 
-// Safe mapper function that ensures serializable data
-const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
-  const safeProduct = {
-    id: String(backendProduct._id || backendProduct.id || ""),
-    images: Array.isArray(backendProduct.images) ? backendProduct.images : [],
-    name: String(backendProduct.name || "-"),
-    description: String(backendProduct.description || "-"),
-    price: Number(backendProduct.price) || 0,
-    quantity: String(backendProduct.quantity || "-"),
-    stock: String(backendProduct.stock || backendProduct.quantity || "-"),
-    rating: String(backendProduct.rating || "-"),
-    reviews: Number(backendProduct.reviews) || 0,
-    status:
-      backendProduct.status === "out_of_stock"
-        ? ("out_of_stock" as const)
-        : ("active" as const),
-    createdAt: backendProduct.createdAt
-      ? new Date(backendProduct.createdAt).toISOString()
-      : new Date().toISOString(),
-    updatedAt: backendProduct.updatedAt
-      ? new Date(backendProduct.updatedAt).toISOString()
-      : new Date().toISOString(),
-    categories: Array.isArray(backendProduct.categories)
-      ? backendProduct.categories
-      : [],
-    owner: String(backendProduct.owner || "-"),
-    videos: Array.isArray(backendProduct.videos) ? backendProduct.videos : [],
-  };
+// Handle API errors
+const handleApiError = (error: any, operation: string) => {
+  console.error(`❌ Error ${operation}:`, error);
 
-  return safeProduct;
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("session");
+      toast.error("Session expired. Please login again.", {
+        duration: 3000,
+        position: "top-center",
+      });
+      window.location.href = "/login";
+      throw new Error("Authentication failed");
+    }
+
+    if (error.response?.status === 403) {
+      throw new Error("Permission denied");
+    }
+
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+  }
+
+  throw new Error(`Failed to ${operation}`);
+};
+
+// Map backend product to frontend format
+const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
+  return {
+    id: backendProduct._id || backendProduct.id,
+    name: backendProduct.name || "",
+    description: backendProduct.description || "",
+    price: backendProduct.price || 0,
+    quantity: backendProduct.quantity || 0,
+    categories: backendProduct.categories || [],
+    images: backendProduct.images || [],
+    farmerId: backendProduct.farmerId,
+    status: backendProduct.status || "active",
+    createdAt: backendProduct.createdAt,
+    updatedAt: backendProduct.updatedAt,
+    // Map additional fields for UI compatibility
+    stock: backendProduct.quantity?.toString() || "0",
+    rating: backendProduct.rating || "0",
+    reviews: backendProduct.reviews || 0,
+  };
 };
 
 export const productService = {
-  // GET /api/products — List products
+  // GET /api/products - Get products with filters
   getProducts: async (
     filters: SearchFilters = {}
   ): Promise<ProductsResponse> => {
     try {
+      console.log("🚀 Fetching products with filters:", filters);
+
       const params = new URLSearchParams();
 
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== "") {
-          params.append(key, value.toString());
-        }
+      if (filters.search) params.append("search", filters.search);
+      if (filters.status) params.append("status", filters.status);
+      if (filters.year) params.append("year", filters.year);
+      if (filters.month) params.append("month", filters.month);
+      if (filters.page) params.append("page", filters.page.toString());
+      if (filters.limit) params.append("limit", filters.limit.toString());
+
+      const url = `${API_URL}/api/products?${params.toString()}`;
+      console.log("📍 Request URL:", url);
+
+      const response = await axios.get(url, {
+        headers: getAuthHeaders(),
+        timeout: 10000,
       });
 
-      const response = await axios.get(`${API_URL}/api/products?${params}`);
+      console.log("✅ Products fetched successfully:", response.data);
 
       let mappedProducts: ApiProduct[] = [];
 
       if (Array.isArray(response.data.products)) {
-        mappedProducts = response.data.products.map((product: any) =>
-          mapBackendToFrontendProduct(product)
+        mappedProducts = response.data.products.map(
+          mapBackendToFrontendProduct
         );
+      } else if (Array.isArray(response.data)) {
+        mappedProducts = response.data.map(mapBackendToFrontendProduct);
       }
 
       return {
         products: mappedProducts,
-        total: Number(response.data.total) || 0,
-        page: Number(response.data.page) || 1,
-        limit: Number(response.data.limit) || 10,
+        total: response.data.total || mappedProducts.length,
+        page: response.data.page || 1,
+        limit: response.data.limit || 10,
       };
     } catch (error) {
-      console.error("Error fetching products:", error);
-      return {
-        products: [],
-        total: 0,
-        page: 1,
-        limit: 10,
-      };
+      return handleApiError(error, "fetch products");
     }
   },
 
-  // GET /api/products/{id} — Get product by ID
-  getProduct: async (id: string): Promise<ApiProduct> => {
+  // GET /api/products/out-of-stock - Get out-of-stock products
+  getOutOfStockProducts: async (
+    filters: Omit<SearchFilters, "status"> = {}
+  ): Promise<ProductsResponse> => {
     try {
-      const response = await axios.get(`${API_URL}/api/products/${id}`);
-      // Based on your API route, response should be { product: ... }
-      return mapBackendToFrontendProduct(response.data.product);
+      console.log("🚀 Fetching out-of-stock products:", filters);
+
+      const params = new URLSearchParams();
+
+      if (filters.search) params.append("search", filters.search);
+      if (filters.year) params.append("year", filters.year);
+      if (filters.month) params.append("month", filters.month);
+      if (filters.page) params.append("page", filters.page.toString());
+      if (filters.limit) params.append("limit", filters.limit.toString());
+
+      const url = `${API_URL}/api/products/out-of-stock?${params.toString()}`;
+      console.log("📍 Request URL:", url);
+
+      const response = await axios.get(url, {
+        headers: getAuthHeaders(),
+        timeout: 10000,
+      });
+
+      console.log("✅ Out-of-stock products fetched:", response.data);
+
+      let mappedProducts: ApiProduct[] = [];
+
+      if (Array.isArray(response.data.products)) {
+        mappedProducts = response.data.products.map(
+          mapBackendToFrontendProduct
+        );
+      } else if (Array.isArray(response.data)) {
+        mappedProducts = response.data.map(mapBackendToFrontendProduct);
+      }
+
+      return {
+        products: mappedProducts,
+        total: response.data.total || mappedProducts.length,
+        page: response.data.page || 1,
+        limit: response.data.limit || 10,
+      };
     } catch (error) {
-      console.error("Error fetching product:", error);
-      return mapBackendToFrontendProduct({});
+      return handleApiError(error, "fetch out-of-stock products");
     }
   },
 
-  // PATCH /api/products/{id} — Update product (admin/agent only)
+  // POST /api/products - Create product
+  createProduct: async (
+    productData: CreateProductData
+  ): Promise<ApiProduct> => {
+    try {
+      console.log("🚀 Creating product:", productData);
+
+      const response = await axios.post(
+        `${API_URL}/api/products`,
+        productData,
+        {
+          headers: getAuthHeaders(),
+          timeout: 30000,
+        }
+      );
+
+      console.log("✅ Product created:", response.data);
+      return mapBackendToFrontendProduct(
+        response.data.product || response.data
+      );
+    } catch (error) {
+      return handleApiError(error, "create product");
+    }
+  },
+
+  // PATCH /api/products/:id/status - Update product status
+  updateProductStatus: async (
+    id: string,
+    status: "active" | "out_of_stock"
+  ): Promise<ApiProduct> => {
+    try {
+      console.log(`🚀 Updating product ${id} status to:`, status);
+
+      const response = await axios.patch(
+        `${API_URL}/api/products/${id}/status`,
+        { status },
+        {
+          headers: getAuthHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      console.log("✅ Product status updated:", response.data);
+      return mapBackendToFrontendProduct(
+        response.data.product || response.data
+      );
+    } catch (error) {
+      return handleApiError(error, "update product status");
+    }
+  },
+
+  // PATCH /api/products/:id - Update product (for edit modal)
   updateProduct: async (
     id: string,
     data: UpdateProductData
   ): Promise<ApiProduct> => {
     try {
-      const token = getAuthToken();
-
-      if (!token) {
-        throw new Error("Please log in to update products.");
-      }
-
-      console.log(`Updating product ${id} with data:`, data);
-      console.log(`Using token: ${token.substring(0, 20)}...`);
+      console.log(`🚀 Updating product ${id}:`, data);
 
       const response = await axios.patch(
         `${API_URL}/api/products/${id}`,
         data,
         {
           headers: getAuthHeaders(),
+          timeout: 15000,
         }
       );
 
-      console.log("Update response:", response.data);
-
-      // Based on your API route, response should be { product: ... }
-      return mapBackendToFrontendProduct(response.data.product);
-    } catch (error: any) {
-      console.error("Error updating product:", error);
-
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        const message = error.response?.data?.error || error.message;
-
-        switch (status) {
-          case 401:
-            throw new Error("Authentication failed. Please log in again.");
-          case 403:
-            throw new Error(
-              "You don't have permission to update products. Admin or agent role required."
-            );
-          case 404:
-            throw new Error("Product not found.");
-          default:
-            throw new Error(`Update failed: ${message}`);
-        }
-      }
-
-      throw new Error("Failed to update product. Please try again.");
+      console.log("✅ Product updated:", response.data);
+      return mapBackendToFrontendProduct(
+        response.data.product || response.data
+      );
+    } catch (error) {
+      return handleApiError(error, "update product");
     }
   },
 
-  // Client-side delete simulation (since no DELETE endpoint exists)
+  // DELETE /api/products/:id - Delete product
   deleteProduct: async (id: string): Promise<void> => {
-    console.log(`Product with ID ${id} deleted (client-side simulation).`);
-    return Promise.resolve();
+    try {
+      console.log(`🚀 Deleting product ${id}`);
+
+      await axios.delete(`${API_URL}/api/products/${id}`, {
+        headers: getAuthHeaders(),
+        timeout: 10000,
+      });
+
+      console.log("✅ Product deleted successfully");
+    } catch (error) {
+      return handleApiError(error, "delete product");
+    }
   },
 
-  // Update product status using PATCH endpoint
-  updateProductStatus: async (
-    id: string,
-    status: "active" | "out_of_stock"
-  ): Promise<ApiProduct> => {
-    return productService.updateProduct( id, {status} );
-  },
-
-  // Client-side bulk operations (since no bulk endpoints exist)
+  // Bulk operations (you might need to implement these on backend or handle sequentially)
   deleteMultipleProducts: async (ids: string[]): Promise<void> => {
-    console.log(
-      `Products with IDs [${ids.join(", ")}] deleted (client-side simulation).`
-    );
-    return Promise.resolve();
+    try {
+      // If backend doesn't support bulk delete, delete sequentially
+      console.log(`🚀 Bulk deleting ${ids.length} products`);
+
+      await Promise.all(ids.map((id) => productService.deleteProduct(id)));
+
+      console.log("✅ All products deleted successfully");
+    } catch (error) {
+      return handleApiError(error, "bulk delete products");
+    }
   },
 
   updateMultipleProductsStatus: async (
     ids: string[],
     status: "active" | "out_of_stock"
   ): Promise<void> => {
-    console.log(
-      `Products with IDs [${ids.join(
-        ", "
-      )}] updated to status ${status} (client-side simulation).`
-    );
-    return Promise.resolve();
+    try {
+      // If backend doesn't support bulk update, update sequentially
+      console.log(
+        `🚀 Bulk updating ${ids.length} products status to: ${status}`
+      );
+
+      await Promise.all(
+        ids.map((id) => productService.updateProductStatus(id, status))
+      );
+
+      console.log("✅ All products status updated successfully");
+    } catch (error) {
+      return handleApiError(error, "bulk update product status");
+    }
   },
 };

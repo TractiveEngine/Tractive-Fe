@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { copyToClipboard } from "@/utils/Clipboard";
+import { copyToClipboard } from "../../../../../utils/Clipboard";
 
 interface CustomerCareModalProps {
   isOpen: boolean;

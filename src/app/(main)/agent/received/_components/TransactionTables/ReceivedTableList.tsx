@@ -4,12 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { Transaction, ApprovedData } from "@/utils/TransactionData";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
+import {
+  transactionService,
+  FrontendTransaction,
+} from "@/services/transactionService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,7 +21,20 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const transactionColumns: ColumnConfig<Transaction>[] = [
+interface ApprovedTableListProps {
+  onCountChange?: (count: number) => void;
+}
+
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const transactionColumns: ColumnConfig<FrontendTransaction>[] = [
   {
     header: "Item",
     key: "name",
@@ -26,11 +42,11 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     render: (transaction) => (
       <div className="flex items-center gap-2">
         <Image
-          src={transaction.image}
-          alt={transaction.name}
+          src={transaction.image || "/images/placeholder-product.jpg"}
+          alt={transaction.name || "Product"}
           width={53}
           height={30}
-          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
+          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px] rounded"
         />
         <div className="flex flex-col">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
@@ -39,10 +55,16 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {/* Show first two words on mobile, full description on larger screens */}
             <span className="inline sm:hidden">
-              {transaction.description.split(" ").slice(0, 2).join(" ")}
-              {transaction.description.split(" ").length > 2 ? "..." : ""}
+              {transaction.description?.split(" ").slice(0, 2).join(" ") ||
+                "Product description"}
+              {transaction.description &&
+              transaction.description.split(" ").length > 2
+                ? "..."
+                : ""}
             </span>
-            <span className="hidden sm:inline">{transaction.description}</span>
+            <span className="hidden sm:inline">
+              {transaction.description || "Product description"}
+            </span>
           </span>
         </div>
       </div>
@@ -54,11 +76,11 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     minWidth: "min-w-[100px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
-        <span>{transaction.id}</span>
+        <span>{transaction.id.slice(-8)}</span>
         <button
           onClick={() => copyToClipboard(transaction.id)}
-          title="Copy Product ID"
-          aria-label="Copy Product ID"
+          title="Copy Transaction ID"
+          aria-label="Copy Transaction ID"
           className="cursor-pointer"
         >
           <IdCopyIcon />
@@ -70,36 +92,49 @@ const transactionColumns: ColumnConfig<Transaction>[] = [
     header: "Sold",
     key: "sold",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.sold.toFixed(2)}`,
+    render: (transaction) =>
+      `$${transaction.sold?.toFixed(2) || transaction.amount.toFixed(2)}`,
   },
   {
     header: "Commission",
     key: "commission",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.commission.toFixed(2)}`,
+    render: (transaction) =>
+      `$${
+        transaction.commission?.toFixed(2) ||
+        (transaction.amount * 0.1).toFixed(2)
+      }`,
   },
   {
     header: "Buyer",
     key: "buyer",
     minWidth: "min-w-[100px]",
+    render: (transaction) => transaction.buyer?.name || "Unknown Buyer",
   },
   {
     header: "Date",
-    key: "date",
+    key: "createdAt",
     minWidth: "min-w-[100px]",
+    render: (transaction) => formatDate(transaction.createdAt),
   },
 ];
-export const ApprovedTableList = () => {
- 
+
+export const ApprovedTableList = ({
+  onCountChange,
+}: ApprovedTableListProps) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
     useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [transactions, setTransactions] = useState<FrontendTransaction[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
     "Jan",
@@ -115,7 +150,52 @@ export const ApprovedTableList = () => {
     "Nov",
     "Dec",
   ];
-  
+
+  // Fetch transactions
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      if (!transactionService.isAuthenticated()) {
+        setError("Authentication required. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      const params = {
+        status: "approved" as const,
+        search: searchQuery || undefined,
+        year: selectedYear || undefined,
+        month: selectedMonth || undefined,
+      };
+
+      const data = await transactionService.getTransactions(params);
+      setTransactions(data);
+
+      // Update the count in parent component
+      if (onCountChange) {
+        onCountChange(data.length);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load transactions";
+      setError(errorMessage);
+      console.error("Error fetching transactions:", err);
+
+      // Update count to 0 on error
+      if (onCountChange) {
+        onCountChange(0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [searchQuery, selectedYear, selectedMonth]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -134,7 +214,7 @@ export const ApprovedTableList = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -146,12 +226,43 @@ export const ApprovedTableList = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  
+
+  const handleCustomerCare = (transactionId: string) => {
+    console.log(transactionId);
+    setIsCustomerCareModalOpen(true);
+  };
+
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
-  
+
+  const hasActiveFilters = searchQuery || selectedYear || selectedMonth;
+  const showNoData = !loading && transactions.length === 0;
+
+  if (loading) {
+    return (
+      <div className="relative bg-[#fefefe] flex flex-col items-center w-[95%] mx-auto mb-[2rem] px-6 py-6 gap-3 rounded-[7px]">
+        <div className="flex justify-center items-center py-10">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-[14px] font-montserrat text-[#808080]">
+              Loading transactions...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center p-8 text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
@@ -161,7 +272,9 @@ export const ApprovedTableList = () => {
               <div className="relative w-[100%] sm:w-[70%] flex-grow">
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search by item, ID, or buyer"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search transactions"
                 />
@@ -198,7 +311,7 @@ export const ApprovedTableList = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -265,7 +378,7 @@ export const ApprovedTableList = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -310,20 +423,45 @@ export const ApprovedTableList = () => {
             </div>
           </div>
         </div>
-        <div className="my-6">
-          <TableList<Transaction>
-            dataType="pending"
-            columns={transactionColumns}
-            initialData={ApprovedData}
-            ActionMenuComponent={TransactionActionMenu}
-            handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
-          />
+
+        <div className="my-6 overflow-x-auto">
+          {showNoData ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Image
+                src="/images/noData.png"
+                alt="No Data"
+                width={106}
+                height={60}
+              />
+              <p className="text-[13px] font-montserrat mb-2">
+                No approved transactions found
+              </p>
+              <p className="text-[11px] font-montserrat">
+                {hasActiveFilters
+                  ? "Try adjusting your search or filters"
+                  : transactionService.isAuthenticated()
+                  ? "No approved transactions at the moment"
+                  : "Please login to view transactions"}
+              </p>
+            </div>
+          ) : (
+            <TableList<FrontendTransaction>
+              dataType="received"
+              columns={transactionColumns}
+              initialData={transactions}
+              ActionMenuComponent={TransactionActionMenu}
+              handleCustomerCare={handleCustomerCare}
+            />
+          )}
         </div>
+
         <CustomerCareModal
           isOpen={isCustomerCareModalOpen}
-          onClose={() => setIsCustomerCareModalOpen(false)}
+          onClose={() => {
+            setIsCustomerCareModalOpen(false);
+          }}
         />
       </div>
     </div>
   );
-}
+};

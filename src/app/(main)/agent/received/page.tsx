@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { transactionService } from "../../../../services/transactionService";
 import { PendingTableList } from "./_components/TransactionTables/PendingTableList";
 import { ApprovedTableList } from "./_components/TransactionTables/ReceivedTableList";
 
@@ -9,9 +10,12 @@ interface SideProps {
   setSwitchSides: React.Dispatch<React.SetStateAction<"Pending" | "Approved">>;
 }
 
-export default function ReceivedTransactionListPage() {
+export default function ApprovedTransactionListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Approved");
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [approvedCount, setApprovedCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const PendingContainerRef = useRef<HTMLDivElement>(null);
   const ApprovedContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,6 +27,33 @@ export default function ReceivedTransactionListPage() {
     width: 0,
   });
 
+  // Fetch transaction counts
+  const fetchTransactionCounts = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch both pending and approved transactions to get counts
+      const [pendingTransactions, approvedTransactions] = await Promise.all([
+        transactionService.getTransactions({ status: "pending" }),
+        transactionService.getTransactions({ status: "approved" }),
+      ]);
+
+      setPendingCount(pendingTransactions.length);
+      setApprovedCount(approvedTransactions.length);
+    } catch (error) {
+      console.error("Error fetching transaction counts:", error);
+      // Set default counts to 0 if there's an error
+      setPendingCount(0);
+      setApprovedCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactionCounts();
+  }, []);
+
   const handleSwitchSides = (side: SideProps["switchSides"]) => {
     setSwitchSides(side);
   };
@@ -31,9 +62,9 @@ export default function ReceivedTransactionListPage() {
   useEffect(() => {
     const updateIndicator = () => {
       const activeContainer =
-        switchSides === "Approved"
-          ? ApprovedContainerRef.current
-          : PendingContainerRef.current;
+        switchSides === "Pending"
+          ? PendingContainerRef.current
+          : ApprovedContainerRef.current;
       const container = containerRef.current;
       if (activeContainer && container) {
         const containerRect = container.getBoundingClientRect();
@@ -49,10 +80,31 @@ export default function ReceivedTransactionListPage() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [switchSides]);
 
+  // Refresh counts when switching tabs (optional - for real-time updates)
+  useEffect(() => {
+    if (switchSides === "Pending") {
+      // Refresh pending count when switching to pending tab
+      transactionService
+        .getTransactions({ status: "pending" })
+        .then((transactions) => setPendingCount(transactions.length))
+        .catch((error) =>
+          console.error("Error refreshing pending count:", error)
+        );
+    } else {
+      // Refresh approved count when switching to approved tab
+      transactionService
+        .getTransactions({ status: "approved" })
+        .then((transactions) => setApprovedCount(transactions.length))
+        .catch((error) =>
+          console.error("Error refreshing approved count:", error)
+        );
+    }
+  }, [switchSides]);
+
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
       <h1 className="text-[16px] font-normal font-montserrat mb-4 px-6 pt-6 sm:text-lg">
-    Transaction history
+        Transaction history
       </h1>
       <div className="flex flex-col">
         <div
@@ -77,8 +129,8 @@ export default function ReceivedTransactionListPage() {
             >
               Pending
             </button>
-            <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px] min-w-[20px] text-center">
+              {loading ? "..." : pendingCount}
             </span>
           </div>
           <div
@@ -97,8 +149,8 @@ export default function ReceivedTransactionListPage() {
             >
               Approved
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px] min-w-[20px] text-center">
+              {loading ? "..." : approvedCount}
             </span>
           </div>
           <motion.div
@@ -118,9 +170,9 @@ export default function ReceivedTransactionListPage() {
         id={switchSides === "Pending" ? "Pending-panel" : "Approved-panel"}
       >
         {switchSides === "Pending" ? (
-          <PendingTableList />
+          <PendingTableList onCountChange={setPendingCount} />
         ) : (
-          <ApprovedTableList />
+          <ApprovedTableList onCountChange={setApprovedCount} />
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AdminActionMenuProps } from "../AdminActionMenuProps";
 import "../../Table.css";
-import { TickIcon } from "@/app/(main)/agent/_components/Icons/AgentIcons";
+import { TickIcon } from "../../../../../app/(main)/agent/_components/Icons/AgentIcons";
 
 interface BaseData {
   id: string;

@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { DeliveredProduct } from "./_components/Tables/DeliveredProduct";
 import { NewProduct } from "./_components/Tables/NewProduct";
+import { DeliveredProduct } from "./_components/Tables/DeliveredProduct";
 import { PackedProduct } from "./_components/Tables/PackedProduct";
+import { OrdersApiService } from "@/services/OrderService";
 
 interface SideProps {
   switchSides: "New" | "Packed" | "Delivered";
@@ -15,6 +16,12 @@ interface SideProps {
 export default function ProduceListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Delivered");
+  const [orderCounts, setOrderCounts] = useState({
+    new: 0,
+    packed: 0,
+    delivered: 0,
+  });
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   const newContainerRef = useRef<HTMLDivElement>(null);
   const parkedContainerRef = useRef<HTMLDivElement>(null);
   const deliveredContainerRef = useRef<HTMLDivElement>(null);
@@ -31,6 +38,59 @@ export default function ProduceListPage() {
     setSwitchSides(side);
   };
 
+  // Fetch order counts
+  useEffect(() => {
+    const fetchCounts = async () => {
+      setIsLoadingCounts(true);
+      console.log("Fetching order counts...", isLoadingCounts);
+      try {
+        const [
+          newOrdersResponse,
+          packedOrdersResponse,
+          deliveredOrdersResponse,
+        ] = await Promise.all([
+          OrdersApiService.getOrders({ status: "pending" }),
+          OrdersApiService.getOrders({ status: "parked" }),
+          OrdersApiService.getOrders({ status: "delivered" }),
+        ]);
+
+        // FIX: Ensure all responses are arrays before getting length
+        const newOrders = Array.isArray(newOrdersResponse)
+          ? newOrdersResponse
+          : [];
+        const packedOrders = Array.isArray(packedOrdersResponse)
+          ? packedOrdersResponse
+          : [];
+        const deliveredOrders = Array.isArray(deliveredOrdersResponse)
+          ? deliveredOrdersResponse
+          : [];
+
+        setOrderCounts({
+          new: newOrders.length,
+          packed: packedOrders.length,
+          delivered: deliveredOrders.length,
+        });
+      } catch (error) {
+        console.error("Failed to fetch order counts:", error);
+        // FIX: Set counts to 0 on error instead of keeping previous values
+        setOrderCounts({
+          new: 0,
+          packed: 0,
+          delivered: 0,
+        });
+      } finally {
+        setIsLoadingCounts(false);
+      }
+    };
+
+    fetchCounts();
+
+    // Refresh counts every 30 seconds
+    const interval = setInterval(fetchCounts, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update indicator position and width when switchSides changes
   useEffect(() => {
     const updateIndicator = () => {
       let activeContainer: HTMLDivElement | null = null;
@@ -67,7 +127,7 @@ export default function ProduceListPage() {
           className="relative flex items-center gap-4 sm:gap-6 mb-2 px-6"
           ref={containerRef}
           role="tablist"
-          aria-label="Stock management tabs"
+          aria-label="Order management tabs"
         >
           <div
             className="flex items-center gap-1 relative"
@@ -78,15 +138,15 @@ export default function ProduceListPage() {
               id="new-tab"
               onClick={() => handleSwitchSides("New")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "New" ? "text-[#538e53]" : "text-[#538e53]"
-              }`}
+                switchSides === "New" ? "text-[#538e53]" : "text-[#808080]"
+              } transition-colors duration-200`}
               aria-selected={switchSides === "New"}
               aria-controls="new-panel"
             >
               New
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
+              {orderCounts.new}
             </span>
           </div>
           <div
@@ -98,15 +158,15 @@ export default function ProduceListPage() {
               id="parked-tab"
               onClick={() => handleSwitchSides("Packed")}
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
-                switchSides === "Packed" ? "text-[#538e53]" : "text-[#538e53]"
-              }`}
+                switchSides === "Packed" ? "text-[#538e53]" : "text-[#808080]"
+              } transition-colors duration-200`}
               aria-selected={switchSides === "Packed"}
               aria-controls="parked-panel"
             >
-              Parked
+              Packed
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
+              {orderCounts.packed}
             </span>
           </div>
           <div
@@ -120,15 +180,15 @@ export default function ProduceListPage() {
               className={`text-[14px] font-medium cursor-pointer p-2 sm:text-base ${
                 switchSides === "Delivered"
                   ? "text-[#538e53]"
-                  : "text-[#538e53]"
-              }`}
+                  : "text-[#808080]"
+              } transition-colors duration-200`}
               aria-selected={switchSides === "Delivered"}
               aria-controls="delivered-panel"
             >
               Delivered
             </button>
-            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+            <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
+              {orderCounts.delivered}
             </span>
           </div>
           <motion.div
@@ -149,6 +209,13 @@ export default function ProduceListPage() {
             : switchSides === "Packed"
             ? "parked-panel"
             : "delivered-panel"
+        }
+        aria-labelledby={
+          switchSides === "New"
+            ? "new-tab"
+            : switchSides === "Packed"
+            ? "parked-tab"
+            : "delivered-tab"
         }
       >
         {switchSides === "New" ? (

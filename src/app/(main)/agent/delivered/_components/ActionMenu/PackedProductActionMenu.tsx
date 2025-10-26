@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ActionMenuProps } from "../../../_components/ActionMenuProps";
 import { ThreeDotIcon } from "../../../produce-list/_components/table/ActionMenu";
 
-export const ParkedProductActionMenu: React.FC<ActionMenuProps> = ({
+export const PackedProductActionMenu: React.FC<ActionMenuProps> = ({
   productId,
   activeMenu,
   setActiveMenu,
@@ -30,6 +30,27 @@ export const ParkedProductActionMenu: React.FC<ActionMenuProps> = ({
     visible: { opacity: 1, y: 0 },
   };
 
+  const handleDeliveredClick = () => {
+    if (handleDelivered) {
+      handleDelivered(productId);
+      // Menu will close after the async operation in parent component
+    }
+  };
+
+  const handleBuyerInfoClick = () => {
+    if (handleBuyerInfo) {
+      handleBuyerInfo(productId);
+      setActiveMenu(null);
+    }
+  };
+
+  const handleCustomerCareClick = () => {
+    if (handleCustomerCare) {
+      handleCustomerCare(productId);
+      setActiveMenu(null);
+    }
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -43,7 +64,7 @@ export const ParkedProductActionMenu: React.FC<ActionMenuProps> = ({
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="absolute w-[8rem] py-1 px-1 -bottom-[1.5rem] right-11 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
+            className="absolute w-[9rem] py-1 px-1 -bottom-[1.5rem] right-11 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-50"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -51,29 +72,20 @@ export const ParkedProductActionMenu: React.FC<ActionMenuProps> = ({
             transition={{ duration: 0.2 }}
           >
             <button
-              onClick={() => {
-                handleBuyerInfo?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleBuyerInfoClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Buyer Info
             </button>
             <button
-              onClick={() => {
-                handleDelivered?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleDeliveredClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Delivered
             </button>
             <button
-              onClick={() => {
-                handleCustomerCare?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleCustomerCareClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Customer Care
             </button>

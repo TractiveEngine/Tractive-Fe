@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
-import { AdminAsideNav } from "@/components/nav/AdminNav/AdminAsideNav";
-import { AdminNavbar } from "@/components/nav/AdminNav/AdminNavbar";
-import { AdminAsideNavMobile } from "@/components/nav/AdminNav/AdminAsideNavMobile";
+import { isUserLoggedIn, getLoggedInUser, logoutUser } from "../../../utils/loginAuth";
+import { AdminAsideNav } from "../../../components/nav/AdminNav/AdminAsideNav";
+import { AdminNavbar } from "../../../components/nav/AdminNav/AdminNavbar";
+import { AdminAsideNavMobile } from "../../../components/nav/AdminNav/AdminAsideNavMobile";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
@@ -38,7 +38,7 @@ export default function AgentLayout({
   const router = useRouter();
   const breakpoint = useBreakpoint();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function AgentLayout({
         if (loggedIn) {
           const userData = getLoggedInUser();
           if (userData && "fullName" in userData && "email" in userData) {
-            setUser({ fullName: userData.fullName, email: userData.email });
+            setUser({ name: userData.name, email: userData.email });
           } else {
             setUser(null);
             setIsLoggedIn(false);

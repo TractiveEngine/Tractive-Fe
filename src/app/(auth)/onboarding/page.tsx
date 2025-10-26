@@ -1,22 +1,16 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  getOnboardingSchema,
-  OnboardingSchemaType,
-} from "@/schemas/onboardingSchema";
-import Image from "next/image";
-import { Button } from "@/components/Button";
+import Image from "next/image"
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
 import { toast } from "sonner";
-import {
-  getAuthToken,
-  getLoggedInUser,
-  setUserSession,
-} from "@/utils/loginAuth";
+
 import axios from "axios";
+import { getOnboardingSchema, OnboardingSchemaType } from "../../../schemas/onboardingSchema";
+import { getAuthToken, getLoggedInUser, setUserSession } from "../../../utils/loginAuth";
+import { Button } from "../../../components/Button";
 
 const interests = [
   "fish",
@@ -134,129 +128,140 @@ export default function OnboardingForm() {
     });
   };
 
-  const onSubmit = async (data: OnboardingSchemaType) => {
-    const token = getAuthToken();
-    if (!token) {
-      toast.error("Unauthorized access. Please login.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-      return;
-    }
+const onSubmit = async (data: OnboardingSchemaType) => {
+  const token = getAuthToken();
+  if (!token) {
+    toast.error("Unauthorized access. Please login.", {
+      duration: 3000,
+      position: "top-center",
+    });
+    router.replace("/login");
+    return;
+  }
 
-    // Use the data from the form instead of separate state
-    if (!data.interests || data.interests.length === 0) {
-      toast.error("Please select at least one interest.");
-      return;
-    }
+  if (!data.interests || data.interests.length === 0) {
+    toast.error("Please select at least one interest.");
+    return;
+  }
 
-    setLoading(true);
-    const toastId = toast.loading("Completing your profile...");
+  setLoading(true);
+  const toastId = toast.loading("Completing your profile...");
 
-    try {
-      const finalData = {
-        ...data,
+  try {
+    const finalData = {
+      ...data,
+      role: userRole,
+    };
+
+    console.log("🚀 Step 1: Submitting onboarding data:", finalData);
+
+    // Step 1: Call add-account API to update user profile with onboarding data
+    const response = await axios.post(
+      "https://tractive-be.vercel.app/api/auth/add-account",
+      {
         role: userRole,
-      };
-
-      console.log("🚀 Submitting onboarding data:", finalData);
-
-      // Call add-account API to update user profile with onboarding data
-      const response = await axios.post(
-        "https://tractive-be.vercel.app/api/auth/add-account",
-        {
-          role: userRole,
-          businessName: finalData.businessName || undefined,
-          villageOrLocalMarket: finalData.villageOrLocalMarket,
-          phone: finalData.phone,
-          nin: finalData.nin || undefined,
-          interests: finalData.interests,
+        businessName: finalData.businessName || undefined,
+        villageOrLocalMarket: finalData.villageOrLocalMarket,
+        phone: finalData.phone,
+        nin: finalData.nin || undefined,
+        interests: finalData.interests,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 15000,
-        }
-      );
-
-      console.log("✅ Onboarding response:", response.data);
-
-      // Update local session with role information since backend returns user data
-      if (response.data.user) {
-        const currentUser = getLoggedInUser();
-        if (currentUser) {
-          setUserSession({
-            email: currentUser.email,
-            name: currentUser.name,
-            token: currentUser.authToken || token,
-            role: response.data.user.role || [userRole],
-            activeRole: response.data.user.activeRole || userRole,
-          });
-        }
-      } else {
-        // Fallback: update session with role info manually
-        const currentUser = getLoggedInUser();
-        if (currentUser) {
-          let updatedRoles: string[] = currentUser.role;
-          if (userRole && typeof userRole === "string") {
-            updatedRoles = currentUser.role.includes(userRole)
-              ? currentUser.role
-              : [...currentUser.role, userRole];
-          }
-
-          const filteredRoles = updatedRoles.filter(
-            (role): role is string => typeof role === "string" && role !== null
-          );
-
-          setUserSession({
-            email: currentUser.email,
-            name: currentUser.name,
-            token: currentUser.authToken || token,
-            role: filteredRoles,
-            activeRole: userRole,
-          });
-        }
+        timeout: 15000,
       }
+    );
 
-      // Save completion status
-      localStorage.setItem(`${userRole}OnboardingCompleted`, "true");
-      localStorage.setItem(
-        `onboarding-data-${userRole}`,
-        JSON.stringify(finalData)
-      );
+    console.log("✅ Step 2: Add-account response:", response.data);
 
-      toast.dismiss(toastId);
-      toast.success("Profile completed successfully!");
+    // Step 2: ALWAYS fetch fresh profile data after onboarding
+    console.log("🔍 Step 3: Fetching updated profile from /api/profile...");
 
-      // Redirect to user's dashboard
-      setTimeout(() => {
-        router.push(`/${userRole}`);
-      }, 1500);
-    } catch (error: any) {
-      console.error("❌ Onboarding error:", error);
-      toast.dismiss(toastId);
-
-      let errorMessage = "Failed to complete profile. Please try again.";
-
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
+    const profileResponse = await axios.get(
+      "https://tractive-be.vercel.app/api/profile",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
       }
+    );
 
-      toast.error(errorMessage, {
-        duration: 5000,
-        position: "top-center",
-      });
-    } finally {
-      setLoading(false);
+    console.log("✅ Step 4: Updated profile received:", profileResponse.data);
+
+    const updatedUser = profileResponse.data.user;
+
+    if (!updatedUser) {
+      throw new Error("Failed to fetch updated profile data");
     }
-  };
+
+    // Step 3: Update session with fresh profile data from /api/profile
+    setUserSession({
+      email: updatedUser.email,
+      name: updatedUser.name,
+      token,
+      role: Array.isArray(updatedUser.roles) ? updatedUser.roles : [userRole],
+      activeRole: updatedUser.activeRole || userRole,
+    });
+
+    console.log("✅ Step 5: Session updated with:", {
+      email: updatedUser.email,
+      name: updatedUser.name,
+      roles: updatedUser.roles,
+      activeRole: updatedUser.activeRole || userRole,
+    });
+
+    // Step 4: Save local completion markers
+    localStorage.setItem(`${userRole}OnboardingCompleted`, "true");
+    localStorage.setItem(
+      `onboarding-data-${userRole}`,
+      JSON.stringify(finalData)
+    );
+
+    toast.dismiss(toastId);
+    toast.success("Profile completed successfully!");
+
+    console.log(`🎯 Redirecting to /${userRole} dashboard`);
+
+    // Step 5: Redirect to user's dashboard
+    setTimeout(() => {
+      router.push(`/${userRole}`);
+    }, 1500);
+  } catch (error: any) {
+    console.error("❌ Onboarding error:", error);
+    toast.dismiss(toastId);
+
+    let errorMessage = "Failed to complete profile. Please try again.";
+
+    // Handle different error scenarios
+    if (error.response?.status === 401) {
+      errorMessage = "Session expired. Please login again.";
+      setTimeout(() => {
+        // Clear session on auth failure
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("session");
+        router.replace("/login");
+      }, 1500);
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    toast.error(errorMessage, {
+      duration: 5000,
+      position: "top-center",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const isFieldRequired = (field: string): boolean => {
     if (userRole === "agent") {

@@ -6,10 +6,11 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { NewProductActionMenu } from "../ActionMenu/NewProductActionMenu";
 import "../../../Table.css";
-import { NewProductData, Product } from "@/utils/ProductData";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
+import { Order, OrdersApiService } from "@/services/OrderService";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface ColumnConfig<T> {
   header: string;
@@ -18,7 +19,7 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const productColumns: ColumnConfig<Product>[] = [
+const productColumns: ColumnConfig<Order>[] = [
   {
     header: "Item",
     key: "name",
@@ -37,7 +38,6 @@ const productColumns: ColumnConfig<Product>[] = [
             {product.name}
           </span>
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {/* Show first two words on mobile, full description on larger screens */}
             <span className="inline sm:hidden">
               {product.description.split(" ").slice(0, 2).join(" ")}
               {product.description.split(" ").length > 2 ? "..." : ""}
@@ -90,12 +90,17 @@ const productColumns: ColumnConfig<Product>[] = [
 ];
 
 export const NewProduct: React.FC = () => {
+  // Use the network status hook
+  useNetworkStatus();
+
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [products, setProducts] = useState<Product[]>(NewProductData);
+  const [products, setProducts] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +119,47 @@ export const NewProduct: React.FC = () => {
     "Nov",
     "Dec",
   ];
+
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await OrdersApiService.getOrders({
+        status: "pending",
+        search: searchQuery || undefined,
+        year: selectedYear || undefined,
+        month: selectedMonth
+          ? String(months.indexOf(selectedMonth) + 1).padStart(2, "0")
+          : undefined,
+      });
+
+      // FIX: Ensure response is always an array
+      const orders = Array.isArray(response) ? response : [];
+      setProducts(orders);
+    } catch (err) {
+      setError("Failed to load orders. Please try again.");
+      console.error("Error fetching orders:", err);
+      // FIX: Set empty array on error to prevent map error
+      setProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [selectedYear, selectedMonth]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery !== undefined) {
+        fetchOrders();
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -149,8 +195,15 @@ export const NewProduct: React.FC = () => {
     alert(`View buyer info for product ID: ${id}`);
   };
 
-  const handleParked = (id: string) => {
-    alert(`Mark product ID: ${id} as Parked`);
+  const handleParked = async (id: string) => {
+    try {
+      await OrdersApiService.updateOrderStatus(id, "parked");
+      alert(`Order ${id} marked as Parked`);
+      fetchOrders(); // Refresh the list
+    } catch (err) {
+      alert("Failed to update order status");
+      console.error(err);
+    }
   };
 
   const handleCustomerCare = (id: string) => {
@@ -167,23 +220,6 @@ export const NewProduct: React.FC = () => {
     const allChecked = products.length > 0 && products.every((p) => p.checked);
     setProducts(products.map((p) => ({ ...p, checked: !allChecked })));
   };
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.id.includes(searchQuery);
-    const matchesYear =
-      !selectedYear || product.date.includes(searchQuery.toLowerCase());
-    const matchesMonth =
-      !selectedMonth ||
-      product.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
-      );
-    return matchesSearch && matchesYear && matchesMonth;
-  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -347,20 +383,52 @@ export const NewProduct: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="mt-6 w-full">
-        <TableList<Product>
-          dataType="new"
-          columns={productColumns}
-          initialData={filteredProducts}
-          ActionMenuComponent={NewProductActionMenu}
-          handleBuyerInfo={handleBuyerInfo}
-          handleParked={handleParked}
-          handleCustomerCare={handleCustomerCare}
-          handleCheckboxChange={handleCheckboxChange}
-          handleSelectAll={handleSelectAll}
-          allChecked={products.length > 0 && products.every((p) => p.checked)}
-        />
-      </div>
+
+      {error && (
+        <div className="mt-4 px-6 py-3 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="mt-6 flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#538e53]"></div>
+          <span className="ml-3 text-[#538e53]">Loading orders...</span>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <Image
+            src="/images/noData.png"
+            alt="No Data"
+            width={106}
+            height={60}
+            priority
+          />
+          <p className="text-[13px] font-montserrat mb-2 mt-4">
+            No new orders found
+          </p>
+          <p className="text-[11px] font-montserrat text-center px-4">
+            {searchQuery || selectedYear || selectedMonth
+              ? "Try adjusting your filters or search query"
+              : "No pending orders at the moment"}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-6 w-full">
+          <TableList<Order>
+            dataType="new"
+            columns={productColumns}
+            initialData={products}
+            ActionMenuComponent={NewProductActionMenu}
+            handleBuyerInfo={handleBuyerInfo}
+            handleParked={handleParked}
+            handleCustomerCare={handleCustomerCare}
+            handleCheckboxChange={handleCheckboxChange}
+            handleSelectAll={handleSelectAll}
+            allChecked={products.length > 0 && products.every((p) => p.checked)}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -12,7 +12,10 @@ import {
   ProfileIcon,
   XModalIcon,
 } from "./Icons/AgentIcons";
+import { toast } from "sonner";
 import { ItemDetailsForm } from "./ItemDetailsForm";
+import { getAuthToken } from "@/utils/loginAuth";
+import axios from "axios";
 
 interface AddToStoreProps {
   isOpen: boolean;
@@ -35,6 +38,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string>("");
+  const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
 
   interface Profile {
     id: number;
@@ -57,12 +61,68 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     "Vegetables",
   ];
 
-  // Check authentication on component mount
+  // Check authentication on component mount or when modal opens
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("authToken");
-      if (!token && isOpen) {
-        router.push("/login");
+    const checkAuth = async () => {
+      if (!isOpen) {
+        setIsAuthChecked(false);
+        return;
+      }
+
+      try {
+        console.log("🔍 Step 1: Checking authentication for AddToStore...");
+
+        const token = getAuthToken();
+
+        if (!token) {
+          console.log("❌ No auth token found, redirecting to login");
+          toast.error("Please login first to add products", {
+            duration: 3000,
+            position: "top-center",
+          });
+          router.push("/login");
+          onClose();
+          return;
+        }
+
+        console.log("✅ Step 2: Auth token verified");
+
+        // Verify token is still valid by calling profile
+        try {
+          const profileResponse = await axios.get(
+            "https://tractive-be.vercel.app/api/profile",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              timeout: 10000,
+            }
+          );
+
+          console.log("✅ Step 3: Profile verified, user authenticated", profileResponse);
+          setIsAuthChecked(true);
+        } catch (profileError: any) {
+          if (profileError.response?.status === 401) {
+            console.log("❌ Token expired or invalid");
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("session");
+            toast.error("Session expired. Please login again.", {
+              duration: 3000,
+              position: "top-center",
+            });
+            router.push("/login");
+            onClose();
+          } else {
+            throw profileError;
+          }
+        }
+      } catch (error) {
+        console.error("❌ Auth check error:", error);
+        toast.error("Failed to verify authentication", {
+          duration: 3000,
+          position: "top-center",
+        });
         onClose();
       }
     };
@@ -87,26 +147,22 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   ): void => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         alert("Please select a valid image file");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert("Image size should be less than 5MB");
         return;
       }
 
-      // Update files array
       setImageFiles((prev) => {
         const newFiles = [...prev];
         newFiles[index] = file;
         return newFiles;
       });
 
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreviews((prev) => {
@@ -124,13 +180,11 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   ): void => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("video/")) {
         alert("Please select a valid video file");
         return;
       }
 
-      // Validate file size (max 50MB)
       if (file.size > 50 * 1024 * 1024) {
         alert("Video size should be less than 50MB");
         return;
@@ -138,7 +192,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
 
       setVideoFile(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setVideoPreview(e.target?.result as string);
@@ -160,7 +213,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
       return newPreviews;
     });
 
-    // Reset the file input
     if (fileInputRefs.current[index]) {
       fileInputRefs.current[index]!.value = "";
     }
@@ -220,6 +272,28 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
+
+  // Don't render until auth is checked
+  if (isOpen && !isAuthChecked) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50"
+          >
+            <div className="bg-[#fefefe] rounded-lg p-8">
+              <p className="text-[#2b2b2b] font-montserrat">
+                Verifying authentication...
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -330,7 +404,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
 
                 {/* Product section */}
                 <div className="flex flex-col sm:flex-row w-[88%] mx-auto items-center justify-center gap-4">
-                  {/* Product Name Input */}
                   <div className="w-full md:w-1/2">
                     <input
                       type="text"
@@ -341,7 +414,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                     />
                   </div>
 
-                  {/* Category Dropdown */}
                   <div
                     ref={categoryDropdownRef}
                     className="relative w-full md:w-1/2"

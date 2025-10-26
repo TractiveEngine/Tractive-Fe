@@ -3,8 +3,8 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn } from "@/utils/loginAuth";
-import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
+import { isUserLoggedIn } from "../../../utils/loginAuth";
+import { MenuIcon, NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 
 export const TransporterMobileNavbar = () => {

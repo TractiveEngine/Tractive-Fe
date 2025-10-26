@@ -2,10 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { SwapIcon } from "@/icons/Icon1";
+import { SwapIcon } from "../../../icons/Icon1";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getAuthToken, getLoggedInUser } from "@/utils/loginAuth";
+import { getAuthToken, getLoggedInUser } from "../../../utils/loginAuth";
 import axios from "axios";
 
 interface ProfileDropDownProps {

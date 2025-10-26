@@ -30,6 +30,20 @@ export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
     visible: { opacity: 1, y: 0 },
   };
 
+  const handleBuyerInfoClick = () => {
+    if (handleBuyerInfo) {
+      handleBuyerInfo(productId);
+      setActiveMenu(null);
+    }
+  };
+
+  const handleCustomerCareClick = () => {
+    if (handleCustomerCare) {
+      handleCustomerCare(productId);
+      setActiveMenu(null);
+    }
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -51,26 +65,21 @@ export const DeliveredProductActionMenu: React.FC<ActionMenuProps> = ({
             transition={{ duration: 0.2 }}
           >
             <button
-              onClick={() => {
-                handleBuyerInfo?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={handleBuyerInfoClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Buyer Info
             </button>
             <Link
               href={`/agents/delivered/trackorder/${productId}`}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+              onClick={() => setActiveMenu(null)}
+              className="block w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Track Order
             </Link>
             <button
-              onClick={() => {
-                handleCustomerCare?.(productId);
-                setActiveMenu(null);
-              }}
-              className="w-full cursor-pointer text-left px-2 text-[12px] font-montserrat text-[#2b2b2b  hover:bg-gray-100"
+              onClick={handleCustomerCareClick}
+              className="w-full cursor-pointer text-left px-2 py-1 text-[12px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded-[4px]"
             >
               Customer Care
             </button>

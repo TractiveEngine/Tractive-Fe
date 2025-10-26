@@ -4,12 +4,13 @@ import {
   ProfileSettingIcon,
   SecurityIcon,
   WalletAddIcon,
-} from "@/icons/Icon1";
-import { ArrowRightIcon } from "@/icons/Icons";
+} from "../../../icons/Icon1";
+import { ArrowRightIcon } from "../../../icons/Icons";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
-import { ProfilePicture } from "@/app/(profiles)/agent-profile/_components/ProfilePicture";
+import { ProfilePicture } from "../../../app/(profiles)/transporter-profile/_components/ProfilePicture";
+// import { ProfilePicture } from "./app/(profiles)/agent-profile/_components/ProfilePicture";
 
 interface OnboardingData {
   state: string;

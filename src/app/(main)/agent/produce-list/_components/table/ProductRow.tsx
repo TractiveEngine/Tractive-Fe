@@ -95,15 +95,16 @@ const sliceDescription = (description: string): string => {
   return words.slice(0, 3).join(" ") + (words.length > 3 ? "..." : "");
 };
 
-// Helper function to truncate owner ID to 10 characters
-const truncateOwnerId = (owner: string): string => {
-  if (!owner) return "-";
-  return owner.length > 10 ? owner.substring(0, 10) + "..." : owner;
-};
 // Helper function to truncate ID to 10 characters
 const truncateId = (id: string): string => {
   if (!id) return "-";
   return id.length > 10 ? id.substring(0, 10) + "..." : id;
+};
+
+// Format price with proper currency
+const formatPrice = (price: number): string => {
+  if (price === 0 || !price) return "₦0.00";
+  return `₦${price.toFixed(2)}`;
 };
 
 export const ProductRow: React.FC<ProductRowProps> = ({
@@ -118,44 +119,58 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   handleDelete,
   isOutOfStockPage,
 }) => {
+  // Get first image or default
+  const productImage =
+    product.images && product.images.length > 0
+      ? product.images[0]
+      : "/images/tomatoProduct.png";
+
   return (
     <motion.tr
-      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative hover:bg-gray-50 transition-colors"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
-      transition={{ delay: index * 0.1 }}
+      transition={{ delay: index * 0.05 }}
     >
+      {/* Checkbox */}
       <td className="py-1.5 pl-4 whitespace-nowrap">
         <div className="relative w-5 h-5">
           <input
             type="checkbox"
             checked={product.checked}
             onChange={() => handleCheckboxChange(product.id)}
-            className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
+            className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] cursor-pointer"
+            aria-label={`Select ${product.name}`}
           />
           {product.checked && <TickIcon />}
         </div>
       </td>
+
+      {/* Item (Image + Name + Description) */}
       <td className="py-1.5 pr-4">
         <div className="flex items-center gap-2">
-          <Image
-            src={product.images?.[0] || "/images/tomatoProduct.png"}
-            alt={product.name}
-            width={83}
-            height={47}
-            className="object-cover w-[53px] h-[30px] sm:w-[63px] sm:h-[35px] lg:w-[87px] lg:h-[47px]"
-          />
-          <div>
+          <div className="relative w-[53px] h-[30px] sm:w-[63px] sm:h-[35px] lg:w-[87px] lg:h-[47px] flex-shrink-0">
+            <Image
+              src={productImage}
+              alt={product.name}
+              fill
+              className="object-cover rounded"
+              sizes="(max-width: 640px) 53px, (max-width: 1024px) 63px, 87px"
+            />
+          </div>
+          <div className="min-w-0">
             <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
               {product.name}
             </p>
-            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
+            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#808080]">
               {sliceDescription(product.description || "")}
             </p>
           </div>
         </div>
       </td>
+
+      {/* ID */}
       <td className="py-1.5 px-4">
         <div className="flex items-center gap-1.5 cursor-pointer">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
@@ -165,40 +180,50 @@ export const ProductRow: React.FC<ProductRowProps> = ({
             onClick={() => copyToClipboard(product.id)}
             title="Copy Product ID"
             aria-label="Copy Product ID"
-            className="cursor-pointer"
+            className="cursor-pointer hover:opacity-70 transition-opacity"
           >
             <IdCopyIcon />
           </button>
         </div>
       </td>
+
+      {/* Price */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        ${product.price?.toFixed(2) || "0.00"}
+        {formatPrice(product.price)}
       </td>
+
+      {/* Quantity */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         {product.quantity || "-"}
       </td>
+
+      {/* Stock */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
         {product.stock || product.quantity || "-"}
       </td>
+
+      {/* Reviews */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         <div className="flex items-center space-x-2">
           <StarStrokeIcon />
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
             {product.rating || "-"}
           </span>
-          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-            ({product.reviews || 0} reviews)
+          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#808080]">
+            ({product.reviews || 0})
           </span>
         </div>
       </td>
-      {/* New columns for backend-only fields */}
+
+      {/* Categories */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        {(product.categories ?? []).length > 0
-          ? (product.categories ?? []).join(", ")
+        {product.categories && product.categories.length > 0
+          ? product.categories.join(", ")
           : "-"}
       </td>
-  
-      <td className="py-1.5 px-4 relative z-11">
+
+      {/* Action Menu */}
+      <td className="py-1.5 px-4 relative">
         <ActionMenu
           productId={product.id}
           activeMenu={activeMenu}

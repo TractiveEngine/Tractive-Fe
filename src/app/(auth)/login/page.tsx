@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -9,10 +8,11 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { setUserSession } from "@/utils/loginAuth";
-import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { LoginSchema, LoginSchemaType } from "../../../schemas/LoginSchema";
+import { setUserSession } from "../../../utils/loginAuth";
+import { Button } from "../../../components/Button";
 
 const Spinner = () => (
   <div className="w-4 h-4 border-4 border-b-2 border-[#a0dfa0] border-t-[#538e53] rounded-full animate-spin" />
@@ -37,9 +37,10 @@ export default function Login() {
     const toastId = toast.loading("Logging in...");
 
     try {
-      console.log("🚀 Attempting login with:", { email: data.email });
+      console.log("🚀 Step 1: Attempting login with:", { email: data.email });
 
-      const response = await axios.post(
+      // Step 1: Login and get token
+      const loginResponse = await axios.post(
         "https://tractive-be.vercel.app/api/auth/login",
         {
           email: data.email,
@@ -53,39 +54,53 @@ export default function Login() {
         }
       );
 
-      console.log("✅ Login response received:", response.data);
+      console.log("✅ Step 2: Login successful, received token");
 
-      if (!response.data.token) {
+      if (!loginResponse.data.token) {
         throw new Error("No authentication token received from server");
       }
 
-      const { token } = response.data;
+      const { token } = loginResponse.data;
 
-      // Extract user info from email since backend only provides token
-      const userEmail = data.email;
-      const userName = data.email.split("@")[0];
-
-      // Store auth token
+      // Store token immediately for the next API call
       localStorage.setItem("authToken", token);
 
-      // Check localStorage for existing user data
-      const existingSession = localStorage.getItem("session");
-      let userRoles: string[] = [];
-      let activeRole: string | null = null;
+      console.log("🔍 Step 3: Fetching user profile with token...");
 
-      if (existingSession) {
-        try {
-          const parsed = JSON.parse(existingSession);
-          if (parsed.email === userEmail) {
-            userRoles = parsed.role || [];
-            activeRole = parsed.activeRole || null;
-          }
-        } catch (e) {
-          console.log("Could not parse existing session");
+      // Step 2: Get user profile and roles
+      const profileResponse = await axios.get(
+        "https://tractive-be.vercel.app/api/profile",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
         }
+      );
+
+      console.log("✅ Step 4: Profile data received:", profileResponse.data);
+
+      const { user } = profileResponse.data;
+
+      if (!user) {
+        throw new Error("No user data received from profile endpoint");
       }
 
-      // Set user session with available data
+      // Extract user information from profile API
+      const userEmail = user.email || data.email;
+      const userName = user.name || user.email?.split("@")[0] || "User";
+      const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
+      const activeRole: string | null = user.activeRole || null;
+
+      console.log("📋 User profile:", {
+        email: userEmail,
+        name: userName,
+        roles: userRoles,
+        activeRole: activeRole,
+      });
+
+      // Step 3: Store complete session data
       setUserSession({
         email: userEmail,
         name: userName,
@@ -98,33 +113,40 @@ export default function Login() {
       toast.success(`Welcome back, ${userName}!`);
       reset();
 
-      // Determine redirect path based on stored data
-      console.log("🔍 Redirect logic:", { activeRole, roles: userRoles });
+      // Step 4: Determine redirect path based on profile data
+      console.log("🔍 Determining redirect path...");
 
-      let redirectPath = "/register-as"; // Default for new users
+      let redirectPath = "/register-as"; // Default for users with no roles
 
       if (activeRole) {
-        // Check if onboarding is completed for this role
+        // User has an active role selected
         const onboardingCompleted =
           localStorage.getItem(`${activeRole}OnboardingCompleted`) === "true";
 
         if (onboardingCompleted) {
-          // Go to dashboard
+          // Go directly to dashboard
           localStorage.setItem("userRole", activeRole);
           redirectPath = `/${activeRole}`;
+          console.log(`✅ Redirecting to dashboard: ${redirectPath}`);
         } else {
-          // Go to onboarding
+          // Complete onboarding for this role
           redirectPath = "/onboarding";
+          console.log("✅ Redirecting to onboarding");
         }
       } else if (userRoles.length > 0) {
-        // User has roles but no active role selected
+        // User has roles but no active role - let them select
         redirectPath = "/register-as";
-      }
-      else {
+        console.log(
+          "✅ User has roles but no active role, redirecting to role selection"
+        );
+      } else {
+        // New user with no roles
         redirectPath = "/register-as";
+        console.log("✅ New user, redirecting to role registration");
       }
 
-      console.log("🎯 Redirecting to:", redirectPath);
+      console.log("🎯 Final redirect:", redirectPath);
+
       setTimeout(() => {
         router.replace(redirectPath);
       }, 1500);
@@ -141,6 +163,10 @@ export default function Login() {
       } else if (err.message) {
         errorMessage = err.message;
       }
+
+      // Clear any partial session data on error
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("session");
 
       toast.error(errorMessage, {
         duration: 5000,

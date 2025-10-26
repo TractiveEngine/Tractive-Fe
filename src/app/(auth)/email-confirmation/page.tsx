@@ -5,8 +5,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import OtpInput from "react-otp-input";
 import { toast } from "sonner";
-import { verifyOtpCode, resendOtpCode } from "@/utils/signupAuth";
-import { useEmailUser } from "@/hooks/userEmailContext";
+import { useEmailUser } from "../../../hooks/userEmailContext";
+import { resendOtpCode, verifyOtpCode } from "../../../utils/signupAuth";
 
 export default function EmailVerification() {
   const [otp, setOtp] = useState("");

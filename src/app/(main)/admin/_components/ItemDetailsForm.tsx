@@ -3,8 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 // Adjust import path
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-import { ArrowLeftIcon } from "../../agents/_components/Icons/AgentIcons";
+import { ArrowDownIcon, ArrowUpIcon } from "../../../../icons/Icons";
+import { ArrowLeftIcon } from "../../agent/_components/Icons/AgentIcons";
+// import { ArrowLeftIcon } from "../../../agents/_components/Icons/AgentIcons";
 
 // Props for ItemDetailsForm
 interface ItemDetailsFormProps {

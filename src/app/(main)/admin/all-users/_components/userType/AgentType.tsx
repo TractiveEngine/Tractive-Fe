@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { CalenderIcon } from "@/icons/DashboardIcons";
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "../../../../../../icons/Icons";
+import { CalenderIcon } from "../../../../../../icons/DashboardIcons";
 import { UserActionMenu } from "../UserActionMenu";
-import { initialUsers, User } from "@/utils/userTypes";
+import { initialUsers, User } from "../../../../../../utils/userTypes";
 import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";

@@ -32,7 +32,7 @@ interface NavSection {
 }
 
 interface AdminAsideNavMobileProps {
-  user: { fullName: string; email: string } | null;
+  user: { name: string; email: string } | null;
   isDropdownOpen: boolean;
   handleUserDropdownClick: () => void;
   handleLogout: () => void;
@@ -223,7 +223,7 @@ export const AdminAsideNavMobile = ({
               />
               <div className="flex flex-col">
                 <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
-                  {user.fullName}
+                  {user.name}
                 </span>
                 <span className="text-[#fefefe] text-[0.7rem] text-left font-montserrat font-normal">
                   {user.email}

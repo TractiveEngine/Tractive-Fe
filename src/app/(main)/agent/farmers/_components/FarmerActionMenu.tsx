@@ -1,18 +1,20 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { ActionMenuProps } from "../../_components/ActionMenuProps";
 import { ThreeDotIcon } from "../../produce-list/_components/table/ActionMenu";
+import { farmerService } from "@/services/FarmerService";
 
 export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
   productId,
   activeMenu,
   setActiveMenu,
   handleEdit,
-  handleReport,
 }) => {
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,6 +31,36 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
     visible: { opacity: 1, y: 0 },
   };
 
+  const handleReportClick = () => {
+    console.log(`Navigating to report page for farmer: ${productId}`);
+    setActiveMenu(null);
+    router.push(`/report?farmerId=${productId}&type=farmer`);
+  };
+
+  const handleDeleteClick = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this farmer? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      console.log(`🗑️ Deleting farmer: ${productId}`);
+      await farmerService.deleteFarmer(productId);
+
+      setActiveMenu(null);
+
+      // Trigger page refresh to update the list
+      // The parent component should handle this via fetchFarmers()
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to delete farmer:", error);
+      // Error toast is already shown by the service
+    }
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -42,7 +74,7 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="absolute min-w-[120px] py-1 px-1 right-0 top-10 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-[100]"
+            className="absolute min-w-[140px] py-1 px-1 right-0 top-10 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto z-[100]"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -52,25 +84,27 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
             {handleEdit && (
               <button
                 onClick={() => {
+                  console.log(`Edit clicked for farmer: ${productId}`);
                   handleEdit(productId);
                   setActiveMenu(null);
                 }}
-                className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded transition-colors"
               >
                 Edit Profile
               </button>
             )}
-            {handleReport && (
-              <button
-                onClick={() => {
-                  handleReport(productId);
-                  setActiveMenu(null);
-                }}
-                className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100"
-              >
-                Report
-              </button>
-            )}
+            <button
+              onClick={handleReportClick}
+              className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded transition-colors"
+            >
+              Report
+            </button>
+            <button
+              onClick={handleDeleteClick}
+              className="w-full text-left px-4 py-2 text-sm font-montserrat text-red-600 hover:bg-red-50 rounded transition-colors"
+            >
+              Delete
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
