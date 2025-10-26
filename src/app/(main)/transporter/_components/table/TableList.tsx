@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "../../Table.css";
 import { TransportActionMenuProps } from "../TransportActionMenuProps";
-import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
+import { TickIcon } from "../Icons/TransporterIcons";
+// import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
 
 interface ColumnConfig<T> {
   header: string;

@@ -82,7 +82,7 @@ const getAuthHeaders = () => {
 };
 
 // Handle API errors
-const handleApiError = (error: any, operation: string) => {
+const handleApiError = (error, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
 
   if (axios.isAxiosError(error)) {
@@ -114,7 +114,7 @@ const handleApiError = (error: any, operation: string) => {
 };
 
 // Map backend product to frontend format
-const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
+const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
   return {
     id: backendProduct._id || backendProduct.id,
     name: backendProduct.name || "",

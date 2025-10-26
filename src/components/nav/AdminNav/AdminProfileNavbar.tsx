@@ -3,15 +3,15 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
+import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AdminMobileNavbar";
-import ProfileDropDown from "@/components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
+// import ProfileDropDown from "@/components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 
 export const AgentProfileNavbar = () => {
   const pathname = usePathname();
-  const router = useRouter();
+  // const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null

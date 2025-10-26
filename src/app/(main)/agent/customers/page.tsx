@@ -139,7 +139,7 @@ export default function CustomersListPage() {
       setCustomersData(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalCustomers(response.pagination.total);
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error in fetchCustomers:", err);
 
       let errorMessage = "Failed to fetch customers";
@@ -174,12 +174,12 @@ export default function CustomersListPage() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedYear, selectedMonth]);
+  }, [searchQuery, selectedYear, selectedMonth, fetchCustomers]);
 
   // Fetch on page change
   useEffect(() => {
     fetchCustomers();
-  }, [currentPage]);
+  }, [currentPage, fetchCustomers]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -219,7 +219,7 @@ export default function CustomersListPage() {
       const customer = await CustomerService.getCustomerProfile(id);
       setSelectedCustomer(customer);
       setIsCustomerInfoOpen(true);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching customer profile:", err);
       alert("Failed to load customer information");
     } finally {

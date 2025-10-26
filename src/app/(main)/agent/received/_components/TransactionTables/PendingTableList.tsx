@@ -192,7 +192,7 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
 
   useEffect(() => {
     fetchTransactions();
-  }, [searchQuery, selectedYear, selectedMonth]);
+  }, [fetchTransactions, searchQuery, selectedYear, selectedMonth]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

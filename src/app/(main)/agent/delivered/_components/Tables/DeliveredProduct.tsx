@@ -158,7 +158,7 @@ export const DeliveredProduct: React.FC = () => {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [fetchOrders, searchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

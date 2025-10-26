@@ -154,7 +154,7 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
 
       // Force a refresh
       setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Bulk back in stock error:", error);
       toast.error(
         error.message || "Failed to update products status. Please try again.",
@@ -204,7 +204,7 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
 
       // Force a refresh
       setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Bulk delete error:", error);
       toast.error(
         error.message || "Failed to delete products. Please try again.",

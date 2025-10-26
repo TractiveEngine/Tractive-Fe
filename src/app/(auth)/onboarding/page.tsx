@@ -76,7 +76,7 @@ export default function OnboardingForm() {
     }
 
     setUserRole(role);
-    setValue("role", role as any);
+    setValue("role", role as OnboardingSchemaType["role"]);
 
     // Load saved onboarding data if exists
     const saved = localStorage.getItem(`onboarding-data-${role}`);
@@ -231,7 +231,7 @@ const onSubmit = async (data: OnboardingSchemaType) => {
     setTimeout(() => {
       router.push(`/${userRole}`);
     }, 1500);
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Onboarding error:", error);
     toast.dismiss(toastId);
 

@@ -88,7 +88,7 @@ export default function ProduceListPage() {
     // Refresh counts every 30 seconds
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, []);
+  });
 
   // Update indicator position and width when switchSides changes
   useEffect(() => {

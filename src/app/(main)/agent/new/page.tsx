@@ -83,7 +83,7 @@ export default function ProduceListPage() {
     };
 
     fetchCounts();
-
+    console.log(isLoadingCounts);
     // Refresh counts every 30 seconds
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);

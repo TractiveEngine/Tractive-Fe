@@ -7,7 +7,7 @@ import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
 import { FarmerActionMenu } from "./_components/FarmerActionMenu";
 import { OnboardingFarmers } from "./_components/OnboardingFarmer";
-import { Farmer, farmerService } from "@/services/FarmerService";
+import { ApiFarmer, Farmer, farmerService } from "@/services/FarmerService";
 import { UserProfile } from "@/services/UserService";
 
 interface ColumnConfig<T> {
@@ -119,7 +119,7 @@ const FarmersListPage: React.FC = () => {
         "✅ Can manage farmers:",
         FARMER_MANAGEMENT_ROLES.includes(user.activeRole)
       );
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error fetching user profile:", err);
       // Don't set error for user fetch - we can still show farmers in read-only mode
       console.log("⚠️ Continuing in read-only mode");
@@ -139,7 +139,7 @@ const FarmersListPage: React.FC = () => {
       console.log("✅ Received farmers:", response);
 
       // Convert API farmers to frontend format
-      const farmersWithUIState = response.farmers.map((farmer: any) => ({
+      const farmersWithUIState = response.farmers.map((farmer: ApiFarmer) => ({
         id: farmer._id,
         name: farmer.name || "-",
         mobile: farmer.phone || "-",
@@ -162,7 +162,7 @@ const FarmersListPage: React.FC = () => {
 
       setFarmersData(farmersWithUIState);
       console.log(`✅ Set ${farmersWithUIState.length} farmers to state`);
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error fetching farmers:", err);
       // Check if it's a permission error vs network error
       if (err.message && err.message.includes("permission")) {
@@ -256,7 +256,7 @@ const FarmersListPage: React.FC = () => {
 
       setIsOnboardModalOpen(false);
       await fetchFarmers();
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error creating farmer:", err);
       setError(err.message || "Failed to create farmer");
     } finally {
@@ -289,7 +289,7 @@ const FarmersListPage: React.FC = () => {
 
       // Refetch to get updated data
       await fetchFarmers();
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error updating farmer:", err);
       setError(err.message || "Failed to update farmer");
     } finally {

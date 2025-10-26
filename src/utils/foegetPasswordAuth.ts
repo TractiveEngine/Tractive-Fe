@@ -29,7 +29,7 @@ export const forgotPassword = async (
     return {
       message: result.message || "Password reset email sent successfully",
     };
-  } catch (error: any) {
+  } catch (error) {
     return { error: error.message || "An unexpected error occurred" };
   }
 };

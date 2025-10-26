@@ -82,7 +82,7 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
         limit: 10,
       });
       setReviews(reviewsResponse.reviews);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching review data:", err);
       setError(err.message || "Failed to load reviews");
 

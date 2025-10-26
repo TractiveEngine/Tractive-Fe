@@ -99,7 +99,7 @@ export const verifyOtpCode = async (
   success: boolean;
   message?: string;
   token?: string;
-  user?: any;
+  user?: StoredUser | null;
 }> => {
   const toastId = toast.loading("Verifying code...");
 

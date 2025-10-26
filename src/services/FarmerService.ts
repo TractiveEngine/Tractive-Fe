@@ -149,6 +149,7 @@ export const farmerService = {
       const user = await userService.getCurrentUser();
       return userService.canManageFarmers(user);
     } catch (error) {
+      console.log(error)
       return false;
     }
   },
@@ -190,7 +191,7 @@ export const farmerService = {
         page: 1,
         limit: farmers.length,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error fetching farmers:", error);
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
@@ -245,7 +246,7 @@ export const farmerService = {
       const mappedFarmer = mapBackendToFrontendFarmer(createdFarmer);
       toast.success("Farmer onboarded successfully!");
       return mappedFarmer;
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error creating farmer:", error);
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
@@ -285,7 +286,7 @@ export const farmerService = {
 
       console.log("✅ Farmer deleted successfully");
       toast.success("Farmer deleted successfully!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error deleting farmer:", error);
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;

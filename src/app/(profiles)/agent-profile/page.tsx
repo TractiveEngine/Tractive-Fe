@@ -82,7 +82,7 @@ const ProfileSetting = () => {
             email: user?.email || "",
           }));
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching profile:", error);
 
         if (error.response?.status === 401) {
@@ -111,7 +111,7 @@ const ProfileSetting = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [API_URL, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -184,7 +184,7 @@ const ProfileSetting = () => {
             `✅ Success with ${endpoint.method.toUpperCase()} ${endpoint.url}`
           );
           break;
-        } catch (error: any) {
+        } catch (error) {
           console.log(
             `❌ Failed with ${endpoint.method.toUpperCase()} ${endpoint.url}:`,
             error.response?.status || error.message
@@ -237,7 +237,7 @@ const ProfileSetting = () => {
       } else {
         throw new Error(response.data.message || "Failed to update profile");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating profile:", error);
 
       if (error.response?.status === 401) {

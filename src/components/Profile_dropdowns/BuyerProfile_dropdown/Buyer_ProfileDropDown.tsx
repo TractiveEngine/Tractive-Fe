@@ -16,7 +16,7 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
   const router = useRouter();
   const user = getLoggedInUser();
   const availableRoles = ["agent", "buyer", "transporter"];
-  const userRoles = user?.roles || [];
+  const userRoles = user?.role || [];
   // Filter out the active role from the dropdown
   const dropdownRoles = availableRoles.filter(
     (role) => role !== user?.activeRole
@@ -81,7 +81,7 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
         localStorage.getItem("onboardingCompleted") === "true";
       const redirectPath = onboardingCompleted ? `/${role}` : "/onboarding";
       router.push(redirectPath);
-    } catch (error: any) {
+    } catch (error) {
       toast.dismiss(loadingToastId);
       toast.error(error.message || "Failed to switch role.", {
         duration: 3000,

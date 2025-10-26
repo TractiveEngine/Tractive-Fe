@@ -42,7 +42,7 @@ const roles: RoleOption[] = [
 export default function RegisterAs() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +82,8 @@ export default function RegisterAs() {
         if (userData.activeRole) {
           console.log("✅ User has activeRole:", userData.activeRole);
 
+          console.log("🔍 Checking user status...", user);
+
           const onboardingCompleted =
             localStorage.getItem(
               `${userData.activeRole}OnboardingCompleted`
@@ -110,7 +112,7 @@ export default function RegisterAs() {
         }
 
         console.log("✅ Step 3: User ready for role selection");
-      } catch (error: any) {
+      } catch (error) {
         console.error("❌ Error fetching profile:", error);
 
         if (error.response?.status === 401) {
@@ -131,7 +133,7 @@ export default function RegisterAs() {
     };
 
     initializeRoleSelection();
-  }, [router]);
+  }, [user, router]);
 
   const handleRoleSelect = async (roleId: string) => {
     if (loading) return;
@@ -184,7 +186,7 @@ export default function RegisterAs() {
       setTimeout(() => {
         router.push("/onboarding");
       }, 1500);
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error selecting role:", error);
       toast.dismiss(toastId);
 

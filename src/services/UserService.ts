@@ -55,7 +55,7 @@ export const userService = {
       }
 
       return userData;
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Error fetching user profile:", error);
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;

@@ -85,7 +85,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
         router.push(`/chat/${response.chatId}`);
         onClose();
       }, 1000);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to initiate chat. Please try again.");
       console.error("Error initiating chat:", err);
     } finally {

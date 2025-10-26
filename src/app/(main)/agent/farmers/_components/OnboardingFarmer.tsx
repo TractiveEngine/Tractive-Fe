@@ -146,7 +146,7 @@ export const OnboardingFarmers: React.FC<OnboardingFarmersProps> = ({
           activeRole: userData.activeRole,
           roles: userData.roles,
         });
-      } catch (error: any) {
+      } catch (error) {
         console.error("❌ Auth check error:", error);
 
         if (error.response?.status === 401) {

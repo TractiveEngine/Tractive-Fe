@@ -102,7 +102,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
 
           console.log("✅ Step 3: Profile verified, user authenticated", profileResponse);
           setIsAuthChecked(true);
-        } catch (profileError: any) {
+        } catch (profileError) {
           if (profileError.response?.status === 401) {
             console.log("❌ Token expired or invalid");
             localStorage.removeItem("authToken");

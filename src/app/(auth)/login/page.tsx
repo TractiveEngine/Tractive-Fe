@@ -150,7 +150,7 @@ export default function Login() {
       setTimeout(() => {
         router.replace(redirectPath);
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Login error:", err);
       toast.dismiss(toastId);
 

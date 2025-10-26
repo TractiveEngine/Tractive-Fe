@@ -61,7 +61,7 @@ export const TableList = <T extends BaseData>({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
-  handleDelete,
+  // handleDelete,
 }: TableListProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -124,13 +124,13 @@ export const TableList = <T extends BaseData>({
     setActiveMenu(null);
   };
 
-  const defaultHandleDelete = (id: string) => {
-    if (window.confirm(`Are you sure you want to delete this ${dataType}?`)) {
-      console.log(`Default handleDelete called for id: ${id}`);
-      alert(`Delete ${dataType} with ID: ${id}`);
-      setActiveMenu(null);
-    }
-  };
+  // const defaultHandleDelete = (id: string) => {
+  //   if (window.confirm(`Are you sure you want to delete this ${dataType}?`)) {
+  //     console.log(`Default handleDelete called for id: ${id}`);
+  //     alert(`Delete ${dataType} with ID: ${id}`);
+  //     setActiveMenu(null);
+  //   }
+  // };
 
   return (
     <motion.div

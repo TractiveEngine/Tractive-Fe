@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "./Icons/AgentIcons";
@@ -24,7 +24,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   onClose,
   selectedCategory,
   productName,
-  selectedProfiles,
+  // selectedProfiles,
   imageFiles,
   videoFile,
 }) => {

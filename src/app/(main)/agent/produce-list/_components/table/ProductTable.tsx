@@ -93,7 +93,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       lastCountsRef.current = { active, out_of_stock };
       onProductsUpdate({ active, out_of_stock });
     }
-  }, [productCounts.active, productCounts.out_of_stock, onProductsUpdate]);
+  }, [productCounts, productCounts.active, productCounts.out_of_stock, onProductsUpdate]);
 
   // Apply client-side filters
   useEffect(() => {
@@ -217,7 +217,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       );
 
       setAllProducts(productsWithUiState);
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error fetching products:", err);
 
       // Check if it's an auth error
@@ -274,7 +274,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       });
 
       console.log("✅ Product deleted successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Delete error:", error);
       toast.error(error.message || "Failed to delete product", {
         duration: 5000,
@@ -327,7 +327,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
 
         // Close modal
         handleCloseEditModal();
-      } catch (error: any) {
+      } catch (error) {
         console.error("❌ Update error:", error);
         toast.error(error.message || "Failed to update product", {
           duration: 5000,
@@ -381,7 +381,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         });
 
         console.log(`✅ Product status updated to ${newStatus}`);
-      } catch (error: any) {
+      } catch (error) {
         console.error("❌ Status update error:", error);
         toast.error(error.message || "Failed to update product status", {
           duration: 5000,
@@ -439,7 +439,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       });
 
       console.log("✅ Bulk delete completed");
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Bulk delete error:", error);
       toast.error(error.message || "Failed to delete products", {
         duration: 5000,
@@ -492,7 +492,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       );
 
       console.log("✅ Bulk status update completed");
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Bulk status update error:", error);
       toast.error(error.message || "Failed to update product status", {
         duration: 5000,
@@ -539,7 +539,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       });
 
       console.log("✅ Bulk status update completed");
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Bulk status update error:", error);
       toast.error(error.message || "Failed to update product status", {
         duration: 5000,

@@ -29,7 +29,7 @@ export const resetPassword = async (
 
     const result = await response.json();
     return { message: result.message || "Password reset successfully" };
-  } catch (error: any) {
+  } catch (error) {
     return { error: error.message || "An unexpected error occurred" };
   }
 };

@@ -6,7 +6,8 @@ import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
 import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
-import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
+import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
+// import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
 
 export const MobileNavbar = () => {
   const pathname = usePathname();

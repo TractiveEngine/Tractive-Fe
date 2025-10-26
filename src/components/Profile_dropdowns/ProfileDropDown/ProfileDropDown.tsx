@@ -149,7 +149,7 @@ export const ProfileDropDown = ({ onLogout, currentRole }: ProfileDropDownProps)
       console.log(`Redirecting to: ${redirectPath} (onboarding completed: ${roleOnboardingCompleted})`);
       router.push(redirectPath);
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Role switch error:", error);
       toast.dismiss(loadingToastId);
       

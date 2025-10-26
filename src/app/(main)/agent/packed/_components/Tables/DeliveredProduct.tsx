@@ -148,7 +148,7 @@ export const DeliveredProduct: React.FC = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [selectedYear, selectedMonth]);
+  }, [fetchOrders, selectedYear, selectedMonth]);
 
   // Debounced search
   useEffect(() => {
@@ -158,7 +158,7 @@ export const DeliveredProduct: React.FC = () => {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [fetchOrders, searchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

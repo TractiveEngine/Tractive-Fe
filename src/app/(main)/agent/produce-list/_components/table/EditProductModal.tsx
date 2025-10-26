@@ -163,7 +163,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
       onProductUpdate(productWithUIState);
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error updating product:", err);
       setError(err.message || "Failed to update product. Please try again.");
       toast.error(err.message || "Failed to update product", {
