@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -149,8 +149,8 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
     "Dec",
   ];
 
-  // Fetch transactions
-  const fetchTransactions = async () => {
+  // Fetch transactions - wrapped in useCallback
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -188,11 +188,12 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, onCountChange]);
 
+  // Fetch transactions when filters change
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions, searchQuery, selectedYear, selectedMonth]);
+  }, [fetchTransactions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -263,7 +264,7 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
+      <div className="mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px]">
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">

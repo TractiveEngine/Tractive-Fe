@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -149,8 +149,8 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
     "Dec",
   ];
 
-  // Fetch transactions
-  const fetchTransactions = async () => {
+  // Fetch transactions - wrapped in useCallback
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -188,11 +188,12 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, onCountChange]);
 
+  // Fetch transactions when filters change
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions, searchQuery, selectedYear, selectedMonth]);
+  }, [fetchTransactions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

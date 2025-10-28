@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";

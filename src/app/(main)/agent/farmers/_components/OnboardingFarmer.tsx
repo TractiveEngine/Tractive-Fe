@@ -38,6 +38,14 @@ interface Farmer {
   checked?: boolean;
 }
 
+// Define user profile interface
+interface UserProfile {
+  name: string;
+  email: string;
+  activeRole: string;
+  roles: string[];
+}
+
 const nigerianBanks = [
   "Access Bank",
   "Citibank Nigeria",
@@ -101,7 +109,7 @@ export const OnboardingFarmers: React.FC<OnboardingFarmersProps> = ({
 
   // Auth state
   const [isAuthChecked, setIsAuthChecked] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Check authentication when modal opens
   useEffect(() => {
@@ -137,7 +145,7 @@ export const OnboardingFarmers: React.FC<OnboardingFarmersProps> = ({
         console.log("✅ Profile verified:", profileResponse.data);
 
         const userData = profileResponse.data.user || profileResponse.data;
-        setUserProfile(userData);
+        setUserProfile(userData as UserProfile);
         setIsAuthChecked(true);
 
         console.log("👤 User Profile:", {
@@ -146,10 +154,10 @@ export const OnboardingFarmers: React.FC<OnboardingFarmersProps> = ({
           activeRole: userData.activeRole,
           roles: userData.roles,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("❌ Auth check error:", error);
 
-        if (error.response?.status === 401) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
           console.log("❌ Token expired or invalid");
           localStorage.removeItem("authToken");
           localStorage.removeItem("session");

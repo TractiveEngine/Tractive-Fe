@@ -66,10 +66,78 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     }
   }, [router]);
 
-  // Fetch products with filters using the appropriate API
+  // Fetch products with filters - wrapped in useCallback
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log("🚀 Fetching products with status:", filters.status);
+
+      let response;
+
+      // Use the appropriate API based on status filter
+      if (filters.status === "out_of_stock") {
+        // Use dedicated out-of-stock API
+        response = await productService.getOutOfStockProducts({
+          search: filters.search,
+          year: filters.year,
+          month: filters.month,
+          page: filters.page,
+          limit: filters.limit,
+        });
+      } else {
+        // Use general products API with status filter
+        response = await productService.getProducts({
+          status: filters.status,
+          search: filters.search,
+          year: filters.year,
+          month: filters.month,
+          page: filters.page,
+          limit: filters.limit,
+        });
+      }
+
+      console.log(`✅ Fetched ${response.products.length} products`);
+
+      const productsWithUiState: Product[] = response.products.map(
+        (product) => ({
+          ...product,
+          checked: false,
+        })
+      );
+
+      setAllProducts(productsWithUiState);
+    } catch (err) {
+      console.error("❌ Error fetching products:", err);
+
+      // Check if it's an auth error
+      if (err.message === "Authentication failed") {
+        // Already handled by productService
+        return;
+      }
+
+      setError("Failed to fetch products");
+      toast.error("Failed to load products. Please try again.", {
+        duration: 5000,
+        position: "top-center",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    filters.status,
+    filters.search,
+    filters.year,
+    filters.month,
+    filters.page,
+    filters.limit,
+  ]);
+
+  // Fetch products when filters change
   useEffect(() => {
     fetchProducts();
-  }, [filters.status]); // Refetch when status filter changes
+  }, [fetchProducts]);
 
   // Memoize counts calculation
   const productCounts = useMemo(() => {
@@ -93,7 +161,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       lastCountsRef.current = { active, out_of_stock };
       onProductsUpdate({ active, out_of_stock });
     }
-  }, [productCounts, productCounts.active, productCounts.out_of_stock, onProductsUpdate]);
+  }, [
+    productCounts,
+    productCounts.active,
+    productCounts.out_of_stock,
+    onProductsUpdate,
+  ]);
 
   // Apply client-side filters
   useEffect(() => {
@@ -158,12 +231,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       `🔍 Filtered ${filteredProducts.length} products from ${allProducts.length} total`
     );
     setProducts(filteredProducts);
-  }, [
-    allProducts,
-    filters.search,
-    filters.year,
-    filters.month,
-  ]);
+  }, [allProducts, filters.search, filters.year, filters.month]);
 
   // Notify parent component of selection changes
   useEffect(() => {
@@ -174,67 +242,6 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       onSelectionUpdate(selectedIds);
     }
   }, [products, onSelectionUpdate]);
-
-  // Fetch products based on status filter
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log("🚀 Fetching products with status:", filters.status);
-
-      let response;
-
-      // Use the appropriate API based on status filter
-      if (filters.status === "out_of_stock") {
-        // Use dedicated out-of-stock API
-        response = await productService.getOutOfStockProducts({
-          search: filters.search,
-          year: filters.year,
-          month: filters.month,
-          page: filters.page,
-          limit: filters.limit,
-        });
-      } else {
-        // Use general products API with status filter
-        response = await productService.getProducts({
-          status: filters.status,
-          search: filters.search,
-          year: filters.year,
-          month: filters.month,
-          page: filters.page,
-          limit: filters.limit,
-        });
-      }
-
-      console.log(`✅ Fetched ${response.products.length} products`);
-
-      const productsWithUiState: Product[] = response.products.map(
-        (product) => ({
-          ...product,
-          checked: false,
-        })
-      );
-
-      setAllProducts(productsWithUiState);
-    } catch (err) {
-      console.error("❌ Error fetching products:", err);
-
-      // Check if it's an auth error
-      if (err.message === "Authentication failed") {
-        // Already handled by productService
-        return;
-      }
-
-      setError("Failed to fetch products");
-      toast.error("Failed to load products. Please try again.", {
-        duration: 5000,
-        position: "top-center",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Function to handle copy ID to clipboard
   const copyToClipboard = useCallback((id: string) => {
@@ -281,6 +288,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         position: "top-center",
       });
     }
+  }, []);
+
+  // Close edit modal
+  const handleCloseEditModal = useCallback(() => {
+    setIsEditModalOpen(false);
+    setSelectedProduct(null);
   }, []);
 
   // Function to handle edit - opens modal
@@ -335,14 +348,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         });
       }
     },
-    [selectedProduct]
+    [selectedProduct, handleCloseEditModal]
   );
-
-  // Close edit modal
-  const handleCloseEditModal = useCallback(() => {
-    setIsEditModalOpen(false);
-    setSelectedProduct(null);
-  }, []);
 
   // Function to handle status change (out of stock / back in stock)
   const handleOutOfStock = useCallback(
@@ -483,13 +490,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         )
       );
 
-      toast.success(
-        `${selectedIds.length} product(s) marked as out of stock`,
-        {
-          duration: 3000,
-          position: "top-center",
-        }
-      );
+      toast.success(`${selectedIds.length} product(s) marked as out of stock`, {
+        duration: 3000,
+        position: "top-center",
+      });
 
       console.log("✅ Bulk status update completed");
     } catch (error) {

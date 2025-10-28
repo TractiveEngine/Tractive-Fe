@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -90,8 +90,8 @@ const productColumns: ColumnConfig<Order>[] = [
 ];
 
 export const PackedProduct: React.FC = () => {
-    // Use the network status hook
-    useNetworkStatus();
+  // Use the network status hook
+  useNetworkStatus();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
@@ -119,8 +119,8 @@ export const PackedProduct: React.FC = () => {
     "Dec",
   ];
 
-  // Fetch orders from API
-  const fetchOrders = async () => {
+  // Fetch orders from API - wrapped in useCallback
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -144,8 +144,9 @@ export const PackedProduct: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, months]);
 
+  // Fetch orders when year or month changes
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders, selectedYear, selectedMonth]);

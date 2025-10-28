@@ -1,11 +1,8 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-// import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-// import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../../../_components/table/TableList";
-// import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
@@ -20,10 +17,6 @@ import {
   SearchIcon,
 } from "../../../../../../icons/Icons";
 import { CalenderIcon } from "../../../../../../icons/DashboardIcons";
-// import {
-//   transactionService,
-//   FrontendTransaction,
-// } from "@/services/transactionService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -162,8 +155,8 @@ export const ApprovedTableList = ({
     "Dec",
   ];
 
-  // Fetch transactions
-  const fetchTransactions = async () => {
+  // Fetch transactions - wrapped in useCallback
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -201,11 +194,12 @@ export const ApprovedTableList = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, onCountChange]);
 
+  // Fetch transactions when filters change
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions, searchQuery, selectedYear, selectedMonth]);
+  }, [fetchTransactions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

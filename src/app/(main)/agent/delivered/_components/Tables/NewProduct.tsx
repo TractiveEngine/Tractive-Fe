@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -120,8 +120,8 @@ export const NewProduct: React.FC = () => {
     "Dec",
   ];
 
-  // Fetch orders from API
-  const fetchOrders = async () => {
+  // Fetch orders from API - wrapped in useCallback
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -145,8 +145,9 @@ export const NewProduct: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, months]);
 
+  // Fetch orders when year or month changes
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders, selectedYear, selectedMonth]);

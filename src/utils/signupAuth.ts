@@ -7,6 +7,34 @@ export type StoredUser = {
   id?: string;
 };
 
+// Define response data interfaces
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
+interface RegisterResponse {
+  user?: {
+    name: string;
+    email: string;
+    id?: string;
+    _id?: string;
+  };
+  message?: string;
+}
+
+interface VerifyResponse {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  user?: StoredUser;
+}
+
+interface ResendResponse {
+  success?: boolean;
+  message?: string;
+}
+
 // Register user with backend API
 export const registerUserWithOtp = async (
   name: string,
@@ -18,7 +46,7 @@ export const registerUserWithOtp = async (
   try {
     console.log("🚀 Attempting registration with:", { name, email });
 
-    const response = await axios.post(
+    const response = await axios.post<RegisterResponse>(
       "https://tractive-be.vercel.app/api/auth/register",
       {
         name,
@@ -57,11 +85,11 @@ export const registerUserWithOtp = async (
     toast.dismiss(toastId);
 
     if (axios.isAxiosError(err)) {
-      const axiosError = err as AxiosError;
+      const axiosError = err as AxiosError<ApiErrorResponse>;
 
       if (axiosError.response) {
         const status = axiosError.response.status;
-        const responseData = axiosError.response.data as any;
+        const responseData = axiosError.response.data;
 
         if (status === 400) {
           toast.error(responseData?.message || "Invalid registration data");
@@ -106,7 +134,7 @@ export const verifyOtpCode = async (
   try {
     console.log("🔍 Verifying OTP for:", email);
 
-    const response = await axios.post(
+    const response = await axios.post<VerifyResponse>(
       "https://tractive-be.vercel.app/api/auth/verify-code",
       {
         email,
@@ -147,11 +175,11 @@ export const verifyOtpCode = async (
     toast.dismiss(toastId);
 
     if (axios.isAxiosError(err)) {
-      const axiosError = err as AxiosError;
+      const axiosError = err as AxiosError<ApiErrorResponse>;
 
       if (axiosError.response) {
         const status = axiosError.response.status;
-        const responseData = axiosError.response.data as any;
+        const responseData = axiosError.response.data;
 
         if (status === 400) {
           toast.error(responseData?.message || "Invalid verification code");
@@ -180,6 +208,7 @@ export const verifyOtpCode = async (
     return { success: false, message: "Verification failed" };
   }
 };
+
 // Resend OTP code
 export const resendOtpCode = async (
   email: string
@@ -189,7 +218,7 @@ export const resendOtpCode = async (
   try {
     console.log("🔄 Resending OTP for:", email);
 
-    const response = await axios.post(
+    const response = await axios.post<ResendResponse>(
       "https://tractive-be.vercel.app/api/auth/resend-verification",
       { email },
       {

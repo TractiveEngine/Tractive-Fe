@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -109,8 +109,8 @@ export default function CustomersListPage() {
     "Dec",
   ];
 
-  // Fetch customers from API
-  const fetchCustomers = async () => {
+  // Fetch customers from API - wrapped in useCallback
+  const fetchCustomers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -159,7 +159,7 @@ export default function CustomersListPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, selectedYear, selectedMonth, currentPage]);
 
   // Test API endpoint on component mount
   useEffect(() => {

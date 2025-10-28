@@ -6,18 +6,6 @@ import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
 import { ReviewService, Review, ReviewSummary } from "@/services/reviewService";
 
-// Define TypeScript interfaces for the data structure
-interface User {
-  name: string;
-  avatar: string;
-}
-
-interface Rating {
-  stars: string;
-  count: number;
-  percentage: number;
-}
-
 // Props interface for the component
 interface ReviewsPageProps {
   agentId?: string; // Make agentId optional with fallback
@@ -50,7 +38,6 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentAgentId, setCurrentAgentId] = useState(agentId);
 
   // Initialize individual animation controls for each rating
   const control1 = useAnimation();
@@ -104,10 +91,10 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
 
   // Fetch data when component mounts or agentId changes
   useEffect(() => {
-    if (currentAgentId) {
-      fetchReviewData(currentAgentId);
+    if (agentId) {
+      fetchReviewData(agentId);
     }
-  }, [currentAgentId]);
+  }, [agentId]);
 
   // Animate progress bars when data changes
   useEffect(() => {
@@ -152,18 +139,6 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
     }
   };
 
-  // Handle reply to review
-  const handleReplyToReview = async (reviewId: string, message: string) => {
-    try {
-      await ReviewService.replyToReview(reviewId, { message });
-      // You might want to refetch reviews or update local state
-      alert("Reply posted successfully");
-    } catch (err) {
-      console.error("Error replying to review:", err);
-      alert("Failed to post reply");
-    }
-  };
-
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -197,7 +172,7 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
       {/* Agent ID Info (for debugging) */}
       <div className="w-full text-right mb-2">
         <span className="text-xs text-gray-500 font-montserrat">
-          Agent: {currentAgentId}
+          Agent: {agentId}
         </span>
       </div>
 
@@ -205,7 +180,7 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
         <div className="w-full p-3 mb-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 font-montserrat text-sm">{error}</p>
           <button
-            onClick={() => fetchReviewData(currentAgentId)}
+            onClick={() => fetchReviewData(agentId)}
             className="mt-2 px-4 py-2 bg-[#538e53] text-white text-xs font-montserrat rounded hover:bg-[#467746]"
           >
             Retry
@@ -364,4 +339,3 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
 };
 
 export default ReviewsPage;
-  
