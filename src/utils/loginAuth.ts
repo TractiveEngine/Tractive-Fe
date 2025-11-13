@@ -1,27 +1,12 @@
-type StoredUser = {
-  fullName: string;
+export type SessionData = {
+  name: string;
   email: string;
-  password: string;
-};
-
-type SessionData = {
-  fullName: string;
-  email: string;
-  password: string;
   token: string;
   loginExpiry: number;
+  role: string[];
+  activeRole: string | null;
 };
 
-// Get stored user from localStorage
-export const getStoredUser = (): StoredUser | null => {
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  }
-  return null;
-};
-
-// Get the auth token from localStorage
 export const getAuthToken = (): string | null => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("authToken");
@@ -29,36 +14,37 @@ export const getAuthToken = (): string | null => {
   return null;
 };
 
-// Set session after successful login
 export const setUserSession = (user: {
   email: string;
-  password: string;
-  fullName: string;
+  name: string;
   token: string;
+  role?: string[];
+  activeRole?: string | null;
 }) => {
   const session: SessionData = {
     email: user.email,
-    fullName: user.fullName,
-    password: user.password,
+    name: user.name,
     token: user.token,
-    loginExpiry: Date.now() + 2 * 60 * 60 * 1000, // 2 hours
+    loginExpiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    role: user.role || [], // Default to empty array for new users
+    activeRole: user.activeRole || null, // No default role
   };
   localStorage.setItem("session", JSON.stringify(session));
+  localStorage.setItem("authToken", user.token);
+  if(user.activeRole) {
+    localStorage.setItem("userRole", user.activeRole);
+  }
 };
 
-// Logout and clear session
 export const logoutUser = () => {
-  localStorage.removeItem("session");
-  localStorage.removeItem("authToken"); 
+  localStorage.removeItem("authToken");
 };
-
 
 export const saveLoginSession = (userData: SessionData) => {
   localStorage.setItem("authToken", userData.token);
   localStorage.setItem("session", JSON.stringify(userData));
 };
 
-// Get session if still valid
 type UserSessionWithToken = SessionData & { authToken: string | null };
 
 export const getLoggedInUser = (): UserSessionWithToken | null => {
@@ -74,7 +60,7 @@ export const getLoggedInUser = (): UserSessionWithToken | null => {
     return null;
   }
 
-  const authToken = getAuthToken(); // Fetch token separately
+  const authToken = getAuthToken();
 
   return {
     ...parsedSession,
@@ -82,6 +68,22 @@ export const getLoggedInUser = (): UserSessionWithToken | null => {
   };
 };
 
+export const getAuthHeaders = (): HeadersInit => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+};
+
+export const redirectToLogin = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+};
 
 export const isUserLoggedIn = (): boolean => {
   try {
@@ -91,7 +93,7 @@ export const isUserLoggedIn = (): boolean => {
     const parsed = JSON.parse(session) as SessionData;
 
     const isValid = Date.now() < parsed.loginExpiry;
-    if (!isValid) localStorage.removeItem("session");
+    if (!isValid) logoutUser();
 
     return isValid;
   } catch {

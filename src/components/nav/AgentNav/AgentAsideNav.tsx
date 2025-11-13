@@ -21,9 +21,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { logoutUser } from "@/utils/loginAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddToStore } from "@/app/(main)/agents/_components/AddToStore";
+import { logoutUser } from "@/utils/loginAuth";
+import AddToStore from "@/app/(main)/agent/_components/AddToStore";
+
 
 interface NavSection {
   title: string;
@@ -62,18 +63,18 @@ export const AgentAsideNav = () => {
 
   // Mapping of labels to their corresponding routes
   const labelToRoute: { [key: string]: string } = {
-    "Produce list": "/agents/produce-list",
-    Farmers: "/agents/farmers",
-    Bids: "/agents/bids",
-    New: "/agents/new",
-    Packed: "/agents/packed",
-    Delivered: "/agents/delivered",
-    Pending: "/agents/pending",
-    Received: "/agents/received",
-    Customers: "/agents/customers",
-    Reviews: "/agents/reviews",
-    Chat: "/agents/chat",
-    Help: "/agents/help",
+    "Produce list": "/agent/produce-list",
+    Farmers: "/agent/farmers",
+    Bids: "/agent/bids",
+    New: "/agent/new",
+    Packed: "/agent/packed",
+    Delivered: "/agent/delivered",
+    Pending: "/agent/pending",
+    Received: "/agent/received",
+    Customers: "/agent/customers",
+    Reviews: "/agent/reviews",
+    Chat: "/agent/chat",
+    Help: "/agent/help",
   };
 
   const navSections: NavSection[] = [
@@ -86,32 +87,32 @@ export const AgentAsideNav = () => {
           onClick: () => setIsModalOpen(true),
         },
         {
-          href: "/agents/produce-list",
+          href: "/agent/produce-list",
           icon: ProduceListIcon,
           label: "Produce list",
         },
-        { href: "/agents/farmers", icon: FarmersIcon, label: "Farmers" },
-        { href: "/agents/bids", icon: BidsIcon, label: "Bids", hasDot: true },
+        { href: "/agent/farmers", icon: FarmersIcon, label: "Farmers" },
+        { href: "/agent/bids", icon: BidsIcon, label: "Bids", hasDot: true },
       ],
     },
     {
       title: "Orders",
       items: [
-        { href: "/agents/new", icon: Bag2Icon, label: "New", hasDot: true },
-        { href: "/agents/packed", icon: PackedIcon, label: "Packed" },
-        { href: "/agents/delivered", icon: BoxTickIcon, label: "Delivered" },
+        { href: "/agent/new", icon: Bag2Icon, label: "New", hasDot: true },
+        { href: "/agent/packed", icon: PackedIcon, label: "Packed" },
+        { href: "/agent/delivered", icon: BoxTickIcon, label: "Delivered" },
       ],
     },
     {
       title: "Transactions",
       items: [
         {
-          href: "/agents/pending",
+          href: "/agent/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/agents/received",
+          href: "/agent/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -121,23 +122,23 @@ export const AgentAsideNav = () => {
       title: "Customers",
       items: [
         {
-          href: "/agents/customers",
+          href: "/agent/customers",
           icon: Profile2UserIcon,
           label: "Customers",
         },
-        { href: "/agents/reviews", icon: MessageStarIcon, label: "Reviews" },
+        { href: "/agent/reviews", icon: MessageStarIcon, label: "Reviews" },
       ],
     },
     {
       title: "Others",
       items: [
         {
-          href: "/agents/chat",
+          href: "/agent/chat",
           icon: MessagesIcon,
           label: "Chat",
           hasDot: true,
         },
-        { href: "/agents/help", icon: MessageQuestionIcon, label: "Help" },
+        { href: "/agent/help", icon: MessageQuestionIcon, label: "Help" },
       ],
     },
   ];
@@ -146,7 +147,7 @@ export const AgentAsideNav = () => {
     <aside className="w-25 lg:w-50 bg-[#fefefe] fixed h-full hidden sm:block shadow-md z-20 overflow-y-auto Aside_hide-scrollbar">
       <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <Link
-        href="/agents"
+        href="/agent"
         className="flex items-center justify-center lg:justify-start mx-auto my-2 w-[3rem] lg:w-[50%]"
       >
         <Image
@@ -161,9 +162,9 @@ export const AgentAsideNav = () => {
           <ul>
             <li>
               <Link
-                href="/agents"
+                href="/agent"
                 className={`flex items-center gap-2 py-2 px-2 rounded-md transition-colors duration-200 lg:flex-row flex-col ${
-                  pathname === "/agents"
+                  pathname === "/agent"
                     ? "bg-[#CCE5CC80]"
                     : "hover:bg-[#f1f1f1]"
                 }`}

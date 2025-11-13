@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThreeDotIcon } from "@/app/(main)/agents/produce-list/_components/table/ActionMenu";
+import { ThreeDotIcon } from "@/app/(main)/agent/produce-list/_components/table/ActionMenu";
 
 export interface TrackTransporterActionMenuProps {
   userTypeId: string;

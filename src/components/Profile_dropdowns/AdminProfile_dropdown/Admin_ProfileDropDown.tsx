@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { SwapIcon } from "@/icons/Icon1";
+import { SwapIcon } from "../../../icons/Icon1";
 
 interface ProfileDropDownProps {
   onLogout: () => void;

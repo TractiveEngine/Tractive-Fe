@@ -6,7 +6,7 @@ export interface AgentsProps {
   location: string;
   profession: string;
   mobile: string;
-  NiN: string;
+  NIN: string;
   date: string;
   checked: boolean;
 }
@@ -55,7 +55,7 @@ export const AgentsData: AgentsProps[] = [
     location: "Lagos",
     profession: "Agent",
     mobile: "123-456-7890",
-    NiN: "NIN123456",
+    NIN: "NIN123456",
     date: "2023-01-01",
     checked: false,
   },
@@ -67,7 +67,7 @@ export const AgentsData: AgentsProps[] = [
     location: "Abuja",
     profession: "Agent",
     mobile: "987-654-3210",
-    NiN: "NIN654321",
+    NIN: "NIN654321",
     date: "2023-02-01",
     checked: false,
   },
@@ -79,7 +79,7 @@ export const AgentsData: AgentsProps[] = [
     location: "Port Harcourt",
     profession: "Agent",
     mobile: "555-123-4567",
-    NiN: "NIN789123",
+    NIN: "NIN789123",
     date: "2023-03-01",
     checked: false,
   },
@@ -91,7 +91,7 @@ export const AgentsData: AgentsProps[] = [
     location: "Enugu",
     profession: "Agent",
     mobile: "444-987-6543",
-    NiN: "NIN456789",
+    NIN: "NIN456789",
     date: "2023-04-01",
     checked: false,
   },
@@ -103,7 +103,7 @@ export const AgentsData: AgentsProps[] = [
     location: "Kaduna",
     profession: "Agent",
     mobile: "333-456-7890",
-    NiN: "NIN321654",
+    NIN: "NIN321654",
     date: "2023-05-01",
     checked: false,
   },

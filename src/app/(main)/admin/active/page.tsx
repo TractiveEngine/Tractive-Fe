@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { SuspendedTable } from "./_components/ASRTable/SuspendedTable";
 import { RemovedTable } from "./_components/ASRTable/RemovedTable";
 import { ActiveTable } from "./_components/ASRTable/ActiveTable";
-import { AdminControl, ASRDataControl } from "@/utils/AdminControl";
+import { AdminControl, ASRDataControl } from "../../../../utils/AdminControl";
 
 // Define types for slide switching
 type SlideType = "Active" | "Suspended" | "Removed";

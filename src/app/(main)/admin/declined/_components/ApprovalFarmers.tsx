@@ -95,7 +95,6 @@ const columns: ColumnConfig<FarmersProps>[] = [
   { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
   { key: "marketName", header: "Market", minWidth: "min-w-[100px]" },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
-  { key: "status", header: "Status", minWidth: "min-w-[100px]" }, // Add status column
 ];
 
 export const ApprovalFarmers: React.FC<ApprovalsFarmersProps> = ({

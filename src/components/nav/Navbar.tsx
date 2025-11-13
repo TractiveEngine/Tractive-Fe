@@ -8,12 +8,12 @@ import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
-import { Buyer_ProfileDropDown } from "../Profile_dropdowns/BuyerProfile_dropdown/Buyer_ProfileDropDown";
+import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
 
 export const Navbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -35,8 +35,8 @@ export const Navbar = () => {
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
         const userData = getLoggedInUser();
-        if (userData && "fullName" in userData && "email" in userData) {
-          setUser({ fullName: userData.fullName, email: userData.email });
+        if (userData && "name" in userData && "email" in userData) {
+          setUser({ name: userData.name, email: userData.email });
         } else {
           setUser(null);
         }
@@ -196,7 +196,7 @@ export const Navbar = () => {
                 className="rounded-full"
               />
               <span className="text-[#2b2b2b] hidden lg:block text-[0.89rem] font-normal">
-                {user?.fullName}
+                {user?.name}
               </span>
               <svg
                 className="h-4 w-4 text-[#2b2b2b]"
@@ -212,9 +212,7 @@ export const Navbar = () => {
                 />
               </svg>
             </div>
-            {isDropdownOpen && (
-              <Buyer_ProfileDropDown onLogout={handleLogout} />
-            )}
+            {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
           </div>
         </>
       ) : (

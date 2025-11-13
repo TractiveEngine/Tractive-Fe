@@ -11,13 +11,13 @@ import Link from "next/link";
 import React from "react";
 
 interface OnboardingData {
-  state: string;
-  CAC: string;
-  address: string;
-  mobile: string;
-  alternativeMobile: string;
+  nin: string;
+  villageOrLocalMarket: string;
+  phone: string;
   businessName: string;
+  email: string;
   interests: string[];
+  role: string;
 }
 
 export const BuyerProfile_AsideNav = () => {
@@ -47,14 +47,7 @@ export const BuyerProfile_AsideNav = () => {
             <div className="flex items-center justify-center gap-2">
               <CallOutlineIcon />
               <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.mobile}
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <CallOutlineIcon />
-
-              <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.alternativeMobile}
+                {onboardingData?.phone}
               </span>
             </div>
           </div>

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TickIcon } from "@/app/(main)/agents/produce-list/_components/table/ProductRow";
 import { AdminActionMenuProps } from "../AdminActionMenuProps";
 import "../../Table.css";
+import { TickIcon } from "../../../../../app/(main)/agent/_components/Icons/AgentIcons";
 
 interface BaseData {
   id: string;

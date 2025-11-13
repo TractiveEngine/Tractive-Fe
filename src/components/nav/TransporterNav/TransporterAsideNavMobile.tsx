@@ -14,15 +14,15 @@ import {
   PackedIcon,
   ProduceListIcon,
   Profile2UserIcon,
-} from "@/icons/DashboardIcons";
-import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
+} from "../../../icons/DashboardIcons";
+import { ArrowDownIcon, ArrowUpIcon } from "../../../icons/Icons";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Transporter_ProfileDropDownMobile } from "../../Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDownMobile";
-import AddFleet from "@/app/(main)/transporters/_components/AddFleet";
+import AddFleet from "../../../app/(main)/transporter/_components/AddFleet";
 
 interface NavSection {
   title: string;
@@ -36,7 +36,7 @@ interface NavSection {
 }
 
 interface TransporterAsideNavMobileProps {
-  user: { fullName: string; email: string } | null;
+  user: { name: string; email: string } | null;
   isDropdownOpen: boolean;
   handleUserDropdownClick: () => void;
   handleLogout: () => void;
@@ -226,7 +226,7 @@ export const TransporterAsideNavMobile = ({
               />
               <div className="flex flex-col">
                 <span className="text-[#fefefe] text-[0.8rem] text-left font-normal">
-                  {user.fullName}
+                  {user.name}
                 </span>
                 <span className="text-[#fefefe] text-[0.8rem] text-left font-normal">
                   {user.email}

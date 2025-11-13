@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,10 +9,11 @@ import { FcGoogle } from "react-icons/fc";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignupFormData, SignupSchema } from "@/schemas/SignupSchemas";
 import { toast } from "sonner";
-import { useEmailUser } from "@/hooks/userEmailContext";
-import { registerUserWithOtp } from "@/utils/signupAuth";
+import { useEmailUser } from "../../../hooks/userEmailContext";
+import { SignupFormData, SignupSchema } from "../../../schemas/SignupSchemas";
+import { registerUserWithOtp } from "../../../utils/signupAuth";
+import { Button } from "../../../components/Button";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,34 +34,37 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      console.log("✅ Signup Data:", data);
+      console.log("🚀 Signup Data:", {
+        fullName: data.name,
+        email: data.email,
+      });
 
       const { newUser, otpSentTo } = await registerUserWithOtp(
-        data.fullName,
+        data.name,
         data.email,
         data.password
       );
 
-      if (!newUser) return;
+      if (!newUser) {
+        setLoading(false);
+        return;
+      }
 
+      toast.success(`OTP sent to ${otpSentTo}`);
+
+      // Set email in context for verification page
       setEmail(newUser.email);
 
-      // Use otpSentTo in a toast notification
-      toast.success(`OTP sent to ${otpSentTo}. Please check your inbox.`);
-
-      await new Promise((res) => setTimeout(res, 2000));
-      console.log("👉 Your OTP is:", localStorage.getItem("pendingOtp"));
+      // Wait a moment before redirecting
+      await new Promise((res) => setTimeout(res, 1500));
 
       reset();
 
-      setTimeout(() => {
-        router.push("/email-confirmation");
-      }, 1000);
+      // Navigate to email confirmation page
+      router.push("/email-confirmation");
     } catch (err) {
-      console.log("signup failed. Try again.", err);
-      toast.dismiss();
-      toast.error("signup failed. Try again.");
-      console.log(err);
+      console.error("Signup failed:", err);
+      toast.error("Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -109,12 +112,12 @@ export default function Signup() {
                 <input
                   type="text"
                   id="full-name"
-                  {...register("fullName")}
+                  {...register("name")}
                   className="font-montserrat w-full py-2 px-3 rounded-md border border-[#ccc] text-[12px] text-[#808080] placeholder-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
                 />
-                {errors.fullName && (
+                {errors.name && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.fullName.message}
+                    {errors.name.message}
                   </p>
                 )}
               </div>
@@ -168,8 +171,8 @@ export default function Signup() {
 
               <Button
                 className="w-full justify-center"
-                onClick={() => handleSubmit(onSubmit)()}
-                text={loading ? "Signing up..." : "signup"}
+                type="submit"
+                text={loading ? "Signing up..." : "Sign up"}
                 disabled={loading}
               />
 

@@ -1,19 +1,32 @@
 "use client";
-import { useEffect } from "react";
-// import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function OnboardingSuccessPage() {
-  // const router = useRouter();
+  // Initialize userRole from localStorage
+  const [userRole] = useState<string>(
+    () => localStorage.getItem("userRole") || ""
+  );
+  const router = useRouter();
 
   useEffect(() => {
+    // Set up redirect timer
     const timer = setTimeout(() => {
-      // Redirection after success (optional)
-    }, 7000);
+      if (userRole) {
+        // Redirect to the appropriate dashboard based on user role
+        const dashboardRoute = `/${userRole}`;
+        console.log("🎯 Redirecting to dashboard:", dashboardRoute);
+        router.replace(dashboardRoute);
+      } else {
+        // Fallback to register-as if no role found
+        router.replace("/register-as");
+      }
+    }, 5000); // Reduced from 7s to 5s for better UX
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [router, userRole]);
 
   return (
     <>
