@@ -1,16 +1,23 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image"
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
-import axios from "axios";
-import { getOnboardingSchema, OnboardingSchemaType } from "../../../schemas/onboardingSchema";
-import { getAuthToken, getLoggedInUser, setUserSession } from "../../../utils/loginAuth";
+import {
+  getOnboardingSchema,
+  OnboardingSchemaType,
+} from "../../../schemas/onboardingSchema";
 import { Button } from "../../../components/Button";
+import {
+  useUpdateProfile,
+  useAddAccount,
+  ContentPayload,
+} from "@/hooks/queries/useUserQueries";
 
 const interests = [
   "fish",
@@ -24,15 +31,47 @@ const interests = [
 type InterestType = (typeof interests)[number];
 
 export default function OnboardingForm() {
-  const [loading, setLoading] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [selectedInterests, setSelectedInterests] = useState<InterestType[]>(
-    []
-  );
   const router = useRouter();
+  const { data: session, update } = useSession();
+
+  const { mutateAsync: updateProfile, isPending: loadingProfile } =
+    useUpdateProfile(); // Use updateProfile instead of addAccount
+  const { mutateAsync: addAccount, isPending: loadingAdd } = useAddAccount();
+  const loading = loadingProfile || loadingAdd;
+
+  // Get active role directly from session.
+  // Register-As page updates this before redirecting here.
+  const searchParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const roleFromUrl = searchParams ? searchParams.get("role") : null;
+
+  // Logic to determine the "target" role for onboarding
+  // 1. If session has activeRole (switching/existing), use that.
+  // 2. If not, check URL param (new flow from register-as).
+  // 3. If not, check localStorage (fallback).
+  const [targetRole, setTargetRole] = useState<string | null>(
+    session?.user?.activeRole || null,
+  );
+
+  useEffect(() => {
+    if (session?.user?.activeRole) {
+      setTargetRole(session.user.activeRole);
+    } else if (roleFromUrl) {
+      setTargetRole(roleFromUrl);
+    } else {
+      const pending = localStorage.getItem("pendingRole");
+      if (pending) setTargetRole(pending);
+    }
+  }, [session, roleFromUrl]);
+
+  const [selectedInterests, setSelectedInterests] = useState<InterestType[]>(
+    [],
+  );
 
   // Get the appropriate schema based on user role
-  const schema = getOnboardingSchema(userRole);
+  const schema = getOnboardingSchema(targetRole || undefined);
 
   const {
     register,
@@ -43,8 +82,16 @@ export default function OnboardingForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       interests: [] as unknown as [InterestType, ...InterestType[]],
+      role: targetRole as "agent" | "transporter" | "buyer",
     },
   });
+
+  // Update role in form if targetRole changes
+  useEffect(() => {
+    if (targetRole) {
+      setValue("role", targetRole as "agent" | "transporter" | "buyer");
+    }
+  }, [targetRole, setValue]);
 
   // Register the interests field
   useEffect(() => {
@@ -52,67 +99,57 @@ export default function OnboardingForm() {
   }, [register]);
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      toast.error("Unauthorized access. Please login.", {
-        duration: 3000,
-        position: "top-center",
-      });
+    // Only redirect if completely lost (no session)
+    if (session === null) {
       router.replace("/login");
-      return;
     }
-
-    // Get user role from localStorage or session
-    const user = getLoggedInUser();
-    const role = user?.activeRole || localStorage.getItem("userRole");
-
-    if (!role) {
-      toast.error("Please select a role first.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/register-as");
-      return;
+    // If logged in but no role target found, go back to selection
+    else if (session && !targetRole && !loading) {
+      // Small delay to ensure we aren't just waiting for hydration
+      const timer = setTimeout(() => {
+        if (!targetRole) {
+          toast.error("Please select a role first.");
+          router.replace("/register-as");
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
     }
+  }, [session, targetRole, router, loading]);
 
-    setUserRole(role);
-    setValue("role", role as OnboardingSchemaType["role"]);
-
-    // Load saved onboarding data if exists
-    const saved = localStorage.getItem(`onboarding-data-${role}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as OnboardingSchemaType;
-
-        // Restore form values
-        Object.keys(parsed).forEach((key) => {
-          if (
-            key === "interests" &&
-            Array.isArray(parsed[key as keyof OnboardingSchemaType])
-          ) {
-            const interests = parsed[
-              key as keyof OnboardingSchemaType
-            ] as InterestType[];
-            setSelectedInterests(interests);
-            setValue(
-              "interests",
-              interests as [InterestType, ...InterestType[]],
-              {
-                shouldValidate: true,
-              }
-            );
-          } else {
-            setValue(
-              key as keyof OnboardingSchemaType,
-              parsed[key as keyof OnboardingSchemaType]
-            );
-          }
-        });
-      } catch (error) {
-        console.error("Error loading saved data:", error);
+  // Load saved draft data from localStorage (Feature preservation)
+  useEffect(() => {
+    if (targetRole) {
+      const saved = localStorage.getItem(`onboarding-data-${targetRole}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as OnboardingSchemaType;
+          Object.keys(parsed).forEach((key) => {
+            if (
+              key === "interests" &&
+              Array.isArray(parsed[key as keyof OnboardingSchemaType])
+            ) {
+              const interests = parsed[
+                key as keyof OnboardingSchemaType
+              ] as InterestType[];
+              setSelectedInterests(interests);
+              setValue(
+                "interests",
+                interests as [InterestType, ...InterestType[]],
+                { shouldValidate: true },
+              );
+            } else {
+              setValue(
+                key as keyof OnboardingSchemaType,
+                parsed[key as keyof OnboardingSchemaType],
+              );
+            }
+          });
+        } catch (error) {
+          console.error("Error loading saved data:", error);
+        }
       }
     }
-  }, [setValue, router, register]);
+  }, [targetRole, setValue]);
 
   const toggleInterest = (interest: InterestType) => {
     const updated = selectedInterests.includes(interest)
@@ -120,155 +157,107 @@ export default function OnboardingForm() {
       : [...selectedInterests, interest];
 
     setSelectedInterests(updated);
-
-    // Type assertion to handle Zod's tuple requirement
     setValue("interests", updated as [InterestType, ...InterestType[]], {
       shouldValidate: true,
       shouldDirty: true,
     });
   };
 
-const onSubmit = async (data: OnboardingSchemaType) => {
-  const token = getAuthToken();
-  if (!token) {
-    toast.error("Unauthorized access. Please login.", {
-      duration: 3000,
-      position: "top-center",
-    });
-    router.replace("/login");
-    return;
-  }
+  const onSubmit = async (data: OnboardingSchemaType) => {
+    if (!session) {
+      toast.error("Unauthorized access. Please login.");
+      router.replace("/login");
+      return;
+    }
 
-  if (!data.interests || data.interests.length === 0) {
-    toast.error("Please select at least one interest.");
-    return;
-  }
+    if (!targetRole) {
+      toast.error("No role selected.");
+      return;
+    }
 
-  setLoading(true);
-  const toastId = toast.loading("Completing your profile...");
+    if (!data.interests || data.interests.length === 0) {
+      toast.error("Please select at least one interest.");
+      return;
+    }
 
-  try {
-    const finalData = {
-      ...data,
-      role: userRole,
-    };
+    const toastId = toast.loading("Completing your profile...");
 
-    console.log("🚀 Step 1: Submitting onboarding data:", finalData);
+    try {
+      const finalData: ContentPayload = {
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        country: data.country,
+        state: data.state,
+        interests: data.interests || [],
+      };
 
-    // Step 1: Call add-account API to update user profile with onboarding data
-    const response = await axios.post(
-      "https://tractive-be.vercel.app/api/auth/add-account",
-      {
-        role: userRole,
-        businessName: finalData.businessName || undefined,
-        villageOrLocalMarket: finalData.villageOrLocalMarket,
-        phone: finalData.phone,
-        nin: finalData.nin || undefined,
-        interests: finalData.interests,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 15000,
+      // CRITICAL: Two-Step Flow for New Users
+      // As per role.md requirements, we MUST call add-account BEFORE updating profile
+
+      // Step 1: Check if this is a new role (not already in user's roles array)
+      const isNewRole = !session.user?.roles?.includes(targetRole);
+
+      console.log(
+        "Is new role:",
+        isNewRole,
+        "Target role:",
+        targetRole,
+        "Current roles:",
+        session.user?.roles,
+      );
+
+      // Step 2: If new role, call add-account API FIRST
+      if (isNewRole) {
+        const addAccountPayload = {
+          role: targetRole,
+          phone: finalData.phone,
+          address: finalData.address,
+          country: finalData.country,
+          state: finalData.state,
+        };
+
+        console.log("Calling add-account API with:", addAccountPayload);
+        await addAccount(addAccountPayload);
+        console.log("✓ add-account API completed successfully");
       }
-    );
 
-    console.log("✅ Step 2: Add-account response:", response.data);
+      // Step 3: Update profile with all user data (name, interests, etc.)
+      // This happens AFTER the role is created
+      console.log("Calling update profile API with:", finalData);
+      await updateProfile(finalData);
+      console.log("✓ update profile API completed successfully");
 
-    // Step 2: ALWAYS fetch fresh profile data after onboarding
-    console.log("🔍 Step 3: Fetching updated profile from /api/profile...");
+      // Step 4: Refresh session to get updated user data from backend
+      console.log("Refreshing session...");
+      await update();
+      console.log("✓ Session updated successfully");
 
-    const profileResponse = await axios.get(
-      "https://tractive-be.vercel.app/api/profile",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
-    );
+      // Clear draft
+      localStorage.removeItem(`onboarding-data-${targetRole}`);
+      localStorage.removeItem("pendingRole");
 
-    console.log("✅ Step 4: Updated profile received:", profileResponse.data);
+      toast.dismiss(toastId);
+      toast.success("Profile setup complete!");
 
-    const updatedUser = profileResponse.data.user;
+      // Redirect
+      router.push(`/${targetRole}`);
+      // Small delay to allow toast to show
+      // setTimeout(() => {
+      // }, 1000);
+    } catch (error: any) {
+      console.error("Onboarding error:", error);
+      toast.dismiss(toastId);
 
-    if (!updatedUser) {
-      throw new Error("Failed to fetch updated profile data");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to complete profile.";
+      toast.error(errorMessage);
     }
-
-    // Step 3: Update session with fresh profile data from /api/profile
-    setUserSession({
-      email: updatedUser.email,
-      name: updatedUser.name,
-      token,
-      role: Array.isArray(updatedUser.roles) ? updatedUser.roles : [userRole],
-      activeRole: updatedUser.activeRole || userRole,
-    });
-
-    console.log("✅ Step 5: Session updated with:", {
-      email: updatedUser.email,
-      name: updatedUser.name,
-      roles: updatedUser.roles,
-      activeRole: updatedUser.activeRole || userRole,
-    });
-
-    // Step 4: Save local completion markers
-    localStorage.setItem(`${userRole}OnboardingCompleted`, "true");
-    localStorage.setItem(
-      `onboarding-data-${userRole}`,
-      JSON.stringify(finalData)
-    );
-
-    toast.dismiss(toastId);
-    toast.success("Profile completed successfully!");
-
-    console.log(`🎯 Redirecting to /${userRole} dashboard`);
-
-    // Step 5: Redirect to user's dashboard
-    setTimeout(() => {
-      router.push(`/${userRole}`);
-    }, 1500);
-  } catch (error) {
-    console.error("❌ Onboarding error:", error);
-    toast.dismiss(toastId);
-
-    let errorMessage = "Failed to complete profile. Please try again.";
-
-    // Handle different error scenarios
-    if (error.response?.status === 401) {
-      errorMessage = "Session expired. Please login again.";
-      setTimeout(() => {
-        // Clear session on auth failure
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("session");
-        router.replace("/login");
-      }, 1500);
-    } else if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    toast.error(errorMessage, {
-      duration: 5000,
-      position: "top-center",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const isFieldRequired = (field: string): boolean => {
-    if (userRole === "agent") {
-      return !["businessName", "nin"].includes(field);
-    }
-    return true;
   };
+
+  if (!session || !targetRole) return null; // Or skeleton
 
   return (
     <>
@@ -286,27 +275,27 @@ const onSubmit = async (data: OnboardingSchemaType) => {
         <div className="w-full lg:w-[70%] lg:mx-auto flex items-center justify-center">
           <div className="w-[90%] md:w-[70%] mx-auto flex flex-col">
             <h1 className="text-[18px] lg:text-[17px] py-4 text-center font-montserrat text-[#538e53] font-normal">
-              Complete your {userRole} profile!
+              Complete your {targetRole} profile!
             </h1>
 
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="w-full max-w-2xl mx-auto space-y-6 p-6"
             >
-              {/* Village/Local Market */}
+              {/* Name */}
               <div>
                 <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-                  Village / Local Market *
+                  Full Name *
                 </label>
                 <input
                   type="text"
-                  {...register("villageOrLocalMarket")}
+                  {...register("name")}
                   className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[13px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-                  placeholder="Enter your village or local market"
+                  placeholder="Enter your full name"
                 />
-                {errors.villageOrLocalMarket && (
+                {errors.name && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.villageOrLocalMarket.message}
+                    {errors.name.message}
                   </p>
                 )}
               </div>
@@ -320,7 +309,7 @@ const onSubmit = async (data: OnboardingSchemaType) => {
                   type="tel"
                   {...register("phone")}
                   className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-                  placeholder="08012345678"
+                  placeholder="+234..."
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-xs mt-1">
@@ -329,40 +318,56 @@ const onSubmit = async (data: OnboardingSchemaType) => {
                 )}
               </div>
 
-              {/* Business Name - Required for buyers and transporters, optional for agents */}
+              {/* Address */}
               <div>
                 <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-                  Business Name{" "}
-                  {isFieldRequired("businessName") ? "*" : "(optional)"}
+                  Address *
                 </label>
                 <input
                   type="text"
-                  {...register("businessName")}
+                  {...register("address")}
                   className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-                  placeholder="Enter business name"
+                  placeholder="Enter your street address"
                 />
-                {errors.businessName && (
+                {errors.address && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.businessName.message}
+                    {errors.address.message}
                   </p>
                 )}
               </div>
 
-              {/* NIN - Required for buyers and transporters, optional for agents */}
+              {/* Country */}
               <div>
                 <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-                  NIN {isFieldRequired("nin") ? "*" : "(optional)"}
+                  Country *
                 </label>
                 <input
                   type="text"
-                  {...register("nin")}
+                  {...register("country")}
                   className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-                  placeholder="12345678901"
-                  maxLength={11}
+                  placeholder="Enter your country"
                 />
-                {errors.nin && (
+                {errors.country && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.nin.message}
+                    {errors.country.message}
+                  </p>
+                )}
+              </div>
+
+              {/* State */}
+              <div>
+                <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+                  State *
+                </label>
+                <input
+                  type="text"
+                  {...register("state")}
+                  className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                  placeholder="Enter your state"
+                />
+                {errors.state && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.state.message}
                   </p>
                 )}
               </div>
@@ -374,6 +379,7 @@ const onSubmit = async (data: OnboardingSchemaType) => {
                 </label>
                 <div className="flex flex-wrap gap-4">
                   {interests.map((interest) => {
+                    // Cast to string for comparison if interests array is still readonly const
                     const isSelected = selectedInterests.includes(interest);
                     return (
                       <label
@@ -407,7 +413,7 @@ const onSubmit = async (data: OnboardingSchemaType) => {
                 </div>
                 {errors.interests && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.interests.message}
+                    {errors.interests.message as string}
                   </p>
                 )}
               </div>
@@ -415,6 +421,7 @@ const onSubmit = async (data: OnboardingSchemaType) => {
               {/* Submit */}
               <div>
                 <Button
+                  type="submit"
                   text={
                     loading ? (
                       <div className="flex items-center justify-center gap-2.5">
@@ -426,7 +433,10 @@ const onSubmit = async (data: OnboardingSchemaType) => {
                     )
                   }
                   className="w-[100%] justify-center"
-                  onClick={handleSubmit(onSubmit)}
+                  onClick={handleSubmit(onSubmit, (errors) => {
+                    console.error("Validation errors:", errors);
+                    toast.error("Please check the form for errors.");
+                  })}
                   disabled={loading}
                 />
               </div>

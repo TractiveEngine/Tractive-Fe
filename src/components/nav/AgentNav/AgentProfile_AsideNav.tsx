@@ -9,27 +9,11 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 import { ProfilePicture } from "@/app/(profiles)/agent-profile/_components/ProfilePicture";
-
-interface OnboardingData {
-  nin: string;
-  villageOrLocalMarket: string;
-  phone: string;
-  businessName: string;
-  interests: string[];
-  role: string;
-}
+import { useUserProfile } from "@/hooks/queries/useUserQueries";
 
 export const AgentProfile_AsideNav = () => {
   const pathname = usePathname();
-  const onboardingData: OnboardingData | null = (() => {
-    try {
-      const data = localStorage.getItem("onboarding-data");
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Error parsing onboarding-Data:", error);
-      return null;
-    }
-  })();
+  const { data: user } = useUserProfile();
 
   return (
     <div className="flex flex-col justify-center gap-4 w-[100%] pt-12 pb-4 bg-[#fefefe] shadow-md rounded-md">
@@ -37,16 +21,16 @@ export const AgentProfile_AsideNav = () => {
         <ProfilePicture />
         <div className="flex flex-col items-center justify-center gap-2">
           <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            {onboardingData?.businessName}
+            {user?.businessName || "Agent Business"}
           </span>
           <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            {onboardingData?.role}
+            {user?.activeRole || "Agent"}
           </span>
           <div className="flex items-center justify-center gap-4">
             <div className="flex items-center justify-center gap-2">
               <CallOutlineIcon />
               <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.phone}
+                {user?.phone || "No phone"}
               </span>
             </div>
           </div>

@@ -1,44 +1,14 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import "./Table.css"
-import { getLoggedInUser, isUserLoggedIn, logoutUser } from "../../../utils/loginAuth";
-import { debugAuth, requiresProductCreationPermission } from "../../../utils/userRoleAuth";
+import "./Table.css";
 import { AgentAsideNav } from "../../../components/nav/AgentNav/AgentAsideNav";
 import { AgentNavbar } from "../../../components/nav/AgentNav/AgentNavbar";
 import { AgentAsideNavMobile } from "../../../components/nav/AgentNav/AgentAsideNavMobile";
-
-const useBreakpoint = () => {
-  const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
-
-  useEffect(() => {
-    const updateBreakpoint = () => {
-      if (window.innerWidth >= 1024) {
-        setBreakpoint("lg");
-      } else if (window.innerWidth >= 640) {
-        setBreakpoint("sm");
-      } else {
-        setBreakpoint("xs");
-      }
-    };
-
-    updateBreakpoint();
-    window.addEventListener("resize", updateBreakpoint);
-    return () => window.removeEventListener("resize", updateBreakpoint);
-  }, []);
-
-  return breakpoint;
-};
-
-// Routes that should skip agent permission checks
-const EXCLUDED_ROUTES = [
-  "/onboarding-success",
-  "/onboarding",
-  "/buyer-dashboard",
-  "/transporter-dashboard",
-];
+import { useRoleGuard } from "@/hooks/useRoleGuard";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 export default function AgentLayout({
   children,
@@ -48,123 +18,24 @@ export default function AgentLayout({
   const router = useRouter();
   const pathname = usePathname();
   const breakpoint = useBreakpoint();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [hasPermission, setHasPermission] = useState<boolean>(false);
-  const [isChecking, setIsChecking] = useState(true);
 
-  // Check if current route should skip permission checks
-  const shouldCheckPermission = !EXCLUDED_ROUTES.some((route) =>
-    pathname?.startsWith(route)
-  );
+  // Use role guard for authentication and authorization
+  const { isAuthorized, isLoading, session } = useRoleGuard("agent");
 
-  useEffect(() => {
-    const checkLoginStatusAndPermissions = async () => {
-      try {
-        console.log("=== AGENT LAYOUT INIT ===");
-        console.log("Current path:", pathname);
-        console.log("Should check permission:", shouldCheckPermission);
+  const user = session?.user;
 
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-
-        if (!loggedIn) {
-          console.log("User not logged in");
-          setIsChecking(false);
-          return;
-        }
-
-        const userData = getLoggedInUser();
-        console.log("User data from localStorage:", userData);
-
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-
-          // Only check permissions if required for this route
-          if (shouldCheckPermission) {
-            console.log("Checking product creation permissions...");
-            
-            const permissionResult = await requiresProductCreationPermission();
-            console.log("Permission check result:", permissionResult);
-
-            if (permissionResult.hasPermission) {
-              console.log("Permission granted - user can access agent dashboard");
-              setHasPermission(true);
-            } else {
-              console.log("Permission denied:", permissionResult.message);
-              setHasPermission(false);
-
-              // Show appropriate message
-              toast.error(permissionResult.message || "Access denied", {
-                duration: 4000,
-                position: "top-center",
-              });
-
-              // Redirect to appropriate dashboard
-              if (permissionResult.redirectTo) {
-                console.log("Redirecting to:", permissionResult.redirectTo);
-                router.replace(permissionResult.redirectTo);
-              }
-            }
-          } else {
-            console.log("Skipping permission check for route:", pathname);
-            setHasPermission(true);
-          }
-        } else {
-          console.log("Invalid user data");
-          setUser(null);
-          setIsLoggedIn(false);
-          setHasPermission(false);
-        }
-      } catch (error) {
-        console.error("Error in AgentLayout:", error);
-        setIsLoggedIn(false);
-        setUser(null);
-        setHasPermission(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkLoginStatusAndPermissions();
-  }, [router, pathname, shouldCheckPermission]);
-
-  useEffect(() => {
-    if (isLoggedIn === false) {
-      toast.error("Unauthorized access. Please login.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-    }
-  }, [isLoggedIn, router]);
-
-  // Debug effect
-  useEffect(() => {
-    if (isLoggedIn && process.env.NODE_ENV === "development") {
-      debugAuth();
-    }
-  }, [isLoggedIn]);
-
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
     router.push("/login");
-    setUser(null);
-    setHasPermission(false);
     setIsDropdownOpen(false);
   };
 
   const handleUserDropdownClick = () => {
-    console.log("Toggling profile dropdown");
     setIsDropdownOpen((prev) => !prev);
   };
 
   const closeDropdown = () => {
-    console.log("Closing profile dropdown");
     setIsDropdownOpen(false);
   };
 
@@ -175,53 +46,20 @@ export default function AgentLayout({
   };
 
   // Show loading state
-  if (isChecking) {
+  if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="flex items-center gap-2">
           <div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div>
-          <span>Checking permissions...</span>
+          <span>Loading...</span>
         </div>
       </div>
     );
   }
 
-  // Don't render anything if not logged in
-  if (!isLoggedIn) {
+  // Don't render if not authorized (useRoleGuard handles redirects)
+  if (!isAuthorized) {
     return null;
-  }
-
-  // Only check permission if required for this route
-  if (shouldCheckPermission && !hasPermission) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-[#a0dfa0] border-t-[#538e53] rounded-full mx-auto mb-4"></div>
-          <h2 className="text-lg font-semibold text-gray-700">
-            Access Denied
-          </h2>
-          <p className="text-gray-500 mb-4">
-            You need agent or admin permissions to access this page.
-          </p>
-          <div className="space-x-4">
-            <button
-              onClick={() => router.push("/register-as")}
-              className="bg-[#538e53] text-white px-4 py-2 rounded hover:bg-[#4a7a4a]"
-            >
-              Become an Agent
-            </button>
-            {process.env.NODE_ENV === "development" && (
-              <button
-                onClick={() => debugAuth()}
-                className="text-blue-500 underline"
-              >
-                Debug Auth
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
   }
 
   // For onboarding success page, don't show agent navigation
@@ -246,7 +84,9 @@ export default function AgentLayout({
         </nav>
         <div className="flex flex-col">
           <AgentAsideNavMobile
-            user={user}
+            user={
+              user ? { name: user.name || "", email: user.email || "" } : null
+            }
             isDropdownOpen={isDropdownOpen}
             handleUserDropdownClick={handleUserDropdownClick}
             handleLogout={handleLogout}

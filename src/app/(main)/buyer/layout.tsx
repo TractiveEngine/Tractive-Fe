@@ -4,10 +4,10 @@ import { Navbar } from "@/components/nav/Navbar";
 import { SubNavbar } from "@/components/nav/SubNavbar";
 import { FollowingProvider } from "@/hooks/followingContext";
 import { WishlistProvider } from "@/hooks/wishlistContext";
-import { getLoggedInUser, isUserLoggedIn } from "@/utils/loginAuth";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
+import React from "react";
 
 const topSellers = [
   "Kelvin Chikezie",
@@ -22,50 +22,12 @@ export default function BuyerLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
 
-  console.log(user);
+  // Use role guard for authentication and authorization
+  const { isAuthorized, isLoading } = useRoleGuard("buyer");
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const userData = getLoggedInUser();
-          if (userData && "name" in userData && "email" in userData) {
-            setUser({ name: userData.name, email: userData.email });
-          } else {
-            setUser(null);
-            setIsLoggedIn(false);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-
-  useEffect(() => {
-    if (isLoggedIn === false) {
-      toast.error("Unauthorized access. Login to become a buyer...", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-    }
-  }, [isLoggedIn, router]);
-
-  if (isLoggedIn === null) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="flex items-center gap-2">
@@ -76,7 +38,8 @@ export default function BuyerLayout({
     );
   }
 
-  if (!isLoggedIn) {
+  // Don't render if not authorized (useRoleGuard handles redirects)
+  if (!isAuthorized) {
     return null;
   }
 

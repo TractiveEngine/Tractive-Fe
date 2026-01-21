@@ -2,16 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { signIn, useSession } from "next-auth/react";
 import { LoginSchema, LoginSchemaType } from "../../../schemas/LoginSchema";
-import { setUserSession } from "../../../utils/loginAuth";
 import { Button } from "../../../components/Button";
 
 const Spinner = () => (
@@ -22,11 +21,25 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (session?.user) {
+        const { activeRole, role: roles } = session.user;
+        if (activeRole) {
+             router.replace(`/${activeRole}`);
+        } else if (roles && roles.length > 0) {
+             router.replace("/register-as");
+        } else {
+             router.replace("/register-as");
+        }
+    }
+  }, [session, router]);
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
@@ -37,142 +50,30 @@ export default function Login() {
     const toastId = toast.loading("Logging in...");
 
     try {
-      console.log("🚀 Step 1: Attempting login with:", { email: data.email });
-
-      // Step 1: Login and get token
-      const loginResponse = await axios.post(
-        "https://tractive-be.vercel.app/api/auth/login",
-        {
-          email: data.email,
-          password: data.password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
-      );
-
-      console.log("✅ Step 2: Login successful, received token");
-
-      if (!loginResponse.data.token) {
-        throw new Error("No authentication token received from server");
-      }
-
-      const { token } = loginResponse.data;
-
-      // Store token immediately for the next API call
-      localStorage.setItem("authToken", token);
-
-      console.log("🔍 Step 3: Fetching user profile with token...");
-
-      // Step 2: Get user profile and roles
-      const profileResponse = await axios.get(
-        "https://tractive-be.vercel.app/api/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
-      );
-
-      console.log("✅ Step 4: Profile data received:", profileResponse.data);
-
-      const { user } = profileResponse.data;
-
-      if (!user) {
-        throw new Error("No user data received from profile endpoint");
-      }
-
-      // Extract user information from profile API
-      const userEmail = user.email || data.email;
-      const userName = user.name || user.email?.split("@")[0] || "User";
-      const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
-      const activeRole: string | null = user.activeRole || null;
-
-      console.log("📋 User profile:", {
-        email: userEmail,
-        name: userName,
-        roles: userRoles,
-        activeRole: activeRole,
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
       });
 
-      // Step 3: Store complete session data
-      setUserSession({
-        email: userEmail,
-        name: userName,
-        token,
-        role: userRoles,
-        activeRole,
-      });
-
-      toast.dismiss(toastId);
-      toast.success(`Welcome back, ${userName}!`);
-      reset();
-
-      // Step 4: Determine redirect path based on profile data
-      console.log("🔍 Determining redirect path...");
-
-      let redirectPath = "/register-as"; // Default for users with no roles
-
-      if (activeRole) {
-        // User has an active role selected
-        const onboardingCompleted =
-          localStorage.getItem(`${activeRole}OnboardingCompleted`) === "true";
-
-        if (onboardingCompleted) {
-          // Go directly to dashboard
-          localStorage.setItem("userRole", activeRole);
-          redirectPath = `/${activeRole}`;
-          console.log(`✅ Redirecting to dashboard: ${redirectPath}`);
-        } else {
-          // Complete onboarding for this role
-          redirectPath = "/onboarding";
-          console.log("✅ Redirecting to onboarding");
-        }
-      } else if (userRoles.length > 0) {
-        // User has roles but no active role - let them select
-        redirectPath = "/register-as";
-        console.log(
-          "✅ User has roles but no active role, redirecting to role selection"
-        );
-      } else {
-        // New user with no roles
-        redirectPath = "/register-as";
-        console.log("✅ New user, redirecting to role registration");
+      if (result?.error) {
+        throw new Error(result.error);
       }
 
-      console.log("🎯 Final redirect:", redirectPath);
-
-      setTimeout(() => {
-        router.replace(redirectPath);
-      }, 1500);
-    } catch (err) {
-      console.error("❌ Login error:", err);
-      toast.dismiss(toastId);
-
-      let errorMessage = "Failed to login. Please try again.";
-
-      if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
+      if (result?.ok) {
+        toast.dismiss(toastId);
+        toast.success("Login successful!");
+        // Redirect logic is handled by the useEffect above once session updates
+        // But to feel distinct, we can force a router refresh or wait
+        router.refresh();
       }
-
-      // Clear any partial session data on error
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("session");
-
-      toast.error(errorMessage, {
+    } catch (err: any) {
+      console.error("Login error:", err);
+      toast.dismiss(toastId);
+      toast.error(err.message || "Failed to login", {
         duration: 5000,
         position: "top-center",
       });
-    } finally {
       setLoading(false);
     }
   };

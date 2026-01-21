@@ -2,14 +2,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  getAuthToken,
-  getLoggedInUser,
-  setUserSession,
-} from "../../../utils/loginAuth";
-import axios from "axios";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  useUserProfile,
+  useAvailableRoles,
+  useSwitchRole,
+  useAddAccount,
+} from "@/hooks/queries/useUserQueries";
+import { Button } from "@/components/Button";
 
 interface RoleOption {
   id: string;
@@ -41,180 +43,71 @@ const roles: RoleOption[] = [
 
 export default function RegisterAs() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
   const router = useRouter();
+  const { data: session, update } = useSession();
 
-  useEffect(() => {
-    const initializeRoleSelection = async () => {
-      const token = getAuthToken();
+  const { data: userProfile } = useUserProfile();
+  const { data: availableRolesData } = useAvailableRoles();
+  const switchRoleMutation = useSwitchRole();
+  const addAccountMutation = useAddAccount();
 
-      if (!token) {
-        toast.error("Unauthorized access. Please login.", {
-          duration: 3000,
-          position: "top-center",
-        });
-        router.replace("/login");
-        return;
-      }
+  const handleRoleSelect = (roleId: string) => {
+    setSelectedRole(roleId);
+  };
 
-      try {
-        console.log("🔍 Step 1: Fetching user profile from /api/profile...");
+  const handleSubmit = async () => {
+    if (!selectedRole || !session) return;
 
-        // Fetch user profile to get existing roles and activeRole
-        const profileResponse = await axios.get(
-          "https://tractive-be.vercel.app/api/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 10000,
-          }
-        );
-
-        console.log("✅ Step 2: Profile data received:", profileResponse.data);
-
-        const { user: userData } = profileResponse.data;
-        setUser(userData);
-
-        // If user already has an active role, redirect to onboarding or dashboard
-        if (userData.activeRole) {
-          console.log("✅ User has activeRole:", userData.activeRole);
-
-          console.log("🔍 Checking user status...", user);
-
-          const onboardingCompleted =
-            localStorage.getItem(
-              `${userData.activeRole}OnboardingCompleted`
-            ) === "true";
-
-          if (onboardingCompleted) {
-            console.log("✅ Onboarding completed, redirecting to dashboard");
-            router.replace(`/${userData.activeRole}`);
-          } else {
-            console.log("✅ Redirecting to onboarding");
-            router.replace("/onboarding");
-          }
-          return;
-        }
-
-        // Update session with fresh profile data
-        const currentUser = getLoggedInUser();
-        if (currentUser) {
-          setUserSession({
-            email: userData.email || currentUser.email,
-            name: userData.name || currentUser.name,
-            token: currentUser.authToken || token,
-            role: Array.isArray(userData.roles) ? userData.roles : [],
-            activeRole: null, // No active role yet
-          });
-        }
-
-        console.log("✅ Step 3: User ready for role selection");
-      } catch (error) {
-        console.error("❌ Error fetching profile:", error);
-
-        if (error.response?.status === 401) {
-          toast.error("Session expired. Please login again.", {
-            duration: 3000,
-            position: "top-center",
-          });
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("session");
-          router.replace("/login");
-        } else {
-          toast.error("Failed to load your profile. Please try again.", {
-            duration: 3000,
-            position: "top-center",
-          });
-        }
-      }
-    };
-
-    initializeRoleSelection();
-  }, [user, router]);
-
-  const handleRoleSelect = async (roleId: string) => {
-    if (loading) return;
-
-    const token = getAuthToken();
-    if (!token) {
-      toast.error("Session expired. Please login again.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-      return;
-    }
-
-    setLoading(true);
-    const toastId = toast.loading(`Setting up your ${roleId} account...`);
+    const roleId = selectedRole;
+    const isRoleAvailable =
+      availableRolesData?.availableRoles?.includes(roleId);
+    const hasExistingRoles =
+      availableRolesData?.availableRoles &&
+      availableRolesData.availableRoles.length > 0;
 
     try {
-      console.log("🚀 Step 1: Setting selected role to:", roleId);
+      if (isRoleAvailable) {
+        // Role exists - switch to it
+        const toastId = toast.loading(`Switching to ${roleId} account...`);
+        await switchRoleMutation.mutateAsync({ activeRole: roleId });
 
-      setSelectedRole(roleId);
-
-      // Optional: You might want to call an endpoint to set active role
-      // or this might be handled during onboarding with /api/auth/add-account
-      // For now, we'll just update local state and proceed to onboarding
-
-      // Update session with selected role
-      const currentUser = getLoggedInUser();
-      if (currentUser) {
-        setUserSession({
-          email: currentUser.email,
-          name: currentUser.name,
-          token: currentUser.authToken || token,
-          role: currentUser.role,
-          activeRole: roleId, // Set the selected role as active
+        // Update session
+        await update({
+          activeRole: roleId,
         });
 
-        console.log("✅ Step 2: Session updated with activeRole:", roleId);
+        toast.dismiss(toastId);
+        toast.success(`Switched to ${roleId} successfully!`);
+        router.replace(`/${roleId}`);
+      } else {
+        // Role doesn't exist - need to create it
+
+        if (hasExistingRoles) {
+          // Existing user adding a new role - redirect to add-role page
+          console.log(
+            "Existing user adding new role, redirecting to add-role page",
+          );
+          router.push(`/add-role?role=${roleId}`);
+        } else {
+          // Brand new user - first role creation via onboarding
+          console.log(
+            "New user creating first role, redirecting to onboarding",
+          );
+          localStorage.setItem("pendingRole", roleId);
+          router.push(`/onboarding?role=${roleId}`);
+        }
       }
-
-      // Save to localStorage for reference
-      localStorage.setItem("userRole", roleId);
-
-      toast.dismiss(toastId);
-      toast.success(`Great! Let's set up your ${roleId} profile.`);
-
-      console.log(`🎯 Step 3: Redirecting to onboarding for ${roleId}`);
-
-      // Redirect to onboarding form
-      setTimeout(() => {
-        router.push("/onboarding");
-      }, 1500);
-    } catch (error) {
-      console.error("❌ Error selecting role:", error);
-      toast.dismiss(toastId);
-
-      let errorMessage = "Failed to select role. Please try again.";
-
-      if (error.response?.status === 401) {
-        errorMessage = "Session expired. Please login again.";
-        setTimeout(() => {
-          router.replace("/login");
-        }, 2000);
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorMessage, {
-        duration: 5000,
-        position: "top-center",
-      });
-
-      setSelectedRole(null);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error("Error processing role selection:", error);
+      toast.dismiss();
+      toast.error(error.message || "Something went wrong. Please try again.");
     }
   };
+
+  const isLoading =
+    switchRoleMutation.isPending || addAccountMutation.isPending;
+
+  if (!session) return null;
 
   return (
     <div className="w-full bg-[#f1f1f1] md:bg-[#fefefe] lg:flex min-h-screen">
@@ -249,53 +142,81 @@ export default function RegisterAs() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {roles.map((role) => (
-              <button
-                key={role.id}
-                onClick={() => handleRoleSelect(role.id)}
-                disabled={loading}
-                className={`p-6 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-3 ${
-                  selectedRole === role.id
-                    ? "border-[#538e53] bg-[#538e53] text-white"
-                    : "border-[#e0e0e0] bg-white hover:border-[#538e53]"
-                } ${
-                  loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                }`}
-              >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                  <Image
-                    src={role.icon}
-                    alt={role.label}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12"
-                  />
-                </div>
-
-                <h3 className="font-montserrat font-semibold text-[16px]">
-                  {role.label}
-                </h3>
-
-                <p
-                  className={`text-center text-[12px] font-montserrat ${
+            {roles.map((role) => {
+              const isAvailable = availableRolesData?.availableRoles?.includes(
+                role.id,
+              );
+              return (
+                <button
+                  key={role.id}
+                  onClick={() => handleRoleSelect(role.id)}
+                  disabled={isLoading}
+                  className={`p-6 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-3 relative ${
                     selectedRole === role.id
-                      ? "text-[#fefefe]"
-                      : "text-[#808080]"
+                      ? "border-[#538e53] bg-[#538e53] text-white"
+                      : "border-[#e0e0e0] bg-white hover:border-[#538e53]"
+                  } ${
+                    isLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
                   }`}
                 >
-                  {role.description}
-                </p>
+                  {/* Tag for existing roles */}
+                  {isAvailable && (
+                    <span
+                      className={`absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full ${
+                        selectedRole === role.id
+                          ? "bg-white text-[#538e53]"
+                          : "bg-[#538e53] text-white"
+                      }`}
+                    >
+                      Existing
+                    </span>
+                  )}
 
-                {selectedRole === role.id && (
-                  <div className="mt-2 text-[12px] font-montserrat">
-                    {loading ? "Setting up..." : "Selected ✓"}
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                    <Image
+                      src={role.icon}
+                      alt={role.label}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12"
+                    />
                   </div>
-                )}
-              </button>
-            ))}
+
+                  <h3 className="font-montserrat font-semibold text-[16px]">
+                    {role.label}
+                  </h3>
+
+                  <p
+                    className={`text-center text-[12px] font-montserrat ${
+                      selectedRole === role.id
+                        ? "text-[#fefefe]"
+                        : "text-[#808080]"
+                    }`}
+                  >
+                    {role.description}
+                  </p>
+
+                  {selectedRole === role.id && (
+                    <div className="mt-2 text-[12px] font-montserrat">
+                      Selected ✓
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          <p className="text-center text-[12px] text-[#808080] font-montserrat">
+          <Button
+            onClick={handleSubmit}
+            disabled={!selectedRole || isLoading}
+            textClass="text-center mx-auto"
+            text={isLoading ? "Processing..." : "Continue"}
+            className="w-full md:w-[50%]  mx-auto block"
+          />
+
+          <p className="text-center text-[12px] text-[#808080] font-montserrat mt-6">
             Want to change your role later?{" "}
             <Link
               href="/account-settings"
