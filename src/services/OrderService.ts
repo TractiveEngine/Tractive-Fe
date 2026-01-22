@@ -34,8 +34,7 @@ export interface OrdersQueryParams {
   location?: string;
 }
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Create authenticated headers with role validation
@@ -91,7 +90,7 @@ export class OrdersApiService {
         if (response.status === 403) {
           toast.error("You don't have permission to access orders.");
           throw new Error(
-            "Forbidden: You don't have permission to access this resource"
+            "Forbidden: You don't have permission to access this resource",
           );
         }
         toast.error(`Failed to fetch orders: ${response.statusText}`);
@@ -134,7 +133,7 @@ export class OrdersApiService {
         if (response.status === 403) {
           toast.error("You don't have permission to view this order.");
           throw new Error(
-            "Forbidden: You don't have permission to access this resource"
+            "Forbidden: You don't have permission to access this resource",
           );
         }
         if (response.status === 404) {
@@ -165,7 +164,7 @@ export class OrdersApiService {
    */
   static async updateOrderStatus(
     id: string,
-    status: "parked" | "delivered"
+    status: "parked" | "delivered",
   ): Promise<Order> {
     try {
       const headers = getAuthHeaders();
@@ -173,7 +172,7 @@ export class OrdersApiService {
       const response = await fetch(`${API_URL}/api/orders/${id}/status`, {
         method: "PATCH",
         headers,
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, id }),
       });
 
       if (!response.ok) {
@@ -185,7 +184,7 @@ export class OrdersApiService {
         if (response.status === 403) {
           toast.error("You don't have permission to update this order.");
           throw new Error(
-            "Forbidden: You don't have permission to update this order"
+            "Forbidden: You don't have permission to update this order",
           );
         }
         if (response.status === 404) {
@@ -194,7 +193,7 @@ export class OrdersApiService {
         }
         toast.error(`Failed to update order: ${response.statusText}`);
         throw new Error(
-          `Failed to update order status: ${response.statusText}`
+          `Failed to update order status: ${response.statusText}`,
         );
       }
 

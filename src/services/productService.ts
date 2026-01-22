@@ -1,10 +1,6 @@
-// services/productService.ts
+import api from "@/lib/axios";
 import axios from "axios";
-import { getAuthToken } from "../utils/loginAuth";
 import { toast } from "sonner";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
 export interface ApiProduct {
   id: string;
@@ -49,9 +45,10 @@ export interface CreateProductData {
   description: string;
   price: number;
   quantity: number;
+  unit: string;
   categories: string[];
   images: string[];
-  farmerId?: string;
+  farmer: string;
 }
 
 export interface UpdateProductData {
@@ -59,6 +56,7 @@ export interface UpdateProductData {
   description?: string;
   price?: number;
   quantity?: string | number;
+  unit?: string;
   stock?: string | number;
   rating?: string | number;
   categories?: string[];
@@ -66,34 +64,16 @@ export interface UpdateProductData {
   status?: "active" | "out_of_stock";
 }
 
-// Auth headers
-const getAuthHeaders = () => {
-  const token = getAuthToken();
-  if (!token) {
-    console.warn("No auth token found. API calls may fail.");
-    return {
-      "Content-Type": "application/json",
-    };
-  }
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
-
 // Handle API errors
 const handleApiError = (error, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
 
   if (axios.isAxiosError(error)) {
     if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("session");
-      toast.error("Session expired. Please login again.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      window.location.href = "/login";
+      if (typeof window !== "undefined") {
+        // Let the session management handle this path, preventing forced reload loop
+        console.warn("Session expired or unauthorized");
+      }
       throw new Error("Authentication failed");
     }
 
@@ -123,7 +103,7 @@ const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
     quantity: backendProduct.quantity || 0,
     categories: backendProduct.categories || [],
     images: backendProduct.images || [],
-    farmerId: backendProduct.farmerId,
+    farmerId: backendProduct.farmer || backendProduct.farmerId,
     status: backendProduct.status || "active",
     createdAt: backendProduct.createdAt,
     updatedAt: backendProduct.updatedAt,
@@ -135,27 +115,15 @@ const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
 };
 
 export const productService = {
-  // GET /api/products - Get products with filters
+  // GET /api/product - Get products with filters
   getProducts: async (
-    filters: SearchFilters = {}
+    filters: SearchFilters = {},
   ): Promise<ProductsResponse> => {
     try {
       console.log("🚀 Fetching products with filters:", filters);
 
-      const params = new URLSearchParams();
-
-      if (filters.search) params.append("search", filters.search);
-      if (filters.status) params.append("status", filters.status);
-      if (filters.year) params.append("year", filters.year);
-      if (filters.month) params.append("month", filters.month);
-      if (filters.page) params.append("page", filters.page.toString());
-      if (filters.limit) params.append("limit", filters.limit.toString());
-
-      const url = `${API_URL}/api/products?${params.toString()}`;
-      console.log("📍 Request URL:", url);
-
-      const response = await axios.get(url, {
-        headers: getAuthHeaders(),
+      const response = await api.get("/api/product", {
+        params: filters,
         timeout: 10000,
       });
 
@@ -165,7 +133,7 @@ export const productService = {
 
       if (Array.isArray(response.data.products)) {
         mappedProducts = response.data.products.map(
-          mapBackendToFrontendProduct
+          mapBackendToFrontendProduct,
         );
       } else if (Array.isArray(response.data)) {
         mappedProducts = response.data.map(mapBackendToFrontendProduct);
@@ -184,24 +152,13 @@ export const productService = {
 
   // GET /api/products/out-of-stock - Get out-of-stock products
   getOutOfStockProducts: async (
-    filters: Omit<SearchFilters, "status"> = {}
+    filters: Omit<SearchFilters, "status"> = {},
   ): Promise<ProductsResponse> => {
     try {
       console.log("🚀 Fetching out-of-stock products:", filters);
 
-      const params = new URLSearchParams();
-
-      if (filters.search) params.append("search", filters.search);
-      if (filters.year) params.append("year", filters.year);
-      if (filters.month) params.append("month", filters.month);
-      if (filters.page) params.append("page", filters.page.toString());
-      if (filters.limit) params.append("limit", filters.limit.toString());
-
-      const url = `${API_URL}/api/products/out-of-stock?${params.toString()}`;
-      console.log("📍 Request URL:", url);
-
-      const response = await axios.get(url, {
-        headers: getAuthHeaders(),
+      const response = await api.get("/api/products/out-of-stock", {
+        params: filters,
         timeout: 10000,
       });
 
@@ -211,7 +168,7 @@ export const productService = {
 
       if (Array.isArray(response.data.products)) {
         mappedProducts = response.data.products.map(
-          mapBackendToFrontendProduct
+          mapBackendToFrontendProduct,
         );
       } else if (Array.isArray(response.data)) {
         mappedProducts = response.data.map(mapBackendToFrontendProduct);
@@ -228,25 +185,20 @@ export const productService = {
     }
   },
 
-  // POST /api/products - Create product
+  // POST /api/product - Create product
   createProduct: async (
-    productData: CreateProductData
+    productData: CreateProductData,
   ): Promise<ApiProduct> => {
     try {
       console.log("🚀 Creating product:", productData);
 
-      const response = await axios.post(
-        `${API_URL}/api/products`,
-        productData,
-        {
-          headers: getAuthHeaders(),
-          timeout: 30000,
-        }
-      );
+      const response = await api.post("/api/product", productData, {
+        timeout: 30000,
+      });
 
       console.log("✅ Product created:", response.data);
       return mapBackendToFrontendProduct(
-        response.data.product || response.data
+        response.data.product || response.data,
       );
     } catch (error) {
       return handleApiError(error, "create product");
@@ -256,23 +208,22 @@ export const productService = {
   // PATCH /api/products/:id/status - Update product status
   updateProductStatus: async (
     id: string,
-    status: "active" | "out_of_stock"
+    status: "active" | "out_of_stock",
   ): Promise<ApiProduct> => {
     try {
       console.log(`🚀 Updating product ${id} status to:`, status);
 
-      const response = await axios.patch(
-        `${API_URL}/api/products/${id}/status`,
-        { status },
+      const response = await api.patch(
+        `/api/products/${id}/status`,
+        { status, id },
         {
-          headers: getAuthHeaders(),
           timeout: 10000,
-        }
+        },
       );
 
       console.log("✅ Product status updated:", response.data);
       return mapBackendToFrontendProduct(
-        response.data.product || response.data
+        response.data.product || response.data,
       );
     } catch (error) {
       return handleApiError(error, "update product status");
@@ -282,23 +233,22 @@ export const productService = {
   // PATCH /api/products/:id - Update product (for edit modal)
   updateProduct: async (
     id: string,
-    data: UpdateProductData
+    data: UpdateProductData,
   ): Promise<ApiProduct> => {
     try {
       console.log(`🚀 Updating product ${id}:`, data);
 
-      const response = await axios.patch(
-        `${API_URL}/api/products/${id}`,
-        data,
+      const response = await api.patch(
+        `/api/products/${id}`,
+        { ...data, id },
         {
-          headers: getAuthHeaders(),
           timeout: 15000,
-        }
+        },
       );
 
       console.log("✅ Product updated:", response.data);
       return mapBackendToFrontendProduct(
-        response.data.product || response.data
+        response.data.product || response.data,
       );
     } catch (error) {
       return handleApiError(error, "update product");
@@ -310,8 +260,7 @@ export const productService = {
     try {
       console.log(`🚀 Deleting product ${id}`);
 
-      await axios.delete(`${API_URL}/api/products/${id}`, {
-        headers: getAuthHeaders(),
+      await api.delete(`/api/products/${id}`, {
         timeout: 10000,
       });
 
@@ -337,16 +286,16 @@ export const productService = {
 
   updateMultipleProductsStatus: async (
     ids: string[],
-    status: "active" | "out_of_stock"
+    status: "active" | "out_of_stock",
   ): Promise<void> => {
     try {
       // If backend doesn't support bulk update, update sequentially
       console.log(
-        `🚀 Bulk updating ${ids.length} products status to: ${status}`
+        `🚀 Bulk updating ${ids.length} products status to: ${status}`,
       );
 
       await Promise.all(
-        ids.map((id) => productService.updateProductStatus(id, status))
+        ids.map((id) => productService.updateProductStatus(id, status)),
       );
 
       console.log("✅ All products status updated successfully");

@@ -196,7 +196,7 @@ export default function OnboardingForm() {
       // As per role.md requirements, we MUST call add-account BEFORE updating profile
 
       // Step 1: Check if this is a new role (not already in user's roles array)
-      const isNewRole = !session.user?.roles?.includes(targetRole);
+      const isNewRole = !session.user?.role?.includes(targetRole);
 
       console.log(
         "Is new role:",
@@ -204,7 +204,7 @@ export default function OnboardingForm() {
         "Target role:",
         targetRole,
         "Current roles:",
-        session.user?.roles,
+        session.user?.role,
       );
 
       // Step 2: If new role, call add-account API FIRST

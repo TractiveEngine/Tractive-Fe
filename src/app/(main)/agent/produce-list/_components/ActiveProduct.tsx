@@ -32,18 +32,18 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Check auth on mount
-  useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      console.log("❌ No auth token in ActiveProduct");
-      toast.error("Please login to manage products", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.push("/login");
-    }
-  }, [router]);
+  // Check auth on mount - REMOVED (Layout handles it)
+  // useEffect(() => {
+  //   const token = getAuthToken();
+  //   if (!token) {
+  //     console.log("❌ No auth token in ActiveProduct");
+  //     toast.error("Please login to manage products", {
+  //       duration: 3000,
+  //       position: "top-center",
+  //     });
+  //     router.push("/login");
+  //   }
+  // }, [router]);
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
@@ -124,7 +124,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
 
     if (
       !confirm(
-        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`
+        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`,
       )
     ) {
       return;
@@ -143,7 +143,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
         {
           duration: 3000,
           position: "top-center",
-        }
+        },
       );
 
       console.log("✅ Bulk delete successful");
@@ -157,7 +157,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
         {
           duration: 5000,
           position: "top-center",
-        }
+        },
       );
     }
   };
@@ -174,7 +174,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
 
     if (
       !confirm(
-        `Are you sure you want to mark ${selectedProductIds.length} product(s) as out of stock?`
+        `Are you sure you want to mark ${selectedProductIds.length} product(s) as out of stock?`,
       )
     ) {
       return;
@@ -182,12 +182,12 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
 
     try {
       console.log(
-        `⚠️ Marking ${selectedProductIds.length} products as out of stock`
+        `⚠️ Marking ${selectedProductIds.length} products as out of stock`,
       );
 
       await productService.updateMultipleProductsStatus(
         selectedProductIds,
-        "out_of_stock"
+        "out_of_stock",
       );
 
       // Clear selection after successful update
@@ -198,7 +198,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
         {
           duration: 3000,
           position: "top-center",
-        }
+        },
       );
 
       console.log("✅ Bulk status update successful");
@@ -212,7 +212,7 @@ export const ActiveProduct: React.FC<ActiveProductProps> = ({
         {
           duration: 5000,
           position: "top-center",
-        }
+        },
       );
     }
   };

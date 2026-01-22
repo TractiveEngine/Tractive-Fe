@@ -8,7 +8,7 @@ import { AgentAsideNav } from "../../../components/nav/AgentNav/AgentAsideNav";
 import { AgentNavbar } from "../../../components/nav/AgentNav/AgentNavbar";
 import { AgentAsideNavMobile } from "../../../components/nav/AgentNav/AgentAsideNavMobile";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
-import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { useBreakpoint } from "../../../hooks/useBreakpoint";
 
 export default function AgentLayout({
   children,

@@ -71,8 +71,7 @@ interface ApiError {
 }
 
 export class ReviewService {
-  private static baseURL =
-    process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+  private static baseURL = process.env.NEXT_PUBLIC_API_URL;
 
   /**
    * Get authentication token from localStorage
@@ -220,7 +219,7 @@ export class ReviewService {
    * Get reviews with optional filtering - agentId is required
    */
   static async getReviews(
-    params: GetReviewsParams
+    params: GetReviewsParams,
   ): Promise<GetReviewsResponse> {
     try {
       const queryParams = new URLSearchParams();
@@ -251,7 +250,7 @@ export class ReviewService {
           limit: params?.limit || 20,
           total: response.reviews.length,
           totalPages: Math.ceil(
-            response.reviews.length / (params?.limit || 20)
+            response.reviews.length / (params?.limit || 20),
           ),
         },
       };
@@ -287,7 +286,7 @@ export class ReviewService {
       // Calculate rating distribution
       const ratingDistribution = [1, 2, 3, 4, 5].map((rating) => {
         const count = reviews.filter(
-          (review) => review.rating === rating
+          (review) => review.rating === rating,
         ).length;
         const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
 
@@ -336,13 +335,13 @@ export class ReviewService {
    * Create a new review
    */
   static async createReview(
-    payload: CreateReviewPayload
+    payload: CreateReviewPayload,
   ): Promise<{ review: Review }> {
     try {
       console.log("📝 Creating new review:", payload);
       const response = await this.post<{ review: Review }>(
         "/api/reviews",
-        payload
+        payload,
       );
       console.log("✅ Review created successfully");
       return response;
@@ -357,13 +356,13 @@ export class ReviewService {
    */
   static async replyToReview(
     reviewId: string,
-    payload: ReplyToReviewPayload
+    payload: ReplyToReviewPayload,
   ): Promise<{ reply: ReviewReply }> {
     try {
       console.log("💬 Replying to review:", reviewId, payload);
       const response = await this.post<{ reply: ReviewReply }>(
         `/api/reviews/${reviewId}/reply`,
-        payload
+        payload,
       );
       console.log("✅ Reply posted successfully");
       return response;
@@ -377,12 +376,12 @@ export class ReviewService {
    * Like a review
    */
   static async likeReview(
-    reviewId: string
+    reviewId: string,
   ): Promise<{ message: string; likes: number }> {
     try {
       console.log("👍 Liking review:", reviewId);
       const response = await this.post<{ message: string; likes: number }>(
-        `/api/reviews/${reviewId}/like`
+        `/api/reviews/${reviewId}/like`,
       );
       console.log("✅ Review liked successfully");
       return response;

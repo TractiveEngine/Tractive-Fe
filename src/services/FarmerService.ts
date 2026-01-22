@@ -1,11 +1,7 @@
-// services/FarmerService.ts
-import { getAuthToken } from "@/utils/loginAuth";
+import api from "@/lib/axios";
 import axios from "axios";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { UserProfile, userService } from "./UserService";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
 // Backend API Farmer Interface (matches API response)
 export interface ApiFarmer {
@@ -49,49 +45,16 @@ export interface Farmer {
 }
 
 export interface FarmersResponse {
-  farmers: ApiFarmer[];   
+  farmers: Farmer[];
   total: number;
   page: number;
   limit: number;
 }
 
-// Create authenticated headers with role validation
-const getAuthHeaders = async () => {
-  const token = getAuthToken();
-  if (!token) {
-    console.warn("⚠️ No auth token found. User may not be authenticated.");
-    throw new Error("Authentication required");
-  }
-
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
-
-// Check if user has permission to manage farmers
-const checkFarmerPermissions = async (): Promise<UserProfile> => {
-  try {
-    const user = await userService.getCurrentUser();
-    console.log("👤 Current user roles:", user.roles);
-    console.log("👤 Active role:", user.activeRole);
-
-    // Check if user has farmer management permissions
-    if (!userService.canManageFarmers(user)) {
-      throw new Error(
-        `Your role (${user.activeRole}) does not have permission to manage farmers`
-      );
-    }
-
-    return user;
-  } catch (error) {
-    console.error("❌ Permission check failed:", error);
-    throw error;
-  }
-};
-
 // Map backend farmer to frontend format
-const mapBackendToFrontendFarmer = (backendFarmer: ApiFarmer): Farmer => {
+export const mapBackendToFrontendFarmer = (
+  backendFarmer: ApiFarmer,
+): Farmer => {
   return {
     id: backendFarmer._id,
     name: backendFarmer.name || "-",
@@ -110,17 +73,20 @@ const mapBackendToFrontendFarmer = (backendFarmer: ApiFarmer): Farmer => {
       ? new Date(backendFarmer.createdAt).toLocaleDateString()
       : new Date().toLocaleDateString(),
     image: "/images/farmer_modal_profile.png",
+    // Preserve other fields for editing
+    businessName: backendFarmer.businessName,
+    businessCAC: backendFarmer.businessCAC,
+    country: backendFarmer.country,
+    lga: backendFarmer.lga,
   };
 };
 
-// Map frontend form data to backend format
-const mapFrontendToBackendFarmer = (frontendData: Partial<Farmer>) => {
+// Map frontend form data to backend format (Full replacement for PUT)
+const mapFrontendToBackendFarmerFull = (frontendData: Partial<Farmer>) => {
   return {
     name: frontendData.name || "",
     phone: frontendData.mobile || "",
     businessName: frontendData.businessName || "",
-    nin: frontendData.ninOrCac || "",
-    businessCAC: frontendData.businessCAC || "",
     address: frontendData.address || "",
     country: frontendData.country || "Nigeria",
     state: frontendData.state || "",
@@ -129,42 +95,29 @@ const mapFrontendToBackendFarmer = (frontendData: Partial<Farmer>) => {
   };
 };
 
+// Map frontend form data to backend format (Partial update for PATCH)
+const mapFrontendToBackendFarmerPartial = (frontendData: Partial<Farmer>) => {
+  const result: any = {};
+  if (frontendData.name !== undefined) result.name = frontendData.name;
+  if (frontendData.mobile !== undefined) result.phone = frontendData.mobile;
+  if (frontendData.businessName !== undefined)
+    result.businessName = frontendData.businessName;
+  if (frontendData.address !== undefined) result.address = frontendData.address;
+  if (frontendData.country !== undefined) result.country = frontendData.country;
+  if (frontendData.state !== undefined) result.state = frontendData.state;
+  if (frontendData.lga !== undefined) result.lga = frontendData.lga;
+  if (frontendData.localMarket !== undefined)
+    result.villageOrLocalMarket = frontendData.localMarket;
+  return result;
+};
+
 export const farmerService = {
-  isAuthenticated: (): boolean => {
-    return !!getAuthToken();
-  },
-
-  getToken: (): string | null => {
-    return getAuthToken();
-  },
-
-  // Get current user with roles
-  getCurrentUser: async (): Promise<UserProfile> => {
-    return await userService.getCurrentUser();
-  },
-
-  // Check if current user can manage farmers
-  canManageFarmers: async (): Promise<boolean> => {
-    try {
-      const user = await userService.getCurrentUser();
-      return userService.canManageFarmers(user);
-    } catch (error) {
-      console.log(error)
-      return false;
-    }
-  },
-
   // GET /api/farmers
   getFarmers: async (): Promise<FarmersResponse> => {
     try {
       console.log("🔄 Fetching farmers from API...");
 
-      // Check permissions first
-      await checkFarmerPermissions();
-
-      const headers = await getAuthHeaders();
-      const response = await axios.get(`${API_URL}/api/farmers`, {
-        headers,
+      const response = await api.get("/api/farmers", {
         timeout: 10000,
       });
 
@@ -185,11 +138,14 @@ export const farmerService = {
         farmers = [response.data].filter(Boolean);
       }
 
+      // Map to frontend model
+      const mappedFarmers = farmers.map(mapBackendToFrontendFarmer);
+
       return {
-        farmers: farmers,
-        total: farmers.length,
+        farmers: mappedFarmers,
+        total: mappedFarmers.length,
         page: 1,
-        limit: farmers.length,
+        limit: mappedFarmers.length,
       };
     } catch (error) {
       console.error("❌ Error fetching farmers:", error);
@@ -206,7 +162,7 @@ export const farmerService = {
         }
       } else {
         toast.error(
-          error.message || "Failed to fetch farmers. Please try again."
+          error.message || "Failed to fetch farmers. Please try again.",
         );
       }
       throw error;
@@ -218,15 +174,10 @@ export const farmerService = {
     try {
       console.log("📝 Creating farmer with data:", data);
 
-      // Check permissions first
-      await checkFarmerPermissions();
-
-      const backendData = mapFrontendToBackendFarmer(data);
+      const backendData = mapFrontendToBackendFarmerFull(data);
       console.log("📤 Sending to backend:", backendData);
 
-      const headers = await getAuthHeaders();
-      const response = await axios.post(`${API_URL}/api/farmers`, backendData, {
-        headers,
+      const response = await api.post("/api/farmers", backendData, {
         timeout: 15000,
       });
 
@@ -263,7 +214,170 @@ export const farmerService = {
         }
       } else {
         toast.error(
-          error.message || "Failed to create farmer. Please try again."
+          error.message || "Failed to create farmer. Please try again.",
+        );
+      }
+      throw error;
+    }
+  },
+
+  // GET /api/farmers/:id
+  getFarmerById: async (id: string): Promise<Farmer> => {
+    try {
+      console.log(`🔄 Fetching farmer ${id} from API...`);
+
+      const response = await api.get(`/api/farmers/${id}`, {
+        timeout: 10000,
+      });
+
+      console.log("✅ Farmer fetched:", response.data);
+
+      let farmer: ApiFarmer;
+      if (response.data._id) {
+        farmer = response.data;
+      } else if (response.data.farmer) {
+        farmer = response.data.farmer;
+      } else if (response.data.data) {
+        farmer = response.data.data;
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+
+      return mapBackendToFrontendFarmer(farmer);
+    } catch (error) {
+      console.error(`❌ Error fetching farmer ${id}:`, error);
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.error || error.message;
+
+        if (status === 404) {
+          toast.error("Farmer not found.");
+        } else if (status === 401) {
+          toast.error("Authentication failed. Please log in again.");
+        } else if (status === 403) {
+          toast.error("You don't have permission to view this farmer.");
+        } else {
+          toast.error(`Failed to fetch farmer: ${message}`);
+        }
+      } else {
+        toast.error(
+          error.message || "Failed to fetch farmer. Please try again.",
+        );
+      }
+      throw error;
+    }
+  },
+
+  // PUT /api/farmers/:id (Full replace)
+  replaceFarmer: async (id: string, data: Partial<Farmer>): Promise<Farmer> => {
+    try {
+      console.log(`📝 Replacing farmer ${id} with data:`, data);
+
+      const backendData = mapFrontendToBackendFarmerFull(data);
+      console.log("📤 Sending to backend:", backendData);
+
+      const response = await api.put(
+        `/api/farmers/${id}`,
+        { ...backendData, id },
+        {
+          timeout: 15000,
+        },
+      );
+
+      console.log("✅ Farmer updated successfully:", response.data);
+
+      let updatedFarmer: ApiFarmer;
+      if (response.data._id) {
+        updatedFarmer = response.data;
+      } else if (response.data.farmer) {
+        updatedFarmer = response.data.farmer;
+      } else if (response.data.data) {
+        updatedFarmer = response.data.data;
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+
+      const mappedFarmer = mapBackendToFrontendFarmer(updatedFarmer);
+      toast.success("Farmer updated successfully!");
+      return mappedFarmer;
+    } catch (error) {
+      console.error(`❌ Error updating farmer ${id}:`, error);
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.error || error.message;
+
+        if (status === 400) {
+          toast.error(`Invalid data: ${message}`);
+        } else if (status === 404) {
+          toast.error("Farmer not found.");
+        } else if (status === 401) {
+          toast.error("Authentication failed. Please log in again.");
+        } else if (status === 403) {
+          toast.error("You don't have permission to update farmers.");
+        } else {
+          toast.error(`Failed to update farmer: ${message}`);
+        }
+      } else {
+        toast.error(
+          error.message || "Failed to update farmer. Please try again.",
+        );
+      }
+      throw error;
+    }
+  },
+
+  // PATCH /api/farmers/:id (Partial update)
+  updateFarmer: async (id: string, data: Partial<Farmer>): Promise<Farmer> => {
+    try {
+      console.log(`📝 Updating farmer ${id} with data:`, data);
+
+      const backendData = mapFrontendToBackendFarmerPartial(data);
+      console.log("📤 Sending to backend:", backendData);
+
+      const response = await api.patch(
+        `/api/farmers/${id}`,
+        { ...backendData, id },
+        {
+          timeout: 15000,
+        },
+      );
+
+      console.log("✅ Farmer updated successfully:", response.data);
+
+      let updatedFarmer: ApiFarmer;
+      if (response.data._id) {
+        updatedFarmer = response.data;
+      } else if (response.data.farmer) {
+        updatedFarmer = response.data.farmer;
+      } else if (response.data.data) {
+        updatedFarmer = response.data.data;
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+
+      const mappedFarmer = mapBackendToFrontendFarmer(updatedFarmer);
+      toast.success("Farmer updated successfully!");
+      return mappedFarmer;
+    } catch (error) {
+      console.error(`❌ Error patching farmer ${id}:`, error);
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.error || error.message;
+
+        if (status === 400) {
+          toast.error(`Invalid data: ${message}`);
+        } else if (status === 404) {
+          toast.error("Farmer not found.");
+        } else if (status === 401) {
+          toast.error("Authentication failed. Please log in again.");
+        } else if (status === 403) {
+          toast.error("You don't have permission to update farmers.");
+        } else {
+          toast.error(`Failed to patch farmer: ${message}`);
+        }
+      } else {
+        toast.error(
+          error.message || "Failed to patch farmer. Please try again.",
         );
       }
       throw error;
@@ -275,12 +389,7 @@ export const farmerService = {
     try {
       console.log(`🗑️ Deleting farmer ${id}...`);
 
-      // Check permissions first
-      await checkFarmerPermissions();
-
-      const headers = await getAuthHeaders();
-      await axios.delete(`${API_URL}/api/farmers/${id}`, {
-        headers,
+      await api.delete(`/api/farmers/${id}`, {
         timeout: 10000,
       });
 
@@ -303,7 +412,7 @@ export const farmerService = {
         }
       } else {
         toast.error(
-          error.message || "Failed to delete farmer. Please try again."
+          error.message || "Failed to delete farmer. Please try again.",
         );
       }
       throw error;

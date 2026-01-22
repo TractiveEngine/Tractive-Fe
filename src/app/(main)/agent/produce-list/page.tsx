@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ActiveProduct } from "./_components/ActiveProduct";
-import { ProductOutOfStock } from "./_components/ProductOutOfStock";
+import { InfoIcon } from "@/icons/Icons";
 
 interface SideProps {
   switchSides: "active" | "out_of_stock";
@@ -24,6 +23,9 @@ export default function ProduceListPage() {
     left: 0,
     width: 0,
   });
+
+  // Local state for produces list, initialized as empty
+  const [produces, setProduces] = useState([]);
 
   const handleSwitchSides = (side: SideProps["switchSides"]) => {
     setSwitchSides(side);
@@ -50,39 +52,6 @@ export default function ProduceListPage() {
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
   }, [switchSides]);
-
-  const [productCounts, setProductCounts] = useState<{
-    active: number;
-    out_of_stock: number;
-  }>({
-    active: 0,
-    out_of_stock: 0,
-  });
-
-  // FIXED: Memoize the callback to prevent infinite re-renders
-  const handleProductsUpdate = useCallback(
-    (counts: { active: number; out_of_stock: number }) => {
-      setProductCounts((prevCounts) => {
-        // Only update if counts actually changed to prevent unnecessary re-renders
-        if (
-          prevCounts.active !== counts.active ||
-          prevCounts.out_of_stock !== counts.out_of_stock
-        ) {
-          return {
-            active: counts.active,
-            out_of_stock: counts.out_of_stock,
-          };
-        }
-        return prevCounts;
-      });
-    },
-    []
-  ); // Empty dependency array since this function doesn't depend on any props or state
-
-  // Remove this console.log or move it to useEffect to avoid logging on every render
-  useEffect(() => {
-    console.log("Product counts updated:", productCounts);
-  }, [productCounts]);
 
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
@@ -115,7 +84,7 @@ export default function ProduceListPage() {
               Active
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              {productCounts.active}
+              0
             </span>
           </div>
           <div
@@ -137,7 +106,7 @@ export default function ProduceListPage() {
               Out of Stock
             </button>
             <span className="bg-[#8B4513] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              {productCounts.out_of_stock}
+              0
             </span>
           </div>
           <motion.div
@@ -152,14 +121,26 @@ export default function ProduceListPage() {
       </div>
 
       <div
-        className="mb-4"
+        className="mb-4 min-h-[300px] flex items-center justify-center p-8"
         role="tabpanel"
         id={switchSides === "active" ? "active-panel" : "out_of_stock-panel"}
       >
-        {switchSides === "active" ? (
-          <ActiveProduct onProductsUpdate={handleProductsUpdate} />
+        {produces.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="mb-4 scale-125 opacity-70">
+              <InfoIcon />
+            </div>
+            <p className="text-gray-500 font-medium text-lg">
+              No produce available at the moment. Check back later!
+            </p>
+          </div>
         ) : (
-          <ProductOutOfStock onProductsUpdate={handleProductsUpdate} />
+          <div className="w-full">
+            {/* Future list rendering will go here */}
+            <p className="text-center text-gray-500">
+              Produces loaded (Placeholder)
+            </p>
+          </div>
         )}
       </div>
     </div>

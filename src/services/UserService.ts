@@ -1,9 +1,5 @@
-// services/UserService.ts
-import { getAuthToken } from "@/utils/loginAuth";
+import api from "@/lib/axios";
 import axios from "axios";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
 export interface UserProfile {
   _id: string;
@@ -22,26 +18,12 @@ export interface UserProfile {
   __v: number;
 }
 
-// Create authenticated headers
-const getAuthHeaders = () => {
-  const token = getAuthToken();
-  if (!token) {
-    console.warn("⚠️ No auth token found. User may not be authenticated.");
-    return { "Content-Type": "application/json" };
-  }
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
-
 export const userService = {
   // GET /api/profile - Get current user profile
   getCurrentUser: async (): Promise<UserProfile> => {
     try {
       console.log("🔄 Fetching current user profile...");
-      const response = await axios.get(`${API_URL}/api/profile`, {
-        headers: getAuthHeaders(),
+      const response = await api.get("/api/profile", {
         timeout: 10000,
       });
 
@@ -91,10 +73,7 @@ export const userService = {
   canManageFarmers: (user: UserProfile | null): boolean => {
     if (!user) return false;
 
-    const farmerManagementRoles = [
-      "admin",
-      "agent",
-    ];
+    const farmerManagementRoles = ["admin", "agent"];
     return farmerManagementRoles.includes(user.activeRole);
   },
 };

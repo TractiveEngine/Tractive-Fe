@@ -1,7 +1,8 @@
-// components/table/ActionMenu.tsx
 "use client";
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
+import { DeleteConfirmationModal } from "../../../farmers/_components/DeleteConfirmationModal";
 
 // Animation variants for dropdown
 const dropdownVariants = {
@@ -46,19 +47,27 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   handleDelete,
   isOutOfStockPage,
 }) => {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close menu when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const menuElement = document.getElementById(`menu-${productId}`);
-      if (menuElement && !menuElement.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setActiveMenu(null);
       }
     };
 
     if (activeMenu === productId) {
-      document.addEventListener("click", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
       return () => {
-        document.removeEventListener("click", handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside);
       };
     }
   }, [activeMenu, productId, setActiveMenu]);
@@ -76,64 +85,98 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
     setActiveMenu(null);
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteConfirm = () => {
     console.log("🗑️ Deleting product:", productId);
     handleDelete(productId);
+    setShowDeleteModal(false);
     setActiveMenu(null);
   };
 
+  const getMenuPosition = () => {
+    if (!buttonRef.current) return { top: 0, left: 0 };
+    const rect = buttonRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + window.scrollY + 8,
+      left: rect.right - 140,
+    };
+  };
+
+  const menuPos =
+    activeMenu === productId ? getMenuPosition() : { top: 0, left: 0 };
+
   return (
-    <div id={`menu-${productId}`} className="relative">
-      <button
-        title="Open action menu"
-        aria-label="Open action menu"
-        onClick={(e) => {
-          e.stopPropagation();
-          setActiveMenu(activeMenu === productId ? null : productId);
-        }}
-        className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
-      >
-        <ThreeDotIcon />
-      </button>
-
-      {activeMenu === productId && (
-        <motion.div
-          className="absolute z-50 w-[140px] px-1 top-full right-0 mt-1 bg-[#fefefe] rounded-[5px] shadow-xl border border-[#e0e0e0]"
-          variants={dropdownVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          onClick={(e) => e.stopPropagation()}
+    <>
+      <div id={`menu-${productId}`} ref={menuRef} className="relative">
+        <button
+          ref={buttonRef}
+          title="Open action menu"
+          aria-label="Open action menu"
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveMenu(activeMenu === productId ? null : productId);
+          }}
+          className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
         >
-          <button
-            onClick={handleEditClick}
-            className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-[#f0f0f0] transition-colors duration-150"
-            aria-label="Edit product"
-          >
-            Edit
-          </button>
+          <ThreeDotIcon />
+        </button>
 
-          <button
-            onClick={handleStatusClick}
-            className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-[#f0f0f0] transition-colors duration-150"
-            aria-label={
-              isOutOfStockPage
-                ? "Mark as back in stock"
-                : "Mark as out of stock"
-            }
-          >
-            {isOutOfStockPage ? "Back in Stock" : "Out of Stock"}
-          </button>
+        {mounted &&
+          createPortal(
+            <AnimatePresence>
+              {activeMenu === productId && (
+                <motion.div
+                  className="fixed z-[999] w-[140px] px-1 bg-[#fefefe] rounded-[5px] shadow-xl border border-[#e0e0e0]"
+                  style={{
+                    top: menuPos.top - window.scrollY,
+                    left: menuPos.left,
+                  }}
+                  variants={dropdownVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={handleEditClick}
+                    className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-[#f0f0f0] transition-colors duration-150"
+                    aria-label="Edit product"
+                  >
+                    Edit
+                  </button>
 
-          <button
-            onClick={handleDeleteClick}
-            className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#d32f2f] rounded-[4px] hover:bg-[#ffebee] transition-colors duration-150"
-            aria-label="Delete product"
-          >
-          Delete
-          </button>
-        </motion.div>
-      )}
-    </div>
+                  <button
+                    onClick={handleStatusClick}
+                    className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-[#f0f0f0] transition-colors duration-150"
+                    aria-label={
+                      isOutOfStockPage
+                        ? "Mark as back in stock"
+                        : "Mark as out of stock"
+                    }
+                  >
+                    {isOutOfStockPage ? "Back in Stock" : "Out of Stock"}
+                  </button>
+
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="block cursor-pointer w-full text-left px-3 py-2 text-[12px] font-montserrat text-[#d32f2f] rounded-[4px] hover:bg-[#ffebee] transition-colors duration-150"
+                    aria-label="Delete product"
+                  >
+                    Delete
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body,
+          )}
+      </div>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+      />
+    </>
   );
 };
