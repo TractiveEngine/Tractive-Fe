@@ -25,6 +25,7 @@ interface TableListProps<T extends BaseData> {
   ActionMenuComponent?: React.ComponentType<ActionMenuProps>;
   handleEdit?: (id: string) => void;
   handleReport?: (id: string) => void;
+  handleView?: (id: string) => void;
   handleViewBidders?: (id: string) => void;
   handleCustomerInfo?: (id: string) => void;
   handleSupport?: (id: string) => void;
@@ -51,6 +52,7 @@ export const TableList = <T extends BaseData>({
   ActionMenuComponent,
   handleEdit,
   handleReport,
+  handleView,
   handleViewBidders,
   handleBuyerInfo,
   handleParked,
@@ -79,6 +81,12 @@ export const TableList = <T extends BaseData>({
   const defaultHandleEdit = (id: string) => {
     console.log(`Default handleEdit called for id: ${id}`);
     alert(`Edit ${dataType} with ID: ${id}`);
+    setActiveMenu(null);
+  };
+
+  const defaultHandleView = (id: string) => {
+    console.log(`Default handleView called for id: ${id}`);
+    alert(`View ${dataType} with ID: ${id}`);
     setActiveMenu(null);
   };
 
@@ -205,6 +213,11 @@ export const TableList = <T extends BaseData>({
                     productId={item.id}
                     activeMenu={activeMenu}
                     setActiveMenu={setActiveMenu}
+                    handleView={
+                      dataType === "farmers"
+                        ? handleView || defaultHandleView
+                        : undefined
+                    }
                     handleEdit={
                       dataType === "farmers"
                         ? handleEdit || defaultHandleEdit

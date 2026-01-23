@@ -86,7 +86,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   };
 
   const handleDeleteConfirm = () => {
-    console.log("🗑️ Deleting product:", productId);
+    // console.log("🗑️ Deleting product:", productId);
     handleDelete(productId);
     setShowDeleteModal(false);
     setActiveMenu(null);

@@ -99,51 +99,12 @@ export const useUpdateFarmer = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Farmer> }) =>
-      farmerService.replaceFarmer(id, data),
+      farmerService.updateFarmer(id, data),
     onSuccess: (updatedFarmer, variables) => {
       // 1. Update the detail cache
       queryClient.setQueryData(farmerKeys.detail(variables.id), updatedFarmer);
 
       // 2. Update the specific farmer in the list cache
-      queryClient.setQueryData(
-        farmerKeys.lists(),
-        (oldData: FarmersResponse | undefined) => {
-          if (!oldData) return undefined;
-          return {
-            ...oldData,
-            farmers: oldData.farmers.map((f) =>
-              f.id === variables.id ? updatedFarmer : f,
-            ),
-          };
-        },
-      );
-
-      toast.success("Farmer updated successfully!");
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to update farmer";
-      toast.error(message);
-    },
-  });
-};
-
-/**
- * Hook to partially update a farmer (PATCH)
- */
-export const usePatchFarmer = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Farmer> }) =>
-      farmerService.updateFarmer(id, data),
-    onSuccess: (updatedFarmer, variables) => {
-      // 1. Update detail cache
-      queryClient.setQueryData(farmerKeys.detail(variables.id), updatedFarmer);
-
-      // 2. Update list cache
       queryClient.setQueryData(
         farmerKeys.lists(),
         (oldData: FarmersResponse | undefined) => {

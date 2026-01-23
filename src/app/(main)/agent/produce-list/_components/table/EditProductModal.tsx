@@ -44,7 +44,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
     quantity: "",
     stock: "",
     rating: "",
-    status: "active",
+    status: "available",
+    unit: "",
     categories: [],
   });
   const [categoryInput, setCategoryInput] = useState("");
@@ -77,7 +78,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
         quantity: product.quantity || "",
         stock: product.stock || "",
         rating: product.rating || "",
-        status: product.status || "active",
+        status: product.status || "available",
+        unit: product.unit || "",
         categories: Array.isArray(product.categories) ? product.categories : [],
       });
       setCategoryInput("");
@@ -88,7 +90,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -150,7 +152,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       // Use PATCH method to update the product
       const updatedProduct = await productService.updateProduct(
         product.id,
-        formData
+        formData,
       );
 
       console.log("✅ Product updated successfully:", updatedProduct);
@@ -237,24 +239,25 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Product Name */}
+                {/* Product Name (Read-Only) */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                    Product Name *
+                    Product Name{" "}
+                    <span className="text-gray-400 font-normal">
+                      (Read-only)
+                    </span>
                   </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
-                    placeholder="Enter product name"
+                    readOnly
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 font-montserrat text-sm cursor-not-allowed"
                   />
                 </div>
 
-                {/* Price */}
+                {/* Price (Editable) */}
                 <div>
                   <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
                     Price (₦) *
@@ -273,148 +276,117 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                   />
                 </div>
 
-                {/* Quantity */}
+                {/* Quantity (Editable) */}
                 <div>
                   <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                    Quantity
+                    Quantity *
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="quantity"
                     value={formData.quantity}
                     onChange={handleInputChange}
                     disabled={loading}
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
                     placeholder="Enter quantity"
                   />
                 </div>
 
-                {/* Stock */}
+                {/* Unit (Editable) */}
                 <div>
                   <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                    Stock
+                    Unit (e.g., kg, pcs)
+                  </label>
+                  <input
+                    type="text"
+                    name="unit"
+                    value={formData.unit}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
+                    placeholder="kg"
+                  />
+                </div>
+
+                {/* Stock (Read-Only / Derived) */}
+                <div>
+                  <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
+                    Stock{" "}
+                    <span className="text-gray-400 font-normal">
+                      (Read-only)
+                    </span>
                   </label>
                   <input
                     type="text"
                     name="stock"
                     value={formData.stock}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
-                    placeholder="Enter stock quantity"
+                    readOnly
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 font-montserrat text-sm cursor-not-allowed"
                   />
                 </div>
 
-                {/* Rating */}
+                {/* Status (Read-Only in Edit - Use Table Actions for Status) */}
                 <div>
                   <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                    Rating
+                    Status{" "}
+                    <span className="text-gray-400 font-normal">
+                      (Read-only)
+                    </span>
                   </label>
-                  <select
-                    title="Rating"
-                    name="rating"
-                    value={formData.rating}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
-                  >
-                    <option value="">Select rating</option>
-                    <option value="1">1 Star</option>
-                    <option value="2">2 Stars</option>
-                    <option value="3">3 Stars</option>
-                    <option value="4">4 Stars</option>
-                    <option value="5">5 Stars</option>
-                  </select>
+                  <input
+                    type="text"
+                    value={
+                      formData.status === "out_of_stock"
+                        ? "Out of Stock"
+                        : "Active"
+                    }
+                    readOnly
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 font-montserrat text-sm cursor-not-allowed"
+                  />
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Description (Read-Only) */}
               <div>
                 <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                  Description
+                  Description{" "}
+                  <span className="text-gray-400 font-normal">(Read-only)</span>
                 </label>
                 <textarea
                   name="description"
                   value={formData.description}
-                  onChange={handleInputChange}
-                  disabled={loading}
+                  readOnly
+                  disabled
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50 resize-none"
-                  placeholder="Enter product description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 font-montserrat text-sm cursor-not-allowed resize-none"
                 />
               </div>
 
-              {/* Categories */}
+              {/* Categories (Read-Only) */}
               <div>
                 <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                  Categories
+                  Categories{" "}
+                  <span className="text-gray-400 font-normal">(Read-only)</span>
                 </label>
-
-                {/* Category Input */}
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={categoryInput}
-                    onChange={(e) => setCategoryInput(e.target.value)}
-                    onKeyPress={handleCategoryKeyPress}
-                    disabled={loading}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
-                    placeholder="Add a category"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCategory}
-                    disabled={loading || !categoryInput.trim()}
-                    className="px-4 py-2 bg-[#538e53] text-white rounded-md hover:bg-[#467846] font-montserrat text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
-                  >
-                    Add
-                  </button>
-                </div>
-
-                {/* Category Tags */}
                 <div className="flex flex-wrap gap-2">
                   {formData.categories?.map((category, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-[#538e53] text-[#fefefe] rounded-full text-sm font-montserrat"
+                      className="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-montserrat"
                     >
                       {category}
-                      <button
-                        title="Remove category"
-                        type="button"
-                        onClick={() => handleRemoveCategory(category)}
-                        disabled={loading}
-                        className="text-[#fefefe] hover:text-red-300 font-bold text-[16px] disabled:opacity-50 cursor-pointer"
-                      >
-                        ×
-                      </button>
                     </span>
                   ))}
                   {(!formData.categories ||
                     formData.categories.length === 0) && (
                     <span className="text-gray-500 text-sm font-montserrat italic">
-                      No categories added
+                      No categories
                     </span>
                   )}
                 </div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-[#2b2b2b] mb-2 font-montserrat">
-                  Status
-                </label>
-                <select
-                  title="Status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#538e53] focus:border-[#538e53] font-montserrat text-sm disabled:opacity-50"
-                >
-                  <option value="active">Active</option>
-                  <option value="out_of_stock">Out of Stock</option>
-                </select>
               </div>
 
               {/* Error Message */}
@@ -447,7 +419,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                     <span>Updating...</span>
                   </div>
                 ) : (
-                  "Update Product"
+                  "Update Price & Quantity"
                 )}
               </button>
             </div>

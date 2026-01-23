@@ -18,6 +18,9 @@ export interface ApiFarmer {
   villageOrLocalMarket?: string;
   createdAt?: string;
   updatedAt?: string;
+  revenue?: number;
+  ordersCount?: number;
+  approvalStatus?: string;
 }
 
 // Frontend Farmer Interface (includes UI state)
@@ -67,8 +70,10 @@ export const mapBackendToFrontendFarmer = (
     bankName: "-",
     accountNumber: "-",
     accountName: "-",
-    revenue: "₦0",
-    orders: "0",
+    revenue: backendFarmer.revenue
+      ? `₦${backendFarmer.revenue.toLocaleString()}`
+      : "₦0",
+    orders: backendFarmer.ordersCount?.toString() || "0",
     date: backendFarmer.createdAt
       ? new Date(backendFarmer.createdAt).toLocaleDateString()
       : new Date().toLocaleDateString(),
@@ -83,32 +88,30 @@ export const mapBackendToFrontendFarmer = (
 
 // Map frontend form data to backend format (Full replacement for PUT)
 const mapFrontendToBackendFarmerFull = (frontendData: Partial<Farmer>) => {
+  // Simple heuristic: If it starts with RC or BN, treat as CAC, otherwise NIN
+  let ninOrCac = frontendData.ninOrCac || "";
+
+  // Clean up placeholder if present
+  if (ninOrCac === "-") {
+    ninOrCac = "";
+  }
+
+  const isCAC =
+    ninOrCac.toUpperCase().startsWith("RC") ||
+    ninOrCac.toUpperCase().startsWith("BN");
+
   return {
     name: frontendData.name || "",
     phone: frontendData.mobile || "",
     businessName: frontendData.businessName || "",
+    nin: !isCAC ? ninOrCac : "",
+    businessCAC: isCAC ? ninOrCac : "",
     address: frontendData.address || "",
     country: frontendData.country || "Nigeria",
     state: frontendData.state || "",
     lga: frontendData.lga || "",
     villageOrLocalMarket: frontendData.localMarket || "",
   };
-};
-
-// Map frontend form data to backend format (Partial update for PATCH)
-const mapFrontendToBackendFarmerPartial = (frontendData: Partial<Farmer>) => {
-  const result: any = {};
-  if (frontendData.name !== undefined) result.name = frontendData.name;
-  if (frontendData.mobile !== undefined) result.phone = frontendData.mobile;
-  if (frontendData.businessName !== undefined)
-    result.businessName = frontendData.businessName;
-  if (frontendData.address !== undefined) result.address = frontendData.address;
-  if (frontendData.country !== undefined) result.country = frontendData.country;
-  if (frontendData.state !== undefined) result.state = frontendData.state;
-  if (frontendData.lga !== undefined) result.lga = frontendData.lga;
-  if (frontendData.localMarket !== undefined)
-    result.villageOrLocalMarket = frontendData.localMarket;
-  return result;
 };
 
 export const farmerService = {
@@ -269,20 +272,16 @@ export const farmerService = {
   },
 
   // PUT /api/farmers/:id (Full replace)
-  replaceFarmer: async (id: string, data: Partial<Farmer>): Promise<Farmer> => {
+  updateFarmer: async (id: string, data: Partial<Farmer>): Promise<Farmer> => {
     try {
-      console.log(`📝 Replacing farmer ${id} with data:`, data);
+      console.log(`📝 Updating farmer ${id} with data:`, data);
 
       const backendData = mapFrontendToBackendFarmerFull(data);
       console.log("📤 Sending to backend:", backendData);
 
-      const response = await api.put(
-        `/api/farmers/${id}`,
-        { ...backendData, id },
-        {
-          timeout: 15000,
-        },
-      );
+      const response = await api.put(`/api/farmers/${id}`, backendData, {
+        timeout: 15000,
+      });
 
       console.log("✅ Farmer updated successfully:", response.data);
 
@@ -326,68 +325,10 @@ export const farmerService = {
     }
   },
 
-  // PATCH /api/farmers/:id (Partial update)
-  updateFarmer: async (id: string, data: Partial<Farmer>): Promise<Farmer> => {
-    try {
-      console.log(`📝 Updating farmer ${id} with data:`, data);
-
-      const backendData = mapFrontendToBackendFarmerPartial(data);
-      console.log("📤 Sending to backend:", backendData);
-
-      const response = await api.patch(
-        `/api/farmers/${id}`,
-        { ...backendData, id },
-        {
-          timeout: 15000,
-        },
-      );
-
-      console.log("✅ Farmer updated successfully:", response.data);
-
-      let updatedFarmer: ApiFarmer;
-      if (response.data._id) {
-        updatedFarmer = response.data;
-      } else if (response.data.farmer) {
-        updatedFarmer = response.data.farmer;
-      } else if (response.data.data) {
-        updatedFarmer = response.data.data;
-      } else {
-        throw new Error("Invalid response format from server");
-      }
-
-      const mappedFarmer = mapBackendToFrontendFarmer(updatedFarmer);
-      toast.success("Farmer updated successfully!");
-      return mappedFarmer;
-    } catch (error) {
-      console.error(`❌ Error patching farmer ${id}:`, error);
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        const message = error.response?.data?.error || error.message;
-
-        if (status === 400) {
-          toast.error(`Invalid data: ${message}`);
-        } else if (status === 404) {
-          toast.error("Farmer not found.");
-        } else if (status === 401) {
-          toast.error("Authentication failed. Please log in again.");
-        } else if (status === 403) {
-          toast.error("You don't have permission to update farmers.");
-        } else {
-          toast.error(`Failed to patch farmer: ${message}`);
-        }
-      } else {
-        toast.error(
-          error.message || "Failed to patch farmer. Please try again.",
-        );
-      }
-      throw error;
-    }
-  },
-
-  // DELETE /api/farmers/:id
+  // DELETE /api/farmer/:id (Note: USER specified singular 'farmer' for matching 3rd party API)
   deleteFarmer: async (id: string): Promise<void> => {
     try {
-      console.log(`🗑️ Deleting farmer ${id}...`);
+      // console.log(`🗑️ Deleting farmer ${id}...`);
 
       await api.delete(`/api/farmers/${id}`, {
         timeout: 10000,

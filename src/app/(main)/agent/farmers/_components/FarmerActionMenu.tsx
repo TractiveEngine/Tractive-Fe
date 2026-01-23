@@ -8,11 +8,16 @@ import { useDeleteFarmer } from "@/hooks/queries/useFarmerQueries";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { createPortal } from "react-dom";
 
-export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
+export interface FarmerActionMenuProps extends ActionMenuProps {
+  handleView?: (id: string) => void;
+}
+
+export const FarmerActionMenu: React.FC<FarmerActionMenuProps> = ({
   productId,
   activeMenu,
   setActiveMenu,
   handleEdit,
+  handleView,
 }) => {
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
@@ -41,15 +46,9 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
     visible: { opacity: 1, y: 0 },
   };
 
-  const handleReportClick = () => {
-    console.log(`Navigating to report page for farmer: ${productId}`);
-    setActiveMenu(null);
-    router.push(`/report?farmerId=${productId}&type=farmer`);
-  };
-
   const handleDeleteConfirm = async () => {
     try {
-      console.log(`🗑️ Deleting farmer: ${productId}`);
+      // console.log(`🗑️ Deleting farmer: ${productId}`);
       await deleteFarmerMutation.mutateAsync(productId);
       setShowDeleteModal(false);
       setActiveMenu(null);
@@ -97,6 +96,17 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
                   exit="hidden"
                   transition={{ duration: 0.2 }}
                 >
+                  {handleView && (
+                    <button
+                      onClick={() => {
+                        handleView(productId);
+                        setActiveMenu(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded transition-colors"
+                    >
+                      View Details
+                    </button>
+                  )}
                   {handleEdit && (
                     <button
                       onClick={() => {
@@ -109,12 +119,7 @@ export const FarmerActionMenu: React.FC<ActionMenuProps> = ({
                       Edit Profile
                     </button>
                   )}
-                  <button
-                    onClick={handleReportClick}
-                    className="w-full text-left px-4 py-2 text-sm font-montserrat text-[#2b2b2b] hover:bg-gray-100 rounded transition-colors"
-                  >
-                    Report
-                  </button>
+
                   <button
                     onClick={() => setShowDeleteModal(true)}
                     disabled={deleteFarmerMutation.isPending}

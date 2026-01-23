@@ -11,13 +11,14 @@ export interface ApiProduct {
   categories: string[];
   images: string[];
   farmerId?: string;
-  status: "active" | "out_of_stock";
+  status: "available" | "out_of_stock"; // Changed from 'active' to 'available'
   createdAt?: string;
   updatedAt?: string;
   // Optional fields that might be in your UI
   stock?: string;
   rating?: string;
   reviews?: number;
+  unit?: string; // Added unit from API response
 }
 
 export interface Product extends ApiProduct {
@@ -33,7 +34,7 @@ export interface ProductsResponse {
 
 export interface SearchFilters {
   search?: string;
-  status?: "active" | "out_of_stock";
+  status?: "available" | "out_of_stock"; // Changed from 'active' to 'available'
   year?: string;
   month?: string;
   page?: number;
@@ -61,7 +62,7 @@ export interface UpdateProductData {
   rating?: string | number;
   categories?: string[];
   images?: string[];
-  status?: "active" | "out_of_stock";
+  status?: "available" | "out_of_stock";
 }
 
 // Handle API errors
@@ -71,7 +72,6 @@ const handleApiError = (error, operation: string) => {
   if (axios.isAxiosError(error)) {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        // Let the session management handle this path, preventing forced reload loop
         console.warn("Session expired or unauthorized");
       }
       throw new Error("Authentication failed");
@@ -103,26 +103,33 @@ const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
     quantity: backendProduct.quantity || 0,
     categories: backendProduct.categories || [],
     images: backendProduct.images || [],
-    farmerId: backendProduct.farmer || backendProduct.farmerId,
-    status: backendProduct.status || "active",
+    // Map 'owner' or 'farmer' to farmerId
+    farmerId:
+      backendProduct.owner || backendProduct.farmer || backendProduct.farmerId,
+    // Ensure status is correctly mapped if backend returns something else, but API says 'available'
+    status:
+      backendProduct.status === "active"
+        ? "available"
+        : backendProduct.status || "available",
     createdAt: backendProduct.createdAt,
     updatedAt: backendProduct.updatedAt,
     // Map additional fields for UI compatibility
     stock: backendProduct.quantity?.toString() || "0",
     rating: backendProduct.rating || "0",
     reviews: backendProduct.reviews || 0,
+    unit: backendProduct.unit || "",
   };
 };
 
 export const productService = {
-  // GET /api/product - Get products with filters
+  // GET /api/products - Get products with filters
   getProducts: async (
     filters: SearchFilters = {},
   ): Promise<ProductsResponse> => {
     try {
       console.log("🚀 Fetching products with filters:", filters);
 
-      const response = await api.get("/api/product", {
+      const response = await api.get("/api/products", {
         params: filters,
         timeout: 10000,
       });
@@ -131,12 +138,11 @@ export const productService = {
 
       let mappedProducts: ApiProduct[] = [];
 
-      if (Array.isArray(response.data.products)) {
-        mappedProducts = response.data.products.map(
-          mapBackendToFrontendProduct,
-        );
-      } else if (Array.isArray(response.data)) {
-        mappedProducts = response.data.map(mapBackendToFrontendProduct);
+      // Handle different response structures for robustness
+      const rawProducts = response.data.products || response.data;
+
+      if (Array.isArray(rawProducts)) {
+        mappedProducts = rawProducts.map(mapBackendToFrontendProduct);
       }
 
       return {
@@ -165,13 +171,10 @@ export const productService = {
       console.log("✅ Out-of-stock products fetched:", response.data);
 
       let mappedProducts: ApiProduct[] = [];
+      const rawProducts = response.data.products || response.data;
 
-      if (Array.isArray(response.data.products)) {
-        mappedProducts = response.data.products.map(
-          mapBackendToFrontendProduct,
-        );
-      } else if (Array.isArray(response.data)) {
-        mappedProducts = response.data.map(mapBackendToFrontendProduct);
+      if (Array.isArray(rawProducts)) {
+        mappedProducts = rawProducts.map(mapBackendToFrontendProduct);
       }
 
       return {
@@ -185,14 +188,14 @@ export const productService = {
     }
   },
 
-  // POST /api/product - Create product
+  // POST /api/products - Create product
   createProduct: async (
     productData: CreateProductData,
   ): Promise<ApiProduct> => {
     try {
       console.log("🚀 Creating product:", productData);
 
-      const response = await api.post("/api/product", productData, {
+      const response = await api.post("/api/products", productData, {
         timeout: 30000,
       });
 
@@ -208,14 +211,14 @@ export const productService = {
   // PATCH /api/products/:id/status - Update product status
   updateProductStatus: async (
     id: string,
-    status: "active" | "out_of_stock",
+    status: "available" | "out_of_stock",
   ): Promise<ApiProduct> => {
     try {
       console.log(`🚀 Updating product ${id} status to:`, status);
 
       const response = await api.patch(
         `/api/products/${id}/status`,
-        { status, id },
+        { status },
         {
           timeout: 10000,
         },
@@ -238,13 +241,9 @@ export const productService = {
     try {
       console.log(`🚀 Updating product ${id}:`, data);
 
-      const response = await api.patch(
-        `/api/products/${id}`,
-        { ...data, id },
-        {
-          timeout: 15000,
-        },
-      );
+      const response = await api.patch(`/api/products/${id}`, data, {
+        timeout: 15000,
+      });
 
       console.log("✅ Product updated:", response.data);
       return mapBackendToFrontendProduct(
@@ -270,13 +269,12 @@ export const productService = {
     }
   },
 
-  // Bulk operations (you might need to implement these on backend or handle sequentially)
+  // POST /api/products/bulk/delete
   deleteMultipleProducts: async (ids: string[]): Promise<void> => {
     try {
-      // If backend doesn't support bulk delete, delete sequentially
       console.log(`🚀 Bulk deleting ${ids.length} products`);
 
-      await Promise.all(ids.map((id) => productService.deleteProduct(id)));
+      await api.post("/api/products/bulk/delete", { productIds: ids });
 
       console.log("✅ All products deleted successfully");
     } catch (error) {
@@ -284,19 +282,17 @@ export const productService = {
     }
   },
 
+  // PATCH /api/products/bulk/status
   updateMultipleProductsStatus: async (
     ids: string[],
-    status: "active" | "out_of_stock",
+    status: "available" | "out_of_stock",
   ): Promise<void> => {
     try {
-      // If backend doesn't support bulk update, update sequentially
       console.log(
         `🚀 Bulk updating ${ids.length} products status to: ${status}`,
       );
 
-      await Promise.all(
-        ids.map((id) => productService.updateProductStatus(id, status)),
-      );
+      await api.patch("/api/products/bulk/status", { products: ids, status });
 
       console.log("✅ All products status updated successfully");
     } catch (error) {

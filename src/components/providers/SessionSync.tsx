@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setCredentials, logout, setLoading } from "@/lib/features/auth/authSlice";
+import {
+  setCredentials,
+  logout,
+  setLoading,
+} from "@/lib/features/auth/authSlice";
+import { tokenManager } from "@/lib/tokenManager";
 
 export default function SessionSync() {
   const { data: session, status } = useSession();
@@ -11,13 +16,14 @@ export default function SessionSync() {
 
   useEffect(() => {
     if (status === "loading") {
-        dispatch(setLoading(true));
-        return;
+      dispatch(setLoading(true));
+      return;
     }
 
     if (session?.user) {
-      dispatch(setCredentials({
-        user: {
+      dispatch(
+        setCredentials({
+          user: {
             id: session.user.id || "",
             name: session.user.name || "",
             email: session.user.email || "",
@@ -25,10 +31,13 @@ export default function SessionSync() {
             role: session.user.role || [],
             activeRole: session.user.activeRole || null,
             token: session.user.token,
-        }
-      }));
+          },
+        }),
+      );
+      tokenManager.setToken(session.user.token || null);
     } else if (status === "unauthenticated") {
-        dispatch(logout());
+      dispatch(logout());
+      tokenManager.clearToken();
     }
   }, [session, status, dispatch]);
 

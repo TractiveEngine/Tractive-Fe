@@ -192,18 +192,21 @@ export const ProductRow: React.FC<ProductRowProps> = ({
         {formatPrice(product.price)}
       </td>
 
-      {/* Quantity */}
+      {/* Quantity / Stock */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        {product.quantity || "-"}
+        {product.quantity ? `${product.quantity} ${product.unit || ""}` : "-"}
       </td>
 
-      {/* Stock */}
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
-        {product.stock || product.quantity || "-"}
-      </td>
+      {/* Stock (Old Column - Commented Out) */}
+      {/* <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
+        {product.stock ||
+          (product.quantity
+            ? `${product.quantity} ${product.unit || ""}`
+            : "-")}
+      </td> */}
 
       {/* Reviews */}
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      {/* <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
         <div className="flex items-center space-x-2">
           <StarStrokeIcon />
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
@@ -213,7 +216,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
             ({product.reviews || 0})
           </span>
         </div>
-      </td>
+      </td> */}
 
       {/* Categories */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
