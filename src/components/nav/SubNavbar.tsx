@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isUserLoggedIn } from "@/utils/loginAuth";
+import { useSession } from "next-auth/react";
 import {
   HomeIcon,
   SellerIcon,
@@ -12,7 +12,8 @@ import {
 
 export const SubNavbar: React.FC = () => {
   const pathname = usePathname();
-  const isLoggedIn = isUserLoggedIn();
+  const { data: session } = useSession();
+  const isLoggedIn = !!session;
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   const navItems = [

@@ -21,7 +21,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { logoutUser } from "@/utils/loginAuth";
+import { signOut } from "next-auth/react";
+import api from "@/lib/axios";
 import { motion, AnimatePresence } from "framer-motion";
 import AddFleet from "@/app/(main)/transporter/_components/AddFleet";
 
@@ -55,9 +56,15 @@ export const TransporterAsideNav = () => {
     }));
   };
 
-  const handleLogout = () => {
-    logoutUser();
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+      await signOut({ redirect: false });
+      router.push("/login");
+    } catch (error) {
+      await signOut({ redirect: false });
+      router.push("/login");
+    }
   };
 
   // Mapping of labels to their corresponding routes

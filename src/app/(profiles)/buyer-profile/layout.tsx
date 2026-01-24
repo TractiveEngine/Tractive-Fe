@@ -3,7 +3,7 @@
 import { BuyerProfile_AsideNav } from "@/components/nav/BuyerProfile_AsideNav";
 import { Navbar } from "@/components/nav/Navbar";
 import { SubNavbar } from "@/components/nav/SubNavbar";
-import { getLoggedInUser, isUserLoggedIn } from "@/utils/loginAuth";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IoIosMenu } from "react-icons/io";
@@ -16,33 +16,11 @@ export default function BuyerProfileSettingLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const { status } = useSession();
   const [isAsideOpen, setIsAsideOpen] = useState(false);
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const userData = getLoggedInUser();
-          if (userData && "fullName" in userData && "email" in userData) {
-            // setUser not needed since user is not used
-          } else {
-            setIsLoggedIn(false);
-          }
-        }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
 
   useEffect(() => {
-    if (!isUserLoggedIn()) {
+    if (status === "unauthenticated") {
       toast.error("Login to become a buyer.", {
         duration: 3000,
         position: "top-center",
@@ -51,7 +29,7 @@ export default function BuyerProfileSettingLayout({
         router.push("/login");
       }, 1000);
     }
-  }, [router]);
+  }, [status, router]);
 
   const toggleAside = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
@@ -63,11 +41,11 @@ export default function BuyerProfileSettingLayout({
     });
   };
 
-  if (isLoggedIn === null) {
+  if (status === "loading") {
     return <div>Loading...</div>;
   }
 
-  if (!isLoggedIn) {
+  if (status === "unauthenticated") {
     return null;
   }
   return (

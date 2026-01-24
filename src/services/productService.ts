@@ -10,8 +10,9 @@ export interface ApiProduct {
   quantity: number;
   categories: string[];
   images: string[];
+  videos?: string[]; // Added videos
   farmerId?: string;
-  status: "available" | "out_of_stock"; // Changed from 'active' to 'available'
+  status: "available" | "out_of_stock" | "discontinued"; // Changed from 'active' to 'available'
   createdAt?: string;
   updatedAt?: string;
   // Optional fields that might be in your UI
@@ -19,26 +20,45 @@ export interface ApiProduct {
   rating?: string;
   reviews?: number;
   unit?: string; // Added unit from API response
+  discount?: number; // Added discount
 }
 
 export interface Product extends ApiProduct {
   checked: boolean;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export interface ProductsResponse {
   products: ApiProduct[];
-  total: number;
+  pagination: PaginationMeta;
+  total: number; // Keeping for backward compat, mapped from pagination
   page: number;
   limit: number;
 }
 
 export interface SearchFilters {
-  search?: string;
-  status?: "available" | "out_of_stock"; // Changed from 'active' to 'available'
-  year?: string;
-  month?: string;
   page?: number;
   limit?: number;
+  search?: string;
+  status?: "available" | "out_of_stock" | "discontinued";
+  category?: string;
+  farmer?: string;
+  owner?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  from?: string;
+  to?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  full?: boolean;
+  includeMedia?: boolean;
+  year?: string;
+  month?: string;
 }
 
 export interface CreateProductData {
@@ -56,13 +76,10 @@ export interface UpdateProductData {
   name?: string;
   description?: string;
   price?: number;
-  quantity?: string | number;
-  unit?: string;
-  stock?: string | number;
-  rating?: string | number;
-  categories?: string[];
+  quantity?: number;
+  discount?: number;
   images?: string[];
-  status?: "available" | "out_of_stock";
+  videos?: string[];
 }
 
 // Handle API errors
@@ -103,6 +120,7 @@ const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
     quantity: backendProduct.quantity || 0,
     categories: backendProduct.categories || [],
     images: backendProduct.images || [],
+    videos: backendProduct.videos || [],
     // Map 'owner' or 'farmer' to farmerId
     farmerId:
       backendProduct.owner || backendProduct.farmer || backendProduct.farmerId,
@@ -129,30 +147,55 @@ export const productService = {
     try {
       console.log("🚀 Fetching products with filters:", filters);
 
+      const params: any = {
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+        ...filters,
+      };
+
       const response = await api.get("/api/products", {
-        params: filters,
-        timeout: 10000,
+        params,
       });
 
       console.log("✅ Products fetched successfully:", response.data);
 
       let mappedProducts: ApiProduct[] = [];
+      const data = response.data.data || [];
+      const pagination = response.data.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+      };
 
-      // Handle different response structures for robustness
-      const rawProducts = response.data.products || response.data;
-
-      if (Array.isArray(rawProducts)) {
-        mappedProducts = rawProducts.map(mapBackendToFrontendProduct);
+      if (Array.isArray(data)) {
+        mappedProducts = data.map(mapBackendToFrontendProduct);
       }
 
       return {
         products: mappedProducts,
-        total: response.data.total || mappedProducts.length,
-        page: response.data.page || 1,
-        limit: response.data.limit || 10,
+        pagination,
+        total: pagination.total,
+        page: pagination.page,
+        limit: pagination.limit,
       };
     } catch (error) {
       return handleApiError(error, "fetch products");
+    }
+  },
+
+  // GET /api/products/:id - Get single product
+  getProduct: async (id: string): Promise<ApiProduct> => {
+    try {
+      console.log(`🚀 Fetching product details for ${id}`);
+
+      const response = await api.get(`/api/products/${id}`);
+
+      console.log("✅ Product details fetched:", response.data);
+      const productData =
+        response.data.data || response.data.product || response.data;
+      return mapBackendToFrontendProduct(productData);
+    } catch (error) {
+      return handleApiError(error, "fetch product details");
     }
   },
 
@@ -163,25 +206,37 @@ export const productService = {
     try {
       console.log("🚀 Fetching out-of-stock products:", filters);
 
+      const params: any = {
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+        ...filters,
+      };
+
       const response = await api.get("/api/products/out-of-stock", {
-        params: filters,
-        timeout: 10000,
+        params,
       });
 
       console.log("✅ Out-of-stock products fetched:", response.data);
 
       let mappedProducts: ApiProduct[] = [];
-      const rawProducts = response.data.products || response.data;
+      const data =
+        response.data.data || response.data.products || response.data;
+      const pagination = response.data.pagination || {
+        page: 1,
+        limit: 10,
+        total: Array.isArray(data) ? data.length : 0,
+      };
 
-      if (Array.isArray(rawProducts)) {
-        mappedProducts = rawProducts.map(mapBackendToFrontendProduct);
+      if (Array.isArray(data)) {
+        mappedProducts = data.map(mapBackendToFrontendProduct);
       }
 
       return {
         products: mappedProducts,
-        total: response.data.total || mappedProducts.length,
-        page: response.data.page || 1,
-        limit: response.data.limit || 10,
+        pagination,
+        total: pagination.total,
+        page: pagination.page,
+        limit: pagination.limit,
       };
     } catch (error) {
       return handleApiError(error, "fetch out-of-stock products");
@@ -195,9 +250,7 @@ export const productService = {
     try {
       console.log("🚀 Creating product:", productData);
 
-      const response = await api.post("/api/products", productData, {
-        timeout: 30000,
-      });
+      const response = await api.post("/api/products", productData);
 
       console.log("✅ Product created:", response.data);
       return mapBackendToFrontendProduct(
@@ -211,18 +264,15 @@ export const productService = {
   // PATCH /api/products/:id/status - Update product status
   updateProductStatus: async (
     id: string,
-    status: "available" | "out_of_stock",
+    status: "available" | "out_of_stock" | "discontinued",
   ): Promise<ApiProduct> => {
     try {
       console.log(`🚀 Updating product ${id} status to:`, status);
 
-      const response = await api.patch(
-        `/api/products/${id}/status`,
-        { status },
-        {
-          timeout: 10000,
-        },
-      );
+      // Changed to PUT as requested
+      const response = await api.put(`/api/products/${id}/status`, {
+        status,
+      });
 
       console.log("✅ Product status updated:", response.data);
       return mapBackendToFrontendProduct(
@@ -233,22 +283,20 @@ export const productService = {
     }
   },
 
-  // PATCH /api/products/:id - Update product (for edit modal)
+  // PUT /api/products/:id - Update product (Full Update)
   updateProduct: async (
     id: string,
     data: UpdateProductData,
   ): Promise<ApiProduct> => {
     try {
-      console.log(`🚀 Updating product ${id}:`, data);
+      console.log(`🚀 Updating product ${id} (PUT):`, data);
 
-      const response = await api.patch(`/api/products/${id}`, data, {
-        timeout: 15000,
-      });
+      const response = await api.put(`/api/products/${id}`, data);
 
       console.log("✅ Product updated:", response.data);
-      return mapBackendToFrontendProduct(
-        response.data.product || response.data,
-      );
+      const updated =
+        response.data.data || response.data.product || response.data;
+      return mapBackendToFrontendProduct(updated);
     } catch (error) {
       return handleApiError(error, "update product");
     }
@@ -259,9 +307,7 @@ export const productService = {
     try {
       console.log(`🚀 Deleting product ${id}`);
 
-      await api.delete(`/api/products/${id}`, {
-        timeout: 10000,
-      });
+      await api.delete(`/api/products/${id}`);
 
       console.log("✅ Product deleted successfully");
     } catch (error) {
@@ -282,17 +328,18 @@ export const productService = {
     }
   },
 
-  // PATCH /api/products/bulk/status
+  // PUT /api/products/bulk/status
   updateMultipleProductsStatus: async (
     ids: string[],
-    status: "available" | "out_of_stock",
+    status: "available" | "out_of_stock" | "discontinued",
   ): Promise<void> => {
     try {
       console.log(
         `🚀 Bulk updating ${ids.length} products status to: ${status}`,
       );
 
-      await api.patch("/api/products/bulk/status", { products: ids, status });
+      // Changed to PUT as requested
+      await api.put("/api/products/bulk/status", { products: ids, status });
 
       console.log("✅ All products status updated successfully");
     } catch (error) {

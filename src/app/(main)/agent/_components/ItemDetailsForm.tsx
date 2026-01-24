@@ -7,6 +7,7 @@ import { ArrowLeftIcon } from "./Icons/AgentIcons";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useCreateProduct } from "@/hooks/queries/useProductQueries";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 interface ItemDetailsFormProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ interface ItemDetailsFormProps {
   productName: string;
   selectedFarmerId: string | null;
   imageFiles: File[];
+  videoFiles?: File[]; // Optional array of videos
 }
 
 export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
@@ -24,6 +26,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   productName,
   selectedFarmerId,
   imageFiles,
+  videoFiles = [], // Default to empty array
 }) => {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -34,25 +37,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        const base64Data = base64.split(",")[1];
-        resolve(base64Data);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Convert multiple files to base64
-  const filesToBase64 = async (files: File[]): Promise<string[]> => {
-    const base64Promises = files.map((file) => fileToBase64(file));
-    return await Promise.all(base64Promises);
-  };
+  const { uploadToCloudinary } = useCloudinaryUpload();
 
   // Handle form submission
   const { mutateAsync: createProduct, isPending: isCreating } =
@@ -111,18 +96,40 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
 
       console.log("✅ Step 2: All fields validated");
 
-      // Convert files to base64
-      let imageBase64: string[] = [];
+      // Upload images to Cloudinary
+      let imageUrls: string[] = [];
+      let videoUrls: string[] = [];
 
       if (imageFiles.length > 0) {
-        setUploadProgress(30);
+        setUploadProgress(20);
         console.log(
-          `🔄 Step 3: Converting ${imageFiles.length} images to base64...`,
+          `🔄 Step 3a: Uploading ${imageFiles.length} images to Cloudinary...`,
         );
-        imageBase64 = await filesToBase64(imageFiles);
-        setUploadProgress(50);
-        console.log("✅ Images converted");
+
+        const uploadPromises = imageFiles.map((file) =>
+          uploadToCloudinary(file),
+        );
+        imageUrls = await Promise.all(uploadPromises);
+
+        console.log("✅ Images uploaded:", imageUrls);
       }
+
+      // Upload videos to Cloudinary
+      if (videoFiles.length > 0) {
+        setUploadProgress(40);
+        console.log(
+          `🔄 Step 3b: Uploading ${videoFiles.length} videos to Cloudinary...`,
+        );
+
+        const uploadPromises = videoFiles.map((file) =>
+          uploadToCloudinary(file),
+        );
+        videoUrls = await Promise.all(uploadPromises);
+
+        console.log("✅ Videos uploaded:", videoUrls);
+      }
+
+      setUploadProgress(70);
 
       // Prepare API payload matching the spec
       const apiPayload = {
@@ -131,9 +138,10 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         price: Number(price),
         quantity: Number(quantity),
         unit: unit.trim(),
-        images: imageBase64,
+        images: imageUrls,
+        videos: videoUrls, // Include videos
         categories: [selectedCategory],
-        farmer: selectedFarmerId, // Using 'farmer' as per prompt spec (string ID)
+        farmer: selectedFarmerId,
       };
 
       console.log("✅ Step 5: Payload prepared", apiPayload);
@@ -146,16 +154,11 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
 
       setUploadProgress(100);
 
-      // Toast is handled in the hook onSuccess, but we can close the modal here or in onSuccess logic.
-      // Since onSuccess in hook updates cache, we just need to close here.
       setTimeout(() => {
         onClose();
       }, 500);
     } catch (error) {
       console.error("❌ Error creating product:", error);
-      // Hook onError handles the toast, but we should reset loading
-
-      // Handle different error types
       if (error instanceof Error && error.message.includes("FileReader")) {
         toast.error(
           "Failed to process files. Please try again with smaller files.",
@@ -181,6 +184,9 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const getTotalFileSize = (): number => {
     let totalSize = 0;
     imageFiles.forEach((file) => (totalSize += file.size));
+    if (videoFiles) {
+      videoFiles.forEach((file) => (totalSize += file.size));
+    }
     return totalSize;
   };
 
@@ -221,12 +227,14 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         <p className="text-sm text-[#2b2b2b] font-montserrat">
           <strong>Category:</strong> {selectedCategory}
         </p>
-        {imageFiles.length > 0 && (
-          <p className="text-sm text-[#2b2b2b] font-montserrat">
-            <strong>Images:</strong> {imageFiles.length} file(s) selected
-          </p>
-        )}
-        {imageFiles.length > 0 && (
+        <p className="text-sm text-[#2b2b2b] font-montserrat">
+          <strong>Images:</strong> {imageFiles.length} file(s)
+        </p>
+        <p className="text-sm text-[#2b2b2b] font-montserrat">
+          <strong>Videos:</strong> {videoFiles.length} file(s)
+        </p>
+
+        {(imageFiles.length > 0 || videoFiles.length > 0) && (
           <p className="text-sm text-[#666] font-montserrat mt-2">
             <strong>Total file size:</strong> {totalFileSizeMB} MB
             {parseFloat(totalFileSizeMB) > 10 && (
@@ -357,10 +365,10 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         </div>
 
         {/* File Upload Summary */}
-        {imageFiles.length > 0 && (
+        {(imageFiles.length > 0 || videoFiles.length > 0) && (
           <div className="flex flex-col gap-2">
             <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-              Files to Upload (will be sent as base64)
+              Files to Upload
             </label>
             <div className="border border-[#e0e0e0] rounded-[4px] p-3 bg-[#f9f9f9]">
               {imageFiles.length > 0 && (
@@ -370,7 +378,22 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
                   </p>
                   <ul className="text-xs text-[#666] font-montserrat ml-4">
                     {imageFiles.map((file, index) => (
-                      <li key={index}>
+                      <li key={`img-${index}`}>
+                        • {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                        MB)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {videoFiles.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-sm text-[#2b2b2b] font-montserrat font-semibold">
+                    Videos ({videoFiles.length}):
+                  </p>
+                  <ul className="text-xs text-[#666] font-montserrat ml-4">
+                    {videoFiles.map((file, index) => (
+                      <li key={`vid-${index}`}>
                         • {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
                         MB)
                       </li>

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -41,10 +41,7 @@ export default function OnboardingForm() {
 
   // Get active role directly from session.
   // Register-As page updates this before redirecting here.
-  const searchParams =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : null;
+  const searchParams = useSearchParams();
   const roleFromUrl = searchParams ? searchParams.get("role") : null;
 
   // Logic to determine the "target" role for onboarding

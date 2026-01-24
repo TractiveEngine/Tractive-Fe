@@ -23,9 +23,7 @@ export const userService = {
   getCurrentUser: async (): Promise<UserProfile> => {
     try {
       console.log("🔄 Fetching current user profile...");
-      const response = await api.get("/api/profile", {
-        timeout: 10000,
-      });
+      const response = await api.get("/api/profile");
 
       console.log("✅ User profile response:", response.data);
 

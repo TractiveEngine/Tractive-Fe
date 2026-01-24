@@ -5,8 +5,8 @@ import React from "react";
 import { SwapIcon } from "../../../icons/Icon1";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getAuthToken, getLoggedInUser } from "../../../utils/loginAuth";
-import axios from "axios";
+import { useSession } from "next-auth/react";
+import api from "@/lib/axios";
 
 interface ProfileDropDownProps {
   onLogout: () => void;
@@ -14,17 +14,18 @@ interface ProfileDropDownProps {
 
 export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
   const router = useRouter();
-  const user = getLoggedInUser();
+  const { data: session, update } = useSession();
+  // Safe access to user properties with fallback
+  const user = session?.user;
   const availableRoles = ["agent", "buyer", "transporter"];
   const userRoles = user?.role || [];
   // Filter out the active role from the dropdown
   const dropdownRoles = availableRoles.filter(
-    (role) => role !== user?.activeRole
+    (role) => role !== user?.activeRole,
   );
 
   const handleSwitchRole = async (role: string) => {
-    const token = getAuthToken();
-    if (!token) {
+    if (!user) {
       toast.error("Unauthorized access. Please login.", {
         duration: 3000,
         position: "top-center",
@@ -44,32 +45,23 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
     });
 
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
-      const response = await axios.post(
-        `${API_URL}/api/auth/add-account`,
-        { role },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.post("/api/auth/add-account", { role });
 
       if (!response.data.success) {
         throw new Error(response.data.error || "Failed to switch role.");
       }
 
-      if (user) {
-        const updatedSession = {
-          ...user,
+      // Update session with new active role
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
           activeRole: role,
-          token: response.data.token || user.token, // Update token if provided
-        };
-        localStorage.setItem("session", JSON.stringify(updatedSession));
-        localStorage.setItem("userRole", role); // Maintain legacy
-      }
+        },
+      });
+
+      // Update local storage for legacy support if needed, but session is primary
+      localStorage.setItem("userRole", role);
 
       toast.dismiss(loadingToastId);
       toast.success(`Switched to ${role} role!`, {
@@ -77,11 +69,10 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
         position: "top-center",
       });
 
-      const onboardingCompleted =
-        localStorage.getItem("onboardingCompleted") === "true";
-      const redirectPath = onboardingCompleted ? `/${role}` : "/onboarding";
-      router.push(redirectPath);
-    } catch (error) {
+      // Assuming onboarding status is handled via backend/session or redirect logic
+      router.push(`/${role}`);
+    } catch (error: any) {
+      console.error("Switch role error:", error);
       toast.dismiss(loadingToastId);
       toast.error(error.message || "Failed to switch role.", {
         duration: 3000,
@@ -131,16 +122,16 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
                   {role === "agent"
                     ? "Agent"
                     : role === "buyer"
-                    ? "Buyer"
-                    : "Transporter"}{" "}
+                      ? "Buyer"
+                      : "Transporter"}{" "}
                   {userRoles.includes(role) ? "(Switch)" : "(Add)"}
                 </span>
                 <span className="block text-[10px] text-[#2b2b2b]">
                   {role === "agent"
                     ? "Agents account"
                     : role === "buyer"
-                    ? "Buyers account"
-                    : "Transporters account"}
+                      ? "Buyers account"
+                      : "Transporters account"}
                 </span>
               </div>
             </div>

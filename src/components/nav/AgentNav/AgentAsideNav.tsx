@@ -22,9 +22,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { logoutUser } from "@/utils/loginAuth";
+import { signOut } from "next-auth/react";
+import api from "@/lib/axios";
 import AddToStore from "@/app/(main)/agent/_components/AddToStore";
-
 
 interface NavSection {
   title: string;
@@ -56,9 +56,15 @@ export const AgentAsideNav = () => {
     }));
   };
 
-  const handleLogout = () => {
-    logoutUser();
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+      await signOut({ redirect: false });
+      router.push("/login");
+    } catch (error) {
+      await signOut({ redirect: false });
+      router.push("/login");
+    }
   };
 
   // Mapping of labels to their corresponding routes

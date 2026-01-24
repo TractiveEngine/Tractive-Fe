@@ -1,8 +1,9 @@
 // services/transactionService.ts
-import { getAuthToken } from "@/utils/loginAuth";
+import api from "@/lib/axios";
 
 // services/transactionService.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// services/transactionService.ts
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL; // Using axios instance instead
 
 // Frontend Transaction Interface (includes UI-specific fields)
 export interface FrontendTransaction {
@@ -66,18 +67,7 @@ export interface ContactCustomerCareData {
 }
 
 // Create authenticated headers with role validation
-const getAuthHeaders = async (): Promise<HeadersInit> => {
-  const token = getAuthToken();
-  if (!token) {
-    console.warn("⚠️ No auth token found. User may not be authenticated.");
-    throw new Error("Authentication required");
-  }
-
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
+// Auth headers are handled by axios interceptor
 
 // Mock data for images (you can replace this with actual image URLs from your order data)
 const mockProductImages = [
@@ -106,17 +96,8 @@ const getRandomDescription = () => {
 };
 
 // Helper function to handle API responses
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ error: "Unknown error" }));
-    throw new Error(
-      errorData.error || `HTTP error! status: ${response.status}`,
-    );
-  }
-  return response.json();
-};
+// Response handling is managed by axios interceptor/wrapper where applicable, but we keep basic error handling here if needed.
+// const handleResponse = ... (removed as axios throws on error status by default or we handle it in catch)
 
 export const transactionService = {
   async getTransactions(
@@ -130,16 +111,11 @@ export const transactionService = {
       if (params?.year) queryParams.append("year", params.year);
       if (params?.month) queryParams.append("month", params.month);
 
-      const url = `${API_BASE_URL}/api/transactions${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const url = `/api/transactions${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
-      const headers = await getAuthHeaders();
+      const response = await api.get(url);
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers,
-      });
-
-      const data = await handleResponse(response);
+      const data = response.data;
 
       // Transform backend data to frontend format with UI enhancements
       const transactions: FrontendTransaction[] = data.transactions.map(
@@ -179,18 +155,12 @@ export const transactionService = {
     statusData: UpdateStatusData,
   ): Promise<FrontendTransaction> {
     try {
-      const headers = await getAuthHeaders();
+      const response = await api.patch(`/api/transactions/${id}/status`, {
+        ...statusData,
+        id,
+      });
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/transactions/${id}/status`,
-        {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({ ...statusData, id }),
-        },
-      );
-
-      const data = await handleResponse(response);
+      const data = response.data;
       return data.transaction;
     } catch (error) {
       console.error("Error updating transaction status:", error);
@@ -203,44 +173,23 @@ export const transactionService = {
     contactData: ContactCustomerCareData,
   ): Promise<void> {
     try {
-      const headers = await getAuthHeaders();
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/transactions/${id}/contact-customer-care`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify(contactData),
-        },
+      await api.post(
+        `/api/transactions/${id}/contact-customer-care`,
+        contactData,
       );
-
-      await handleResponse(response);
     } catch (error) {
       console.error("Error contacting customer care:", error);
       throw error;
     }
   },
 
-  // Helper method to check if user is authenticated
+  // Helper method to check if user is authenticated - Rely on session check in components
   isAuthenticated(): boolean {
-    return getAuthToken() !== null;
+    return true; // Simplify or remove, components should check session
   },
 
-  // Helper method to get user info from token (if needed)
+  // Helper method to get user info from token (if needed) - Rely on session
   getUserInfo(): { userId: string; email?: string } | null {
-    const token = getAuthToken();
-    if (!token) return null;
-
-    try {
-      // Decode JWT token to get user info
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return {
-        userId: payload.userId,
-        email: payload.email,
-      };
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
-    }
+    return null; // Simplify or remove
   },
 };

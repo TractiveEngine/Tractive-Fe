@@ -1,7 +1,7 @@
 "use client";
 import { AgentProfile_AsideNav } from "@/components/nav/AgentNav/AgentProfile_AsideNav";
 import { AgentProfileNavbar } from "@/components/nav/AgentNav/AgentProfileNavbar";
-import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IoIosMenu } from "react-icons/io";
@@ -14,33 +14,11 @@ export default function ProfileSettingLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const { status } = useSession();
   const [isAsideOpen, setIsAsideOpen] = useState(false);
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const userData = getLoggedInUser();
-          if (userData && "name" in userData && "email" in userData) {
-            // setUser not needed since user is not used
-          } else {
-            setIsLoggedIn(false);
-          }
-        }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-
-  useEffect(() => {
-    if (!isUserLoggedIn()) {
+    if (status === "unauthenticated") {
       toast.error("Login to become an agent.", {
         duration: 3000,
         position: "top-center",
@@ -49,7 +27,7 @@ export default function ProfileSettingLayout({
         router.push("/login");
       }, 1000);
     }
-  }, [router]);
+  }, [status, router]);
 
   const toggleAside = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
@@ -61,7 +39,7 @@ export default function ProfileSettingLayout({
     });
   };
 
-  if (isLoggedIn === null) {
+  if (status === "loading") {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="flex items-center gap-2">
@@ -72,7 +50,7 @@ export default function ProfileSettingLayout({
     );
   }
 
-  if (!isLoggedIn) {
+  if (status === "unauthenticated") {
     return null;
   }
 

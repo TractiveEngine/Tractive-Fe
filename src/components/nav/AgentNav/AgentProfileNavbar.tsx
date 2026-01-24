@@ -3,7 +3,8 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth";
+import { useSession, signOut } from "next-auth/react";
+import api from "@/lib/axios";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AgentMobileNavbar";
@@ -12,10 +13,10 @@ import { ProfileDropDown } from "@/components/Profile_dropdowns/ProfileDropDown/
 export const AgentProfileNavbar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  const { data: session } = useSession();
+  const user = session?.user || null;
+  const isLoggedIn = !!session;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
@@ -30,20 +31,7 @@ export const AgentProfileNavbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
+    // Login check handled by useSession
 
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications and bids
@@ -56,7 +44,7 @@ export const AgentProfileNavbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
+    // checkLoginStatus();
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }
@@ -85,22 +73,28 @@ export const AgentProfileNavbar = () => {
     };
   }, []);
 
-
-  const handleLogout = (e?: React.MouseEvent) => {
+  const handleLogout = async (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
       e.preventDefault();
     }
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
+
+    try {
+      await api.post("/api/auth/logout");
+      await signOut({ redirect: false });
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Fallback
+      await signOut({ redirect: false });
+      router.push("/login");
+    }
+
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
     setHasNotifications(false);
-    router.refresh();
-    router.push("/login");
   };
-  
 
   const handleNotificationClick = () => {
     setIsNotificationOpen(!isNotificationOpen);

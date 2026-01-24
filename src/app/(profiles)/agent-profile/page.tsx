@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { ProfilePicture } from "./_components/ProfilePicture";
 import { toast } from "sonner";
-import { getAuthToken, getLoggedInUser } from "@/utils/loginAuth";
-import axios from "axios";
+import { useSession } from "next-auth/react";
+import api from "@/lib/axios";
 import { useRouter } from "next/navigation";
 
 interface ProfileData {
@@ -34,31 +34,22 @@ const ProfileSetting = () => {
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
+  const { data: session, update } = useSession();
+
   // Fetch profile data on component mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = getAuthToken();
-        const user = getLoggedInUser();
-        const finalToken = token || user?.token;
+        const user = session?.user;
 
-        if (!finalToken) {
-          toast.error("Please login to access your profile.", {
-            duration: 3000,
-            position: "top-center",
-          });
-          router.push("/login");
+        if (!user) {
+          // Toast handled by layout/middleware usually, but good to have fallback
           return;
         }
 
         console.log("Fetching profile data...");
 
-        const response = await axios.get(`${API_URL}/api/profile`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${finalToken}`,
-          },
-        });
+        const response = await api.get("/api/profile");
 
         console.log("Profile data received:", response.data);
 
@@ -82,24 +73,20 @@ const ProfileSetting = () => {
             email: user?.email || "",
           }));
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching profile:", error);
 
-        if (error.response?.status === 401) {
-          toast.error("Your session has expired. Please login again.", {
-            duration: 3000,
-            position: "top-center",
-          });
-        } else if (error.response?.status === 404) {
+        if (error.response?.status === 404) {
           // Profile doesn't exist yet, which is fine for first-time setup
-          const user = getLoggedInUser();
+          const user = session?.user;
           setFormData((prev) => ({
             ...prev,
             name: user?.name || "",
             email: user?.email || "",
           }));
           console.log("No existing profile found, using session data");
-        } else {
+        } else if (error.response?.status !== 401) {
+          // 401 handled by interceptor
           toast.error("Failed to load profile data. Please try again.", {
             duration: 3000,
             position: "top-center",
@@ -110,8 +97,13 @@ const ProfileSetting = () => {
       }
     };
 
-    fetchProfile();
-  }, [API_URL, router]);
+    if (session?.user) {
+      fetchProfile();
+    } else if (session === null) {
+      // Stop loading if no session
+      setFetchingProfile(false);
+    }
+  }, [session]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -123,11 +115,7 @@ const ProfileSetting = () => {
     setLoading(true);
 
     try {
-      const token = getAuthToken();
-      const user = getLoggedInUser();
-      const finalToken = token || user?.token;
-
-      if (!finalToken) {
+      if (!session?.user) {
         toast.error("Please login to update your profile.", {
           duration: 3000,
           position: "top-center",
@@ -148,46 +136,38 @@ const ProfileSetting = () => {
         motto: formData.motto,
       };
 
-      // Try different HTTP methods and endpoints until one works
+      // Try different HTTP methods and endpoints until one works - simplified to likely working ones with api instance
       let response;
       const endpoints = [
-        { method: "put", url: `${API_URL}/api/profile` },
-        { method: "patch", url: `${API_URL}/api/profile` },
-        { method: "post", url: `${API_URL}/api/profile/update` },
-        { method: "put", url: `${API_URL}/api/user/profile` },
+        { method: "put", url: "/api/profile" },
+        { method: "patch", url: "/api/profile" },
+        { method: "post", url: "/api/profile/update" },
       ];
 
       let lastError;
       for (const endpoint of endpoints) {
         try {
           console.log(
-            `Trying ${endpoint.method.toUpperCase()} ${endpoint.url}...`
+            `Trying ${endpoint.method.toUpperCase()} ${endpoint.url}...`,
           );
 
-          const config = {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${finalToken}`,
-            },
-          };
-
           if (endpoint.method === "patch") {
-            response = await axios.patch(endpoint.url, updateData, config);
+            response = await api.patch(endpoint.url, updateData);
           } else if (endpoint.method === "put") {
-            response = await axios.put(endpoint.url, updateData, config);
+            response = await api.put(endpoint.url, updateData);
           } else if (endpoint.method === "post") {
-            response = await axios.post(endpoint.url, updateData, config);
+            response = await api.post(endpoint.url, updateData);
           }
 
           // If we get here, the request succeeded
           console.log(
-            `✅ Success with ${endpoint.method.toUpperCase()} ${endpoint.url}`
+            `✅ Success with ${endpoint.method.toUpperCase()} ${endpoint.url}`,
           );
           break;
-        } catch (error) {
+        } catch (error: any) {
           console.log(
             `❌ Failed with ${endpoint.method.toUpperCase()} ${endpoint.url}:`,
-            error.response?.status || error.message
+            error.response?.status || error.message,
           );
           lastError = error;
 
@@ -224,52 +204,33 @@ const ProfileSetting = () => {
 
         // Update user session if name or email changed
         if (
-          user &&
-          (formData.name !== user.name || formData.email !== user.email)
+          session.user &&
+          (formData.name !== session.user.name ||
+            formData.email !== session.user.email)
         ) {
-          const updatedSession = {
-            ...user,
-            name: formData.name || user.name,
-            email: formData.email || user.email,
-          };
-          localStorage.setItem("session", JSON.stringify(updatedSession));
+          await update({
+            ...session,
+            user: {
+              ...session.user,
+              name: formData.name || session.user.name,
+              email: formData.email || session.user.email,
+            },
+          });
         }
       } else {
         throw new Error(response.data.message || "Failed to update profile");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-
-      if (error.response?.status === 401) {
-        toast.error("Your session has expired. Please login again.", {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update profile. Please try again.",
+        {
           duration: 4000,
           position: "top-center",
-        });
-      } else if (error.response?.status === 400) {
-        toast.error(
-          error.response.data?.message ||
-            "Invalid profile data. Please check your inputs.",
-          {
-            duration: 4000,
-            position: "top-center",
-          }
-        );
-      } else if (error.response?.status === 405) {
-        toast.error("API method not supported. Please contact support.", {
-          duration: 4000,
-          position: "top-center",
-        });
-      } else {
-        toast.error(
-          error.response?.data?.message ||
-            error.message ||
-            "Failed to update profile. Please try again.",
-          {
-            duration: 4000,
-            position: "top-center",
-          }
-        );
-      }
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -462,8 +423,7 @@ const ProfileSetting = () => {
             <strong>Debug Info:</strong>
           </p>
           <p>API URL: {API_URL}</p>
-          <p>Auth Token: {getAuthToken() ? "Present" : "Missing"}</p>
-          <p>User Session: {getLoggedInUser()?.email || "None"}</p>
+          <p>User Session: {session?.user?.email || "None"}</p>
           <p>Loading: {loading ? "Yes" : "No"}</p>
           <p>Fetching: {fetchingProfile ? "Yes" : "No"}</p>
         </div>

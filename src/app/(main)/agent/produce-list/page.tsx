@@ -1,11 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { InfoIcon } from "@/icons/Icons";
 import AddToStore from "../_components/AddToStore";
 import { ProductTable } from "./_components/table/ProductTable";
 import { SearchFilters } from "@/services/productService";
-import { useProducts } from "@/hooks/queries/useProductQueries";
+import { productKeys, useProducts } from "@/hooks/queries/useProductQueries";
+import { ActiveProduct } from "./_components/ActiveProduct";
+import { ProductOutOfStock } from "./_components/ProductOutOfStock";
 
 interface SideProps {
   switchSides: "active" | "out_of_stock";
@@ -57,19 +59,14 @@ export default function ProduceListPage() {
     }
   }, [outOfStockData?.total]);
 
-  const handleProductsUpdate = (counts: {
-    active?: number;
-    out_of_stock?: number;
-  }) => {
-    // Now mostly used for table updates triggering refreshes, or if table does its own thing
-    // But since we fetch here, we might just update valid counts from table side if needed
-    // or just rely on our own hooks.
-    // For now, let's keep it to update counts if ProductTable emits them,
-    // but we prefer our own fetching source of truth.
-    if (counts.active !== undefined) setActiveCount(counts.active);
-    if (counts.out_of_stock !== undefined)
-      setOutOfStockCount(counts.out_of_stock);
-  };
+  const handleProductsUpdate = useCallback(
+    (counts: { active?: number; out_of_stock?: number }) => {
+      if (counts.active !== undefined) setActiveCount(counts.active);
+      if (counts.out_of_stock !== undefined)
+        setOutOfStockCount(counts.out_of_stock);
+    },
+    [],
+  );
 
   const handleRefetchAll = () => {
     refetchActive();
@@ -81,7 +78,33 @@ export default function ProduceListPage() {
   const currentLoading =
     switchSides === "active" ? isActiveLoading : isOutOfStockLoading;
 
-  // ... (Effect for indicator omitted as it's unchanged) ...
+  const handleSwitchSides = (side: "active" | "out_of_stock") => {
+    setSwitchSides(side);
+  };
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const activeTab =
+        switchSides === "active"
+          ? activeContainerRef.current
+          : outOfStockContainerRef.current;
+
+      if (activeTab && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+
+        setIndicatorStyle({
+          left: tabRect.left - containerRect.left,
+          width: tabRect.width,
+        });
+      }
+    };
+
+    updateIndicator();
+    // Update on window resize too for responsiveness
+    window.addEventListener("resize", updateIndicator);
+    return () => window.removeEventListener("resize", updateIndicator);
+  }, [switchSides]);
 
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
@@ -94,7 +117,7 @@ export default function ProduceListPage() {
           onClick={() => setIsAddModalOpen(true)}
           className="bg-[#538e53] text-white px-4 py-2 rounded-md text-sm font-montserrat hover:bg-[#467a46] transition-colors"
         >
-          Produce List + Add Item
+          + Add Item
         </button>
       </div>
 
@@ -161,19 +184,15 @@ export default function ProduceListPage() {
       </div>
 
       <div
-        className="mb-4 min-h-[300px] flex flex-col p-4 sm:p-8"
+        className="mb-4 min-h-[300px] flex flex-col pt-2"
         role="tabpanel"
         id={switchSides === "active" ? "active-panel" : "out_of_stock-panel"}
       >
-        <ProductTable
-          filters={{
-            status: switchSides === "active" ? "available" : "out_of_stock",
-          }}
-          preFetchedData={currentData}
-          isLoadingProp={currentLoading}
-          onRefetch={handleRefetchAll}
-          onProductsUpdate={handleProductsUpdate}
-        />
+        {switchSides === "active" ? (
+          <ActiveProduct onProductsUpdate={handleProductsUpdate} />
+        ) : (
+          <ProductOutOfStock onProductsUpdate={handleProductsUpdate} />
+        )}
       </div>
 
       {/* Add To Store Modal */}

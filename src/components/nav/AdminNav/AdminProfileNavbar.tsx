@@ -3,7 +3,8 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser } from "@/utils/loginAuth";
+import { useSession } from "next-auth/react";
+import api from "@/lib/axios";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
 import { ATMobileNavbar } from "./AdminMobileNavbar";
@@ -12,10 +13,11 @@ import { ATMobileNavbar } from "./AdminMobileNavbar";
 export const AgentProfileNavbar = () => {
   const pathname = usePathname();
   // const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  // const router = useRouter(); // Currently unused but good to keep if needed
+  const { data: session } = useSession();
+  const user = session?.user || null;
+  const isLoggedIn = !!session;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
@@ -30,20 +32,7 @@ export const AgentProfileNavbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
+    // Login status is handled by useSession
 
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications and bids
@@ -56,7 +45,7 @@ export const AgentProfileNavbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
+    // checkLoginStatus(); // Removed legacy check
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }

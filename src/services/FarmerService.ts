@@ -120,9 +120,7 @@ export const farmerService = {
     try {
       console.log("🔄 Fetching farmers from API...");
 
-      const response = await api.get("/api/farmers", {
-        timeout: 10000,
-      });
+      const response = await api.get("/api/farmers");
 
       console.log("✅ API Response:", response.data);
 
@@ -180,9 +178,7 @@ export const farmerService = {
       const backendData = mapFrontendToBackendFarmerFull(data);
       console.log("📤 Sending to backend:", backendData);
 
-      const response = await api.post("/api/farmers", backendData, {
-        timeout: 15000,
-      });
+      const response = await api.post("/api/farmers", backendData);
 
       console.log("✅ Farmer created successfully:", response.data);
 
@@ -229,9 +225,7 @@ export const farmerService = {
     try {
       console.log(`🔄 Fetching farmer ${id} from API...`);
 
-      const response = await api.get(`/api/farmers/${id}`, {
-        timeout: 10000,
-      });
+      const response = await api.get(`/api/farmers/${id}`);
 
       console.log("✅ Farmer fetched:", response.data);
 
@@ -279,9 +273,7 @@ export const farmerService = {
       const backendData = mapFrontendToBackendFarmerFull(data);
       console.log("📤 Sending to backend:", backendData);
 
-      const response = await api.put(`/api/farmers/${id}`, backendData, {
-        timeout: 15000,
-      });
+      const response = await api.put(`/api/farmers/${id}`, backendData);
 
       console.log("✅ Farmer updated successfully:", response.data);
 
@@ -330,9 +322,7 @@ export const farmerService = {
     try {
       // console.log(`🗑️ Deleting farmer ${id}...`);
 
-      await api.delete(`/api/farmers/${id}`, {
-        timeout: 10000,
-      });
+      await api.delete(`/api/farmers/${id}`);
 
       console.log("✅ Farmer deleted successfully");
       toast.success("Farmer deleted successfully!");
