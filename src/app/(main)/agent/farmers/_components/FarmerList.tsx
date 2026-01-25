@@ -6,7 +6,7 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../../_components/table/TableList";
 import { FarmerActionMenu } from "./FarmerActionMenu";
-import { Farmer } from "@/services/FarmerService";
+import { Farmer, FarmerFilters } from "@/services/FarmerService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -68,6 +68,16 @@ interface FarmerListProps {
   onEdit: (id: string) => void;
   onAdd: () => void;
   onView: (id: string) => void;
+  filters: FarmerFilters;
+  onSearchChange: (query: string) => void;
+  onYearChange: (year: string) => void;
+  onMonthChange: (month: string) => void;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  onPageChange: (page: number) => void;
 }
 
 export const FarmerList: React.FC<FarmerListProps> = ({
@@ -76,14 +86,19 @@ export const FarmerList: React.FC<FarmerListProps> = ({
   onEdit,
   onAdd,
   onView,
+  filters,
+  onSearchChange,
+  onYearChange,
+  onMonthChange,
+  pagination,
+  onPageChange,
 }) => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  // UI State for dropdowns
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
 
-  const years = Array.from({ length: 2025 - 2024 + 1 }, (_, i) => 2024 + i);
+  // Generate years from 2019 to 2025 (matching other components)
+  const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const months = [
     "Jan",
     "Feb",
@@ -99,30 +114,26 @@ export const FarmerList: React.FC<FarmerListProps> = ({
     "Dec",
   ];
 
-  // Client-side filtering
-  const filteredFarmers = farmers.filter((farmer) => {
-    const matchesSearch =
-      !searchQuery ||
-      farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (farmer.state ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      farmer.mobile.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesYear =
-      !selectedYear || farmer.date.includes(selectedYear.toString());
-
-    const matchesMonth =
-      !selectedMonth ||
-      farmer.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0"),
-      );
-
-    return matchesSearch && matchesYear && matchesMonth;
-  });
-
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
+
+  // Convert generic month name to number string for API if needed,
+  // but let's assume parent handles conversion or API accepts name if that was the intent.
+  // The API likely wants number (1-12). Parent should pass consistent value.
+  // But here we display "Month" or selected month name.
+  // If filters.month is "1", we want to show "Jan".
+
+  const getMonthName = (m?: string) => {
+    if (!m) return "";
+    const idx = parseInt(m) - 1;
+    if (idx >= 0 && idx < 12) return months[idx];
+    return m;
+  };
+
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
+  const currentPage = pagination.page;
 
   return (
     <>
@@ -134,8 +145,8 @@ export const FarmerList: React.FC<FarmerListProps> = ({
               <input
                 type="text"
                 placeholder="Search farmers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={filters.search || ""}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search farmers"
               />
@@ -154,7 +165,7 @@ export const FarmerList: React.FC<FarmerListProps> = ({
                   onClick={() => setIsYearOpen(!isYearOpen)}
                   className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                 >
-                  {selectedYear || "Year"}
+                  {filters.year || "Year"}
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     {isYearOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
                   </div>
@@ -173,24 +184,24 @@ export const FarmerList: React.FC<FarmerListProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedYear("");
+                          onYearChange("");
                           setIsYearOpen(false);
                         }}
                         className={`px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 ${
-                          selectedYear === "" ? "bg-gray-200" : ""
+                          !filters.year ? "bg-gray-200" : ""
                         }`}
                       >
-                        Year
+                        All Years
                       </div>
                       {years.map((year) => (
                         <div
                           key={year}
                           onClick={() => {
-                            setSelectedYear(year.toString());
+                            onYearChange(year.toString());
                             setIsYearOpen(false);
                           }}
                           className={`px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 ${
-                            selectedYear === year.toString()
+                            filters.year === year.toString()
                               ? "bg-gray-200"
                               : ""
                           }`}
@@ -208,7 +219,7 @@ export const FarmerList: React.FC<FarmerListProps> = ({
                   onClick={() => setIsMonthOpen(!isMonthOpen)}
                   className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                 >
-                  {selectedMonth || "Month"}
+                  {getMonthName(filters.month) || "Month"}
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     {isMonthOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
                   </div>
@@ -224,24 +235,28 @@ export const FarmerList: React.FC<FarmerListProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedMonth("");
+                          onMonthChange("");
                           setIsMonthOpen(false);
                         }}
                         className={`px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 ${
-                          selectedMonth === "" ? "bg-gray-200" : ""
+                          !filters.month ? "bg-gray-200" : ""
                         }`}
                       >
-                        Month
+                        All Months
                       </div>
-                      {months.map((month) => (
+                      {months.map((month, index) => (
                         <div
                           key={month}
                           onClick={() => {
-                            setSelectedMonth(month);
+                            // API expects integer month probably? Or just month number string.
+                            // Assuming API wants 1-12
+                            onMonthChange((index + 1).toString());
                             setIsMonthOpen(false);
                           }}
                           className={`px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 ${
-                            selectedMonth === month ? "bg-gray-200" : ""
+                            filters.month === (index + 1).toString()
+                              ? "bg-gray-200"
+                              : ""
                           }`}
                         >
                           {month}
@@ -270,7 +285,7 @@ export const FarmerList: React.FC<FarmerListProps> = ({
 
       {/* Table */}
       <div className="my-6">
-        {filteredFarmers.length === 0 && !isLoading ? (
+        {farmers.length === 0 && !isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <Image
               src="/images/noData.png"
@@ -280,7 +295,7 @@ export const FarmerList: React.FC<FarmerListProps> = ({
             />
             <p className="text-[13px] font-montserrat mb-2">No farmers found</p>
             <p className="text-[11px] font-montserrat">
-              {searchQuery || selectedYear || selectedMonth
+              {filters.search || filters.year || filters.month
                 ? "Try adjusting your filters"
                 : "Start by onboarding your first farmer"}
             </p>
@@ -289,13 +304,66 @@ export const FarmerList: React.FC<FarmerListProps> = ({
           <TableList<Farmer>
             dataType="farmers"
             columns={farmerColumns}
-            initialData={filteredFarmers}
+            initialData={farmers}
             ActionMenuComponent={FarmerActionMenu}
             handleEdit={onEdit}
             handleView={onView}
           />
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-6 pb-6">
+          <div className="text-sm text-gray-500 font-montserrat">
+            Showing {(currentPage - 1) * pagination.limit + 1} to{" "}
+            {Math.min(currentPage * pagination.limit, pagination.total)} of{" "}
+            {pagination.total} results
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-montserrat"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let p = i + 1;
+                if (totalPages > 5) {
+                  if (currentPage > 3) p = currentPage - 2 + i;
+                  if (p > totalPages) p = i + (totalPages - 4);
+                }
+                if (p < 1) p = 1; // Safety check
+
+                return (
+                  <button
+                    key={p}
+                    onClick={() => onPageChange(p)}
+                    className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${
+                      currentPage === p
+                        ? "bg-[#538e53] text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() =>
+                onPageChange(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-montserrat"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

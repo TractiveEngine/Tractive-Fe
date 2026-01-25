@@ -180,14 +180,18 @@ export const TableList = <T extends BaseData>({
           {data.map((item, index) => (
             <motion.tr
               key={item.id}
-              className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+              className="border-gray-200 border-b-[1px] py-1.5 px-4 relative cursor-pointer hover:bg-gray-50 transition-colors"
               variants={rowVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: index * 0.1 }}
+              onClick={() => handleView && handleView(item.id)}
             >
               {isProductTable && (
-                <td className="py-1.5 pl-4 whitespace-nowrap">
+                <td
+                  className="py-1.5 pl-4 whitespace-nowrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="relative w-5 h-5">
                     <input
                       type="checkbox"
@@ -207,7 +211,10 @@ export const TableList = <T extends BaseData>({
                   {col.render ? col.render(item) : String(item[col.key])}
                 </td>
               ))}
-              <td className="py-1.5 px-4 relative">
+              <td
+                className="py-1.5 px-4 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {ActionMenuComponent && (
                   <ActionMenuComponent
                     productId={item.id}

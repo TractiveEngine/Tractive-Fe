@@ -9,14 +9,36 @@ interface FarmerDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   farmer: Farmer | null;
+  isLoading?: boolean;
 }
 
 export const FarmerDetailModal: React.FC<FarmerDetailModalProps> = ({
   isOpen,
   onClose,
   farmer,
+  isLoading,
 }) => {
-  if (!isOpen || !farmer) return null;
+  if (!isOpen) return null;
+
+  if (isLoading) {
+    return (
+      <motion.div
+        className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100] p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#538e53] mb-2"></div>
+          <p className="text-sm text-gray-500 font-montserrat">
+            Loading details...
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (!farmer) return null;
 
   // Helper to render a detail row
   const DetailRow = ({
@@ -44,21 +66,23 @@ export const FarmerDetailModal: React.FC<FarmerDetailModalProps> = ({
       exit={{ opacity: 0 }}
       role="dialog"
       aria-labelledby="farmer-detail-title"
+      onClick={onClose}
     >
       <motion.div
         className="bg-[#fefefe] rounded-lg w-full max-w-lg mx-auto relative max-h-[90vh] overflow-y-auto shadow-xl"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Profile Image */}
         <div className="bg-[#538e53] p-6 text-center relative rounded-t-lg">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white cursor-pointer transition-colors"
+            className="absolute top-4 right-4 text-white hover:text-white/80 cursor-pointer transition-colors p-1"
             aria-label="Close modal"
           >
-            <XModalIcon className="w-6 h-6" stroke="currentColor" />
+            <XModalIcon className="w-8 h-8" stroke="currentColor" />
           </button>
 
           <div className="flex justify-center mb-3">
@@ -124,6 +148,3 @@ export const FarmerDetailModal: React.FC<FarmerDetailModalProps> = ({
     </motion.div>
   );
 };
-
-
-

@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FarmerList } from "./_components/FarmerList";
 import { FarmerFormModal, FarmerFormData } from "./_components/FarmerFormModal";
-import { Farmer } from "@/services/FarmerService";
+import { Farmer, FarmerFilters } from "@/services/FarmerService";
 import {
   useFarmers,
   useCreateFarmer,
@@ -17,19 +17,58 @@ const FarmersListPage: React.FC = () => {
   const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFarmer, setEditFarmer] = useState<Farmer | null>(null);
-  const [viewFarmer, setViewFarmer] = useState<Farmer | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [viewFarmer, setViewFarmer] = useState<Farmer | null>(null);
+
+  // Filters state
+  const [filters, setFilters] = useState<FarmerFilters>({
+    page: 1,
+    limit: 10,
+    search: "",
+    year: "",
+    month: "",
+  });
+
+  // Debounced search state
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Debounce search update
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchTerm, page: 1 }));
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  const handleYearChange = (year: string) => {
+    setFilters((prev) => ({ ...prev, year, page: 1 }));
+  };
+
+  const handleMonthChange = (month: string) => {
+    setFilters((prev) => ({ ...prev, month, page: 1 }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
 
   // React Query hooks
   const {
     data: farmersResponse,
     isLoading: farmersLoading,
     error: farmersError,
-  } = useFarmers();
+  } = useFarmers(filters);
+
   const createFarmerMutation = useCreateFarmer();
   const updateFarmerMutation = useUpdateFarmer();
 
   const farmersData = farmersResponse?.farmers || [];
+  const pagination = {
+    page: farmersResponse?.page || 1,
+    limit: farmersResponse?.limit || 10,
+    total: farmersResponse?.total || 0,
+  };
 
   // Handlers
   const handleView = (id: string) => {
@@ -39,9 +78,14 @@ const FarmersListPage: React.FC = () => {
       setViewFarmer(farmer);
       setIsDetailModalOpen(true);
     } else {
-      console.error(`❌ Farmer with ID ${id} not found`);
+      console.error(`❌ Farmer with ID ${id} not found in current list`);
       toast.error("Farmer not found");
     }
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailModalOpen(false);
+    setViewFarmer(null);
   };
 
   const handleEdit = (id: string) => {
@@ -51,7 +95,8 @@ const FarmersListPage: React.FC = () => {
       setEditFarmer(farmer);
       setIsEditModalOpen(true);
     } else {
-      console.error(`❌ Farmer with ID ${id} not found`);
+      console.error(`❌ Farmer with ID ${id} not found in current list`);
+      // If not in list, maybe fetch it? But usually expected in list.
       toast.error("Farmer not found");
     }
   };
@@ -88,16 +133,6 @@ const FarmersListPage: React.FC = () => {
       <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <h2 className="text-[17px] font-montserrat text-[#808080] px-6 pt-6 mb-4">
           Farmers{" "}
-          {/* {(farmersLoading ||
-            createFarmerMutation.isPending ||
-            updateFarmerMutation.isPending) && (
-            <span className="text-sm text-gray-500">(Loading...)</span>
-          )}
-          {farmersData.length > 0 && (
-            <span className="text-sm text-gray-600 ml-2">
-              ({farmersData.length} total)
-            </span>
-          )} */}
         </h2>
 
         {/* Error Message */}
@@ -131,10 +166,7 @@ const FarmersListPage: React.FC = () => {
 
         <FarmerDetailModal
           isOpen={isDetailModalOpen}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setViewFarmer(null);
-          }}
+          onClose={handleCloseDetail}
           farmer={viewFarmer}
         />
 
@@ -147,6 +179,12 @@ const FarmersListPage: React.FC = () => {
           onEdit={handleEdit}
           onView={handleView}
           onAdd={() => setIsOnboardModalOpen(true)}
+          filters={{ ...filters, search: searchTerm }} // Pass local search term for input value
+          onSearchChange={setSearchTerm}
+          onYearChange={handleYearChange}
+          onMonthChange={handleMonthChange}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

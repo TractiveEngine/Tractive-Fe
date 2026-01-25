@@ -63,8 +63,6 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   } = useProducts(filters);
   const deleteProductMutation = useDeleteProduct();
   const updateStatusMutation = useUpdateProductStatus();
-  const bulkDeleteMutation = useBulkDeleteProducts();
-  const bulkUpdateStatusMutation = useBulkUpdateStatus();
 
   // Determine which data to use (props usually take precedence if we are lifting state up)
   const data = preFetchedData || queryData;
@@ -199,9 +197,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
 
   // Function to handle delete single product
 
+  // Function to handle delete single product
+  // Confirmation is handled by the ActionMenu modal
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm("Are you sure you want to delete this product?")) return;
       deleteProductMutation.mutate(id);
       setActiveMenu(null);
     },
@@ -223,60 +222,6 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   );
 
   // ... (edit handlers remain - uses service directly or we can add mutation for it later, but scope mainly focused on list actions)
-
-  const [bulkStatus, setBulkStatus] = useState<
-    "available" | "out_of_stock" | "discontinued"
-  >("available");
-
-  // BULK DELETE
-  const handleBulkDelete = useCallback(async () => {
-    const selectedIds = products
-      .filter((product) => product.checked)
-      .map((product) => product.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("Please select products to delete");
-      return;
-    }
-
-    if (
-      !confirm(
-        `Are you sure you want to delete ${selectedIds.length} product(s)?`,
-      )
-    )
-      return;
-
-    setBulkActionLoading(true);
-    bulkDeleteMutation.mutate(selectedIds, {
-      onSettled: () => {
-        setBulkActionLoading(false);
-        setSelectedIds(new Set());
-      },
-    });
-  }, [products, bulkDeleteMutation]);
-
-  // COMBINED BULK STATUS UPDATE
-  const handleBulkUpdateStatus = useCallback(async () => {
-    const selectedIds = products
-      .filter((product) => product.checked)
-      .map((product) => product.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("Please select products");
-      return;
-    }
-
-    setBulkActionLoading(true);
-    bulkUpdateStatusMutation.mutate(
-      { ids: selectedIds, status: bulkStatus },
-      {
-        onSettled: () => {
-          setBulkActionLoading(false);
-          setSelectedIds(new Set());
-        },
-      },
-    );
-  }, [products, bulkUpdateStatusMutation, bulkStatus]);
 
   // Get selected count
   const selectedCount = useMemo(
@@ -336,48 +281,6 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   return (
     <>
       {/* Bulk Actions Bar */}
-      {selectedCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-2 w-fit ml-auto  flex items-center justify-between"
-        >
-          <div className="flex gap-2 items-center">
-            <select
-              value={bulkStatus}
-              onChange={(e) =>
-                setBulkStatus(
-                  e.target.value as
-                    | "available"
-                    | "out_of_stock"
-                    | "discontinued",
-                )
-              }
-              className="px-3 py-2 text-[13px] font-montserrat border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#538e53] bg-white h-[36px]"
-              disabled={bulkActionLoading}
-            >
-              <option value="available">Set Active</option>
-              <option value="out_of_stock">Set Out of Stock</option>
-              <option value="discontinued">Set Discontinued</option>
-            </select>
-            <button
-              onClick={handleBulkUpdateStatus}
-              disabled={bulkActionLoading}
-              className="px-4 py-2 bg-[#538e53] text-white rounded hover:bg-[#467846] font-montserrat text-[13px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[36px]"
-            >
-              {bulkActionLoading ? "Updating..." : "Update Status"}
-            </button>
-            <div className="w-[1px] h-[24px] bg-gray-300 mx-1"></div>
-            <button
-              onClick={handleBulkDelete}
-              disabled={bulkActionLoading}
-              className="px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200 font-montserrat text-[13px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[36px]"
-            >
-              {bulkActionLoading ? "Deleting..." : "Delete Selected"}
-            </button>
-          </div>
-        </motion.div>
-      )}
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -507,35 +410,3 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     </>
   );
 };
-
-// {
-//   "name": "Farmer John",
-//   "phone": "+2348055555555",
-//   "businessName": "John Farms",
-//   "address": "Farm Village, Kaduna",
-//   "country": "Nigeria",
-//   "state": "Kaduna",
-//   "lga": "Ikeja",
-//   "villageOrLocalMarket": "Sabon Gari Market"
-// }
-
-// Name	Description
-// search
-// string
-// (query)
-// Search by farmer name, phone, or business name
-
-// search
-// year
-// integer
-// (query)
-// Filter revenue/orders by year (required if month is provided)
-
-// year
-// month
-// integer
-// (query)
-// Filter revenue/orders by month (1-12, requires year)
-
-// month
-// ,

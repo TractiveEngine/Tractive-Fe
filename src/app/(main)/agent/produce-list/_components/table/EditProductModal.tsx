@@ -319,7 +319,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-50 p-4"
           variants={overlayVariants}
           initial="hidden"
           animate="visible"

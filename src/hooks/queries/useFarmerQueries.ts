@@ -4,6 +4,7 @@ import {
   farmerService,
   Farmer,
   FarmersResponse,
+  FarmerFilters,
 } from "@/services/FarmerService";
 import { toast } from "sonner";
 
@@ -20,12 +21,12 @@ export const farmerKeys = {
 /**
  * Hook to fetch all farmers
  */
-export const useFarmers = () => {
+export const useFarmers = (filters?: FarmerFilters) => {
   const { status } = useSession();
 
   return useQuery({
-    queryKey: farmerKeys.lists(),
-    queryFn: () => farmerService.getFarmers(),
+    queryKey: farmerKeys.list(filters as Record<string, unknown>),
+    queryFn: () => farmerService.getFarmers(filters),
     enabled: status === "authenticated",
     retry: (failureCount, error: any) => {
       // Don't retry on auth errors

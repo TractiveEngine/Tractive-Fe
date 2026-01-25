@@ -269,8 +269,8 @@ export const productService = {
     try {
       console.log(`🚀 Updating product ${id} status to:`, status);
 
-      // Changed to PUT as requested
-      const response = await api.put(`/api/products/${id}/status`, {
+      // Changed to PATCH as requested
+      const response = await api.patch(`/api/products/${id}/status`, {
         status,
       });
 

@@ -47,6 +47,14 @@ export interface Farmer {
   lga?: string;
 }
 
+export interface FarmerFilters {
+  search?: string;
+  year?: string;
+  month?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface FarmersResponse {
   farmers: Farmer[];
   total: number;
@@ -116,27 +124,49 @@ const mapFrontendToBackendFarmerFull = (frontendData: Partial<Farmer>) => {
 
 export const farmerService = {
   // GET /api/farmers
-  getFarmers: async (): Promise<FarmersResponse> => {
+  getFarmers: async (filters: FarmerFilters = {}): Promise<FarmersResponse> => {
     try {
-      console.log("🔄 Fetching farmers from API...");
+      console.log("🔄 Fetching farmers from API with filters:", filters);
 
-      const response = await api.get("/api/farmers");
+      const params: any = {
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+        ...filters,
+      };
+
+      const response = await api.get("/api/farmers", { params });
 
       console.log("✅ API Response:", response.data);
 
       let farmers: ApiFarmer[] = [];
-      if (Array.isArray(response.data)) {
-        farmers = response.data;
-      } else if (
-        response.data.farmers &&
-        Array.isArray(response.data.farmers)
-      ) {
+      let total = 0;
+      let page = 1;
+      let limit = 10;
+
+      // Handle various response structures
+      if (response.data.farmers && Array.isArray(response.data.farmers)) {
         farmers = response.data.farmers;
+        total =
+          response.data.total ||
+          response.data.pagination?.total ||
+          farmers.length;
+        page = response.data.page || response.data.pagination?.page || 1;
+        limit = response.data.limit || response.data.pagination?.limit || 10;
       } else if (response.data.data && Array.isArray(response.data.data)) {
         farmers = response.data.data;
+        total =
+          response.data.total ||
+          response.data.pagination?.total ||
+          farmers.length;
+        page = response.data.page || response.data.pagination?.page || 1;
+        limit = response.data.limit || response.data.pagination?.limit || 10;
+      } else if (Array.isArray(response.data)) {
+        farmers = response.data;
+        total = farmers.length;
       } else {
-        // If no farmers array found, use the response data directly if it's an array-like object
+        // Fallback for single object or weird structure
         farmers = [response.data].filter(Boolean);
+        total = farmers.length;
       }
 
       // Map to frontend model
@@ -144,9 +174,9 @@ export const farmerService = {
 
       return {
         farmers: mappedFarmers,
-        total: mappedFarmers.length,
-        page: 1,
-        limit: mappedFarmers.length,
+        total,
+        page,
+        limit,
       };
     } catch (error) {
       console.error("❌ Error fetching farmers:", error);
