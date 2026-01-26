@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -89,6 +90,22 @@ const productColumns: ColumnConfig<Order>[] = [
   },
 ];
 
+const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export const DeliveredProduct: React.FC = () => {
   // Use the network status hook
   useNetworkStatus();
@@ -98,68 +115,51 @@ export const DeliveredProduct: React.FC = () => {
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(searchQuery);
 
-  const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Fetch orders from API - wrapped in useCallback
-  const fetchOrders = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const {
+    data: queryData,
+    isLoading,
+    error: queryError,
+    // refetch, // Not currently used in actions
+  } = useQuery({
+    queryKey: [
+      "delivered-orders",
+      debouncedSearch,
+      selectedYear,
+      selectedMonth,
+    ],
+    queryFn: async () => {
       const response = await OrdersApiService.getOrders({
         status: "delivered",
-        search: searchQuery || undefined,
+        search: debouncedSearch || undefined,
         year: selectedYear || undefined,
         month: selectedMonth
           ? String(months.indexOf(selectedMonth) + 1).padStart(2, "0")
           : undefined,
       });
+      return Array.isArray(response) ? response : [];
+    },
+  });
 
-      // FIX: Ensure response is always an array
-      const orders = Array.isArray(response) ? response : [];
-      setProducts(orders);
-    } catch (err) {
-      setError("Failed to load orders. Please try again.");
-      console.error("Error fetching orders:", err);
-      // FIX: Set empty array on error to prevent map error
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
+  // Sync query data with local state for checkbox manipulation
+  useEffect(() => {
+    if (queryData) {
+      setProducts(queryData);
     }
-  }, [searchQuery, selectedYear, selectedMonth, months]);
+  }, [queryData]);
 
-  // Fetch orders when year or month changes
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders, selectedYear, selectedMonth]);
-
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery !== undefined) {
-        fetchOrders();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery, fetchOrders]);
+  const error = queryError ? "Failed to load orders. Please try again." : null;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -201,7 +201,7 @@ export const DeliveredProduct: React.FC = () => {
 
   const handleCheckboxChange = (id: string) => {
     setProducts(
-      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p))
+      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p)),
     );
   };
 

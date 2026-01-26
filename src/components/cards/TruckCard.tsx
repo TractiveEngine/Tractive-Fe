@@ -49,7 +49,7 @@ export default function TruckCard({
         />
       </div>
       <Link
-        href={`/buyers/transporter-list/booking-transporter/${id}`}
+        href={`/buyer/transporter-list/booking-transporter/${id}`}
         className="flex flex-col gap-3"
       >
         <div className="px-2.5 pt-2">

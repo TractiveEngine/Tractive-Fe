@@ -2,30 +2,42 @@ import { ArrowRightIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 
-export const ImgShowCase = () => {
+interface ImgShowCaseProps {
+  images?: string[];
+}
+
+export const ImgShowCase: React.FC<ImgShowCaseProps> = ({
+  images: propImages,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const images = [
-    { src: "/images/videoImg.png", alt: "Corn" },
-    { src: "/images/corn1.png", alt: "Corn" },
-    { src: "/images/corn2.png", alt: "Corn" },
-    { src: "/images/corn3.png", alt: "Corn" },
-    { src: "/images/corn4.png", alt: "Corn" },
-    { src: "/images/corn5.png", alt: "Corn" },
+
+  // Use passed images or fallback defaults for dev/demo
+  const defaultImages = [
+    "/images/videoImg.png",
+    "/images/corn1.png",
+    "/images/corn2.png",
+    "/images/corn3.png",
   ];
+
+  const displayImages =
+    propImages && propImages.length > 0 ? propImages : defaultImages;
 
   // Handle next and previous button clicks
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
-      const nextIndex = (prevIndex + 1) % images.length;
+      const nextIndex = (prevIndex + 1) % displayImages.length;
       if (scrollContainerRef.current) {
-        const scrollAmount = (
-          scrollContainerRef.current.children[nextIndex] as HTMLElement
-        ).offsetLeft;
-        scrollContainerRef.current.scrollTo({
-          left: scrollAmount,
-          behavior: "smooth",
-        });
+        const child = scrollContainerRef.current.children[
+          nextIndex
+        ] as HTMLElement;
+        if (child) {
+          const scrollAmount = child.offsetLeft;
+          scrollContainerRef.current.scrollTo({
+            left: scrollAmount,
+            behavior: "smooth",
+          });
+        }
       }
       return nextIndex;
     });
@@ -38,7 +50,7 @@ export const ImgShowCase = () => {
           className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:gap-4 scrollbar-thin scrollbar-thumb-[#538e53] scrollbar-track-[#f5f5f5]"
           ref={scrollContainerRef}
         >
-          {images.map((image, index) => (
+          {displayImages.map((src, index) => (
             <div
               key={index}
               className={`flex-shrink-0 w-[150px] sm:w-[200px] md:w-[220px] lg:w-[241px] snap-start transition-all duration-200 ${
@@ -48,8 +60,8 @@ export const ImgShowCase = () => {
               }`}
             >
               <Image
-                src={image.src}
-                alt={image.alt}
+                src={src}
+                alt={`Product Image ${index + 1}`}
                 width={241}
                 height={142}
                 className="w-[100%] h-auto sm:w-56 sm:h-32 object-cover"

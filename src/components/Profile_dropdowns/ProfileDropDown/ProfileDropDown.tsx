@@ -6,10 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { SwapIcon } from "../../../icons/Icon1";
-import {
-  useAvailableRoles,
-  useSwitchRole,
-} from "@/hooks/queries/useUserQueries";
+import { useSwitchRole } from "@/hooks/queries/useUserQueries";
 
 interface ProfileDropDownProps {
   onLogout: () => void;
@@ -51,8 +48,8 @@ export const ProfileDropDown = ({
   currentRole,
 }: ProfileDropDownProps) => {
   const router = useRouter();
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const { data: session, update } = useSession();
-  const { data: availableRolesData } = useAvailableRoles();
   const switchRoleMutation = useSwitchRole();
 
   const user = session?.user;
@@ -63,8 +60,9 @@ export const ProfileDropDown = ({
   const dropdownRoles = allRoles.filter((role) => role !== activeRole);
 
   const handleSwitchRole = async (role: UserRole) => {
-    // Check if role is available (created)
-    const isAvailable = availableRolesData?.availableRoles?.includes(role);
+    // Check if role is available (created) using session data
+    // session.user.role is the array of created roles
+    const isAvailable = user?.role?.includes(role);
 
     if (!isAvailable) {
       toast.info(`Creating your ${ROLE_CONFIGS[role].displayName} account...`);
@@ -80,7 +78,7 @@ export const ProfileDropDown = ({
     try {
       await switchRoleMutation.mutateAsync({ activeRole: role });
 
-      // Update session
+      // Update session to reflect the new active role immediately
       await update({
         activeRole: role,
       });
@@ -98,10 +96,8 @@ export const ProfileDropDown = ({
   };
 
   const getRoleStatus = (role: UserRole): "switch" | "add" => {
-    // Check against API data, not session roles array (as session might be stale or source of truth is API)
-    return availableRolesData?.availableRoles?.includes(role)
-      ? "switch"
-      : "add";
+    // Check against session data (single source of truth)
+    return user?.role?.includes(role) ? "switch" : "add";
   };
 
   const getRoleDisplayText = (role: UserRole): string => {

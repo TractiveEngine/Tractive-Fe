@@ -82,7 +82,7 @@ export default function BidingCard({
         />
         <WishIcon title={title} />
       </div>
-      <Link href={`/buyers/product/${id}`}>
+      <Link href={`/buyer/product/${id}`}>
         <div className="p-4">
           <div className="flex items-center gap-2">
             <Image
@@ -143,7 +143,6 @@ export default function BidingCard({
             </p>
           </div>
         </div>
-        
 
         <div className="flex items-center justify-between pl-4">
           <div className="flex items-center gap-1.5 mb-2">
@@ -175,7 +174,7 @@ export default function BidingCard({
 
           <button
             type="button"
-            className="bg-[#538e53] w-[50%] h-[2.9rem] text-[#fefefe] font-normal text-[14px] rounded-tl-[10px] rounded-br-[10px] px-4 py-2 transition duration-200 ease-in-out"
+            className="cursor-pointer bg-[#538e53] w-[50%] h-[2.9rem] text-[#fefefe] font-normal text-[14px] rounded-tl-[10px] rounded-br-[10px] px-4 py-2 transition duration-200 ease-in-out"
           >
             View
           </button>

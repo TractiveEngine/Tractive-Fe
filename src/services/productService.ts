@@ -77,9 +77,32 @@ export interface UpdateProductData {
   description?: string;
   price?: number;
   quantity?: number;
-  discount?: number;
   images?: string[];
   videos?: string[];
+}
+
+export interface Bidder {
+  id: string;
+  name: string;
+  avatar?: string;
+  amount: number;
+  timestamp?: string;
+  isLeading?: boolean;
+}
+
+export interface BidRequest {
+  amount: number;
+  message: string;
+}
+
+export interface BidResponse {
+  success: boolean;
+  message: string;
+  bid?: {
+    id: string;
+    amount: number;
+    createdAt: string;
+  };
 }
 
 // Handle API errors
@@ -270,7 +293,7 @@ export const productService = {
       console.log(`🚀 Updating product ${id} status to:`, status);
 
       // Changed to PATCH as requested
-      const response = await api.patch(`/api/products/${id}/status`, {
+      const response = await api.patch(`/api/products/${id}`, {
         status,
       });
 
@@ -344,6 +367,65 @@ export const productService = {
       console.log("✅ All products status updated successfully");
     } catch (error) {
       return handleApiError(error, "bulk update product status");
+    }
+  },
+
+  // GET /api/buyers/biddings - Get all buyers bidding on a product
+  getBidders: async (productId: string): Promise<Bidder[]> => {
+    try {
+      console.log(`🚀 Fetching bidders for product ${productId}`);
+      // Assuming productId is passed as a query param or part of the path.
+      // The prompt says: GET /api/buyers/biddings
+      // Be safer to send it as query param
+      const response = await api.get("/api/buyers/biddings", {
+        params: { productId },
+      });
+
+      console.log("✅ Bidders fetched:", response.data);
+      return response.data.data || response.data || [];
+    } catch (error) {
+      // Return empty list instead of throwing to avoid breaking the UI for this section
+      console.error("Failed to fetch bidders", error);
+      return [];
+    }
+  },
+
+  // GET /api/buyers/biddings/won - Get winning/leading bidder
+  getWinningBidder: async (productId: string): Promise<Bidder | null> => {
+    try {
+      console.log(`🚀 Fetching winning bidder for product ${productId}`);
+      const response = await api.get("/api/buyers/biddings/won", {
+        params: { productId },
+      });
+
+      console.log("✅ Winning bidder fetched:", response.data);
+      return response.data.data || response.data || null;
+    } catch (error) {
+      // It's okay if there is no winner yet
+      return null;
+    }
+  },
+
+  // POST /api/buyers/products/:id/bid - Place a bid
+  placeBid: async (
+    productId: string,
+    data: BidRequest,
+  ): Promise<BidResponse> => {
+    try {
+      console.log(`🚀 Placing bid for product ${productId}:`, data);
+      const response = await api.post(
+        `/api/buyers/products/${productId}/bid`,
+        data,
+      );
+
+      console.log("✅ Bid placed successfully:", response.data);
+      return {
+        success: true,
+        message: response.data.message || "Bid placed successfully",
+        bid: response.data.bid,
+      };
+    } catch (error) {
+      return handleApiError(error, "place bid");
     }
   },
 };

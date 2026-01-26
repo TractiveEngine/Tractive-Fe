@@ -34,7 +34,7 @@ export const Admin_ProfileDropDownMobile = ({
       {/* ===== Account Switch ====== */}
       <div className="flex flex-col gap-2 px-3 pb-3">
         <Link
-          href="/buyers"
+          href="/buyer"
           className="flex items-center justify-between cursor-pointer"
         >
           <div className="flex items-center gap-1">

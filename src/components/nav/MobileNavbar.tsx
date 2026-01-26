@@ -246,7 +246,7 @@ export const MobileNavbar = () => {
                   {/* ===================== BID icon ========================= */}
                   <div className="relative">
                     <Link
-                      href="/buyers/my-biddings"
+                      href="/buyer/my-biddings"
                       className="relative flex items-center justify-between p-1.5 rounded-[4px] hover:bg-[#f1f1f1] gap-2 cursor-pointer"
                     >
                       <span className="text-[#2b2b2b] hover:text-[#214821] text-[0.79rem] font-normal font-montserrat transition">

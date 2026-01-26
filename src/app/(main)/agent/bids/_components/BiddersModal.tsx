@@ -1,22 +1,75 @@
-
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bidder } from "@/utils/BidsData";
+import { bidService, SingleBid } from "@/services/bidService";
+import { toast } from "sonner";
+import Image from "next/image";
 
 interface BiddersModalProps {
   isOpen: boolean;
   onClose: () => void;
-  bidders: Bidder[];
-  itemName: string;
+  listingId: string;
 }
 
 export const BiddersModal: React.FC<BiddersModalProps> = ({
   isOpen,
   onClose,
-  bidders,
-  itemName,
+  listingId,
 }) => {
+  const [bidders, setBidders] = useState<SingleBid[]>([]);
+  const [productName, setProductName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingBidId, setProcessingBidId] = useState<string | null>(null);
+  const [counterBidId, setCounterBidId] = useState<string | null>(null);
+  const [counterAmount, setCounterAmount] = useState<number | "">("");
+
+  useEffect(() => {
+    if (isOpen && listingId) {
+      fetchDetails();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, listingId]);
+
+  const fetchDetails = async () => {
+    setIsLoading(true);
+    try {
+      const details = await bidService.getBidDetails(listingId);
+      setBidders(details.bids);
+      setProductName(details.productName);
+    } catch (error) {
+      toast.error("Failed to load bidders");
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAction = async (
+    bidId: string,
+    status: "accepted" | "rejected" | "countered",
+    counterOffer?: number,
+  ) => {
+    setProcessingBidId(bidId);
+    try {
+      await bidService.updateBidStatus(bidId, { status, counterOffer });
+      toast.success(`Bid ${status} successfully`);
+
+      // Refresh local state or fetch again
+      setBidders((prev) =>
+        prev.map((b) => (b.id === bidId ? { ...b, status } : b)),
+      );
+
+      if (status === "countered") {
+        setCounterBidId(null);
+        setCounterAmount("");
+      }
+    } catch (error) {
+      toast.error("Failed to update bid");
+    } finally {
+      setProcessingBidId(null);
+    }
+  };
+
   const modalVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0 },
@@ -26,14 +79,14 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-[#2b2b2b94] bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[#2b2b2b94] bg-opacity-50 flex items-center justify-center z-50 px-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="bg-white rounded-[10px] p-6 w-[90%] max-w-[400px] shadow-md"
+            className="bg-white rounded-[10px] w-full max-w-[600px] shadow-lg overflow-hidden flex flex-col max-h-[80vh]"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
@@ -41,26 +94,193 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-[16px] font-montserrat font-medium text-[#2b2b2b] mb-4">
-              Bidders for {itemName}
-            </h3>
-            <ul className="space-y-2">
-              {bidders.slice(0, 4).map((bidder) => (
-                <li
-                  key={bidder.id}
-                  className="flex justify-between text-[14px] font-montserrat font-normal text-[#2b2b2b]"
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="w-full">
+                {/* Search bar placeholder as per design */}
+                <div className="relative w-full max-w-sm mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="w-full pl-8 py-2 border rounded-md text-sm focus:outline-none focus:border-[#538e53]"
+                  />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <span>{bidder.name}</span>
-                  <span>${bidder.bidAmount.toFixed(2)}</span>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={onClose}
-              className="mt-4 w-full py-2 bg-[#538e53] text-white rounded-[4px] text-[14px] font-montserrat font-medium hover:bg-[#476d47]"
-            >
-              Close
-            </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Table Header */}
+            <div className="flex items-center px-6 py-3 bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-500">
+              <div className="w-1/3">Name</div>
+              <div className="w-1/3 text-center">Amount</div>
+              <div className="w-1/3 text-right">Action</div>
+            </div>
+
+            {/* List */}
+            <div className="overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
+              {isLoading ? (
+                <div className="py-10 flex justify-center text-gray-500">
+                  Loading...
+                </div>
+              ) : bidders.length === 0 ? (
+                <div className="py-10 text-center text-gray-500 text-sm">
+                  No bidders yet.
+                </div>
+              ) : (
+                bidders.map((bidder) => (
+                  <div
+                    key={bidder.id}
+                    className="flex items-center px-6 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  >
+                    {/* Name & Avatar */}
+                    <div className="w-1/3 flex items-center gap-3">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                        <Image
+                          src={
+                            bidder.bidderAvatar ||
+                            "/images/placeholder-avatar.png"
+                          }
+                          alt={bidder.bidderName}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="font-montserrat text-sm text-[#2b2b2b] truncate pr-2">
+                        {bidder.bidderName}
+                      </span>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="w-1/3 text-center font-montserrat text-sm text-[#2b2b2b]">
+                      ${bidder.amount.toLocaleString()}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="w-1/3 flex flex-col items-end gap-1">
+                      {bidder.status === "pending" ? (
+                        <>
+                          {counterBidId === bidder.id ? (
+                            <div className="flex flex-col items-end gap-1 w-full z-10">
+                              <input
+                                type="number"
+                                value={counterAmount}
+                                onChange={(e) =>
+                                  setCounterAmount(Number(e.target.value))
+                                }
+                                placeholder="Offer"
+                                className="w-20 px-1 py-1 text-xs border rounded"
+                                autoFocus
+                              />
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() =>
+                                    handleAction(
+                                      bidder.id,
+                                      "countered",
+                                      Number(counterAmount),
+                                    )
+                                  }
+                                  className="text-xs text-blue-600 hover:underline"
+                                >
+                                  Send
+                                </button>
+                                <button
+                                  onClick={() => setCounterBidId(null)}
+                                  className="text-xs text-gray-500 hover:underline"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleAction(bidder.id, "rejected")
+                                }
+                                disabled={processingBidId === bidder.id}
+                                className="text-xs font-montserrat text-[#8b4513] hover:underline disabled:opacity-50"
+                              >
+                                Cancel request
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleAction(bidder.id, "accepted")
+                                }
+                                disabled={processingBidId === bidder.id}
+                                className="text-xs font-montserrat text-[#538e53] hover:underline disabled:opacity-50"
+                              >
+                                Request payment
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setCounterBidId(bidder.id);
+                                  setCounterAmount("");
+                                }}
+                                disabled={processingBidId === bidder.id}
+                                className="text-xs font-montserrat text-blue-600 hover:underline disabled:opacity-50"
+                              >
+                                Counter
+                              </button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <span
+                          className={`text-xs font-medium ${
+                            bidder.status === "accepted"
+                              ? "text-green-600"
+                              : bidder.status === "rejected"
+                                ? "text-red-600"
+                                : "text-blue-600"
+                          }`}
+                        >
+                          {bidder.status === "accepted"
+                            ? "Payment Requested"
+                            : bidder.status === "rejected"
+                              ? "Cancelled"
+                              : "Countered"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer logic if needed, e.g. Pagination inside modal */}
           </motion.div>
         </motion.div>
       )}

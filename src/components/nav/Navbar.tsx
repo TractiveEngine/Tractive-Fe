@@ -14,7 +14,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
-  
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
@@ -147,7 +147,7 @@ export const Navbar = () => {
               {/* ===================== BID icon ========================= */}
               <div className="relative">
                 <Link
-                  href="/buyers/my-biddings"
+                  href="/buyer/my-biddings"
                   className="flex items-center flex-col cursor-pointer"
                 >
                   <span className="relative flex items-center justify-center w-[24px] h-[14.4px] rounded-[3.6px] border-[1.2px] border-[#2b2b2b]">

@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { PlayIcon, PauseIcon } from "@/icons/Icons";
 
-export const VideoPreview: React.FC = () => {
+interface VideoPreviewProps {
+  videoSrc?: string;
+}
+
+export const VideoPreview: React.FC<VideoPreviewProps> = ({ videoSrc }) => {
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
@@ -11,6 +15,8 @@ export const VideoPreview: React.FC = () => {
   const volumeRef = useRef<SVGSVGElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
+
+  const src = videoSrc || "/images/videoPreview.mp4";
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -142,9 +148,9 @@ export const VideoPreview: React.FC = () => {
       <div className="relative w-full">
         <video
           ref={videoRef}
-          src="/images/videoPreview.mp4"
+          src={src}
           className="w-full h-auto rounded-none aspect-[16/9] object-cover"
-          autoPlay
+          autoPlay={false}
           loop
           controls={false}
           muted={volume === 0}
@@ -208,7 +214,7 @@ export const VideoPreview: React.FC = () => {
             <rect y="1" width="80" height="4" rx="2" fill="#E2E2E2" />
             <rect
               y="1"
-              width={`${(volume / 100) * 80 }`}
+              width={`${(volume / 100) * 80}`}
               height="4"
               rx="2"
               fill="#538E53"

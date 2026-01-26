@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -89,76 +90,71 @@ const productColumns: ColumnConfig<Order>[] = [
   },
 ];
 
+const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export const PackedProduct: React.FC = () => {
-    // Use the network status hook
-    useNetworkStatus();
+  // Use the network status hook
+  useNetworkStatus();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(searchQuery);
 
-  const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Fetch orders from API
-  const fetchOrders = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const {
+    data: queryData,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ["packed-orders", debouncedSearch, selectedYear, selectedMonth],
+    queryFn: async () => {
       const response = await OrdersApiService.getOrders({
         status: "parked",
-        search: searchQuery || undefined,
+        search: debouncedSearch || undefined,
         year: selectedYear || undefined,
         month: selectedMonth
           ? String(months.indexOf(selectedMonth) + 1).padStart(2, "0")
           : undefined,
       });
+      return Array.isArray(response) ? response : [];
+    },
+  });
 
-      // FIX: Ensure response is always an array
-      const orders = Array.isArray(response) ? response : [];
-      setProducts(orders);
-    } catch (err) {
-      setError("Failed to load orders. Please try again.");
-      console.error("Error fetching orders:", err);
-      // FIX: Set empty array on error to prevent map error
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
+  // Sync query data with local state for checkbox manipulation
+  useEffect(() => {
+    if (queryData) {
+      setProducts(queryData);
     }
-  };
+  }, [queryData]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders, selectedYear, selectedMonth]);
-
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery !== undefined) {
-        fetchOrders();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [fetchOrders, searchQuery]);
+  const error = queryError ? "Failed to load orders. Please try again." : null;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -198,7 +194,7 @@ export const PackedProduct: React.FC = () => {
     try {
       await OrdersApiService.updateOrderStatus(id, "delivered");
       alert(`Order ${id} marked as Delivered`);
-      fetchOrders(); // Refresh the list
+      refetch(); // Refresh the list
     } catch (err) {
       alert("Failed to update order status");
       console.error(err);
@@ -211,7 +207,7 @@ export const PackedProduct: React.FC = () => {
 
   const handleCheckboxChange = (id: string) => {
     setProducts(
-      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p))
+      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p)),
     );
   };
 
