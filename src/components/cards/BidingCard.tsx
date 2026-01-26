@@ -50,6 +50,8 @@ export default function BidingCard({
   amountClass = "",
   quantityClass = "",
 }: CardProps) {
+
+  
   // State to manage hover for tooltip
   const [isHovered, setIsHovered] = useState(false);
 

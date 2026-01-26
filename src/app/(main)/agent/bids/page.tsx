@@ -288,6 +288,31 @@ const BidsListPage: React.FC = () => {
                       )}
                     </div>
                   </button>
+
+                  <AnimatePresence>
+                    {isMonthOpen && (
+                      <motion.div
+                        className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        variants={dropdownVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                      >
+                        {months.map((m) => (
+                          <div
+                            key={m}
+                            onClick={() => {
+                              setSelectedMonth(m);
+                              setIsMonthOpen(false);
+                            }}
+                            className="px-3 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+                          >
+                            {m}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
