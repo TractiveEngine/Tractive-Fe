@@ -4,16 +4,17 @@ import api from "@/lib/axios";
 
 // Types
 export interface ContentPayload {
-  role?: string;
-  name?: string;
-  phone?: string;
-  address?: string;
-  country?: string;
-  state?: string;
-//   villageOrLocalMarket?: string; // Keeping for potential backward compatibility or if mapped
-//   nin?: string;
-//   businessName?: string;
-  interests?: readonly string[];
+    role?: string;
+    name?: string;
+    phone?: string;
+    address?: string;
+    country?: string;
+    state?: string;
+    lga?: string; // Local Government Area
+    //   villageOrLocalMarket?: string; // Keeping for potential backward compatibility or if mapped
+    //   nin?: string;
+    //   businessName?: string;
+    interests?: readonly string[];
 }
 
 export interface SwitchRolePayload {
@@ -21,22 +22,22 @@ export interface SwitchRolePayload {
 }
 
 export interface AvailableRolesResponse {
-  activeRole: string | null;
-  availableRoles: string[];
+    activeRole: string | null;
+    availableRoles: string[];
 }
 
 export const useUserProfile = () => {
-  return useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const { data } = await api.get("/api/profile");
-      return data.user || data;
-    },
-    retry: (failureCount, error: any) => {
-        if (error.response?.status === 401 || error.response?.status === 403) return false;
-        return failureCount < 2;
-    }
-  });
+    return useQuery({
+        queryKey: ["userProfile"],
+        queryFn: async () => {
+            const { data } = await api.get("/api/profile");
+            return data.user || data;
+        },
+        retry: (failureCount, error: any) => {
+            if (error.response?.status === 401 || error.response?.status === 403) return false;
+            return failureCount < 2;
+        }
+    });
 };
 
 export const useAvailableRoles = () => {
@@ -58,8 +59,8 @@ export const useSwitchRole = () => {
             return data;
         },
         onSuccess: () => {
-             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-             queryClient.invalidateQueries({ queryKey: ["availableRoles"] });
+            queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+            queryClient.invalidateQueries({ queryKey: ["availableRoles"] });
         }
     })
 }
@@ -72,8 +73,8 @@ export const useAddAccount = () => {
             return data;
         },
         onSuccess: () => {
-             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-             queryClient.invalidateQueries({ queryKey: ["availableRoles"] });
+            queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+            queryClient.invalidateQueries({ queryKey: ["availableRoles"] });
         }
     })
 }

@@ -186,13 +186,21 @@ export default function OnboardingForm() {
         address: data.address,
         country: data.country,
         state: data.state,
+        lga: data.lga,
         interests: data.interests || [],
       };
 
       // CRITICAL: Two-Step Flow for New Users
-      // As per role.md requirements, we MUST call add-account BEFORE updating profile
+      // As per UPDATED user-role.md requirements:
+      // 1. Update Profile (PATCH /api/profile)
+      // 2. Add Account (POST /api/auth/add-account)
 
-      // Step 1: Check if this is a new role (not already in user's roles array)
+      // Step 1: Update profile with all user data (name, interests, lga, etc.)
+      console.log("Calling update profile API with:", finalData);
+      await updateProfile(finalData);
+      console.log("✓ update profile API completed successfully");
+
+      // Step 2: Check if this is a new role and call add-account
       const isNewRole = !session.user?.role?.includes(targetRole);
 
       console.log(
@@ -204,7 +212,6 @@ export default function OnboardingForm() {
         session.user?.role,
       );
 
-      // Step 2: If new role, call add-account API FIRST
       if (isNewRole) {
         const addAccountPayload = {
           role: targetRole,
@@ -212,18 +219,14 @@ export default function OnboardingForm() {
           address: finalData.address,
           country: finalData.country,
           state: finalData.state,
+          lga: finalData.lga,
+          name: finalData.name,
         };
 
         console.log("Calling add-account API with:", addAccountPayload);
         await addAccount(addAccountPayload);
         console.log("✓ add-account API completed successfully");
       }
-
-      // Step 3: Update profile with all user data (name, interests, etc.)
-      // This happens AFTER the role is created
-      console.log("Calling update profile API with:", finalData);
-      await updateProfile(finalData);
-      console.log("✓ update profile API completed successfully");
 
       // Step 4: Refresh session to get updated user data from backend
       console.log("Refreshing session...");
@@ -369,6 +372,24 @@ export default function OnboardingForm() {
                 )}
               </div>
 
+              {/* Local Government Area (LGA) */}
+              <div>
+                <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+                  Local Government Area *
+                </label>
+                <input
+                  type="text"
+                  {...register("lga")}
+                  className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                  placeholder="Enter your LGA"
+                />
+                {errors.lga && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.lga.message}
+                  </p>
+                )}
+              </div>
+
               {/* Interests (Toggle Radio) */}
               <div className="flex flex-col gap-2">
                 <label className="block text-[12px] font-montserrat font-normal text-[#808080]">
@@ -381,11 +402,10 @@ export default function OnboardingForm() {
                     return (
                       <label
                         key={interest}
-                        className={`flex items-center cursor-pointer border-[0.5px] rounded-full px-[7px] py-[4px] gap-2 text-[12.7px] font-montserrat transition-all ${
-                          isSelected
+                        className={`flex items-center cursor-pointer border-[0.5px] rounded-full px-[7px] py-[4px] gap-2 text-[12.7px] font-montserrat transition-all ${isSelected
                             ? "bg-[#538e53] text-[#fefefe]"
                             : "text-[#808080] border-[#808080]"
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -395,9 +415,8 @@ export default function OnboardingForm() {
                           className="hidden"
                         />
                         <span
-                          className={`w-[1.2rem] h-[1.2rem] rounded-full border flex items-center justify-center ${
-                            isSelected ? "bg-[#fefefe]" : "border-[#808080]"
-                          }`}
+                          className={`w-[1.2rem] h-[1.2rem] rounded-full border flex items-center justify-center ${isSelected ? "bg-[#fefefe]" : "border-[#808080]"
+                            }`}
                         >
                           {isSelected && (
                             <IoIosCheckmark className="w-[2rem] h-[2rem] text-[#538e53] rounded-full" />
