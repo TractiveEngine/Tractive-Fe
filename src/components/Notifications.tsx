@@ -59,7 +59,7 @@ export const Notifications = () => {
       id: "2",
       title: "Congratulations",
       message:
-        "You are the highest bidder of the just concluded 3 bags of tomatoes biding with the sum of $40 dollars.",
+        "You are the highest bidder of the just concluded 3 bags of tomatoes biding with the sum of ₦40 dollars.",
       time: "2hours ago",
       category: "Biddings",
       read: false,
@@ -79,7 +79,7 @@ export const Notifications = () => {
       id: "3",
       title: "Payment failed",
       message:
-        "Your payment of $400 for (123456) was not successful, please try again or contact the admin for more info.",
+        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
       time: "2hours ago",
       category: "Biddings",
       read: false,
@@ -103,7 +103,7 @@ export const Notifications = () => {
       id: "4",
       title: "Bidding Successful",
       message:
-        "Your payment of $400 for (123456) was not successful, please try again or contact the admin for more info.",
+        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
       time: "2hours ago",
       category: "Biddings",
       read: false,

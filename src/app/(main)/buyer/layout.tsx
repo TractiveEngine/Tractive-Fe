@@ -46,15 +46,17 @@ export default function BuyerLayout({
   return (
     <FollowingProvider initialSellers={topSellers}>
       <WishlistProvider>
-        <nav className="bg-[#fefefe] w-full">
-          <Navbar />
-          <div className="bg-[#EBEBEB] w-full">
-            <SubNavbar />
+        <div className="flex flex-col min-h-screen">
+          <nav className="bg-[#fefefe] w-full">
+            <Navbar />
+            <div className="bg-[#EBEBEB] w-full">
+              <SubNavbar />
+            </div>
+          </nav>
+          <div className="bg-[#f1f1f1] flex-grow">{children}</div>
+          <div className="bg-[#f1f1f1] w-full mt-auto">
+            <Footer />
           </div>
-        </nav>
-        <div className="bg-[#f1f1f1]">{children}</div>
-        <div className="bg-[#f1f1f1] w-full">
-          <Footer />
         </div>
       </WishlistProvider>
     </FollowingProvider>

@@ -252,7 +252,6 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           description: formData.description,
           price: Number(formData.price),
           quantity: Number(formData.quantity), // Ensure number
-          discount: Number(formData.discount) || 0,
           images: formData.images,
           videos: formData.videos,
           // Include other fields if required by strict PUT
@@ -473,7 +472,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                                 Price
                               </label>
                               <p className="text-xl font-bold text-[#2b2b2b] font-montserrat">
-                                ₦{product.price?.toLocaleString()}
+                                ${product.price?.toLocaleString()}
                               </p>
                               {product.discount > 0 && (
                                 <span className="text-xs text-red-500 font-medium">
@@ -631,7 +630,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                         <div className="flex gap-4">
                           <div className="flex-1">
                             <label className="block text-sm font-medium text-[#2b2b2b] mb-1 font-montserrat">
-                              Price (₦)
+                              Price ($)
                             </label>
                             <input
                               type="number"

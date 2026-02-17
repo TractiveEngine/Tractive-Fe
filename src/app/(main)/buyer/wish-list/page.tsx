@@ -26,8 +26,8 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       leadingProfileImage: "/images/profile1.png",
       quantity: "50 Bags",
-      amount: "$400",
-      biddingPrice: "$350",
+      amount: "₦400",
+      biddingPrice: "₦350",
     },
     {
       id: "productCode1254",
@@ -39,8 +39,8 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       leadingProfileImage: "/images/profile2.png",
       quantity: "30 Bags",
-      amount: "$250",
-      biddingPrice: "$200",
+      amount: "₦250",
+      biddingPrice: "₦200",
     },
     {
       id: "productCode1252",
@@ -52,8 +52,8 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       leadingProfileImage: "/images/profile3.png",
       quantity: "75 Bags",
-      amount: "$600",
-      biddingPrice: "$550",
+      amount: "₦600",
+      biddingPrice: "₦550",
     },
     {
       id: "productCode1251",
@@ -65,8 +65,8 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       leadingProfileImage: "/images/profile4.png",
       quantity: "20 Units",
-      amount: "$150",
-      biddingPrice: "$120",
+      amount: "₦150",
+      biddingPrice: "₦120",
     },
   ];
 
@@ -81,8 +81,8 @@ const Page: React.FC = () => {
       crownImage: "/images/leadingcrown.png",
       leadingProfileImage: "/images/profile1.png",
       quantity: "50 Bags",
-      amount: "$400",
-      biddingPrice: "$350",
+      amount: "₦400",
+      biddingPrice: "₦350",
     },
     {
       id: "productCode1254",
@@ -155,9 +155,6 @@ const Page: React.FC = () => {
                 onClick={() => setActiveTab("my-biddings")}
               >
                 My Biddings
-                <span className="text-[#fefefe] bg-[#538e53] p-[1px] text-[9px] rounded-[3px] w-[0.99rem] flex items-center justify-center">
-                  {biddingProductData.length}
-                </span>
               </button>
             </div>
             <motion.div
@@ -172,7 +169,7 @@ const Page: React.FC = () => {
           {activeTab === "wish-list" ? (
             <WishList data={wishListData} />
           ) : (
-            <MyBiding data={biddingProductData} />
+            <MyBiding />
           )}
         </div>
       </div>

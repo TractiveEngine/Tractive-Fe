@@ -2,6 +2,52 @@ import api from "@/lib/axios";
 import axios from "axios";
 import { toast } from "sonner";
 
+export interface Owner {
+  id: string;
+  _id?: string;
+  name: string;
+  email: string;
+  activeRole: string;
+  country?: string;
+  state?: string;
+  phone?: string;
+  address?: string;
+  roles?: string[];
+  isFollowing?: boolean;
+}
+
+
+export interface Farmer {
+  id: string;
+  name: string;
+  businessName?: string;
+  phone?: string;
+  country?: string;
+  state?: string;
+  address?: string;
+  approvalStatus?: string;
+}
+
+export interface ReviewSummary {
+  count: number;
+  averageRating: number;
+}
+
+export interface BidSummary {
+  count: number;
+  leadingBid?: {
+    id: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+    buyer: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
 export interface ApiProduct {
   id: string;
   name: string;
@@ -10,19 +56,25 @@ export interface ApiProduct {
   quantity: number;
   categories: string[];
   images: string[];
-  videos?: string[]; // Added videos
+  videos?: string[];
   farmerId?: string;
-  status: "available" | "out_of_stock" | "discontinued"; // Changed from 'active' to 'available'
+  status: "available" | "out_of_stock" | "discontinued";
   createdAt?: string;
   updatedAt?: string;
-  // Optional fields that might be in your UI
   stock?: string;
   rating?: string;
   reviews?: number;
-  unit?: string; // Added unit from API response
-  discount?: number; // Added discount
+  unit?: string;
+  discount?: number;
+  // New fields
+  owner?: Owner;
+  farmer?: Farmer;
+  reviewSummary?: ReviewSummary;
+  bidSummary?: BidSummary;
+  recentReviews?: any[];
 }
 
+// ... (Product, PaginationMeta, ProductsResponse, SearchFilters interfaces remain the same)
 export interface Product extends ApiProduct {
   checked: boolean;
 }
@@ -36,7 +88,7 @@ export interface PaginationMeta {
 export interface ProductsResponse {
   products: ApiProduct[];
   pagination: PaginationMeta;
-  total: number; // Keeping for backward compat, mapped from pagination
+  total: number;
   page: number;
   limit: number;
 }
@@ -106,7 +158,7 @@ export interface BidResponse {
 }
 
 // Handle API errors
-const handleApiError = (error, operation: string) => {
+const handleApiError = (error: any, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
 
   if (axios.isAxiosError(error)) {
@@ -134,7 +186,39 @@ const handleApiError = (error, operation: string) => {
 };
 
 // Map backend product to frontend format
-const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
+const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
+  const mapOwner = (owner: any): Owner | undefined => {
+    if (!owner) return undefined;
+    return {
+      id: owner._id || owner.id,
+      _id: owner._id,
+      name: owner.name,
+      email: owner.email,
+      activeRole: owner.activeRole,
+      country: owner.country,
+      state: owner.state,
+      phone: owner.phone,
+      address: owner.address,
+      roles: owner.roles,
+      isFollowing: owner.isFollowing,
+    };
+
+  };
+
+  const mapFarmer = (farmer: any): Farmer | undefined => {
+    if (!farmer) return undefined;
+    return {
+      id: farmer._id || farmer.id,
+      name: farmer.name,
+      businessName: farmer.businessName,
+      phone: farmer.phone,
+      country: farmer.country,
+      state: farmer.state,
+      address: farmer.address,
+      approvalStatus: farmer.approvalStatus,
+    };
+  };
+
   return {
     id: backendProduct._id || backendProduct.id,
     name: backendProduct.name || "",
@@ -144,21 +228,26 @@ const mapBackendToFrontendProduct = (backendProduct): ApiProduct => {
     categories: backendProduct.categories || [],
     images: backendProduct.images || [],
     videos: backendProduct.videos || [],
-    // Map 'owner' or 'farmer' to farmerId
     farmerId:
-      backendProduct.owner || backendProduct.farmer || backendProduct.farmerId,
-    // Ensure status is correctly mapped if backend returns something else, but API says 'available'
+      backendProduct.owner?._id ||
+      backendProduct.farmer?._id ||
+      backendProduct.farmerId,
     status:
       backendProduct.status === "active"
         ? "available"
         : backendProduct.status || "available",
     createdAt: backendProduct.createdAt,
     updatedAt: backendProduct.updatedAt,
-    // Map additional fields for UI compatibility
     stock: backendProduct.quantity?.toString() || "0",
-    rating: backendProduct.rating || "0",
-    reviews: backendProduct.reviews || 0,
+    rating: backendProduct.reviewSummary?.averageRating?.toString() || "0",
+    reviews: backendProduct.reviewSummary?.count || 0,
     unit: backendProduct.unit || "",
+    discount: backendProduct.discount,
+    owner: mapOwner(backendProduct.owner),
+    farmer: mapFarmer(backendProduct.farmer),
+    reviewSummary: backendProduct.reviewSummary,
+    bidSummary: backendProduct.bidSummary,
+    recentReviews: backendProduct.recentReviews,
   };
 };
 

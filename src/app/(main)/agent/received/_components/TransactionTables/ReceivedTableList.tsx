@@ -97,14 +97,14 @@ const transactionColumns: ColumnConfig<FrontendTransaction>[] = [
     key: "sold",
     minWidth: "min-w-[100px]",
     render: (transaction) =>
-      `$${transaction.sold?.toFixed(2) || transaction.amount.toFixed(2)}`,
+      `₦₦{transaction.sold?.toFixed(2) || transaction.amount.toFixed(2)}`,
   },
   {
     header: "Commission",
     key: "commission",
     minWidth: "min-w-[100px]",
     render: (transaction) =>
-      `$${
+      `₦₦{
         transaction.commission?.toFixed(2) ||
         (transaction.amount * 0.1).toFixed(2)
       }`,

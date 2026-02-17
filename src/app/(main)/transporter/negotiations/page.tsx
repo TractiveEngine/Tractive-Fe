@@ -46,7 +46,7 @@ const negotiationColumns: ColumnConfig<NegotiationProps>[] = [
     header: "Amount",
     key: "amount",
     minWidth: "min-w-[100px]",
-    render: (negotiation) => `₦${negotiation.amount.toLocaleString()}`,
+    render: (negotiation) => `₦₦{negotiation.amount.toLocaleString()}`,
   },
   {
     header: "Negotiator",

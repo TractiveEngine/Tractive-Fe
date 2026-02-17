@@ -13,10 +13,17 @@ import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Reviews } from "@/components/Reviews";
+import { Skeleton } from "@/components/ui/Skeleton";
 
-export const StoreHeader = () => {
+export const StoreHeader = ({
+  seller,
+  isLoading,
+}: {
+  seller?: any;
+  isLoading: boolean;
+}) => {
   const [openCallLog, setOpenCallLog] = useState(false);
-   const [showReviews, setShowReviews] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     "09034145971": false,
     "09034145972": false,
@@ -76,6 +83,26 @@ export const StoreHeader = () => {
     setShowReviews(!showReviews); // Toggle Reviews visibility
   };
 
+  if (isLoading) {
+    return (
+      <div className="relative w-[90%] mx-auto pt-6 pb-6">
+         <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
+             <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
+                <Skeleton className="w-full lg:w-[17rem] h-[100px] rounded-[7px]" />
+                <div className="flex gap-3 w-full sm:w-auto">
+                    <Skeleton className="w-[50px] h-[100px] rounded-[7px]" />
+                    <Skeleton className="w-full sm:w-[7.6rem] h-[100px] rounded-[7px]" />
+                </div>
+             </div>
+             <div className="flex items-center flex-col sm:flex-row gap-2 sm:gap-4 w-[100%] lg:w-[50%]">
+                 <Skeleton className="w-full sm:w-[8.5rem] h-[100px] rounded-[7px]" />
+                 <Skeleton className="w-full h-[100px] rounded-[7px]" />
+             </div>
+         </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-[90%] mx-auto pt-6 pb-6">
       <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
@@ -96,7 +123,7 @@ export const StoreHeader = () => {
                 <div className="flex gap-2 sm:gap-1 xl:gap-3 flex-wrap items-center w-full">
                   <div className="flex gap-2 items-center">
                     <p className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#2b2b2b] truncate">
-                      Jane Store
+                      {seller?.name || "Store Name"}
                     </p>
                     <Image
                       src="/images/verifiedIcon.png"
@@ -182,7 +209,7 @@ export const StoreHeader = () => {
                 <ShoppingCartIcon />
               </div>
               <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#fefefe]">
-                Total sales made (90)
+                Total sales made ({seller?.productsCount || 0})
               </p>
             </div>
           </div>

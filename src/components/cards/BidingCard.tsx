@@ -49,7 +49,9 @@ export default function BidingCard({
   descriptionClass = "",
   amountClass = "",
   quantityClass = "",
-}: CardProps) {
+  bottomLabel = "Leading:", // Default label
+  showLeadingImages = true, // Default to showing images
+}: CardProps & { bottomLabel?: string; showLeadingImages?: boolean }) {
 
   
   // State to manage hover for tooltip
@@ -70,7 +72,7 @@ export default function BidingCard({
   };
 
   return (
-    <div
+     <div
       className={`bg-[#fefefe] rounded-lg shadow-md w-[100%] overflow-hidden ${className}`}
     >
       {/* Image with Icon */}
@@ -79,13 +81,13 @@ export default function BidingCard({
           src={image}
           alt={title}
           width={381}
-          height={237}
-          className={`w-[100%] object-cover rounded-md ${imageClass}`}
+          height={200}
+          className={`w-[100%] h-[200px] object-cover rounded-md ${imageClass}`}
         />
         <WishIcon title={title} />
       </div>
       <Link href={`/buyer/product/${id}`}>
-        <div className="p-4">
+        <div className="p-4 ">
           <div className="flex items-center gap-2">
             <Image
               src={timeImage}
@@ -146,27 +148,29 @@ export default function BidingCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between pl-4">
-          <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center justify-between pl-4 ">
+          <div className="flex items-center gap-1.5 mb-2 ">
             <span className="font-montserrat text-[13px] text-[#2b2b2b] font-normal">
-              Leading:
+              {bottomLabel}
             </span>
-            <div className="flex items-center flex-col">
-              <Image
-                src={crownImage}
-                alt="crown"
-                width={14}
-                height={14}
-                className={`object-cover ${crownImageClass}`}
-              />
-              <Image
-                src={leadingProfileImage}
-                alt="leading profile"
-                width={14}
-                height={14}
-                className={`object-cover ${leadingProfileImageClass}`}
-              />
-            </div>
+            {showLeadingImages && (
+              <div className="flex items-center flex-col">
+                <Image
+                  src={crownImage}
+                  alt="crown"
+                  width={14}
+                  height={14}
+                  className={`object-cover ${crownImageClass}`}
+                />
+                <Image
+                  src={leadingProfileImage}
+                  alt="leading profile"
+                  width={14}
+                  height={14}
+                  className={`object-cover ${leadingProfileImageClass}`}
+                />
+              </div>
+            )}
             <p
               className={`text-sm text-gray-500 font-montserrat ${quantityClass}`}
             >

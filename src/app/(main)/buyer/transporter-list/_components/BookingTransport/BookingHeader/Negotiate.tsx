@@ -36,13 +36,13 @@ export const Negotiate: React.FC<NegotiateProps> = ({
 
   // Calculate total amount based on amountPerKg
   const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("$", ""));
+    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
 
   // Handle input change for negotiated amount
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     // Allow only numbers and decimals
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*₦/.test(value)) {
       setNegotiatedAmount(value);
     }
   };
@@ -55,9 +55,9 @@ export const Negotiate: React.FC<NegotiateProps> = ({
         truckId: item.id,
         truckName: item.truckName,
         selectedProducts,
-        totalWeight: `${totalWeight}kg`,
-        originalAmount: `$${totalAmount.toFixed(2)}`,
-        negotiatedAmount: `$${parseFloat(negotiatedAmount).toFixed(2)}`,
+        totalWeight: `₦{totalWeight}kg`,
+        originalAmount: `₦₦{totalAmount.toFixed(2)}`,
+        negotiatedAmount: `₦₦{parseFloat(negotiatedAmount).toFixed(2)}`,
       });
       // Reset input after submission
       setNegotiatedAmount("");

@@ -20,8 +20,8 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
   const [productName, setProductName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [processingBidId, setProcessingBidId] = useState<string | null>(null);
-  const [counterBidId, setCounterBidId] = useState<string | null>(null);
-  const [counterAmount, setCounterAmount] = useState<number | "">("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (isOpen && listingId) {
@@ -46,23 +46,17 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
 
   const handleAction = async (
     bidId: string,
-    status: "accepted" | "rejected" | "countered",
-    counterOffer?: number,
+    status: "accepted" | "rejected",
   ) => {
     setProcessingBidId(bidId);
     try {
-      await bidService.updateBidStatus(bidId, { status, counterOffer });
+      await bidService.updateBidStatus(bidId, { status });
       toast.success(`Bid ${status} successfully`);
 
       // Refresh local state or fetch again
       setBidders((prev) =>
         prev.map((b) => (b.id === bidId ? { ...b, status } : b)),
       );
-
-      if (status === "countered") {
-        setCounterBidId(null);
-        setCounterAmount("");
-      }
     } catch (error) {
       toast.error("Failed to update bid");
     } finally {
@@ -149,7 +143,7 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200">
+            <div className="overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-200 flex-grow">
               {isLoading ? (
                 <div className="py-10 flex justify-center text-gray-500">
                   Loading...
@@ -159,128 +153,96 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
                   No bidders yet.
                 </div>
               ) : (
-                bidders.map((bidder) => (
-                  <div
-                    key={bidder.id}
-                    className="flex items-center px-6 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                  >
-                    {/* Name & Avatar */}
-                    <div className="w-1/3 flex items-center gap-3">
-                      <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                        <Image
-                          src={
-                            bidder.bidderAvatar ||
-                            "/images/placeholder-avatar.png"
-                          }
-                          alt={bidder.bidderName}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="font-montserrat text-sm text-[#2b2b2b] truncate pr-2">
-                        {bidder.bidderName}
-                      </span>
-                    </div>
+                <>
+                  {bidders
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((bidder) => (
+                      <div
+                        key={bidder.id}
+                        className="flex items-center px-6 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                      >
+                        {/* Name & Avatar */}
+                        <div className="w-1/3 flex items-center gap-3">
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                            <Image
+                              src={
+                                bidder?.bidderAvatar ||
+                                "/images/placeholder-avatar.png"
+                              }
+                              alt={bidder?.bidderName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <span className="font-montserrat text-sm text-[#2b2b2b] truncate pr-2">
+                            {bidder?.bidderName}
+                          </span>
+                        </div>
 
-                    {/* Amount */}
-                    <div className="w-1/3 text-center font-montserrat text-sm text-[#2b2b2b]">
-                      ${bidder.amount.toLocaleString()}
-                    </div>
+                        {/* Amount */}
+                        <div className="w-1/3 text-center font-montserrat text-sm text-[#2b2b2b]">
+                          ₦{bidder?.amount?.toLocaleString()}
+                        </div>
 
-                    {/* Actions */}
-                    <div className="w-1/3 flex flex-col items-end gap-1">
-                      {bidder.status === "pending" ? (
-                        <>
-                          {counterBidId === bidder.id ? (
-                            <div className="flex flex-col items-end gap-1 w-full z-10">
-                              <input
-                                type="number"
-                                value={counterAmount}
-                                onChange={(e) =>
-                                  setCounterAmount(Number(e.target.value))
-                                }
-                                placeholder="Offer"
-                                className="w-20 px-1 py-1 text-xs border rounded"
-                                autoFocus
-                              />
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={() =>
-                                    handleAction(
-                                      bidder.id,
-                                      "countered",
-                                      Number(counterAmount),
-                                    )
-                                  }
-                                  className="text-xs text-blue-600 hover:underline"
-                                >
-                                  Send
-                                </button>
-                                <button
-                                  onClick={() => setCounterBidId(null)}
-                                  className="text-xs text-gray-500 hover:underline"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
+                        {/* Actions */}
+                        <div className="w-1/3 flex flex-col items-end gap-1">
+                          {bidder.status === "pending" ||
+                          bidder.status === "rejected" ? (
+                            <button
+                              onClick={() => handleAction(bidder.id, "accepted")}
+                              disabled={processingBidId === bidder.id}
+                              className="text-xs font-montserrat text-[#538e53] hover:underline disabled:opacity-50"
+                            >
+                              Request payment
+                            </button>
+                          ) : bidder.status === "accepted" ? (
+                            <button
+                              onClick={() => handleAction(bidder.id, "rejected")}
+                              disabled={processingBidId === bidder.id}
+                              className="text-xs font-montserrat text-[#D32F2F] hover:underline disabled:opacity-50"
+                            >
+                              Cancel request
+                            </button>
                           ) : (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleAction(bidder.id, "rejected")
-                                }
-                                disabled={processingBidId === bidder.id}
-                                className="text-xs font-montserrat text-[#8b4513] hover:underline disabled:opacity-50"
-                              >
-                                Cancel request
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleAction(bidder.id, "accepted")
-                                }
-                                disabled={processingBidId === bidder.id}
-                                className="text-xs font-montserrat text-[#538e53] hover:underline disabled:opacity-50"
-                              >
-                                Request payment
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setCounterBidId(bidder.id);
-                                  setCounterAmount("");
-                                }}
-                                disabled={processingBidId === bidder.id}
-                                className="text-xs font-montserrat text-blue-600 hover:underline disabled:opacity-50"
-                              >
-                                Counter
-                              </button>
-                            </>
+                            <span className="text-xs font-medium text-blue-600">
+                              Countered
+                            </span>
                           )}
-                        </>
-                      ) : (
-                        <span
-                          className={`text-xs font-medium ${
-                            bidder.status === "accepted"
-                              ? "text-green-600"
-                              : bidder.status === "rejected"
-                                ? "text-red-600"
-                                : "text-blue-600"
-                          }`}
-                        >
-                          {bidder.status === "accepted"
-                            ? "Payment Requested"
-                            : bidder.status === "rejected"
-                              ? "Cancelled"
-                              : "Countered"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))
+                        </div>
+                      </div>
+                    ))}
+                </>
               )}
             </div>
 
-            {/* Footer logic if needed, e.g. Pagination inside modal */}
+            {/* Pagination Footer */}
+            {!isLoading && bidders.length > itemsPerPage && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <span className="text-xs text-gray-500">
+                  Page {currentPage} of {Math.ceil(bidders.length / itemsPerPage)}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) =>
+                      Math.min(Math.ceil(bidders.length / itemsPerPage), p + 1)
+                    )
+                  }
+                  disabled={
+                    currentPage === Math.ceil(bidders.length / itemsPerPage)
+                  }
+                  className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

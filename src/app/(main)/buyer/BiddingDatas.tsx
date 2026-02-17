@@ -27,8 +27,8 @@ export const BiddingData: BiddingItem[] = [
     crownImage: "/images/leadingcrown.png",
     leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "50 Bags",
-    amount: "$400",
-    biddingPrice: "$350",
+    amount: "₦400",
+    biddingPrice: "₦350",
   },
   {
     id: "productCode1002",
@@ -40,8 +40,8 @@ export const BiddingData: BiddingItem[] = [
     crownImage: "/images/leadingcrown.png",
     leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "30 Bags",
-    amount: "$250",
-    biddingPrice: "$200",
+    amount: "₦250",
+    biddingPrice: "₦200",
   },
   {
     id: "productCode1003",
@@ -53,8 +53,8 @@ export const BiddingData: BiddingItem[] = [
     crownImage: "/images/leadingcrown.png",
     leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "75 Bags",
-    amount: "$600",
-    biddingPrice: "$550",
+    amount: "₦600",
+    biddingPrice: "₦550",
   },
   {
     id: "productCode1004",
@@ -66,7 +66,7 @@ export const BiddingData: BiddingItem[] = [
     crownImage: "/images/leadingcrown.png",
     leadingProfileImage: "/images/leadingProfileImage.png",
     quantity: "20 Bags",
-    amount: "$150",
-    biddingPrice: "$120",
+    amount: "₦150",
+    biddingPrice: "₦120",
   },
 ];

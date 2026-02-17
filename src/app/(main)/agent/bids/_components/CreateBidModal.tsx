@@ -95,8 +95,8 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
     setIsSubmitting(true);
     try {
       await bidService.createBid({
-        product,
-        proposedPrice: Number(price),
+        productId: product,
+        amount: Number(price),
         quantity: Number(quantity),
         message,
       });
@@ -204,7 +204,8 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
                           {prod.name}
                         </span>
                         <span className="text-xs text-gray-500">
-                          Qty: {prod.quantity} • Price: ${prod.price}
+                          Qty: {prod?.quantity} • Price: ₦
+                          {prod?.price?.toLocaleString()}
                         </span>
                       </div>
                     ))}

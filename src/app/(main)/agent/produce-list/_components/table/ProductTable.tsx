@@ -27,6 +27,7 @@ import {
 import { EditProductModal } from "./EditProductModal";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ProductTableSkeleton } from "./ProductTableSkeleton";
 
 interface ProductTableProps {
   filters: SearchFilters;
@@ -230,15 +231,9 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   );
 
   // Loading state
+  // Loading state
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#538e53]"></div>
-        <span className="ml-3 text-[#538e53] font-montserrat">
-          Loading products...
-        </span>
-      </div>
-    );
+    return <ProductTableSkeleton />;
   }
 
   // Error state

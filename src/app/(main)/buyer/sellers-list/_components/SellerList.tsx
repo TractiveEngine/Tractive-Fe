@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 import { SellerCard } from "./SellerCard";
+import { useGetSellers } from "@/hooks/queries/useSellerQueries";
+import { SellerListSkeleton } from "./SellerListSkeleton";
 interface SellerListProps {
   selectedRatings: number[];
   selectedLocations: string[];
@@ -12,52 +14,31 @@ export const SellerList: React.FC<SellerListProps> = ({
   selectedLocations,
   selectedYears,
 }) => {
-  const sellers = [
-    {
-      id: "sellerV1",
-      image: "/images/bidder3.png",
-      sellerName: "GIG Logistics",
-      rating: 4.0,
-      rateStatus: "Excellent",
-      sellerYear: "10",
-      customerNumber: 300,
-      sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "kano",
-    },
-    {
-      id: "sellerV2",
-      image: "/images/bidder3.png",
-      sellerName: "GIG Logistics",
-      rating: 5.0,
-      rateStatus: "Excellent",
-      sellerYear: "8",
-      customerNumber: 300,
-      sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "kwara",
-    },
-    {
-      id: "sellerV3",
-      image: "/images/bidder3.png",
-      sellerName: "GIG Logistics",
-      rating: 3.0,
-      rateStatus: "Excellent",
-      sellerYear: "5",
-      customerNumber: 300,
-      sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "Lagos",
-    },
-    {
-      id: "sellerV4",
-      image: "/images/bidder3.png",
-      sellerName: "GIG Logistics",
-      rating: 5.0,
-      rateStatus: "Excellent",
-      sellerYear: "3",
-      customerNumber: 300,
-      sellerBio: "Given you the best ride ever than you can imagine.",
-      location: "Lagos",
-    },
-  ];
+  const { data: sellersData, isLoading, isError } = useGetSellers();
+
+  if (isLoading) {
+    return <SellerListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="w-full text-center py-10 text-red-500">
+        Failed to load sellers. Please try again later.
+      </div>
+    );
+  }
+
+  const sellers = (sellersData || []).map((seller) => ({
+    id: seller.sellerId,
+    image: "/images/bidder3.png",
+    sellerName: seller.name,
+    rating: 4.0,
+    rateStatus: "Excellent",
+    sellerYear: "1",
+    customerNumber: 0,
+    sellerBio: "No bio available",
+    location: "Lagos",
+  }));
 
   const filteredSellers = sellers.filter((seller) => {
     const matchesRating =
@@ -86,19 +67,25 @@ export const SellerList: React.FC<SellerListProps> = ({
         </p>
       </div>
       <div className="Seller_Card">
-        {filteredSellers.map((seller) => (
-          <SellerCard
-            key={seller.id}
-            id={seller.id}
-            image={seller.image}
-            sellerName={seller.sellerName}
-            rating={seller.rating}
-            rateStatus={seller.rateStatus}
-            sellerYear={seller.sellerYear}
-            customerNumber={seller.customerNumber}
-            sellerBio={seller.sellerBio}
-          />
-        ))}
+        {filteredSellers.length > 0 ? (
+            filteredSellers.map((seller) => (
+            <SellerCard
+                key={seller.id}
+                id={seller.id}
+                image={seller.image}
+                sellerName={seller.sellerName}
+                rating={seller.rating}
+                rateStatus={seller.rateStatus}
+                sellerYear={seller.sellerYear}
+                customerNumber={seller.customerNumber}
+                sellerBio={seller.sellerBio}
+            />
+            ))
+        ) : (
+            <div className="w-full text-center py-10 text-gray-500">
+                No sellers found.
+            </div>
+        )}
       </div>
     </div>
   );

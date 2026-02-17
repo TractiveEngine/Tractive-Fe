@@ -25,20 +25,20 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     render: (bid) => (
       <div className="flex items-center gap-3">
         <Image
-          src={bid.productImage || "/images/placeholder.png"}
-          alt={bid.productName}
+          src={bid?.productImage || "/images/placeholder.png"}
+          alt={bid?.productName}
           width={60}
           height={40}
           className="object-cover rounded-[5px] w-[60px] h-[40px]"
         />
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] font-medium font-montserrat text-[#2b2b2b]">
-            {bid.productName}
+            {bid?.productName}
           </span>
           <span className="text-[11px] font-normal font-montserrat text-[#808080]">
-            {bid.productDescription && bid.productDescription.length > 20
-              ? bid.productDescription.substring(0, 20) + "..."
-              : bid.productDescription || "No desc"}
+            {bid?.productDescription && bid?.productDescription.length > 20
+              ? bid?.productDescription.substring(0, 20) + "..."
+              : bid?.productDescription || "No desc"}
           </span>
         </div>
       </div>
@@ -50,35 +50,26 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     minWidth: "min-w-[100px]",
     render: (bid) => (
       <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-        ₦{bid.productPrice?.toLocaleString() || "0"}
+        ₦{bid?.productPrice?.toLocaleString() || "0"}
       </span>
     ),
   },
   {
-    header: "Bidders",
+    header: "Bidder",
     key: "buyer",
     minWidth: "min-w-[120px]",
     render: (bid) => (
       <div className="flex items-center gap-2">
-        <div className="flex -space-x-2">
-          <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden relative bg-gray-200">
-            <Image
-              src={bid.buyer.avatar || "/images/placeholder-avatar.png"}
-              alt={bid.buyer.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-          {/* Visual placeholder for design match */}
-          <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-[10px] text-white">
-            JB
-          </div>
-          <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-[10px] text-white">
-            AK
-          </div>
+        <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden relative bg-gray-200">
+          <Image
+            src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
+            alt={bid?.buyer?.name}
+            fill
+            className="object-cover"
+          />
         </div>
         <span className="text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-          + 50
+          {bid?.buyer?.name || "Unknown"}
         </span>
       </div>
     ),
@@ -91,14 +82,14 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-gray-200 border border-white overflow-hidden relative">
           <Image
-            src={bid.buyer.avatar || "/images/placeholder-avatar.png"}
+            src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
             alt="Leading"
             fill
             className="object-cover"
           />
         </div>
         <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-          ₦{bid.proposedPrice?.toLocaleString()}
+          ₦{bid?.proposedPrice?.toLocaleString()}
         </span>
       </div>
     ),
@@ -109,9 +100,9 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     minWidth: "min-w-[150px]",
     render: (bid) => (
       <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-        {bid.farmerId
-          ? `Farmer ${bid.farmerId.substring(0, 6)}...`
-          : "Kelvin chikezie"}
+        {bid?.farmerName || (bid?.farmerId
+          ? `Farmer ${bid?.farmerId?.substring(0, 6)}...`
+          : "Kelvin chikezie")}
       </span>
     ),
   },
@@ -121,7 +112,7 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     minWidth: "min-w-[100px]",
     render: (bid) => (
       <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-        {new Date(bid.createdAt).toLocaleDateString()}
+        {new Date(bid?.createdAt).toLocaleDateString()}
       </span>
     ),
   },

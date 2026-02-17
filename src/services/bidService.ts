@@ -13,9 +13,11 @@ export interface BidListing {
   status: "pending" | "accepted" | "rejected" | "countered";
   buyer: {
     name: string;
+    email?: string;
     avatar?: string;
   };
   farmerId?: string;
+  farmerName?: string;
   createdAt: string;
 }
 
@@ -35,6 +37,51 @@ export interface BidListingDetails extends BidListing {
   bids: SingleBid[];
 }
 
+export interface BidResponse {
+  _id: string;
+  product: {
+    _id: string;
+    name: string;
+    description: string;
+    price: number;
+    quantity: number;
+    unit: string;
+    owner: string;
+    farmer: string | { _id: string; name: string; businessName: string };
+    images: string[];
+    videos: string[];
+    status: string;
+    discount: number;
+    categories: string[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
+  buyer: {
+    _id: string;
+    email: string;
+    name: string;
+    avatar?: string;
+  };
+  agent: string | {
+    _id: string;
+    email: string;
+    roles: string[];
+    activeRole: string;
+    name: string;
+    address: string;
+    country: string;
+    phone: string;
+    state: string;
+  };
+  amount: number;
+  status: "pending" | "approved" | "rejected" | "countered";
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 const handleApiError = (error: any, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
   if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -45,21 +92,23 @@ const handleApiError = (error: any, operation: string) => {
 
 const mapToBidListing = (item: any): BidListing => {
   return {
-    id: item._id,
-    productName: item.product?.name || "Unknown Product",
-    productImage: item.product?.images?.[0] || "/images/placeholder.png",
-    productDescription: item.product?.description || "",
-    productPrice: item.product?.price || 0,
-    proposedPrice: item.amount || 0,
-    quantity: item.product?.quantity || 0, // Using product quantity as fallback if bid quantity missing
-    message: item.message,
-    status: item.status || "pending",
+    id: item?._id,
+    productName: item?.product?.name || "Unknown Product",
+    productImage: item?.product?.images?.[0] || "/images/placeholder.png",
+    productDescription: item?.product?.description || "",
+    productPrice: item?.product?.price || 0,
+    proposedPrice: item?.amount || 0,
+    quantity: item?.product?.quantity || 0, // Using product quantity as fallback if bid quantity missing
+    message: item?.message,
+    status: item?.status || "pending",
     buyer: {
-      name: item.buyer?.name || "Unknown Buyer",
-      avatar: item.buyer?.avatar, // JSON doesn't show avatar in buyer object, but interface allows it
+      name: item?.buyer?.name || "Unknown Buyer",
+      email: item?.buyer?.email,
+      avatar: item?.buyer?.avatar, 
     },
-    farmerId: item.product?.farmer,
-    createdAt: item.createdAt,
+    farmerId: typeof item?.product?.farmer === "object" ? item?.product?.farmer?._id : item?.product?.farmer,
+    farmerName: typeof item?.product?.farmer === "object" ? item?.product?.farmer?.name : "Unknown Farmer",
+    createdAt: item?.createdAt,
   };
 };
 
@@ -90,22 +139,33 @@ export const bidService = {
   getBidDetails: async (id: string): Promise<BidListingDetails> => {
     try {
       const response = await api.get(`/api/bids/${id}`);
-      const item = response.data.data || response.data;
+      let item = response.data.data || response.data;
+
+      // Handle case where response is wrapped in "bid" object
+      if (item.bid) {
+        item = item.bid;
+      }
 
       const listing = mapToBidListing(item);
 
       // Map nested bids if available, or fetch them if separate?
       // Assuming they come nested as 'bids' or 'buyers'
-      const rawBids = item.bids || item.buyers || [];
+      // If single bid object is returned, treat as single bidder
+      let rawBids = item.bids || item.buyers || [];
+      
+      if (rawBids.length === 0 && item.buyer) {
+         rawBids = [item];
+      }
+
       const bids: SingleBid[] = rawBids.map((b: any) => ({
-        id: b.id || b._id,
-        bidderName: b.bidderName || b.user?.name || "Unknown Bidder",
-        bidderAvatar: b.bidderAvatar || b.user?.avatar,
-        amount: b.amount || b.proposedPrice || 0,
-        quantity: b.quantity || 0,
-        message: b.message || "",
-        status: b.status || "pending",
-        date: b.createdAt || b.date,
+        id: b?._id || b?.id,
+        bidderName: b?.buyer?.name || b?.bidderName || b?.user?.name || "Unknown Bidder",
+        bidderAvatar: b?.buyer?.avatar || b?.bidderAvatar || b?.user?.avatar,
+        amount: b?.amount || b?.proposedPrice || 0,
+        quantity: b?.quantity || b?.product?.quantity || 0,
+        message: b?.message || "",
+        status: b?.status || "pending",
+        date: b?.createdAt || b?.date,
       }));
 
       return {
@@ -117,10 +177,10 @@ export const bidService = {
     }
   },
 
-  // POST /api/bids - Create a new bid listing
+  // POST /api/bids - Create a new bid
   createBid: async (data: {
-    product: string;
-    proposedPrice: number;
+    productId: string;
+    amount: number;
     quantity: number;
     message: string;
   }) => {
@@ -128,16 +188,19 @@ export const bidService = {
       const response = await api.post("/api/bids", data);
       return response.data;
     } catch (error) {
-      return handleApiError(error, "create bid");
+      // Improved error handling to return the message directly
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
     }
   },
 
-  // PATCH /api/bids/{id} - Update bid status (Accept/Reject/Counter)
+  // PATCH /api/bids/{id} - Update bid status (Accept/Reject)
   updateBidStatus: async (
     id: string,
     updates: {
-      status: "accepted" | "rejected" | "countered";
-      counterOffer?: number;
+      status: "accepted" | "rejected";
     },
   ) => {
     try {
@@ -145,6 +208,36 @@ export const bidService = {
       return response.data;
     } catch (error) {
       return handleApiError(error, "update bid status");
+    }
+  },
+
+  // GET /api/buyers/biddings - Get my biddings
+  getMyBids: async (): Promise<BidResponse[]> => {
+    try {
+      const response = await api.get("/api/buyers/biddings");
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error, "fetch my bids");
+    }
+  },
+
+  // GET /api/buyers/biddings/won - Get won biddings
+  getWonBids: async (): Promise<BidResponse[]> => {
+    try {
+      const response = await api.get("/api/buyers/biddings/won");
+      return response.data.data;
+    } catch (error) {
+       return []; 
+    }
+  },
+
+  // GET /api/buyers/biddings/won/checkout - Get won biddings for checkout
+  getWonBidsCheckout: async (): Promise<BidResponse[]> => {
+    try {
+      const response = await api.get("/api/buyers/biddings/won/checkout");
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error, "fetch won bids checkout");
     }
   },
 };

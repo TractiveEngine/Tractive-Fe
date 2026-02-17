@@ -2,67 +2,32 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { VideoPreview } from "../../_components/ProductDetails/productHeader/VideoPreview";
+// import { VideoPreview } from "../../_components/ProductDetails/productHeader/VideoPreview";
 import { MakeBid } from "../../_components/ProductDetails/productHeader/MakeBid";
 import { ImgShowCase } from "../../_components/ProductDetails/ImgShowCase";
 import { ProductInfo } from "../../_components/ProductDetails/productAndSellersInfo/ProductInfo";
 import { SellersInfo } from "../../_components/ProductDetails/productAndSellersInfo/SellersInfo";
 import { SimilarProduct } from "../../_components/ProductDetails/SimilarProduct";
-import { productService, ApiProduct, Bidder } from "@/services/productService";
+import { useProduct } from "@/hooks/queries/useProductQueries";
 
 const ProductDetail: React.FC = () => {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
-  const [product, setProduct] = useState<ApiProduct | null>(null);
-  const [bidders, setBidders] = useState<Bidder[]>([]);
-  const [leadingBidder, setLeadingBidder] = useState<Bidder | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: product,
+    isLoading: isProductLoading,
+    refetch: refetchProduct,
+  } = useProduct(id || null);
 
-  const fetchProductDetails = useCallback(async () => {
-    if (!id) return;
 
-    setIsLoading(true);
-    try {
-      // 1. Fetch Product
-      const productData = await productService.getProduct(id);
-      setProduct(productData);
 
-      // 2. Fetch Bidders (Parallel)
-      const biddersPromise = productService.getBidders(id);
-      const winnerPromise = productService.getWinningBidder(id);
+  const isLoading = isProductLoading;
 
-      const [biddersData, winnerData] = await Promise.all([
-        biddersPromise,
-        winnerPromise,
-      ]);
-      setBidders(biddersData);
-      setLeadingBidder(winnerData);
-    } catch (error) {
-      console.error("Failed to fetch product details", error);
-      toast.error("Failed to load product details");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  const refreshBidders = useCallback(async () => {
-    if (!id) return;
-    try {
-      const [biddersData, winnerData] = await Promise.all([
-        productService.getBidders(id),
-        productService.getWinningBidder(id),
-      ]);
-      setBidders(biddersData);
-      setLeadingBidder(winnerData);
-    } catch (error) {
-      console.error("Failed to refresh bidders", error);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchProductDetails();
-  }, [fetchProductDetails]);
+  const handleBidSuccess = useCallback(() => {
+    // Refetch sensitive data without page reload
+    refetchProduct();
+  }, [refetchProduct]);
 
   if (isLoading) {
     return (
@@ -83,7 +48,8 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="w-[90%] mx-auto py-6">
       <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
-        <VideoPreview
+        <ImgShowCase 
+          images={product.images} 
           videoSrc={
             product.videos && product.videos.length > 0
               ? product.videos[0]
@@ -94,19 +60,17 @@ const ProductDetail: React.FC = () => {
           productId={id}
           defaultPrice={product.price}
           defaultQuantity={product.quantity}
-          onBidSuccess={refreshBidders}
+          onBidSuccess={handleBidSuccess}
         />
-      </div>
-      <div className="mb-4">
-        <ImgShowCase images={product.images} />
       </div>
       <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
         <ProductInfo
           item={product}
-          bidders={bidders}
-          leadingBidder={leadingBidder}
         />
-        <SellersInfo />
+        <SellersInfo 
+          owner={product.owner} 
+          onRefresh={refetchProduct} 
+        />
       </div>
       <SimilarProduct />
     </div>

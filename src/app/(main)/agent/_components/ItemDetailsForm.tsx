@@ -219,32 +219,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         Item Details
       </h2>
 
-      {/* Display selected product info */}
-      <div className="mb-4 p-3 bg-[#f9f9f9] rounded">
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Product:</strong> {productName}
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Category:</strong> {selectedCategory}
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Images:</strong> {imageFiles.length} file(s)
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Videos:</strong> {videoFiles.length} file(s)
-        </p>
 
-        {(imageFiles.length > 0 || videoFiles.length > 0) && (
-          <p className="text-sm text-[#666] font-montserrat mt-2">
-            <strong>Total file size:</strong> {totalFileSizeMB} MB
-            {parseFloat(totalFileSizeMB) > 10 && (
-              <span className="text-[#ff6b6b] ml-2">
-                (Large files may take longer to upload)
-              </span>
-            )}
-          </p>
-        )}
-      </div>
 
       {/* Upload Progress */}
       {isLoading && (

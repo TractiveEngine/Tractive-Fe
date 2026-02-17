@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
             year: "numeric",
           })}
         </p>
-        <span className="text-[12px] text-[#fefefe] font-montserrat">${payload[0]?.value?.toLocaleString()}</span>
+        <span className="text-[12px] text-[#fefefe] font-montserrat">₦{payload[0]?.value?.toLocaleString()}</span>
        </div>
       </div>
     );
@@ -89,7 +89,7 @@ export const TransporterRevenueChart = () => {
               ticks={[
                 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000,
               ]}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
+              tickFormatter={(value) => `₦₦{value.toLocaleString()}`}
               tick={{ fontSize: 12, fill: "#2b2b2b" }}
               axisLine={false}
               tickLine={false}

@@ -10,6 +10,7 @@ export interface UserProfile {
   businessName: string;
   villageOrLocalMarket: string;
   interests: string[];
+  role?: string[]; // Handle potential backend inconsistency (role vs roles)
   roles: string[];
   activeRole: string;
   isVerified: boolean;
@@ -74,4 +75,50 @@ export const userService = {
     const farmerManagementRoles = ["admin", "agent"];
     return farmerManagementRoles.includes(user.activeRole);
   },
+
+  // Add new account/role
+  addAccount: async (data: {
+    role: string;
+    name: string;
+    phone: string;
+    address: string;
+    country: string;
+    state: string;
+    lga: string;
+  }): Promise<any> => {
+    try {
+      const response = await api.post("/api/auth/add-account", data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error adding account:", error);
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.error || error.message;
+        throw new Error(message || "Failed to add account");
+      }
+      throw error;
+    }
+  },
+  
+  // Follow a farmer (Buyer action)
+  followFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.post(`/api/buyers/farmers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error following farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
+
+  // Unfollow a farmer (Buyer action)
+  unfollowFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.delete(`/api/buyers/farmers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error unfollowing farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
 };
+

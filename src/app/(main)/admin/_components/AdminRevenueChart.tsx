@@ -48,7 +48,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
             })}
           </p>
           <span className="text-[12px] text-[#fefefe] font-montserrat">
-            ₦{payload[0]?.value?.toLocaleString()}
+            ${payload[0]?.value?.toLocaleString()}
           </span>
         </div>
       </div>

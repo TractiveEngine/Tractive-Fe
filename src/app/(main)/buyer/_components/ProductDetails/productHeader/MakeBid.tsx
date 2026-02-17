@@ -14,8 +14,8 @@ interface MakeBidProps {
 export const MakeBid: React.FC<MakeBidProps> = ({
   productId,
   defaultPrice,
-  defaultQuantity,
   onBidSuccess,
+  defaultQuantity,
 }) => {
   const [proposedPrice, setProposedPrice] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number | "">("");
@@ -49,14 +49,18 @@ export const MakeBid: React.FC<MakeBidProps> = ({
     setIsSubmitting(true);
     try {
       await bidService.createBid({
-        product: productId,
-        proposedPrice: Number(proposedPrice),
+        productId: productId,
+        amount: Number(proposedPrice),
         quantity: Number(quantity),
         message: message,
       });
 
       toast.success("Bid placed successfully!");
-      setHasBidded(true);
+      // Reset form to allow another bid
+      setHasBidded(false); 
+      setMessage("");
+      // Optionally reset price/quantity or keep them
+      
       onBidSuccess();
     } catch (error: any) {
       toast.error(error.message || "Failed to place bid");
@@ -71,41 +75,40 @@ export const MakeBid: React.FC<MakeBidProps> = ({
       className="flex flex-col gap-[2px] w-[100%] lg:w-[50%] rounded-md shadow-md"
     >
       <div className="flex flex-col gap-4 bg-[#fefefe] px-4 py-6 rounded-t-[4px]">
-        <div className="flex gap-4 w-full">
-          <div className="flex flex-col gap-2 w-1/2">
-            <label
-              htmlFor="bid"
-              className="font-montserrat text-[13px] md:text-[14px] font-normal"
-            >
-              Proposed Price (₦)
-            </label>
-            <input
-              type="number"
-              id="bid"
-              placeholder="0.00"
-              value={proposedPrice}
-              onChange={(e) => setProposedPrice(Number(e.target.value))}
-              className="border border-[#808080] rounded-[4px] p-2 focus:outline-none focus:ring-[1px] focus:ring-[#538e53] w-full"
-              disabled={hasBidded || isSubmitting}
-            />
-          </div>
-          <div className="flex flex-col gap-2 w-1/2">
-            <label
-              htmlFor="quantity"
-              className="font-montserrat text-[13px] md:text-[14px] font-normal"
-            >
-              Quantity
-            </label>
-            <input
-              type="number"
-              id="quantity"
-              placeholder="0"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="border border-[#808080] rounded-[4px] p-2 focus:outline-none focus:ring-[1px] focus:ring-[#538e53] w-full"
-              disabled={hasBidded || isSubmitting}
-            />
-          </div>
+        <div className="flex flex-col gap-2 w-full">
+          <label
+            htmlFor="bid"
+            className="font-montserrat text-[13px] md:text-[14px] font-normal"
+          >
+            Proposed Price (₦)
+          </label>
+          <input
+            type="number"
+            id="bid"
+            placeholder="0.00"
+            value={proposedPrice}
+            onChange={(e) => setProposedPrice(Number(e.target.value))}
+            className="border border-[#808080] rounded-[4px] p-2 focus:outline-none focus:ring-[1px] focus:ring-[#538e53] w-full"
+            disabled={hasBidded || isSubmitting}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <label
+            htmlFor="quantity"
+            className="font-montserrat text-[13px] md:text-[14px] font-normal"
+          >
+            Quantity
+          </label>
+          <input
+            type="number"
+            id="quantity"
+            placeholder="1"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="border border-[#808080] rounded-[4px] p-2 focus:outline-none focus:ring-[1px] focus:ring-[#538e53] w-full"
+            disabled={hasBidded || isSubmitting}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -127,9 +130,7 @@ export const MakeBid: React.FC<MakeBidProps> = ({
         </div>
       </div>
 
-
-
-      <div className="flex flex-col items-center bg-[#fefefe] px-4 py-2 justify-center gap-1.5">
+      {/* <div className="flex flex-col items-center bg-[#fefefe] px-4 py-2 justify-center gap-1.5">
         <p className="font-montserrat font-normal text-[#2b2b2b] text-[12px] md:text-[13px]">
           Want To Negotiate? <span className="text-[#538e53]">Chat Seller</span>
         </p>
@@ -145,7 +146,7 @@ export const MakeBid: React.FC<MakeBidProps> = ({
         <p className="font-montserrat font-normal text-[#2b2b2b] text-[10px] sm:text-[11px] md:text-[12px]">
           Note that you will be notified once you win the bidding.
         </p>
-      </div>
+      </div> */}
       <div className="flex items-center bg-[#fefefe] px-4 py-7 justify-center">
         <button
           type="submit"

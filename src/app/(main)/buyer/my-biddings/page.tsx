@@ -1,8 +1,10 @@
 // page.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MyBids } from "./_components/MyBids";
 import { BidsCheckout } from "./_components/BidsCheckout";
+import { useWonBidsCheckout } from "@/hooks/queries/useBidQueries"; // Import hook
+import { BidResponse } from "@/services/bidService";
 
 interface BidItem {
   id: string;
@@ -14,32 +16,32 @@ interface BidItem {
 }
 
 const Page: React.FC = () => {
-  const [bidItems] = useState<BidItem[]>([
-    {
-      id: "bid-1",
-      title: "Mix color Nigeria beans, best for nursing mother teenagers and",
-      quantity: "50 bags",
-      seller: "Kelvin chikezie",
-      price: 400,
-      imageSrc: "/images/biddingwon.png",
-    },
-    {
-      id: "bid-2",
-      title: "Organic brown rice, high fiber content",
-      quantity: "30 bags",
-      seller: "Amara Okeke",
-      price: 600,
-      imageSrc: "/images/biddingwon.png",
-    },
-    {
-      id: "bid-3",
-      title: "Premium white garri, fortified with vitamins",
-      quantity: "20 bags",
-      seller: "Chidi Nwosu",
-      price: 350,
-      imageSrc: "/images/biddingwon.png",
-    },
-  ]);
+  const { data: checkoutData, isLoading, isError } = useWonBidsCheckout();
+  const [bidItems, setBidItems] = useState<BidItem[]>([]);
+
+  useEffect(() => {
+    if (checkoutData) {
+      const mappedItems: BidItem[] = checkoutData.map((item: BidResponse) => {
+        let sellerName = "Unknown Seller";
+        if (typeof item.agent === 'object' && item.agent !== null) {
+            sellerName = item.agent.name;
+        } else if (typeof item.product.farmer === 'object' && item.product.farmer !== null) {
+            sellerName = item.product.farmer.name;
+        }
+
+        return {
+          id: item._id,
+          title: item.product.name,
+          quantity: `${item.product.quantity} ${item.product.unit}`,
+          seller: sellerName,
+          price: item.amount,
+          imageSrc: item.product.images[0] || "/images/placeholder.png",
+        };
+      });
+      setBidItems(mappedItems);
+    }
+  }, [checkoutData]);
+
 
   const [selection, setSelection] = useState<{
     isCheckoutAll: boolean;
@@ -61,6 +63,14 @@ const Page: React.FC = () => {
       .filter((item) => selection.selectedBids.includes(item.id))
       .reduce((total, item) => total + item.price, 0);
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-[#f1f1f1]  h-fit flex justify-center items-center">
+         <div className="w-8 h-8 border-4 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#f1f1f1] min-h-screen flex justify-center">

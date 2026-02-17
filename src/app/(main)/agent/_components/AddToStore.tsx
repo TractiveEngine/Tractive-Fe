@@ -63,6 +63,10 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   ];
 
   const handleFarmerSelect = (farmerId: string): void => {
+    const farmer = farmers.find((f) => f.id === farmerId);
+    if (farmer) {
+      setFarmerSearchQuery(farmer.name);
+    }
     setSelectedFarmerId(farmerId);
     setIsFarmerOpen(false);
   };

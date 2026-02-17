@@ -114,9 +114,9 @@ export const Biding = () => {
             const isLast = products.length === index + 1;
 
             // Format price
-            const formattedPrice = new Intl.NumberFormat("en-US", {
+            const formattedPrice = new Intl.NumberFormat("en-NG", {
               style: "currency",
-              currency: "USD",
+              currency: "NGN",
             }).format(product.price);
 
             // Use static assets for visual consistency with the design provided in BiddingDatas
@@ -138,7 +138,9 @@ export const Biding = () => {
                   leadingProfileImage="/images/leadingProfileImage.png"
                   quantity={`${product.quantity} ${product.unit || "Units"}`}
                   amount={formattedPrice}
-                  biddingPrice={formattedPrice} // Using same price for now as bidding logic is out of scope
+                  biddingPrice="" // Hide price beside view button
+                  bottomLabel=""
+                  showLeadingImages={false}
                 />
               </div>
             );

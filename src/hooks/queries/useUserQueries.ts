@@ -1,6 +1,9 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import { userService } from "@/services/UserService";
+import { toast } from "sonner";
+import { productKeys } from "./useProductQueries";
 
 // Types
 export interface ContentPayload {
@@ -87,6 +90,38 @@ export const useUpdateProfile = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+        }
+    })
+}
+
+export const useFollowFarmer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (farmerId: string) => userService.followFarmer(farmerId),
+        onSuccess: (_, farmerId) => {
+            toast.success("You are now following this farmer");
+             // Invalidate product queries to refresh checking status if needed
+             // Using productKeys.all to be safe, or we could try to be more specific if we had the product ID
+             queryClient.invalidateQueries({ queryKey: productKeys.all });
+        },
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || "Failed to follow farmer";
+            toast.error(message);
+        }
+    })
+}
+
+export const useUnfollowFarmer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (farmerId: string) => userService.unfollowFarmer(farmerId),
+        onSuccess: (_, farmerId) => {
+             toast.success("You have unfollowed this farmer");
+             queryClient.invalidateQueries({ queryKey: productKeys.all });
+        },
+        onError: (error: any) => {
+             const message = error?.response?.data?.message || "Failed to unfollow farmer";
+             toast.error(message);
         }
     })
 }

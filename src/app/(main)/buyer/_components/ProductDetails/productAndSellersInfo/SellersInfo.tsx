@@ -9,14 +9,49 @@ import {
 import Image from "next/image";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Owner } from "@/services/productService";
+import { useFollowFarmer, useUnfollowFarmer } from "@/hooks/queries/useUserQueries";
+import { toast } from "sonner";
 
-export const SellersInfo = () => {
-    const [seeMore, setSeeMore] = useState(false);
+interface SellersInfoProps {
+  owner?: Owner;
+  onRefresh?: () => void;
+}
+
+export const SellersInfo: React.FC<SellersInfoProps> = ({ owner, onRefresh }) => {
+  const [seeMore, setSeeMore] = useState(false);
   
-    const handleSeeMore = () => {
-      setSeeMore(!seeMore); // See More Reviews visibility
+  const followMutation = useFollowFarmer();
+  const unfollowMutation = useUnfollowFarmer();
+
+  const isFollowing = owner?.isFollowing || false;
+  const isLoading = followMutation.isPending || unfollowMutation.isPending;
+
+
+  const handleFollowToggle = async () => {
+    // Prefer _id as per user request, fallback to id
+    const targetId = owner?._id || owner?.id;
+    if (!targetId) return;
+
+    try {
+      if (isFollowing) {
+        await unfollowMutation.mutateAsync(targetId);
+      } else {
+        await followMutation.mutateAsync(targetId);
+      }
+      // Refresh the product data to get updated status
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Failed to toggle follow status", error);
+    }
   };
-  
+
+  const handleSeeMore = () => {
+    setSeeMore(!seeMore); // See More Reviews visibility
+  };
+
   return (
     <div className="relative w-[100%] lg:w-[50%] flex flex-col gap-[10px]">
       <div className="flex flex-col gap-[12px] bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
@@ -36,11 +71,16 @@ export const SellersInfo = () => {
             <div>
               <div className="flex items-center gap-3">
                 <span className="truncate font-montserrat font-normal text-[11px] sm:text-[13px] md:text-[14px]  text-[#2b2b2b]">
-                  Goddess Corporation
+                  {owner?.name || "Unknown Seller"}
                 </span>
                 <span className="w-[10px] h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
-                <span className="font-montserrat font-normal text-[11px] sm:text-[13px] md:text-[14px] text-[#538e53]">
-                  Follow
+                <span 
+                  onClick={!isLoading ? handleFollowToggle : undefined}
+                  className={`font-montserrat font-normal text-[11px] sm:text-[13px] md:text-[14px] cursor-pointer ${
+                    isFollowing ? "text-gray-500" : "text-[#538e53]"
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isLoading ? "Loading..." : isFollowing ? "Following" : "Follow"}
                 </span>
               </div>
             </div>
@@ -59,7 +99,7 @@ export const SellersInfo = () => {
                 700 followers
               </small>
               <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                Aba State
+                {owner?.state || owner?.country || "Location N/A"}
               </small>
             </div>
           </div>

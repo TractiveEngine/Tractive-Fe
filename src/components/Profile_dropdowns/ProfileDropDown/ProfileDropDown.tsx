@@ -95,16 +95,7 @@ export const ProfileDropDown = ({
     }
   };
 
-  const getRoleStatus = (role: UserRole): "switch" | "add" => {
-    // Check against session data (single source of truth)
-    return user?.role?.includes(role) ? "switch" : "add";
-  };
 
-  const getRoleDisplayText = (role: UserRole): string => {
-    const status = getRoleStatus(role);
-    const config = ROLE_CONFIGS[role];
-    return `${config.displayName} (${status === "switch" ? "Switch" : "Create"})`;
-  };
 
   // Get the profile path for the current active role
   const currentProfilePath =
@@ -136,16 +127,19 @@ export const ProfileDropDown = ({
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
 
       <div className="flex flex-col gap-2 px-3 pb-3">
+
         {dropdownRoles.map((role) => {
+          // Only show roles that the user HAS created
+          if (!user?.role?.includes(role)) return null;
+
           const config = ROLE_CONFIGS[role];
-          const status = getRoleStatus(role);
 
           return (
             <button
               key={role}
               onClick={() => handleSwitchRole(role)}
               className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-[#f5f5f5] transition-colors w-full"
-              title={`${status === "switch" ? "Switch to" : "Create"} ${config.displayName} account`}
+              title={`Switch to ${config.displayName} account`}
             >
               <div className="flex items-center gap-1">
                 <Image
@@ -157,23 +151,38 @@ export const ProfileDropDown = ({
                 />
                 <div className="flex flex-col items-start">
                   <span className="block text-[10px] text-[#2b2b2b] font-medium text-left">
-                    {getRoleDisplayText(role)}
+                    {config.displayName}
                   </span>
                   <span className="block text-[10px] text-[#666666] text-left">
-                    {status === "switch" ? config.accountLabel : "Not created"}
+                    {config.accountLabel}
                   </span>
                 </div>
               </div>
-              {status === "switch" && <SwapIcon />}
+              <SwapIcon />
             </button>
           );
         })}
 
-        {dropdownRoles.length === 0 && (
-          <div className="text-[10px] text-[#666666] text-center py-2">
-            All available roles are active
+        {dropdownRoles.filter(r => user?.role?.includes(r)).length === 0 && (
+           <div className="text-[10px] text-[#666666] text-center py-2 italic hidden">
+            No other accounts
           </div>
         )}
+
+        {/* Add New Account Button */}
+        <div className="mt-2 pt-2 border-t border-[#e2e2e2]">
+           <Link
+            href="/account/add"
+            className="flex items-center gap-2 w-full p-1 rounded hover:bg-[#f5f5f5] transition-colors text-left"
+          >
+             <div className="flex items-center justify-center w-[25px] h-[25px] rounded-full border border-dashed border-[#538E53] text-[#538E53]">
+               <span className="text-lg leading-none mb-[2px]">+</span>
+             </div>
+             <span className="text-[11px] font-medium text-[#538E53]">
+               Add New Account
+             </span>
+          </Link>
+        </div>
       </div>
 
       {/* Debug info if needed, or remove */}
