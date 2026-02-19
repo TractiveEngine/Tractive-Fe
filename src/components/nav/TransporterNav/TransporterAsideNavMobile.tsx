@@ -104,13 +104,13 @@ export const TransporterAsideNavMobile = ({
           onClick: () => setIsModalOpen(true),
         },
         {
-          href: "/transporters/fleet-list",
+          href: "/transporter/fleet-list",
           icon: ProduceListIcon,
           label: "Fleet list",
         },
-        { href: "/transporters/drivers", icon: FarmersIcon, label: "Drivers" },
+        { href: "/transporter/drivers", icon: FarmersIcon, label: "Drivers" },
         {
-          href: "/transporters/negotiations",
+          href: "/transporter/negotiations",
           icon: BidsIcon,
           label: "Negotiations",
           hasDot: true,
@@ -121,19 +121,19 @@ export const TransporterAsideNavMobile = ({
       title: "Bookings",
       items: [
         {
-          href: "/transporters/new",
+          href: "/transporter/new",
           icon: Bag2Icon,
           label: "New",
           hasDot: true,
         },
-        { href: "/transporters/picked", icon: PackedIcon, label: "Picked" },
+        { href: "/transporter/picked", icon: PackedIcon, label: "Picked" },
         {
-          href: "/transporters/on-transit",
+          href: "/transporter/on-transit",
           icon: BoxTickIcon,
           label: "On Transit",
         },
         {
-          href: "/transporters/delivered",
+          href: "/transporter/delivered",
           icon: BoxTickIcon,
           label: "Delivered",
         },
@@ -143,12 +143,12 @@ export const TransporterAsideNavMobile = ({
       title: "Transactions",
       items: [
         {
-          href: "/transporters/pending",
+          href: "/transporter/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/transporters/received",
+          href: "/transporter/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -158,12 +158,12 @@ export const TransporterAsideNavMobile = ({
       title: "Customers",
       items: [
         {
-          href: "/transporters/customers",
+          href: "/transporter/customers",
           icon: Profile2UserIcon,
           label: "Customers",
         },
         {
-          href: "/transporters/reviews",
+          href: "/transporter/reviews",
           icon: MessageStarIcon,
           label: "Reviews",
         },
@@ -173,13 +173,13 @@ export const TransporterAsideNavMobile = ({
       title: "Others",
       items: [
         {
-          href: "/transporters/chat",
+          href: "/transporter/chat",
           icon: MessagesIcon,
           label: "Chat",
           hasDot: true,
         },
         {
-          href: "/transporters/help",
+          href: "/transporter/help",
           icon: MessageQuestionIcon,
           label: "Help",
         },
@@ -272,9 +272,9 @@ export const TransporterAsideNavMobile = ({
                 <ul className="mt-[1rem] px-[0.5rem]">
                   <li>
                     <Link
-                      href="/transporters"
+                      href="/transporter"
                       className={`flex items-start w-[4rem] flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
-                        pathname === "/transporters"
+                        pathname === "/transporter"
                           ? "bg-[#3a3a3a]"
                           : "hover:bg-[#4a4a4a]"
                       }`}

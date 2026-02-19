@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XModalIcon } from "../../_components/Icons/TransporterIcons";
@@ -8,7 +8,7 @@ import { Driver } from "@/utils/DriverData";
 interface AssignFleetModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (iot: string) => void;
+  onSubmit: (truckId: string) => void;
   editDriver?: Driver | null;
 }
 
@@ -19,24 +19,36 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
   editDriver,
 }) => {
   const [formData, setFormData] = useState({
-    iot: editDriver?.iot || "",
-    image: editDriver?.image || "/images/bidder1.png",
+    truckId: "",
+    image: "/images/bidder1.png",
   });
   const [errors, setErrors] = useState({
-    iot: "",
+    truckId: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen && editDriver) {
+        setFormData({
+            truckId: editDriver.fleet || "",
+            image: editDriver.image || "/images/bidder1.png",
+        });
+    } else {
+        setFormData({ truckId: "", image: "/images/bidder1.png" });
+    }
+    setErrors({ truckId: "" });
+  }, [isOpen, editDriver]);
 
   if (!isOpen) return null;
 
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
-      iot: "",
+      truckId: "",
     };
 
-    if (!formData.iot.trim()) {
-      newErrors.iot = "Fleet IoT is required";
+    if (!formData.truckId.trim()) {
+      newErrors.truckId = "Truck ID is required";
       isValid = false;
     }
 
@@ -63,12 +75,8 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData.iot);
+      onSubmit(formData.truckId);
       onClose();
-      setFormData({
-        iot: "",
-        image: "/images/bidder1.png",
-      });
     }
   };
 
@@ -96,10 +104,6 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
         <button
           onClick={() => {
             onClose();
-            setFormData({
-              iot: "",
-              image: "/images/bidder1.png",
-            });
           }}
           className="absolute top-4 right-4 text-[#2b2b2b] hover:text-[#538e53]"
           aria-label="Close modal"
@@ -108,7 +112,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
           <XModalIcon />
         </button>
         <h2 id="assign-fleet-title" className="text-lg font-montserrat text-[#2b2b2b] mb-4">
-          Assign Fleet IoT to {editDriver?.name || "Driver"}
+          Assign Fleet to {editDriver?.name || "Driver"}
         </h2>
         <div className="flex justify-center mb-2">
           <div className="relative w-[5rem] h-[5rem] group">
@@ -119,19 +123,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
               height={86}
               className="w-[5rem] h-[5rem] rounded-[100px] object-cover border-2 border-gray-300"
             />
-            <div className="absolute inset-0 bg-[#2b2b2b] bg-opacity-50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <span className="text-[#fefefe] text-[9px] text-center font-montserrat">
-                Change Image
-              </span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              aria-label="Upload profile image"
-            />
+            {/* Image upload seems unrelated to assign fleet, but keeping it for consistency if needed. */}
           </div>
         </div>
         <AnimatePresence>
@@ -147,22 +139,22 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
           >
             <div>
               <label
-                htmlFor="iot"
+                htmlFor="truckId"
                 className="block text-sm font-montserrat text-[#2b2b2b]"
               >
-                Fleet IoT
+                Truck ID
               </label>
               <input
-                id="iot"
-                name="iot"
+                id="truckId"
+                name="truckId"
                 type="text"
-                value={formData.iot}
+                value={formData.truckId}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                 aria-required="true"
               />
-              {errors.iot && (
-                <p className="text-red-500 text-xs mt-1">{errors.iot}</p>
+              {errors.truckId && (
+                <p className="text-red-500 text-xs mt-1">{errors.truckId}</p>
               )}
             </div>
             <div className="flex justify-center gap-2 mt-6">
