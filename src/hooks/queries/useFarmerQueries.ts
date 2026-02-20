@@ -59,27 +59,10 @@ export const useCreateFarmer = () => {
 
   return useMutation({
     mutationFn: (data: Partial<Farmer>) => farmerService.createFarmer(data),
-    onSuccess: (newFarmer) => {
-      // Manually update the list cache to include the new farmer immediately
-      // This avoids a redundant GET /api/farmers call
-      queryClient.setQueryData(
-        farmerKeys.lists(),
-        (oldData: FarmersResponse | undefined) => {
-          if (!oldData) {
-            return {
-              farmers: [newFarmer],
-              total: 1,
-              page: 1,
-              limit: 10,
-            };
-          }
-          return {
-            ...oldData,
-            farmers: [newFarmer, ...oldData.farmers],
-            total: oldData.total + 1,
-          };
-        },
-      );
+    onSuccess: () => {
+      // Invalidate all farmer list queries (includes any active filtered queries)
+      // so the list refetches automatically and shows the new farmer immediately.
+      queryClient.invalidateQueries({ queryKey: farmerKeys.lists() });
       toast.success("Farmer onboarded successfully!");
     },
     onError: (error: any) => {

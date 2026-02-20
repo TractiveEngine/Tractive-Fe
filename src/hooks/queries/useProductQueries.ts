@@ -61,40 +61,13 @@ export const useCreateProduct = () => {
 
   return useMutation({
     mutationFn: (data: CreateProductData) => productService.createProduct(data),
-    onSuccess: (newProduct) => {
-      // Optimistically update the "available" list
-      queryClient.setQueryData(
-        productKeys.list({ status: "available" }),
-        (oldData: ProductsResponse | undefined) => {
-          if (!oldData) {
-            return {
-              products: [newProduct],
-              pagination: {
-                page: 1,
-                limit: 10,
-                total: 1,
-              },
-              total: 1,
-              page: 1,
-              limit: 10,
-            };
-          }
-          // Prepend new product
-          const newTotal = oldData.total + 1;
-          return {
-            ...oldData,
-            products: [newProduct, ...oldData.products],
-            pagination: {
-              ...oldData.pagination,
-              total: newTotal,
-            },
-            total: newTotal,
-          };
-        },
-      );
-
-      // Also invalidate general lists just in case
-      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+    onSuccess: () => {
+      // Invalidate and immediately refetch all active product list queries
+      // (covers any filter combination the ProductTable may be using)
+      queryClient.invalidateQueries({
+        queryKey: productKeys.lists(),
+        refetchType: "active",
+      });
 
       toast.success("Product uploaded successfully!");
     },

@@ -11,6 +11,7 @@ const baseOnboardingSchema = z.object({
   address: z.string().min(1, "Address is required"),
   country: z.string().min(1, "Country is required"),
   state: z.string().min(1, "State is required"),
+  lga: z.string().optional(),
   interests: z
     .array(
       z.enum(["fish", "Tubers", "Grains", "Edible", "Livestock", "Vegetable"])

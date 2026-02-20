@@ -208,10 +208,12 @@ export default function OnboardingForm() {
       if (isNewRole) {
         const addAccountPayload = {
           role: targetRole,
+          name: finalData.name,
           phone: finalData.phone,
           address: finalData.address,
           country: finalData.country,
           state: finalData.state,
+          lga: data.lga,
         };
 
         console.log("Calling add-account API with:", addAccountPayload);
@@ -365,6 +367,24 @@ export default function OnboardingForm() {
                 {errors.state && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.state.message}
+                  </p>
+                )}
+              </div>
+
+              {/* LGA */}
+              <div>
+                <label className="block text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+                  Local Government Area (LGA)
+                </label>
+                <input
+                  type="text"
+                  {...register("lga")}
+                  className="mt-1 w-full border-[0.5px] font-montserrat border-[#808080] rounded px-3 py-2 text-[14px] placeholder:text-[12px] placeholder:text-[#808080] focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                  placeholder="Enter your local government area"
+                />
+                {errors.lga && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.lga.message}
                   </p>
                 )}
               </div>

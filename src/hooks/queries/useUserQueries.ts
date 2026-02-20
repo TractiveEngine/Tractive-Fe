@@ -13,6 +13,7 @@ export interface ContentPayload {
   address?: string;
   country?: string;
   state?: string;
+  lga?: string;
 //   villageOrLocalMarket?: string; // Keeping for potential backward compatibility or if mapped
 //   nin?: string;
 //   businessName?: string;
@@ -81,6 +82,19 @@ export const useAddAccount = () => {
     })
 }
 
+export const useProfile = () => {
+  return useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const response = await api.get("/api/profile");
+      return response.data?.user ?? null;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: (failureCount, error: any) =>
+      error?.response?.status !== 401 && failureCount < 2,
+  });
+};
+
 export const useUpdateProfile = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -89,8 +103,20 @@ export const useUpdateProfile = () => {
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-        }
+            toast.success("Profile updated successfully!", {
+                duration: 3000,
+                position: "top-center",
+            });
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
+        },
+        onError: (error: any) => {
+            toast.error(
+                error?.response?.data?.message ||
+                    error?.message ||
+                    "Failed to update profile. Please try again.",
+                { duration: 4000, position: "top-center" },
+            );
+        },
     })
 }
 
@@ -125,3 +151,31 @@ export const useUnfollowFarmer = () => {
         }
     })
 }
+
+// ── Change Password ───────────────────────────────────────────────────────────
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (data: ChangePasswordPayload) =>
+      api.post("/api/auth/change-password", data),
+    onSuccess: () => {
+      toast.success("Password changed successfully!", {
+        duration: 3000,
+        position: "top-center",
+      });
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to change password. Please try again.",
+        { duration: 4000, position: "top-center" },
+      );
+    },
+  });
+};
+
