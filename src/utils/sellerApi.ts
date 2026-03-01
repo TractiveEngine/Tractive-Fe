@@ -8,6 +8,14 @@ export interface Seller {
   productsCount: number;
   roles: string[];
   activeRole: string;
+  followersCount?: number;
+  phoneNumbers?: string[];
+  yearsOfExperience?: number;
+  bio?: string;
+  averageRating?: number;
+  totalReviews?: number;
+  amountOfSales?: number;
+  recommendations?: any[];
   // UI fields not in API - optional or with defaults
   image?: string;
   rating?: number;
@@ -16,6 +24,8 @@ export interface Seller {
   customerNumber?: number;
   sellerBio?: string;
   location?: string;
+  isFollowing?: boolean;
+  isVerified?: boolean;
 }
 
 interface SellersResponse {
@@ -28,22 +38,32 @@ interface SellersResponse {
   };
 }
 
-export const getSellers = async (): Promise<Seller[]> => {
+export interface GetSellersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  state?: string;
+  year?: number;
+  rating?: number;
+}
+
+export const getSellers = async (params?: GetSellersParams): Promise<SellersResponse> => {
   try {
     const response = await axios.get<SellersResponse>(
-      "https://tractive-be.vercel.app/api/sellers"
+      "https://tractive-be.vercel.app/api/sellers",
+      { params }
     );
 
     if (response.data.success) {
-      return response.data.data;
+      return response.data;
     } else {
       toast.error("Failed to load sellers");
-      return [];
+      return { success: false, data: [], pagination: { page: 1, limit: 12, total: 0 } };
     }
   } catch (error) {
     console.error("Error fetching sellers:", error);
     toast.error("Error loading sellers list");
-    return [];
+    return { success: false, data: [], pagination: { page: 1, limit: 12, total: 0 } };
   }
 };
 
@@ -64,8 +84,8 @@ export const getSellerById = async (id: string): Promise<Seller | null> => {
     }
 
     // Fallback: Fetch all sellers and find by ID
-    const sellers = await getSellers();
-    const seller = sellers.find((s) => s.sellerId === id);
+    const sellersResponse = await getSellers();
+    const seller = sellersResponse.data.find((s) => s.sellerId === id);
     return seller || null;
   } catch (error) {
     console.error("Error fetching seller details:", error);
@@ -85,5 +105,31 @@ export const getSellerProducts = async (id: string): Promise<any[]> => {
     } catch (error) {
         console.error("Error fetching seller products:", error);
         return [];
+    }
+}
+
+// Get seller reviews
+export const getSellerReviews = async (id: string): Promise<any> => {
+    try {
+        const response = await axios.get(
+            `https://tractive-be.vercel.app/api/sellers/${id}/reviews`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching seller reviews:", error);
+        return null;
+    }
+}
+
+// Like a review
+export const likeReview = async (reviewId: string): Promise<any> => {
+    try {
+        const response = await axios.post(
+            `https://tractive-be.vercel.app/api/reviews/${reviewId}/like`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error liking review:", error);
+        throw error;
     }
 }

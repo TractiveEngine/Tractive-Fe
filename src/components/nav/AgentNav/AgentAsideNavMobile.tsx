@@ -18,7 +18,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { AddToStore } from "../../../app/(main)/agent/_components/AddToStore";
 import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/ProfileDropDown/Agent_ProfileDropDownMobile";
 
@@ -142,7 +142,7 @@ export const AgentAsideNavMobile = ({
     },
   ];
 
-  const sectionVariants = {
+  const sectionVariants: Variants = {
     initial: { height: 0, opacity: 0 },
     animate: {
       height: "auto",
@@ -156,7 +156,7 @@ export const AgentAsideNavMobile = ({
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     initial: { y: 10, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: 10, opacity: 0 },

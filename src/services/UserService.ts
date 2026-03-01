@@ -102,7 +102,7 @@ export const userService = {
   // Follow a farmer (Buyer action)
   followFarmer: async (farmerId: string): Promise<any> => {
     try {
-      const response = await api.post(`/api/buyers/farmers/${farmerId}/follow`);
+      const response = await api.post(`/api/buyers/sellers/${farmerId}/follow`);
       return response.data;
     } catch (error) {
       console.error(`❌ Error following farmer ${farmerId}:`, error);
@@ -113,12 +113,64 @@ export const userService = {
   // Unfollow a farmer (Buyer action)
   unfollowFarmer: async (farmerId: string): Promise<any> => {
     try {
-      const response = await api.delete(`/api/buyers/farmers/${farmerId}/follow`);
+      const response = await api.delete(`/api/buyers/sellers/${farmerId}/follow`);
       return response.data;
     } catch (error) {
       console.error(`❌ Error unfollowing farmer ${farmerId}:`, error);
       throw error;
     }
   },
-};
 
+  // Add product to wishlist
+  addToWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Adding product ${productId} to wishlist`);
+      const response = await api.post(`/api/wishlist`, { productId });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error adding product ${productId} to wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Remove product from wishlist
+  removeFromWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Removing product ${productId} from wishlist`);
+      const response = await api.delete(`/api/wishlist`, {
+        data: { productId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(
+        `❌ Error removing product ${productId} from wishlist:`,
+        error
+      );
+      throw error;
+    }
+  },
+
+  // Get wishlist items
+  getWishlist: async (page = 1, limit = 20): Promise<any> => {
+    try {
+      const response = await api.get(`/api/wishlist`, {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Get Top Sellers
+  getTopSellers: async (): Promise<any> => {
+    try {
+      const response = await api.get(`/api/buyers/top-sellers`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching top sellers:`, error);
+      throw error;
+    }
+  },
+};

@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { getSellers, getSellerById, getSellerProducts } from "@/utils/sellerApi";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getSellers, getSellerById, getSellerProducts, getSellerReviews, likeReview, GetSellersParams } from "@/utils/sellerApi";
+import { toast } from "sonner";
 
-export const useGetSellers = () => {
+export const useGetSellers = (params?: GetSellersParams) => {
     return useQuery({
-        queryKey: ["sellers"],
-        queryFn: getSellers,
+        queryKey: ["sellers", params],
+        queryFn: () => getSellers(params),
     });
 };
 
@@ -22,4 +23,27 @@ export const useGetSellerProducts = (id: string) => {
         queryFn: () => getSellerProducts(id),
         enabled: !!id,
     });
+};
+
+export const useGetSellerReviews = (id: string) => {
+    return useQuery({
+        queryKey: ["sellerReviews", id],
+        queryFn: () => getSellerReviews(id),
+        enabled: !!id,
+    });
+};
+
+export const useLikeReview = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (reviewId: string) => likeReview(reviewId),
+        onSuccess: () => {
+             toast.success("Review liked");
+             queryClient.invalidateQueries({ queryKey: ["sellerReviews"] });
+        },
+        onError: (error: any) => {
+             const message = error?.response?.data?.message || "Failed to like review";
+             toast.error(message);
+        }
+    })
 };

@@ -64,6 +64,7 @@ export const OtherStoreProduct: React.FC<OtherStoreProductProps> = ({
             bottomLabel="Price:"
             showLeadingImages={false}
             imageClass="h-[200px] object-cover"
+            isWishlisted={product.isWishlisted}
           />
         ))}
       </div>

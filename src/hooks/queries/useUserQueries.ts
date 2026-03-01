@@ -152,6 +152,54 @@ export const useUnfollowFarmer = () => {
     })
 }
 
+export const useAddToWishlist = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (productId: string) => userService.addToWishlist(productId),
+        onSuccess: () => {
+             toast.success("Added to wishlist");
+             queryClient.invalidateQueries({ queryKey: productKeys.all });
+             queryClient.invalidateQueries({ queryKey: ["profile"] });
+             queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+        },
+        onError: (error: any) => {
+             const message = error?.response?.data?.error || error?.response?.data?.message || "Failed to add to wishlist";
+             toast.error(message);
+        }
+    })
+}
+
+export const useRemoveFromWishlist = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (productId: string) => userService.removeFromWishlist(productId),
+        onSuccess: () => {
+             toast.success("Removed from wishlist");
+             queryClient.invalidateQueries({ queryKey: productKeys.all });
+             queryClient.invalidateQueries({ queryKey: ["profile"] });
+             queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+        },
+        onError: (error: any) => {
+             const message = error?.response?.data?.error || error?.response?.data?.message || "Failed to remove from wishlist";
+             toast.error(message);
+        }
+    })
+}
+
+export const useGetWishlist = (page: number = 1, limit: number = 20) => {
+    return useQuery({
+        queryKey: ["wishlist", page, limit],
+        queryFn: () => userService.getWishlist(page, limit),
+    })
+}
+
+export const useGetTopSellers = () => {
+  return useQuery({
+    queryKey: ["topSellers"],
+    queryFn: () => userService.getTopSellers(),
+  });
+};
+
 // ── Change Password ───────────────────────────────────────────────────────────
 export interface ChangePasswordPayload {
   currentPassword: string;

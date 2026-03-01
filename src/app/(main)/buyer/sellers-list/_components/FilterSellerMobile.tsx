@@ -111,11 +111,10 @@ export const FilterSellerMobile: React.FC<FilterSellerMobileProps> = ({
     setOpenLocation((prev: boolean) => !prev);
   };
 
-  // Handle years click
-  const handleYearsClick = (year: string): void => {
-    setPendingYears((prev: string[]) =>
-      prev.includes(year) ? prev.filter((y) => y !== year) : [...prev, year]
-    );
+  // Handle years change via input
+  const handleYearsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const val = e.target.value;
+    setPendingYears(val ? [val] : []);
   };
 
   // Handle years toggle
@@ -181,8 +180,6 @@ export const FilterSellerMobile: React.FC<FilterSellerMobileProps> = ({
     "Zamfara",
     "FCT",
   ];
-  const years: string[] = ["1-5 Years", "6-10 Years"];
-
   return (
     <>
       <style>
@@ -376,24 +373,14 @@ export const FilterSellerMobile: React.FC<FilterSellerMobileProps> = ({
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        {years.map((year) => (
-                          <div
-                            key={year}
-                            className={`flex items-center gap-2 border-[1.5px] border-[#808080] py-1.5 px-3 rounded-full cursor-pointer ${
-                              pendingYears.includes(year)
-                                ? "bg-[#538e53] text-[#fefefe]"
-                                : "text-[#2b2b2b]"
-                            }`}
-                            onClick={() => handleYearsClick(year)}
-                          >
-                            <CheckCircleIcon
-                              isSelected={pendingYears.includes(year)}
-                            />
-                            <span className="font-montserrat text-[12px] font-medium">
-                              {year}
-                            </span>
-                          </div>
-                        ))}
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Enter max years"
+                          value={pendingYears[0] || ""}
+                          onChange={handleYearsChange}
+                          className="w-full p-2 border-[1.5px] border-[#808080] rounded-[4px] text-[12px] sm:text-[14px] text-[#2b2b2b] focus:outline-none focus:border-[#538e53]"
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -72,7 +72,7 @@ const ProductDetail: React.FC = () => {
           onRefresh={refetchProduct} 
         />
       </div>
-      <SimilarProduct />
+      <SimilarProduct productId={id} />
     </div>
   );
 };

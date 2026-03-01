@@ -37,11 +37,12 @@ interface ReviewData {
 
 // Props interface for the Reviews component
 interface ReviewsProps {
+  sellerId?: string;
   onClose: () => void;
 }
 
-// Sample review data
-const reviewData: ReviewData = {
+// ... existing reviewData mock ...
+const reviewDataMock: ReviewData = {
   overallRating: 4.0,
   totalReviewers: 25000,
   ratings: [
@@ -102,9 +103,39 @@ const reviewData: ReviewData = {
   ],
 };
 
-export const Reviews: React.FC<ReviewsProps> = ({ onClose }) => {
-  const { overallRating, totalReviewers, ratings, reviews, reviewerAvatars } =
-    reviewData;
+import { useGetSellerReviews, useLikeReview } from "@/hooks/queries/useSellerQueries";
+
+export const Reviews: React.FC<ReviewsProps> = ({ sellerId, onClose }) => {
+  const { data: apiReviewData, isLoading } = useGetSellerReviews(sellerId);
+  const likeMutation = useLikeReview();
+
+  // Map API data if available, otherwise use mock
+  const mappedData: ReviewData = React.useMemo(() => {
+    if (apiReviewData && apiReviewData.reviews && apiReviewData.reviews.length > 0) {
+      return {
+        overallRating: apiReviewData.overallRating || 0,
+        totalReviewers: apiReviewData.totalReviewers || 0,
+        ratings: apiReviewData.ratings || reviewDataMock.ratings,
+        reviewerAvatars: apiReviewData.reviewerAvatars || [],
+        reviews: apiReviewData.reviews.map((r: any) => ({
+          id: r._id || r.id,
+          user: {
+            name: r.user?.name || "Anonymous",
+            avatar: r.user?.avatar || "/images/placeholder.png",
+          },
+          rating: r.rating || 0,
+          comment: r.comment || "",
+          date: r.createdAt || r.date || new Date().toISOString(),
+          image: r.image || "",
+          replies: r.repliesCount || r.replies || 0,
+          likes: r.likesCount || r.likes || 0,
+        })),
+      };
+    }
+    return reviewDataMock;
+  }, [apiReviewData]);
+
+  const { overallRating, totalReviewers, ratings, reviews, reviewerAvatars } = mappedData;
 
   // Initialize individual animation controls for each rating
   const control1 = useAnimation();
@@ -123,7 +154,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ onClose }) => {
     // Start animation for each progress bar on mount
     controls.forEach((control, index) => {
       control.start({
-        width: `${ratings[index].percentage}%`,
+        width: `${ratings[index]?.percentage || 0}%`,
         transition: { duration: 1, ease: "easeOut" },
       });
     });
@@ -280,7 +311,10 @@ export const Reviews: React.FC<ReviewsProps> = ({ onClose }) => {
                     {review.replies} replies
                   </span>
                 </div>
-                <div className="flex items-center gap-[6px]">
+                <div 
+                  className={`flex items-center gap-[6px] cursor-pointer hover:opacity-80 transition-opacity ${likeMutation.isPending && likeMutation.variables === String(review.id) ? "opacity-50 pointer-events-none" : ""}`}
+                  onClick={() => likeMutation.mutate(String(review.id))}
+                >
                   <LikeIcon />
                   <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
                     {review.likes} Likes

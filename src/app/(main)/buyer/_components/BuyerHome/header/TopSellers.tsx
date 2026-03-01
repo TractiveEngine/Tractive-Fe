@@ -2,7 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { Button } from "@/components/Button";
+import { useRouter } from "next/navigation";
+
 import { LoaderIcon } from "@/icons/Icons";
 
 interface Seller {
@@ -27,6 +28,7 @@ export const TopSellers: React.FC<TopSellersProps> = ({
   toggleFollow,
   renderStars,
 }) => {
+  const router = useRouter();
   // Loader SVG
   const Loader = () => <LoaderIcon />;
 
@@ -60,21 +62,35 @@ export const TopSellers: React.FC<TopSellersProps> = ({
               </div>
             </div>
             
-            <Button
-              text={
-                loadingStates[seller.name] ? (
-                  <Loader />
-                ) : isFollowing(seller.name) ? (
-                  "Following"
-                ) : (
-                  "Visit Store"
-                )
-              }
-              onClick={() => toggleFollow(seller.name)}
-              className="bg-transparent border-[#538E53] border-[2px] !hover:text-[#fefefe]  !rounded-[4px] !px-[0.5rem] !py-[0.55rem] text-[0.8rem] font-normal flex items-center justify-center"
-              textClass="text-[#538E53] !hover:text-[#fefefe] text-[0.8rem] font-normal"
+            <button
+              onClick={() => {
+                if (isFollowing(seller.name)) {
+                  toggleFollow(seller.name);
+                } else {
+                  router.push(`/buyer/sellers-list/${seller.storeLink.split('/').pop()}`);
+                }
+              }}
               disabled={loadingStates[seller.name]}
-            />
+              className={`
+                relative overflow-hidden rounded-[4px] px-3 py-2 text-[0.8rem] font-normal
+                border-[2px] border-[#538E53] transition-all duration-300 ease-in-out
+                flex items-center justify-center min-w-[5.5rem]
+                ${loadingStates[seller.name]
+                  ? "bg-gray-200 border-gray-300 cursor-not-allowed text-gray-400"
+                  : isFollowing(seller.name)
+                    ? "bg-[#538E53] text-white hover:bg-[#3b753b] hover:border-[#3b753b] hover:shadow-md hover:scale-[1.03]"
+                    : "bg-transparent text-[#538E53] hover:bg-[#538E53] hover:text-white hover:shadow-md hover:scale-[1.03]"
+                }
+              `}
+            >
+              {loadingStates[seller.name] ? (
+                <Loader />
+              ) : isFollowing(seller.name) ? (
+                "Following"
+              ) : (
+                "Visit Store"
+              )}
+            </button>
           </div>
         ))}
       </div>

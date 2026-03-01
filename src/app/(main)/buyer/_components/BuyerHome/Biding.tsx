@@ -141,6 +141,7 @@ export const Biding = () => {
                   biddingPrice="" // Hide price beside view button
                   bottomLabel=""
                   showLeadingImages={false}
+                  isWishlisted={product.isWishlisted}
                 />
               </div>
             );

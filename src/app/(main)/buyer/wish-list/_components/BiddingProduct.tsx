@@ -68,6 +68,7 @@ export const BiddingProduct: React.FC = () => {
             bottomLabel="Price:"
             showLeadingImages={false}
             imageClass="h-[200px] object-cover"
+            isWishlisted={(bid?.product as any)?.isWishlisted}
           />
         ))}
       </div>

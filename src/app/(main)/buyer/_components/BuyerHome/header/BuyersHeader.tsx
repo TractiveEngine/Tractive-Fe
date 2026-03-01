@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useFollowing } from "@/hooks/followingContext";
+import { useGetTopSellers } from "@/hooks/queries/useUserQueries";
 import { Categories } from "./categories";
 import { ImageSlider } from "./ImagesSlider";
 import { TopSellers } from "./TopSellers";
@@ -14,33 +15,7 @@ const sliderImages = [
   "/images/buyer4.png",
 ];
 
-// Data for the right div (Top Sellers)
-const topSellers = [
-  {
-    name: "Kelvin Chikezie",
-    image: "/images/sellersProfiles.png",
-    rating: 4,
-    storeLink: "/store/kelvin",
-  },
-  {
-    name: "Aisha Bello",
-    image: "/images/sellersProfiles.png",
-    rating: 5,
-    storeLink: "/store/aisha",
-  },
-  {
-    name: "Emeka Okonkwo",
-    image: "/images/sellersProfiles.png",
-    rating: 3,
-    storeLink: "/store/emeka",
-  },
-  {
-    name: "Fatima Musa",
-    image: "/images/sellersProfiles.png",
-    rating: 4,
-    storeLink: "/store/fatima",
-  },
-];
+// Data for the right div (Top Sellers) will be fetched via API
 
 export const BuyersHeader: React.FC = () => {
   // State for the image slider
@@ -62,6 +37,18 @@ export const BuyersHeader: React.FC = () => {
 
   // Use the FollowingContext
   const { loadingStates, isFollowing, toggleFollow } = useFollowing();
+
+  // Fetch top sellers
+  const { data: topSellersResponse } = useGetTopSellers();
+  const rawTopSellers = topSellersResponse?.data || [];
+  
+  // Map API response to expected Seller format
+  const topSellers = rawTopSellers.map((seller: any) => ({
+    name: seller.name,
+    image: seller.image || "/images/sellersProfiles.png",
+    rating: seller.rating || 0,
+    storeLink: `/store/${seller.sellerId || seller._id}`,
+  }));
 
   // Categories and their subcategories
   const categories = [

@@ -14,6 +14,7 @@ export interface Owner {
   address?: string;
   roles?: string[];
   isFollowing?: boolean;
+  rating?: number;
 }
 
 
@@ -72,6 +73,7 @@ export interface ApiProduct {
   reviewSummary?: ReviewSummary;
   bidSummary?: BidSummary;
   recentReviews?: any[];
+  isWishlisted?: boolean;
 }
 
 // ... (Product, PaginationMeta, ProductsResponse, SearchFilters interfaces remain the same)
@@ -91,6 +93,21 @@ export interface ProductsResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface TopSellingProduct {
+  productId: string;
+  name: string;
+  ordersCount: number;
+  totalQuantity: number;
+  totalAmount: number;
+  price: number;
+  unit: string;
+}
+
+export interface TopSellingResponse {
+  success: boolean;
+  data: TopSellingProduct[];
 }
 
 export interface SearchFilters {
@@ -248,6 +265,7 @@ const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
     reviewSummary: backendProduct.reviewSummary,
     bidSummary: backendProduct.bidSummary,
     recentReviews: backendProduct.recentReviews,
+    isWishlisted: backendProduct.isWishlisted,
   };
 };
 
@@ -308,6 +326,50 @@ export const productService = {
       return mapBackendToFrontendProduct(productData);
     } catch (error) {
       return handleApiError(error, "fetch product details");
+    }
+  },
+
+  // GET /api/product/:id/similar - Get similar products
+  getSimilarProducts: async (id: string): Promise<ApiProduct[]> => {
+    try {
+      console.log(`🚀 Fetching similar products for ${id}`);
+
+      const response = await api.get(`/api/products/${id}/similar`);
+
+      console.log("✅ Similar products fetched:", response.data);
+      let mappedProducts: ApiProduct[] = [];
+      const data = response.data.data || response.data.products || response.data || [];
+      
+      if (Array.isArray(data)) {
+        mappedProducts = data.map(mapBackendToFrontendProduct);
+      }
+      
+      return mappedProducts;
+    } catch (error) {
+      console.error("Failed to fetch similar products:", error);
+      return []; // Return empty array to not break UI on error
+    }
+  },
+
+  // Get Pending Products
+  getPendingProducts: async (): Promise<ProductsResponse> => {
+    try {
+      const response = await api.get("/api/farmers/products/pending");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching pending products:", error);
+      throw error;
+    }
+  },
+
+  // Get Top Selling Products
+  getTopSellingProducts: async (): Promise<TopSellingResponse> => {
+    try {
+      const response = await api.get("/api/buyers/top-selling");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching top selling products:", error);
+      throw error;
     }
   },
 

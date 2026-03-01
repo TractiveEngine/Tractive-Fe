@@ -11,9 +11,10 @@ interface SellerCardProps {
   sellerName: string;
   rating: number;
   rateStatus: string;
-  sellerYear: string;
-  customerNumber: number;
-  sellerBio: string;
+  sellerYear: string | number;
+  productsCount: number;
+  totalReviews?: number;
+  sellerBio?: string;
 }
 
 export const SellerCard: React.FC<SellerCardProps> = ({
@@ -23,7 +24,8 @@ export const SellerCard: React.FC<SellerCardProps> = ({
   rating,
   rateStatus,
   sellerYear,
-  customerNumber,
+  productsCount,
+  totalReviews,
   sellerBio,
 }) => {
   return (
@@ -43,25 +45,33 @@ export const SellerCard: React.FC<SellerCardProps> = ({
           <div className="flex items-center gap-1">
             <AwardIcon />
             <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-              {sellerYear} years
+              {sellerYear == 0 || sellerYear === "0" ? "Less than a year" : `${sellerYear} years`}
             </span>
           </div>
           <span className="w-2 h-2 rounded-full bg-[#2b2b2b]"></span>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <YellowStarIcon />
-              <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                {rating}
-              </span>
-            </div>
-            <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-              Rating <span>{rateStatus}</span>
-            </p>
+            {rating > 0 ? (
+              <>
+                <div className="flex items-center gap-1">
+                  <YellowStarIcon />
+                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                    {rating}
+                  </span>
+                </div>
+                <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                  Rating <span>{rateStatus}</span>
+                </p>
+              </>
+            ) : (
+              <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                {rateStatus}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center bg-[#F7DFFF80] w-fit py-1.5 px-3 rounded-[100px] justify-center gap-1">
           <p className="font-montserrat font-normal text-[10px] sm:text-[12px] text-[#2b2b2b]">
-            {customerNumber} customers
+            {productsCount} products
           </p>
         </div>
         <p className="font-montserrat mt-2 font-normal text-[11px] text-[#2b2b2b]">

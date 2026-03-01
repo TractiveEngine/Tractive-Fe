@@ -1,9 +1,10 @@
 "use client";
-import { WishIcon } from "@/icons/Icons";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAddToWishlist, useRemoveFromWishlist } from "@/hooks/queries/useUserQueries";
+import { toast } from "sonner";
 
 interface CardProps {
   id: string;
@@ -26,6 +27,7 @@ interface CardProps {
   descriptionClass?: string;
   amountClass?: string;
   quantityClass?: string;
+  isWishlisted?: boolean;
 }
 
 export default function BidingCard({
@@ -51,11 +53,39 @@ export default function BidingCard({
   quantityClass = "",
   bottomLabel = "Leading:", // Default label
   showLeadingImages = true, // Default to showing images
+  isWishlisted = false,
 }: CardProps & { bottomLabel?: string; showLeadingImages?: boolean }) {
 
   
   // State to manage hover for tooltip
   const [isHovered, setIsHovered] = useState(false);
+
+  // Wishlist state and logic
+  const [localWishlisted, setLocalWishlisted] = useState(isWishlisted);
+  const addMutation = useAddToWishlist();
+  const removeMutation = useRemoveFromWishlist();
+
+  useEffect(() => {
+    setLocalWishlisted(isWishlisted);
+  }, [isWishlisted]);
+
+  const toggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const previousState = localWishlisted;
+    setLocalWishlisted(!previousState);
+
+    try {
+      if (!previousState) {
+        await addMutation.mutateAsync(id);
+      } else {
+        await removeMutation.mutateAsync(id);
+      }
+    } catch (error) {
+      setLocalWishlisted(previousState);
+    }
+  };
 
   // Function to truncate description to 4 words with "..." prefix
   const truncateDescription = (text?: string) => {
@@ -84,7 +114,26 @@ export default function BidingCard({
           height={200}
           className={`w-[100%] h-[200px] object-cover rounded-md ${imageClass}`}
         />
-        <WishIcon title={title} />
+        <div
+          className={`absolute top-2 right-2 bg-[#ffffff80] rounded-full p-1 cursor-pointer hover:scale-110 transition-transform ${addMutation.isPending || removeMutation.isPending ? "opacity-50 pointer-events-none" : ""}`}
+          onClick={toggleWishlist}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="21"
+            viewBox="0 0 22 21"
+            fill={localWishlisted ? "#2A942A" : "none"}
+          >
+            <path
+              d="M11.454 19.21C11.114 19.33 10.554 19.33 10.214 19.21C7.31398 18.22 0.833984 14.09 0.833984 7.09C0.833984 4 3.32398 1.5 6.39398 1.5C8.21398 1.5 9.82398 2.38 10.834 3.74C11.3478 3.04588 12.017 2.48173 12.788 2.09274C13.559 1.70376 14.4104 1.50076 15.274 1.5C18.344 1.5 20.834 4 20.834 7.09C20.834 14.09 14.354 18.22 11.454 19.21Z"
+              stroke="#2A942A"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
       </div>
       <Link href={`/buyer/product/${id}`}>
         <div className="p-4 ">

@@ -17,6 +17,7 @@ export const productKeys = {
     [...productKeys.lists(), filters] as const,
   details: () => [...productKeys.all, "detail"] as const,
   detail: (id: string) => [...productKeys.details(), id] as const,
+  similar: (id: string) => [...productKeys.detail(id), "similar"] as const,
 };
 
 /**
@@ -50,6 +51,28 @@ export const useProduct = (id: string | null) => {
     queryFn: () => productService.getProduct(id!),
     enabled: !!id,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+/**
+ * Hook to fetch similar products
+ */
+export const useSimilarProducts = (id: string | null) => {
+  return useQuery({
+    queryKey: productKeys.similar(id || ""),
+    queryFn: () => productService.getSimilarProducts(id!),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+/**
+ * Hook to fetch top selling products
+ */
+export const useGetTopSellingProducts = () => {
+  return useQuery({
+    queryKey: [...productKeys.all, "topSelling"],
+    queryFn: () => productService.getTopSellingProducts(),
   });
 };
 
