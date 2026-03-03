@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSellers, getSellerById, getSellerProducts, getSellerReviews, likeReview, GetSellersParams } from "@/utils/sellerApi";
+import { getSellers, getSellerById, getSellerProducts, getSellerReviews, likeReview, GetSellersParams, GetSellerProductsParams } from "@/utils/sellerApi";
 import { toast } from "sonner";
 
 export const useGetSellers = (params?: GetSellersParams) => {
@@ -17,10 +17,10 @@ export const useGetSeller = (id: string) => {
     });
 };
 
-export const useGetSellerProducts = (id: string) => {
+export const useGetSellerProducts = (id: string, params?: GetSellerProductsParams) => {
     return useQuery({
-        queryKey: ["sellerProducts", id],
-        queryFn: () => getSellerProducts(id),
+        queryKey: ["sellerProducts", id, params],
+        queryFn: () => getSellerProducts(id, params),
         enabled: !!id,
     });
 };

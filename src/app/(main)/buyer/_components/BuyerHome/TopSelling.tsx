@@ -77,6 +77,7 @@ export const TopSelling: React.FC = () => {
                   </span>
                 </div>
               </div>
+              
             ))
           ) : (
             <>

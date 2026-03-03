@@ -110,6 +110,24 @@ export interface TopSellingResponse {
   data: TopSellingProduct[];
 }
 
+export interface RecommendationProduct {
+  _id?: string;
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  owner?: Owner;
+  farmer?: Farmer;
+  quantity: number;
+  unit: string;
+  createdAt?: string;
+}
+
+export interface RecommendationsResponse {
+  success: boolean;
+  data: ApiProduct[] | RecommendationProduct[];
+}
+
 export interface SearchFilters {
   page?: number;
   limit?: number;
@@ -373,12 +391,36 @@ export const productService = {
     }
   },
 
+  // Get Recommendations
+  getRecommendations: async (): Promise<RecommendationsResponse> => {
+    try {
+      const response = await api.get("/api/buyers/recommendations");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      throw error;
+    }
+  },
+
+  // Get Seller Recommendations
+  getSellerRecommendations: async (
+    sellerId: string,
+  ): Promise<RecommendationsResponse> => {
+    try {
+      const response = await api.get(`/api/sellers/${sellerId}/recommendations`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching recommendations for seller ${sellerId}:`, error);
+      throw error;
+    }
+  },
+
   // GET /api/products/out-of-stock - Get out-of-stock products
   getOutOfStockProducts: async (
     filters: Omit<SearchFilters, "status"> = {},
   ): Promise<ProductsResponse> => {
     try {
-      console.log("🚀 Fetching out-of-stock products:", filters);
+      console.log("Fetching out-of-stock products:", filters);
 
       const params: any = {
         page: filters.page || 1,
@@ -389,6 +431,26 @@ export const productService = {
       const response = await api.get("/api/products/out-of-stock", {
         params,
       });
+
+//       {
+//   "fleetName": "North Route Fleet",
+//   "fleetNumber": "ABC-123",
+//   "iot": "IOT-TRK-001",
+//   "model": "Volvo",
+//   "size": "20 tons",
+//   "price": 250000,
+//   "priceNegotiation": true,
+//   "images": [
+//     "https://example.com/truck1.jpg"
+//   ],
+//   "fleetDescription": "Primary interstate fleet",
+//   "fleetStates": "Active",
+//   "route": {
+//     "fromState": "Kaduna",
+//     "toState": "Lagos"
+//   }
+// }
+
 
       console.log("✅ Out-of-stock products fetched:", response.data);
 

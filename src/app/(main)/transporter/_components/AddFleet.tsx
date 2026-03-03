@@ -1,35 +1,113 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { GalleryAddIcon, XModalIcon } from "./Icons/TransporterIcons";
-import { DriverDetailsForm } from "./DriverDetailsForm";
+import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
+import { useAddFleet, useUpdateFleet } from "@/hooks/queries/useFleetQueries";
+import { FleetPayload } from "@/services/fleetService";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
+import { toast } from "sonner";
+import { Fleet } from "@/utils/Fleet";
+
+// Nigerian states
+const nigerianStates = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
+  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT",
+  "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi",
+  "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
+  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
+];
+
+// Fleet States Options
+const fleetStatesOptions = ["Active", "Inactive", "Under Maintenance"];
 
 // Props for AddFleet
 interface AddFleetProps {
   isOpen: boolean;
   onClose: () => void;
+  editFleetData?: Fleet | null;
 }
 
-export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose }) => {
+export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetData }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const fromDropdownRef = useRef<HTMLDivElement>(null);
+  const toDropdownRef = useRef<HTMLDivElement>(null);
+  const fleetStateDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [isFromOpen, setIsFromOpen] = useState(false);
+  const [isToOpen, setIsToOpen] = useState(false);
+  const [isFleetStateOpen, setIsFleetStateOpen] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: "",
-    phoneNumber: "",
+    fleetName: "",
+    fleetNumber: "",
+    iot: "",
+    model: "",
     price: "",
     size: "",
     isNegotiable: false,
     description: "",
     fromState: "",
     toState: "",
-    deliveryDays: "",
-    driverImage: null as File | null,
-    driverName: "",
-    driverPhone: "",
+    fleetStates: "Active", // default
+    images: [] as string[],
   });
 
-  
+  const { mutate: addFleet, isPending: isAddPending } = useAddFleet();
+  const { mutate: updateFleet, isPending: isUpdatePending } = useUpdateFleet();
+  const isPending = isAddPending || isUpdatePending;
+  const { uploadToCloudinary } = useCloudinaryUpload();
+  const [uploadingIndexes, setUploadingIndexes] = useState<Set<number>>(new Set());
+
+  // Initialize form with edit data if provided
+  useEffect(() => {
+    if (editFleetData) {
+      const [fromState, toState] = editFleetData.route.split(" - ");
+      setFormData({
+        fleetName: editFleetData.name,
+        fleetNumber: editFleetData.fleetNumber || "",
+        iot: editFleetData.IOT,
+        model: editFleetData.model || "",
+        price: editFleetData.price.toString(),
+        size: editFleetData.size || "",
+        isNegotiable: editFleetData.priceNegotiation || false,
+        description: editFleetData.fleetDescription || "",
+        fromState: fromState || "",
+        toState: toState || "",
+        fleetStates: editFleetData.status,
+        images: editFleetData.images || [],
+      });
+    } else {
+      // Reset if not editing
+      setFormData({
+        fleetName: "",
+        fleetNumber: "",
+        iot: "",
+        model: "",
+        price: "",
+        size: "",
+        isNegotiable: false,
+        description: "",
+        fromState: "",
+        toState: "",
+        fleetStates: "Active",
+        images: [],
+      });
+    }
+  }, [editFleetData, isOpen]);
+
+  // Form Validation
+  const isFormValid = editFleetData 
+    ? formData.model.trim() !== "" && formData.size.trim() !== ""
+    : formData.fleetName.trim() !== "" &&
+      formData.fleetNumber.trim() !== "" &&
+      formData.iot.trim() !== "" &&
+      formData.model.trim() !== "" &&
+      formData.price !== "" &&
+      formData.size.trim() !== "" &&
+      formData.description.trim() !== "" &&
+      formData.images.filter(Boolean).length > 0 &&
+      uploadingIndexes.size === 0;
 
   // Handle input changes
   const handleInputChange = (
@@ -44,25 +122,127 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose }) => {
     setFormData((prev) => ({ ...prev, isNegotiable: value }));
   };
 
-
-  // Handle next button
-  const handleNext = () => {
-    setCurrentStep(2);
+  // Dropdown Handlers
+  const handleFromSelect = (state: string) => {
+    setFormData((prev) => ({ ...prev, fromState: state }));
+    setIsFromOpen(false);
   };
 
-  // Handle back button
-  const handleBack = () => {
-    setCurrentStep(1);
+  const handleToSelect = (state: string) => {
+    setFormData((prev) => ({ ...prev, toState: state }));
+    setIsToOpen(false);
   };
 
-  // Close dropdowns when clicking outside
+  const handleFleetStateSelect = (state: string) => {
+    setFormData((prev) => ({ ...prev, fleetStates: state }));
+    setIsFleetStateOpen(false);
+  };
+
+  // Handle Image Upload
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIndexes((prev) => new Set(prev).add(index));
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData((prev) => {
+        const newImages = [...prev.images];
+        newImages[index] = url;
+        return { ...prev, images: newImages };
+      });
+    } catch (error) {
+      console.error("Image upload failed", error);
+      toast.error("Failed to upload image.");
+    } finally {
+      setUploadingIndexes((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => {
+      const newImages = [...prev.images];
+      delete newImages[index];
+      return { ...prev, images: newImages };
+    });
+  };
+
+  // Handle Form Submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isFormValid) {
+      toast.error(editFleetData ? "Please fill in Model and Size" : "Please fill in all required fields and upload at least one image.");
+      return;
+    }
+
+    try {
+      const payload: Partial<FleetPayload> = editFleetData 
+        ? {
+            model: formData.model,
+            capacity: formData.size,
+          } as any 
+        : {
+            fleetName: formData.fleetName,
+            fleetNumber: formData.fleetNumber,
+            iot: formData.iot,
+            model: formData.model,
+            capacity: formData.size,
+            price: Number(formData.price),
+            priceNegotiation: formData.isNegotiable,
+            images: formData.images.filter(Boolean), // remove undefined/null slots
+            fleetDescription: formData.description,
+            fleetStates: formData.fleetStates,
+            route: {
+              fromState: formData.fromState || "Kaduna",
+              toState: formData.toState || "Lagos",
+            },
+          } as any;
+
+      if (editFleetData) {
+        updateFleet({ id: editFleetData.id, data: payload }, {
+          onSuccess: () => {
+            onClose();
+          },
+          onError: () => {
+            toast.error("Error updating fleet.");
+          }
+        });
+      } else {
+        addFleet(payload as FleetPayload, {
+          onSuccess: () => {
+            onClose();
+            // Reset form will be handled by the useEffect
+          },
+          onError: () => {
+            toast.error("Error creating fleet.");
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Form submission error", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  };
+
+  // Close dropdowns relative click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         onClose();
+      }
+      if (fromDropdownRef.current && !fromDropdownRef.current.contains(event.target as Node)) {
+        setIsFromOpen(false);
+      }
+      if (toDropdownRef.current && !toDropdownRef.current.contains(event.target as Node)) {
+        setIsToOpen(false);
+      }
+      if (fleetStateDropdownRef.current && !fleetStateDropdownRef.current.contains(event.target as Node)) {
+        setIsFleetStateOpen(false);
       }
     };
 
@@ -87,173 +267,340 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50 p-4"
         >
           <motion.div
             ref={modalRef}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="relative bg-[#fefefe] rounded-lg w-[95%] overflow-y-auto max-h-[500px] max-w-[500px] p-4"
+            className="relative bg-[#fefefe] rounded-lg w-full max-w-[500px] overflow-y-auto max-h-[90vh] p-4 sm:p-6"
           >
-            {currentStep === 1 && (
-              <>
             <div
               onClick={onClose}
-              className="absolute top-[1.6rem] right-[0.8rem] cursor-pointer"
+              className="absolute top-[1.2rem] right-[1.2rem] cursor-pointer hover:bg-gray-100 p-1 rounded-full transition-colors"
             >
               <XModalIcon />
             </div>
-                <h2 className="text-[15px] pt-[1.6rem] font-normal text-center text-[#808080] font-montserrat mb-2">
-                  Upload Fleet
-                </h2>
-                <form className="space-y-1 sm:px-4 pb-6">
-                  {/* Name and Phone Number */}
-                  <div className="flex flex-col md:flex-row gap-[15px] w-full max-w-[480px] mx-auto">
-                    <div className="w-full md:w-1/2">
-                      <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full border-[1px] border-[#2b2b2b] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:font-montserrat placeholder:text-[13px] font-montserrat"
-                        placeholder="Enter fleet name"
-                      />
-                    </div>
-                    <div className="w-full md:w-1/2">
-                      <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        className="w-full border-[1px] border-[#2b2b2b] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:font-montserrat placeholder:text-[13px] font-montserrat"
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                  </div>
+            <h2 className="text-[16px] pt-2 font-medium text-center text-[#2b2b2b] font-montserrat mb-6">
+              {editFleetData ? "Edit Fleet" : "Upload Fleet"}
+            </h2>
 
-                  {/* Price and Size */}
-                  <div className="flex flex-col md:flex-row gap-[20px] w-full max-w-[480px] mx-auto">
-                    <div className="w-full md:w-1/2">
-                      <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                        Price
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className="w-full border-[1px] border-[#2b2b2b] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:font-montserrat placeholder:text-[13px] font-montserrat"
-                        placeholder="Enter price"
-                      />
-                    </div>
-                    <div className="w-full md:w-1/2">
-                      <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                        Size
-                      </label>
-                      <input
-                        type="text"
-                        name="size"
-                        value={formData.size}
-                        onChange={handleInputChange}
-                        className="w-full border-[1px] border-[#2b2b2b] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:font-montserrat placeholder:text-[13px] font-montserrat"
-                        placeholder="Enter size"
-                      />
-                    </div>
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-4 pb-2">
+              
+              {/* Fleet Name and Fleet Number */}
+              <div className="flex flex-col sm:flex-row gap-[15px] w-full max-w-[480px] mx-auto">
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Fleet Name
+                  </label>
+                  <input
+                    type="text"
+                    name="fleetName"
+                    value={formData.fleetName}
+                    onChange={handleInputChange}
+                    disabled={!!editFleetData}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    placeholder="Enter fleet name"
+                    required={!editFleetData}
+                  />
+                </div>
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Fleet Number
+                  </label>
+                  <input
+                    type="text"
+                    name="fleetNumber"
+                    value={formData.fleetNumber}
+                    onChange={handleInputChange}
+                    disabled={!!editFleetData}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    placeholder="e.g., ABC-123"
+                    required={!editFleetData}
+                  />
+                </div>
+              </div>
 
-                  {/* Negotiation Toggle */}
-                  <div className="flex items-center gap-[4px] w-full max-w-[480px] mx-auto">
-                    <span className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                      Is this price negotiable?
-                    </span>
-                    <div className="flex gap-[10px]">
-                      <button
-                        type="button"
-                        onClick={() => handleNegotiableToggle(true)}
-                        className={`cursor-pointer flex-1 border-[1px] border-[#538e53] rounded-[4px] px-[0.3rem] text-[10px] font-montserrat font-normal text-[#2b2b2b] ${
-                          formData.isNegotiable
-                            ? "bg-[#538e53] text-[#fefefe]"
-                            : ""
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleNegotiableToggle(false)}
-                        className={`cursor-pointer flex-1 border-[1px] border-[#538e53] rounded-[4px] px-[0.3rem] text-[10px] font-montserrat font-normal text-[#2b2b2b] ${
-                          !formData.isNegotiable
-                            ? "bg-[#538e53] text-[#fefefe]"
-                            : ""
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
+              {/* IOT and Model */}
+              <div className="flex flex-col sm:flex-row gap-[15px] w-full max-w-[480px] mx-auto">
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    IOT Tracking Code
+                  </label>
+                  <input
+                    type="text"
+                    name="iot"
+                    value={formData.iot}
+                    onChange={handleInputChange}
+                    disabled={!!editFleetData}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    placeholder="TRK-001"
+                    required={!editFleetData}
+                  />
+                </div>
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Model
+                  </label>
+                  <input
+                    type="text"
+                    name="model"
+                    value={formData.model}
+                    onChange={handleInputChange}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors"
+                    placeholder="e.g., Volvo"
+                    required
+                  />
+                </div>
+              </div>
 
-                  {/* Add Image Section */}
-                  <div className="flex gap-[4px] flex-col w-full max-w-[480px] mx-auto justify-center">
-                    <div className="flex gap-[20px] items-center justify-between w-full">
-                      <div className="flex flex-col justify-center gap-[4px] w-[100%]">
-                        <span className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                          Add Image
-                        </span>
-                        <div className="flex gap-[15px] items-center justify-center">
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
-                            <GalleryAddIcon />
-                          </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
-                            <GalleryAddIcon />
-                          </div>
-                          <div className="flex items-center justify-center bg-[#f1f1f1] rounded-[4px] w-[182px] h-[60px] sm:h-[70px]">
-                            <GalleryAddIcon />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fleet Description */}
-                  <div className="w-full max-w-[480px] mx-auto">
-                    <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
-                      Fleet Description
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full border-[1px] border-[#2b2b2b] outline-none rounded-[4px] px-3 py-2 text-[12px] font-montserrat resize-none h-[120px]"
-                      placeholder="Enter fleet description"
-                    />
-                  </div>
-
-                  {/* Next Button */}
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="cursor-pointer flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-[100%] font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
+              {/* Route: From and To */}
+              <div className="flex flex-col sm:flex-row gap-[15px] w-full max-w-[480px] mx-auto relative">
+                <div className="relative w-full sm:w-1/2" ref={fromDropdownRef}>
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Route: From
+                  </label>
+                  <div
+                    onClick={() => !editFleetData && setIsFromOpen(!isFromOpen)}
+                    className={`flex items-center justify-between w-full border border-[#d9d9d9] rounded-[4px] px-3 py-2 ${editFleetData ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer focus-within:border-[#538e53]'} transition-colors`}
                   >
-                    Next
-                  </button>
-                </form>
-              </>
-            )}
-            {currentStep === 2 && (
-              <DriverDetailsForm
-                onBack={handleBack}
-                onClose={onClose}
-                formData={formData} // Pass formData to ItemDetailsForm
-                setFormData={setFormData} // Pass setFormData as required by ItemDetailsFormProps
-              />
-            )}
+                    <span className={`text-[13px] font-montserrat ${formData.fromState ? 'text-[#2b2b2b]' : 'text-[#a0a0a0]'}`}>
+                      {formData.fromState || "Select Origin"}
+                    </span>
+                    {isFromOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  </div>
+                  {isFromOpen && (
+                    <div className="absolute z-20 w-full bg-[#fefefe] border border-[#d9d9d9] rounded-[4px] mt-1 max-h-[150px] overflow-y-auto shadow-md">
+                      {nigerianStates.map((state) => (
+                        <div
+                          key={`from-${state}`}
+                          onClick={() => handleFromSelect(state)}
+                          className="px-3 py-2 text-[12px] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
+                        >
+                          {state}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative w-full sm:w-1/2" ref={toDropdownRef}>
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Route: To
+                  </label>
+                  <div
+                    onClick={() => !editFleetData && setIsToOpen(!isToOpen)}
+                    className={`flex items-center justify-between w-full border border-[#d9d9d9] rounded-[4px] px-3 py-2 ${editFleetData ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer focus-within:border-[#538e53]'} transition-colors`}
+                  >
+                    <span className={`text-[13px] font-montserrat ${formData.toState ? 'text-[#2b2b2b]' : 'text-[#a0a0a0]'}`}>
+                      {formData.toState || "Select Destination"}
+                    </span>
+                    {isToOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  </div>
+                  {isToOpen && (
+                    <div className="absolute z-20 w-full bg-[#fefefe] border border-[#d9d9d9] rounded-[4px] mt-1 max-h-[150px] overflow-y-auto shadow-md">
+                      {nigerianStates.map((state) => (
+                        <div
+                          key={`to-${state}`}
+                          onClick={() => handleToSelect(state)}
+                          className="px-3 py-2 text-[12px] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
+                        >
+                          {state}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Price and Size */}
+              <div className="flex flex-col sm:flex-row gap-[15px] w-full max-w-[480px] mx-auto">
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Price
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    disabled={!!editFleetData}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    placeholder="Enter price"
+                    required={!editFleetData}
+                  />
+                </div>
+                <div className="w-full sm:w-1/2">
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Capacity
+                  </label>
+                  <input
+                    type="text"
+                    name="size"
+                    value={formData.size}
+                    onChange={handleInputChange}
+                    className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat focus:border-[#538e53] transition-colors"
+                    placeholder="e.g., 20 tons"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Fleet State and Negotiation Toggle */}
+              <div className="flex flex-col sm:flex-row gap-[15px] w-full max-w-[480px] mx-auto relative items-start">
+                <div className="relative w-full sm:w-1/2" ref={fleetStateDropdownRef}>
+                  <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Fleet Status
+                  </label>
+                  <div
+                    onClick={() => !editFleetData && setIsFleetStateOpen(!isFleetStateOpen)}
+                    className={`flex items-center justify-between w-full border border-[#d9d9d9] rounded-[4px] px-3 py-2 transition-colors ${editFleetData ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer focus-within:border-[#538e53]'}`}
+                  >
+                    <span className="text-[13px] font-normal text-[#2b2b2b] font-montserrat">
+                      {formData.fleetStates}
+                    </span>
+                    {isFleetStateOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  </div>
+                  {isFleetStateOpen && (
+                    <div className="absolute z-20 w-full bg-[#fefefe] border border-[#d9d9d9] rounded-[4px] mt-1 shadow-md">
+                      {fleetStatesOptions.map((state) => (
+                        <div
+                          key={`status-${state}`}
+                          onClick={() => handleFleetStateSelect(state)}
+                          className="px-3 py-2 text-[12px] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
+                        >
+                          {state}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full sm:w-1/2">
+                  <span className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                    Is this price negotiable?
+                  </span>
+                  <div className="flex gap-[10px]">
+                    <button
+                      type="button"
+                      disabled={!!editFleetData}
+                      onClick={() => handleNegotiableToggle(true)}
+                      className={`flex-1 border border-[#538e53] rounded-[4px] py-2 text-[12px] font-montserrat font-medium transition-colors ${
+                        formData.isNegotiable
+                          ? "bg-[#538e53] text-[#fefefe]"
+                          : "text-[#2b2b2b] hover:bg-[#ebf3eb]"
+                      } ${editFleetData ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!!editFleetData}
+                      onClick={() => handleNegotiableToggle(false)}
+                      className={`flex-1 border border-[#538e53] rounded-[4px] py-2 text-[12px] font-montserrat font-medium transition-colors ${
+                        !formData.isNegotiable
+                          ? "bg-[#538e53] text-[#fefefe]"
+                          : "text-[#2b2b2b] hover:bg-[#ebf3eb]"
+                      } ${editFleetData ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add Image Section */}
+              <div className="w-full max-w-[480px] mx-auto pt-2">
+                <span className="text-[12px] font-medium text-[#2b2b2b] font-montserrat block mb-2">
+                  Add Images
+                </span>
+                <div className="flex gap-[15px] items-center">
+                  {[0, 1, 2].map((index) => {
+                    const isUploading = uploadingIndexes.has(index);
+                    const hasImage = !!formData.images[index];
+
+                    return (
+                      <div
+                        key={index}
+                        className="relative flex items-center justify-center bg-[#f9f9f9] border border-dashed border-[#a0a0a0] rounded-[4px] flex-1 h-[70px] sm:h-[80px] overflow-hidden group hover:bg-[#f1f1f1] transition-colors"
+                      >
+                        {isUploading ? (
+                          <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+                        ) : hasImage ? (
+                          <>
+                            <Image
+                              src={formData.images[index]}
+                              alt={`Fleet uploaded ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              {editFleetData ? (
+                                <div className="text-white text-xs bg-gray-500 rounded px-2 py-1">Images Locked</div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(index)}
+                                  className="text-white text-xs bg-red-500 hover:bg-red-600 rounded px-2 py-1 transition-colors pointer-events-auto cursor-pointer"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <label className="cursor-pointer flex items-center justify-center w-full h-full">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={!!editFleetData}
+                                onChange={(e) => handleImageChange(e, index)}
+                              />
+                              <GalleryAddIcon opacity={editFleetData ? 0.3 : 1} />
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fleet Description */}
+              <div className="w-full max-w-[480px] mx-auto pt-2">
+                <label className="text-[12px] font-medium text-[#2b2b2b] font-montserrat mb-1 block">
+                  Fleet Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  disabled={!!editFleetData}
+                  className="w-full border border-[#d9d9d9] outline-none rounded-[4px] px-3 py-2 text-[13px] placeholder:text-[#a0a0a0] font-montserrat resize-none h-[80px] focus:border-[#538e53] transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  placeholder="Enter fleet description"
+                  required={!editFleetData}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isPending || !isFormValid}
+                  className={`cursor-pointer flex items-center justify-center mx-auto w-full max-w-[480px] font-montserrat font-medium text-[15px] rounded-[4px] py-3 transition-colors ${
+                    isPending || !isFormValid
+                      ? "bg-[#a0a0a0] text-[#fefefe] cursor-not-allowed"
+                      : "bg-[#538e53] hover:bg-[#467a46] text-[#fefefe]"
+                  }`}
+                >
+                  {isPending ? "Processing..." : (editFleetData ? "Save Changes" : "Upload Fleet")}
+                </button>
+              </div>
+
+            </form>
           </motion.div>
         </motion.div>
       )}

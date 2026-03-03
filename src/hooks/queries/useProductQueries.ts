@@ -6,6 +6,7 @@ import {
   ApiProduct,
   ProductsResponse,
   SearchFilters,
+  RecommendationsResponse,
 } from "@/services/productService";
 import { toast } from "sonner";
 
@@ -73,6 +74,27 @@ export const useGetTopSellingProducts = () => {
   return useQuery({
     queryKey: [...productKeys.all, "topSelling"],
     queryFn: () => productService.getTopSellingProducts(),
+  });
+};
+
+/**
+ * Hook to fetch recommendations for buyers
+ */
+export const useGetRecommendations = () => {
+  return useQuery({
+    queryKey: [...productKeys.all, "recommendations"],
+    queryFn: () => productService.getRecommendations(),
+  });
+};
+
+/**
+ * Hook to fetch recommendations for a specific seller store
+ */
+export const useGetSellerRecommendations = (sellerId: string) => {
+  return useQuery({
+    queryKey: [...productKeys.all, "sellerRecommendations", sellerId],
+    queryFn: () => productService.getSellerRecommendations(sellerId),
+    enabled: !!sellerId,
   });
 };
 

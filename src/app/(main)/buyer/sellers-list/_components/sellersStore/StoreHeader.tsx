@@ -24,10 +24,7 @@ export const StoreHeader = ({
 }) => {
   const [openCallLog, setOpenCallLog] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
-  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
-    "09034145971": false,
-    "09034145972": false,
-  });
+  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
 
   // Memoize ratings to prevent re-creation on every render
   const ratings = useMemo(
@@ -41,8 +38,8 @@ export const StoreHeader = ({
     []
   );
 
-  // Phone number data (replace with actual data)
-  const phoneNumbers = ["09034145971", "09034145972"];
+  // Phone number data
+  const phoneNumbers = seller?.phoneNumbers?.length ? seller.phoneNumbers : ["09034145971", "09034145972"];
 
   // Initialize individual animation controls for each rating
   const control1 = useAnimation();
@@ -138,18 +135,20 @@ export const StoreHeader = ({
                     Follow
                   </span>
                 </div>
-                <div className="flex gap-1 items-center flex-wrap">
+                <div className="flex gap-2 items-center flex-wrap mt-[2px]">
                   <div className="flex gap-1 items-center">
                     <YellowStarIcon />
                     <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                      4.0
+                      {seller?.averageRating || 0}
                     </small>
                   </div>
+                  <span className="w-[3px] h-[3px] rounded-full bg-[#8e8e8e]"></span>
                   <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    700 followers
+                    {seller?.followersCount || 0} followers
                   </small>
-                  <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    Abia state
+                  <span className="w-[3px] h-[3px] rounded-full bg-[#8e8e8e]"></span>
+                  <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b] truncate max-w-[120px]">
+                    {seller?.location || "Unknown"}
                   </small>
                 </div>
               </div>
@@ -221,7 +220,7 @@ export const StoreHeader = ({
               <AwardIcon />
             </div>
             <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#2b2b2b]">
-              5 years of sales
+              {seller?.yearsOfExperience || 0} years of sales
             </p>
           </div>
 
@@ -293,7 +292,7 @@ export const StoreHeader = ({
                     />
                   </div>
                   <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    + 25,000
+                    + {seller?.totalReviews || 0}
                   </p>
                 </div>
                 <div

@@ -225,7 +225,11 @@ export const bidService = {
   getWonBids: async (): Promise<BidResponse[]> => {
     try {
       const response = await api.get("/api/buyers/biddings/won");
-      return response.data.data;
+      const data = response.data.data;
+      if (data && Array.isArray(data.bids)) {
+        return data.bids;
+      }
+      return Array.isArray(data) ? data : [];
     } catch (error) {
        return []; 
     }
@@ -235,7 +239,11 @@ export const bidService = {
   getWonBidsCheckout: async (): Promise<BidResponse[]> => {
     try {
       const response = await api.get("/api/buyers/biddings/won/checkout");
-      return response.data.data;
+      const data = response.data.data;
+      if (data && Array.isArray(data.bids)) {
+        return data.bids;
+      }
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       return handleApiError(error, "fetch won bids checkout");
     }

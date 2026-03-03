@@ -6,6 +6,7 @@ export interface Seller {
   name: string;
   email: string;
   productsCount: number;
+  farmersCount?: number;
   roles: string[];
   activeRole: string;
   followersCount?: number;
@@ -93,10 +94,18 @@ export const getSellerById = async (id: string): Promise<Seller | null> => {
   }
 };
 
-export const getSellerProducts = async (id: string): Promise<any[]> => {
+export interface GetSellerProductsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: "available" | "out_of_stock" | "discontinued";
+}
+
+export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<any[]> => {
     try {
         const response = await axios.get<{ success: boolean; data: any[] }>(
-            `https://tractive-be.vercel.app/api/sellers/${id}/products`
+            `https://tractive-be.vercel.app/api/sellers/${id}/products`,
+            { params }
         );
         if (response.data.success) {
             return response.data.data;

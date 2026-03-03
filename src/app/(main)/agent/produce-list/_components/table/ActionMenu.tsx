@@ -72,9 +72,9 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
     };
 
     if (activeMenu === productId) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside, true);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside, true);
       };
     }
   }, [activeMenu, productId, setActiveMenu]);
@@ -133,7 +133,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
               {activeMenu === productId && (
                 <motion.div
                   ref={dropdownRef}
-                  className="fixed z-[999] w-[140px] px-1 bg-[#fefefe] rounded-[5px] shadow-xl border border-[#e0e0e0]"
+                  className="fixed z-999 w-[140px] px-1 bg-[#fefefe] rounded-[5px] shadow-xl border border-[#e0e0e0]"
                   style={{
                     top: menuPos.top - window.scrollY,
                     left: menuPos.left,

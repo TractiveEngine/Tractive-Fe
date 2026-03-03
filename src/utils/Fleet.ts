@@ -9,6 +9,14 @@ export interface Fleet {
   price: number;
   date: string;
   checked: boolean;
+
+  // Additional fields for View Fleet Modal
+  fleetNumber?: string;
+  model?: string;
+  size?: string;
+  priceNegotiation?: boolean;
+  fleetDescription?: string;
+  images?: string[];
 }
 
 // Sample data with unique IDs and varied fleet information
