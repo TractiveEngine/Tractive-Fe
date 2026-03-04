@@ -21,15 +21,17 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
   const isEdit = !!editDriver;
   
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     licenseNumber: "",
+    phoneNumber: "",
     phone: "",
     image: "/images/bidder1.png",
   });
   
   const [errors, setErrors] = useState({
-    name: "",
+    fullName: "",
     licenseNumber: "",
+    phoneNumber: "",
     phone: "",
   });
   
@@ -39,20 +41,22 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
     if (isOpen) {
       if (editDriver) {
         setFormData({
-            name: editDriver.name,
+            fullName: editDriver.name || "",
             licenseNumber: editDriver.licenseNumber || "",
-            phone: editDriver.phone || editDriver.mobile || "",
+            phone: editDriver.phone || (editDriver as any).mobile || "",
+            phoneNumber: "",
             image: editDriver.image || "/images/bidder1.png",
         });
       } else {
         setFormData({
-            name: "",
+            fullName: "",
             licenseNumber: "",
             phone: "",
+            phoneNumber: "",
             image: "/images/bidder1.png",
         });
       }
-      setErrors({ name: "", licenseNumber: "", phone: "" });
+      setErrors({ fullName: "", licenseNumber: "", phoneNumber: "", phone: "" });
     }
   }, [isOpen, editDriver]);
 
@@ -61,14 +65,22 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
-      name: "",
+      fullName: "",
       licenseNumber: "",
+      phoneNumber: "",
       phone: "",
     };
 
     if (!isEdit) {
-        if (!formData.name.trim()) {
-            newErrors.name = "Full name is required";
+        if (!formData.fullName.trim()) {
+            newErrors.fullName = "Full name is required";
+            isValid = false;
+        }
+        if (!formData.phoneNumber.trim()) {
+            newErrors.phoneNumber = "Phone number is required";
+            isValid = false;
+        } else if (!/^(\+?234|0)\d{10}$/.test(formData.phoneNumber)) {
+            newErrors.phoneNumber = "Invalid phone number format";
             isValid = false;
         }
         if (!formData.licenseNumber.trim()) {
@@ -111,7 +123,11 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
         if (isEdit) {
             onSubmit({ phone: formData.phone });
         } else {
-            onSubmit({ name: formData.name, licenseNumber: formData.licenseNumber });
+            onSubmit({ 
+                fullName: formData.fullName, 
+                phoneNumber: formData.phoneNumber, 
+                licenseNumber: formData.licenseNumber 
+            });
         }
       onClose();
     }
@@ -125,7 +141,7 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100]"
+      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-100"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -157,13 +173,13 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
         
         {/* Image upload only in create mode if needed? User didn't specify. Left it but might not use it in payload. */}
         <div className="flex justify-center mb-2">
-          <div className="relative w-[5rem] h-[5rem] group">
+          <div className="relative w-20 h-20 group">
             <Image
               src={formData.image}
               alt="Driver profile"
               width={86}
               height={86}
-              className="w-[5rem] h-[5rem] rounded-[100px] object-cover border-2 border-gray-300"
+              className="w-20 h-20 rounded-[100px] object-cover border-2 border-gray-300"
             />
             {!editDriver && (
                 <>
@@ -200,22 +216,42 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
                 <>
                     <div>
                     <label
-                        htmlFor="name"
+                        htmlFor="fullName"
                         className="block text-sm font-montserrat text-[#2b2b2b]"
                     >
                         Full Name
                     </label>
                     <input
-                        id="name"
-                        name="name"
+                        id="fullName"
+                        name="fullName"
                         type="text"
-                        value={formData.name}
+                        value={formData.fullName}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
                         aria-required="true"
                     />
-                    {errors.name && (
-                        <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    {errors.fullName && (
+                        <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                    )}
+                    </div>
+                    <div>
+                    <label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-montserrat text-[#2b2b2b]"
+                    >
+                        Phone Number
+                    </label>
+                    <input
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                        aria-required="true"
+                    />
+                    {errors.phoneNumber && (
+                        <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
                     )}
                     </div>
                     <div>
@@ -267,7 +303,7 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
             <div className="flex justify-center gap-2 mt-6">
               <button
                 type="submit"
-                className="px-6 py-2 w-[100%] bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
+                className="px-6 py-2 w-full bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
               >
                 Submit
               </button>

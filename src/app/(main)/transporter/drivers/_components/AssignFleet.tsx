@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XModalIcon } from "../../_components/Icons/TransporterIcons";
 import { Driver } from "@/utils/DriverData";
+import { useGetFleets } from "@/hooks/queries/useFleetQueries";
 
 interface AssignFleetModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
     truckId: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: fleets = [], isLoading: isFetchingFleets } = useGetFleets();
 
   useEffect(() => {
     if (isOpen && editDriver) {
@@ -88,7 +91,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-[100]"
+      className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-100"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -115,13 +118,13 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
           Assign Fleet to {editDriver?.name || "Driver"}
         </h2>
         <div className="flex justify-center mb-2">
-          <div className="relative w-[5rem] h-[5rem] group">
+          <div className="relative w-20 h-20 group">
             <Image
               src={formData.image}
               alt="Driver profile"
               width={86}
               height={86}
-              className="w-[5rem] h-[5rem] rounded-[100px] object-cover border-2 border-gray-300"
+              className="w-20 h-20 rounded-[100px] object-cover border-2 border-gray-300"
             />
             {/* Image upload seems unrelated to assign fleet, but keeping it for consistency if needed. */}
           </div>
@@ -142,17 +145,26 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
                 htmlFor="truckId"
                 className="block text-sm font-montserrat text-[#2b2b2b]"
               >
-                Truck ID
+                Assign to Fleet
               </label>
-              <input
+              <select
                 id="truckId"
                 name="truckId"
-                type="text"
                 value={formData.truckId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                onChange={(e) => handleChange(e as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53] bg-white appearance-none"
                 aria-required="true"
-              />
+                disabled={isFetchingFleets}
+              >
+                <option value="" disabled>
+                  {isFetchingFleets ? "Loading fleets..." : "Select a fleet"}
+                </option>
+                {fleets.map((fleet) => (
+                  <option key={fleet._id} value={fleet._id}>
+                    {fleet.fleetName || fleet.fleetNumber || fleet._id}
+                  </option>
+                ))}
+              </select>
               {errors.truckId && (
                 <p className="text-red-500 text-xs mt-1">{errors.truckId}</p>
               )}
@@ -160,7 +172,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
             <div className="flex justify-center gap-2 mt-6">
               <button
                 type="submit"
-                className="px-6 py-2 w-[100%] bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
+                className="px-6 py-2 w-full bg-[#538e53] text-[#f9f9f9] rounded-[4px] hover:bg-[#467a46]"
               >
                 Done
               </button>

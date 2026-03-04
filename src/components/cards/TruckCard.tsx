@@ -43,9 +43,9 @@ export default function TruckCard({
         <Image
           src={image}
           alt={truckName}
-          width={381}
-          height={237}
-          className={`w-[100%] object-cover rounded-md ${imageClass}`}
+          width={381} // The original width ratio based value, can keep it but CSS controls actual display
+          height={140}
+          className={`w-full h-[140px] sm:h-[160px] object-cover rounded-t-lg ${imageClass}`}
         />
       </div>
       <Link

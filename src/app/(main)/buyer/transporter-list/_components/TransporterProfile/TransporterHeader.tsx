@@ -13,8 +13,11 @@ import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Reviews } from "@/components/Reviews";
+import { useGetTransporter } from "@/hooks/queries/useTransporterQueries";
+import { Loader2 } from "lucide-react";
 
-export const TransporterHeader = () => {
+export const TransporterHeader = ({ transporterId }: { transporterId: string }) => {
+  const { data: transporter, isLoading, isError } = useGetTransporter(transporterId);
   const [openCallLog, setOpenCallLog] = useState(false);
   const [showReviews, setShowReviews] = useState(false); // New state for Reviews visibility
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
@@ -76,6 +79,32 @@ export const TransporterHeader = () => {
     });
   }, [controls, ratings]);
 
+  if (isLoading) {
+    return (
+      <div className="w-[90%] relative mx-auto pt-6 pb-6 flex justify-center items-center px-4 h-[200px]">
+        <Loader2 className="animate-spin text-[#2b2b2b] w-8 h-8" />
+      </div>
+    );
+  }
+
+  if (isError || !transporter) {
+    return (
+      <div className="w-[90%] relative mx-auto pt-6 pb-6 flex justify-center items-center px-4 h-[200px]">
+        <p className="text-[#808080] font-montserrat text-[14px]">Failed to load transporter details.</p>
+      </div>
+    );
+  }
+
+  const businessName = transporter.businessName || transporter.name || transporter.transporterName || "Unknown Transporter";
+  const avatar = transporter.image || transporter.profilePicture || "/images/sellerprofile.png";
+  const isVerified = transporter.isVerified ?? true;
+  const ratingValue = transporter.rating || 0;
+  const followersCount = transporter.followersCount || 0;
+  const stateLocation = transporter.state || transporter.locationFrom || "Various";
+  const deliveriesCount = transporter.successfulDeliveries || transporter.customerNumber || 0;
+  const yearsOfSales = transporter.transporterYear || transporter.yearsOfExperience || 1;
+  const reviewCount = transporter.reviewCount || 0;
+
   return (
     <div className="w-[90%] relative mx-auto pt-6 pb-6">
       <div className="relative flex flex-col lg:flex-row items-center gap-4 w-[100%]">
@@ -86,28 +115,30 @@ export const TransporterHeader = () => {
             </p>
             <div className="flex items-center gap-2">
               <Image
-                src="/images/sellerprofile.png"
-                alt="Transporter Profile"
+                src={avatar}
+                alt={businessName}
                 width={40}
                 height={40}
-                className="object-cover sm:w-[50px] sm:h-[50px]"
+                className="object-cover sm:w-[50px] sm:h-[50px] rounded-full"
               />
               <div className="flex flex-col gap-1 sm:gap-2">
                 <div className="flex gap-2 sm:gap-1 xl:gap-3 flex-wrap items-center w-full">
                   <div className="flex gap-2 items-center">
-                    <p className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#2b2b2b] truncate">
-                      Jane Store
+                    <p className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#2b2b2b] truncate max-w-[120px]">
+                      {businessName}
                     </p>
-                    <Image
-                      src="/images/verifiedIcon.png"
-                      alt="Verified"
-                      width={12}
-                      height={12}
-                      className="object-cover sm:w-[15px] sm:h-[15px]"
-                    />
+                    {isVerified && (
+                      <Image
+                        src="/images/verifiedIcon.png"
+                        alt="Verified"
+                        width={12}
+                        height={12}
+                        className="object-cover sm:w-[15px] sm:h-[15px]"
+                      />
+                    )}
                   </div>
                   <span className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
-                  <span className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#538e53]">
+                  <span className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#538e53] cursor-pointer">
                     Follow
                   </span>
                 </div>
@@ -115,14 +146,14 @@ export const TransporterHeader = () => {
                   <div className="flex gap-1 items-center">
                     <YellowStarIcon />
                     <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                      4.0
+                      {ratingValue.toFixed(1)}
                     </small>
                   </div>
                   <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    700 followers
+                    {followersCount} followers
                   </small>
                   <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    Abia state
+                    {stateLocation} state
                   </small>
                 </div>
               </div>
@@ -182,7 +213,7 @@ export const TransporterHeader = () => {
                 <ShoppingCartIcon />
               </div>
               <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#fefefe]">
-                5000 Successful Delivered Orders
+                {deliveriesCount} Successful Delivered Orders
               </p>
             </div>
           </div>
@@ -194,7 +225,7 @@ export const TransporterHeader = () => {
               <AwardIcon />
             </div>
             <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#2b2b2b]">
-              5 years of sales
+              {yearsOfSales} years of sales
             </p>
           </div>
 
@@ -266,7 +297,7 @@ export const TransporterHeader = () => {
                     />
                   </div>
                   <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    + 25,000
+                    + {reviewCount > 0 ? reviewCount.toLocaleString() : "0"}
                   </p>
                 </div>
                 <div
@@ -294,7 +325,7 @@ export const TransporterHeader = () => {
             transition={{ duration: 0.3 }}
             className="absolute right-0 top-[7.6rem] z-60"
           >
-            <Reviews onClose={handleReviewsToggle} />
+            <Reviews sellerId={transporterId} onClose={handleReviewsToggle} />
           </motion.div>
         )}
       </div>

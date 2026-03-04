@@ -39,6 +39,7 @@ interface ListTableProps<T extends BaseData> {
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
+  emptyState?: React.ReactNode;
 }
 
 const rowVariants = {
@@ -66,6 +67,7 @@ export const TableList = <T extends BaseData>({
   handleSupport,
   handleReject,
   handleAccept,
+  emptyState,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -181,8 +183,9 @@ export const TableList = <T extends BaseData>({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
-            <motion.tr
+          {data.length > 0 ? (
+            data.map((item, index) => (
+              <motion.tr
               key={item.id}
               className="bg-white hover:bg-gray-50 transition-colors relative"
               variants={rowVariants}
@@ -280,7 +283,19 @@ export const TableList = <T extends BaseData>({
                 )}
               </td>
             </motion.tr>
-          ))}
+            ))
+          ) : emptyState ? (
+            emptyState
+          ) : (
+            <tr>
+              <td
+                colSpan={columns.length + (isCheckboxTable ? 2 : 1)}
+                className="py-10 text-center font-montserrat text-sm text-[#808080]"
+              >
+                No data available
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </motion.div>

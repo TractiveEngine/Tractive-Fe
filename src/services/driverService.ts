@@ -1,7 +1,8 @@
 import api from "@/lib/axios";
 
 export interface CreateDriverPayload {
-  name: string;
+  fullName: string;
+  phoneNumber: string;
   licenseNumber: string;
 }
 

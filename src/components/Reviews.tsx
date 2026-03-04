@@ -38,6 +38,7 @@ interface ReviewData {
 // Props interface for the Reviews component
 interface ReviewsProps {
   sellerId?: string;
+  transporterId?: string;
   onClose: () => void;
 }
 
@@ -104,9 +105,16 @@ const reviewDataMock: ReviewData = {
 };
 
 import { useGetSellerReviews, useLikeReview } from "@/hooks/queries/useSellerQueries";
+import { useGetTransporterReviews } from "@/hooks/queries/useTransporterQueries";
 
-export const Reviews: React.FC<ReviewsProps> = ({ sellerId, onClose }) => {
-  const { data: apiReviewData, isLoading } = useGetSellerReviews(sellerId);
+export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClose }) => {
+  // useGetSellerReviews might only accept 1 argument, so we pass just sellerId. 
+  const sellerQuery = useGetSellerReviews(sellerId as string);
+  const transporterQuery = useGetTransporterReviews(transporterId as string, { enabled: !!transporterId });
+
+  const apiReviewData = sellerId ? sellerQuery.data : transporterQuery.data;
+  const isLoading = sellerId ? sellerQuery.isLoading : transporterQuery.isLoading;
+
   const likeMutation = useLikeReview();
 
   // Map API data if available, otherwise use mock

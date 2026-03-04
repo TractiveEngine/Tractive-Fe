@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
-export const TransporterRecommendation = () => {
+export const TransporterRecommendation = ({ transporterId }: { transporterId?: string }) => {
   return (
     <div className="flex flex-col w-full rounded-lg mt-4">
       <div className="w-[90%] flex flex-col justify-between mx-auto gap-3 mb-4">
