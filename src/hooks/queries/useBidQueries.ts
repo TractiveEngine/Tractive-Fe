@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { productService, Bidder } from "@/services/productService";
+import { useQuery } from "@tanstack/react-query";
+import { productService } from "@/services/productService";
 import { bidService } from "@/services/bidService";
-import { toast } from "sonner";
 
 export const bidKeys = {
   all: ["bids"] as const,

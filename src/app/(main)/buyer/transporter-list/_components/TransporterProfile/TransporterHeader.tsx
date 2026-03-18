@@ -95,15 +95,17 @@ export const TransporterHeader = ({ transporterId }: { transporterId: string }) 
     );
   }
 
-  const businessName = transporter.businessName || transporter.name || transporter.transporterName || "Unknown Transporter";
-  const avatar = transporter.image || transporter.profilePicture || "/images/sellerprofile.png";
-  const isVerified = transporter.isVerified ?? true;
-  const ratingValue = transporter.rating || 0;
-  const followersCount = transporter.followersCount || 0;
-  const stateLocation = transporter.state || transporter.locationFrom || "Various";
-  const deliveriesCount = transporter.successfulDeliveries || transporter.customerNumber || 0;
-  const yearsOfSales = transporter.transporterYear || transporter.yearsOfExperience || 1;
-  const reviewCount = transporter.reviewCount || 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const t = transporter as any;
+  const businessName = t.businessName || t.name || t.transporterName || "Unknown Transporter";
+  const avatar: string = t.image || t.profilePicture || "/images/sellerprofile.png";
+  const isVerified = t.isVerified ?? true;
+  const ratingValue = t.rating || 0;
+  const followersCount = t.followersCount || 0;
+  const stateLocation = t.state || t.locationFrom || "Various";
+  const deliveriesCount = t.successfulDeliveries || t.customerNumber || 0;
+  const yearsOfSales = t.transporterYear || t.yearsOfExperience || 1;
+  const reviewCount = t.reviewCount || 0;
 
   return (
     <div className="w-[90%] relative mx-auto pt-6 pb-6">

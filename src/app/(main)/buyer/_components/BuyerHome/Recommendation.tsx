@@ -21,7 +21,7 @@ export const Recommendation = () => {
             <div key={i} className="min-w-[280px] sm:min-w-[320px] h-80 bg-gray-200 animate-pulse rounded-lg snap-start" />
           ))
         ) : recommendations.length > 0 ? (
-          recommendations.map((product: any) => (
+          recommendations.map((product: RecommendationProduct) => (
             <div key={product.id || product._id} className="min-w-[280px] sm:min-w-[320px] snap-start">
               <BidingCard
               key={product.id || product._id}
@@ -34,8 +34,10 @@ export const Recommendation = () => {
               crownImage="/images/crown.png"
               leadingProfileImage={product.owner?.image || "/images/sellersProfiles.png"}
               quantity={`${product.quantity} ${product.unit || 'units'}`}
-              amount={product.price}
-              biddingPrice={product.price} // Fallback to price if not bidding
+              amount={product.price.toString()}
+              biddingPrice={product.price.toString()} // Fallback to price if not bidding
+              imageClass="h-[200px] object-cover"
+              isWishlisted={product.isWishlisted ?? product.wishlisted}
             />
             </div>
           ))

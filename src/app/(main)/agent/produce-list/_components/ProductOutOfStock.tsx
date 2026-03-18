@@ -2,17 +2,15 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
+import { ArrowDownIcon, SearchIcon } from "@/icons/Icons";
 import { ProductTable } from "./table/ProductTable";
 import { AddToStore } from "../../_components/AddToStore";
-import { productService, SearchFilters } from "@/services/productService";
+import { SearchFilters } from "@/services/productService";
 import {
   useBulkDeleteProducts,
   useBulkUpdateStatus,
 } from "@/hooks/queries/useProductQueries";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { DateRangePicker } from "@/components/DateRangePicker";
 
 interface ProductOutOfStockProps {
@@ -22,7 +20,6 @@ interface ProductOutOfStockProps {
 export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   onProductsUpdate,
 }) => {
-  const router = useRouter();
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     status: "out_of_stock",

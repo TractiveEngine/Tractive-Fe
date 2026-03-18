@@ -18,7 +18,7 @@ export const useOrders = (params?: OrdersQueryParams) => {
     queryKey: orderKeys.list(params),
     queryFn: () => OrdersApiService.getOrders(params),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: { response?: { status?: number } }) => {
       if (error?.response?.status === 401 || error?.response?.status === 403)
         return false;
       return failureCount < 2;

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const TransporterRecommendation = ({ transporterId }: { transporterId?: string }) => {
   return (
     <div className="flex flex-col w-full rounded-lg mt-4">

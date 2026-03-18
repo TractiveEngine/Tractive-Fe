@@ -140,7 +140,7 @@ const FarmersListPage: React.FC = () => {
           <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-600 text-sm font-semibold mb-1">Error</p>
             <p className="text-red-600 text-sm">
-              {farmersError?.message || "Failed to load farmers"}
+              {(farmersError as Error)?.message || "Failed to load farmers"}
             </p>
           </div>
         )}

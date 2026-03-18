@@ -1,6 +1,6 @@
 import { ArrowRightIcon, PlayIcon } from "@/icons/Icons";
 import Image from "next/image";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { VideoPreview } from "./productHeader/VideoPreview";
 
 interface ImgShowCaseProps {

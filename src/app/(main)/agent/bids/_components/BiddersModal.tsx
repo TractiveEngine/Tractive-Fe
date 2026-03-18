@@ -17,7 +17,6 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
   listingId,
 }) => {
   const [bidders, setBidders] = useState<SingleBid[]>([]);
-  const [productName, setProductName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [processingBidId, setProcessingBidId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,8 +34,7 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
     try {
       const details = await bidService.getBidDetails(listingId);
       setBidders(details.bids);
-      setProductName(details.productName);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load bidders");
       onClose();
     } finally {
@@ -57,7 +55,7 @@ export const BiddersModal: React.FC<BiddersModalProps> = ({
       setBidders((prev) =>
         prev.map((b) => (b.id === bidId ? { ...b, status } : b)),
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to update bid");
     } finally {
       setProcessingBidId(null);

@@ -2,10 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "./Icons/AgentIcons";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 import { useCreateProduct } from "@/hooks/queries/useProductQueries";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
@@ -28,7 +26,6 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   imageFiles,
   videoFiles = [], // Default to empty array
 }) => {
-  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [quantity, setQuantity] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -40,7 +37,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const { uploadToCloudinary } = useCloudinaryUpload();
 
   // Handle form submission
-  const { mutateAsync: createProduct, isPending: isCreating } =
+  const { mutateAsync: createProduct } =
     useCreateProduct();
 
   const handleSubmit = async (

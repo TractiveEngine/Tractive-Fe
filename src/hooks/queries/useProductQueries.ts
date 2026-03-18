@@ -6,7 +6,6 @@ import {
   ApiProduct,
   ProductsResponse,
   SearchFilters,
-  RecommendationsResponse,
 } from "@/services/productService";
 import { toast } from "sonner";
 
@@ -33,12 +32,14 @@ export const useProducts = (filters: SearchFilters = {}) => {
       // If asking specifically for out_of_stock, use the dedicated endpoint
       if (filters.status === "out_of_stock") {
         // Create a copy of filters but remove 'status' as the endpoint implies it
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { status, ...rest } = filters;
         return productService.getOutOfStockProducts(rest);
       }
       return productService.getProducts(filters);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     placeholderData: (previousData: any) => previousData,
   });
 };
@@ -116,7 +117,7 @@ export const useCreateProduct = () => {
 
       toast.success("Product uploaded successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       const message = error?.message || "Failed to create product";
       toast.error(message);
     },
@@ -154,7 +155,7 @@ export const useUpdateProduct = () => {
 
       toast.success("Product updated successfully");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error?.message || "Failed to update product");
     },
   });
@@ -187,7 +188,7 @@ export const useUpdateProductStatus = () => {
       });
 
       let movedProduct: ApiProduct | undefined;
-      let previousDataMap = new Map(); // To store previous data for rollback
+      const previousDataMap = new Map(); // To store previous data for rollback
 
       queries.forEach(([queryKey, oldData]) => {
         if (!oldData) return;
@@ -374,7 +375,7 @@ export const useBulkUpdateStatus = () => {
         queryKey: productKeys.lists(),
       });
 
-      let movedProducts: ApiProduct[] = [];
+      const movedProducts: ApiProduct[] = [];
 
       // 1. Remove from all method lists & collect moved items
       queries.forEach(([key, oldData]) => {

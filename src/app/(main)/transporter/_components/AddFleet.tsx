@@ -185,7 +185,8 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
         ? {
             model: formData.model,
             capacity: formData.size,
-          } as any 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any
         : {
             fleetName: formData.fleetName,
             fleetNumber: formData.fleetNumber,
@@ -201,6 +202,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
               fromState: formData.fromState || "Kaduna",
               toState: formData.toState || "Lagos",
             },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
 
       if (editFleetData) {

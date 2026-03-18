@@ -67,6 +67,7 @@ export default function Login() {
         // But to feel distinct, we can force a router refresh or wait
         router.refresh();
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Login error:", err);
       toast.dismiss(toastId);

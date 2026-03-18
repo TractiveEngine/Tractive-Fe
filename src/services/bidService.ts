@@ -82,7 +82,7 @@ export interface BidResponse {
   __v: number;
 }
 
-const handleApiError = (error: any, operation: string) => {
+const handleApiError = (error: unknown, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
   if (axios.isAxiosError(error) && error.response?.data?.message) {
     throw new Error(error.response.data.message);
@@ -90,6 +90,7 @@ const handleApiError = (error: any, operation: string) => {
   throw new Error(`Failed to ${operation}`);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapToBidListing = (item: any): BidListing => {
   return {
     id: item?._id,
@@ -117,6 +118,7 @@ export const bidService = {
   getBids: async (
     page = 1,
     limit = 10,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{ data: BidListing[]; pagination: any }> => {
     try {
       const response = await api.get("/api/bids", { params: { page, limit } });
@@ -157,6 +159,7 @@ export const bidService = {
          rawBids = [item];
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const bids: SingleBid[] = rawBids.map((b: any) => ({
         id: b?._id || b?.id,
         bidderName: b?.buyer?.name || b?.bidderName || b?.user?.name || "Unknown Bidder",
@@ -230,7 +233,7 @@ export const bidService = {
         return data.bids;
       }
       return Array.isArray(data) ? data : [];
-    } catch (error) {
+    } catch {
        return []; 
     }
   },

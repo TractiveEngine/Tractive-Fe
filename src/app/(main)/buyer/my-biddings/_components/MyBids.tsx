@@ -133,7 +133,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
       {bidItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 sm:p-12">
           <p className="font-montserrat font-normal text-sm sm:text-base text-[#808080]">
-            You haven't won any bids yet.
+            You haven&apos;t won any bids yet.
           </p>
         </div>
       ) : (

@@ -1,6 +1,5 @@
 import api from "@/lib/axios";
 import axios from "axios";
-import { toast } from "sonner";
 
 export interface Owner {
   id: string;
@@ -15,6 +14,7 @@ export interface Owner {
   roles?: string[];
   isFollowing?: boolean;
   rating?: number;
+  image?: string;
 }
 
 
@@ -27,6 +27,7 @@ export interface Farmer {
   state?: string;
   address?: string;
   approvalStatus?: string;
+  image?: string;
 }
 
 export interface ReviewSummary {
@@ -50,6 +51,7 @@ export interface BidSummary {
 }
 
 export interface ApiProduct {
+  _id?: string;
   id: string;
   name: string;
   description: string;
@@ -72,8 +74,10 @@ export interface ApiProduct {
   farmer?: Farmer;
   reviewSummary?: ReviewSummary;
   bidSummary?: BidSummary;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recentReviews?: any[];
   isWishlisted?: boolean;
+  wishlisted?: boolean;
 }
 
 // ... (Product, PaginationMeta, ProductsResponse, SearchFilters interfaces remain the same)
@@ -103,6 +107,10 @@ export interface TopSellingProduct {
   totalAmount: number;
   price: number;
   unit: string;
+  image?: string;
+  images?: string[];
+  wishlisted?: boolean;
+  isWishlisted?: boolean;
 }
 
 export interface TopSellingResponse {
@@ -114,13 +122,21 @@ export interface RecommendationProduct {
   _id?: string;
   id: string;
   name: string;
+  description?: string;
   price: number;
   images: string[];
   owner?: Owner;
   farmer?: Farmer;
   quantity: number;
-  unit: string;
+  unit?: string;
+  wishlisted?: boolean;
+  isWishlisted?: boolean;
   createdAt?: string;
+}
+
+export interface WishlistItem {
+  _id: string;
+  product: ApiProduct;
 }
 
 export interface RecommendationsResponse {
@@ -193,6 +209,7 @@ export interface BidResponse {
 }
 
 // Handle API errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleApiError = (error: any, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
 
@@ -221,7 +238,9 @@ const handleApiError = (error: any, operation: string) => {
 };
 
 // Map backend product to frontend format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapOwner = (owner: any): Owner | undefined => {
     if (!owner) return undefined;
     return {
@@ -240,6 +259,7 @@ const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
 
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapFarmer = (farmer: any): Farmer | undefined => {
     if (!farmer) return undefined;
     return {
@@ -283,7 +303,7 @@ const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
     reviewSummary: backendProduct.reviewSummary,
     bidSummary: backendProduct.bidSummary,
     recentReviews: backendProduct.recentReviews,
-    isWishlisted: backendProduct.isWishlisted,
+    isWishlisted: backendProduct.isWishlisted ?? backendProduct.wishlisted,
   };
 };
 
@@ -295,6 +315,7 @@ export const productService = {
     try {
       console.log("🚀 Fetching products with filters:", filters);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params: any = {
         page: filters.page || 1,
         limit: filters.limit || 10,
@@ -422,6 +443,7 @@ export const productService = {
     try {
       console.log("Fetching out-of-stock products:", filters);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params: any = {
         page: filters.page || 1,
         limit: filters.limit || 10,
@@ -613,7 +635,7 @@ export const productService = {
 
       console.log("✅ Winning bidder fetched:", response.data);
       return response.data.data || response.data || null;
-    } catch (error) {
+    } catch {
       // It's okay if there is no winner yet
       return null;
     }

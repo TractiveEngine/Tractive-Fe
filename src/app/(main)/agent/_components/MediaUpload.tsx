@@ -1,7 +1,6 @@
 import React, { useRef } from "react";
 import Image from "next/image";
-import { toast } from "sonner";
-import { GalleryAddIcon } from "./Icons/AgentIcons"; // Assuming this exists or I'll use text
+// import { GalleryAddIcon } from "./Icons/AgentIcons"; // Unused
 // If icons aren't available globally, I'll fallback to simple text/svg
 
 interface MediaUploadProps {

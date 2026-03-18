@@ -180,7 +180,8 @@ export const SellersInfo: React.FC<SellersInfoProps> = ({ owner, onRefresh }) =>
       <div className="relative flex flex-col gap-1.5 bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
         {/* Dynamic Review Preview */}
         {(() => {
-          const firstReview = reviewData?.reviews?.[0];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const firstReview = (reviewData as any)?.reviews?.[0];
 
           if (reviewsLoading) {
             return (

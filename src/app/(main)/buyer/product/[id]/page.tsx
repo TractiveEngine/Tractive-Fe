@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import { useParams } from "next/navigation";
-import { toast } from "sonner";
 // import { VideoPreview } from "../../_components/ProductDetails/productHeader/VideoPreview";
 import { MakeBid } from "../../_components/ProductDetails/productHeader/MakeBid";
 import { ImgShowCase } from "../../_components/ProductDetails/ImgShowCase";

@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { NotificationIcon, SearchIcon } from "../../../icons/Icons";
@@ -15,7 +15,6 @@ import ProfileDropDown from "../../../components/Profile_dropdowns/ProfileDropDo
 
 export const AgentNavbar = ({onLogout}: AgentNavbarProps) => {
   const pathname = usePathname();
-  const router = useRouter()
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
 

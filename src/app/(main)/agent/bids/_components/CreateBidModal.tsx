@@ -18,7 +18,6 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
   onSuccess,
 }) => {
   const [product, setProduct] = useState("");
-  const [productName, setProductName] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number | "">("");
   const [message, setMessage] = useState("");
@@ -47,7 +46,6 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setProductName(query); // Allow manual typing if needed, mostly for display
 
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -78,7 +76,6 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
 
   const handleSelectProduct = (selectedProduct: ApiProduct) => {
     setProduct(selectedProduct.id);
-    setProductName(selectedProduct.name);
     setSearchQuery(selectedProduct.name);
     setPrice(selectedProduct.price);
     setQuantity(selectedProduct.quantity);
@@ -104,7 +101,6 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
 
       // Reset form
       setProduct("");
-      setProductName("");
       setSearchQuery("");
       setPrice("");
       setQuantity("");
@@ -112,7 +108,7 @@ export const CreateBidModal: React.FC<CreateBidModalProps> = ({
 
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch {
       toast.error("Failed to create bid listing");
     } finally {
       setIsSubmitting(false);

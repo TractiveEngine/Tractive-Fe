@@ -8,6 +8,7 @@ type UserRole = "agent" | "buyer" | "transporter" | "admin";
 interface UseRoleGuardReturn {
   isAuthorized: boolean;
   isLoading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
 }
 

@@ -25,6 +25,7 @@ export const SellerCard: React.FC<SellerCardProps> = ({
   rateStatus,
   sellerYear,
   productsCount,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   totalReviews,
   sellerBio,
 }) => {

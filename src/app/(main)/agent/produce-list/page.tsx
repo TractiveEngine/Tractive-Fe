@@ -1,11 +1,8 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { InfoIcon } from "@/icons/Icons";
 import AddToStore from "../_components/AddToStore";
-import { ProductTable } from "./_components/table/ProductTable";
-import { SearchFilters } from "@/services/productService";
-import { productKeys, useProducts } from "@/hooks/queries/useProductQueries";
+import { useProducts } from "@/hooks/queries/useProductQueries";
 import { ActiveProduct } from "./_components/ActiveProduct";
 import { ProductOutOfStock } from "./_components/ProductOutOfStock";
 
@@ -37,13 +34,9 @@ export default function ProduceListPage() {
   // Pre-fetch both lists to display counts immediately
   const {
     data: activeData,
-    isLoading: isActiveLoading,
-    refetch: refetchActive,
   } = useProducts({ status: "available" });
   const {
     data: outOfStockData,
-    isLoading: isOutOfStockLoading,
-    refetch: refetchOutOfStock,
   } = useProducts({ status: "out_of_stock" });
 
   // Update counts when data loads
@@ -67,16 +60,6 @@ export default function ProduceListPage() {
     },
     [],
   );
-
-  const handleRefetchAll = () => {
-    refetchActive();
-    refetchOutOfStock();
-  };
-
-  // Determine current view data
-  const currentData = switchSides === "active" ? activeData : outOfStockData;
-  const currentLoading =
-    switchSides === "active" ? isActiveLoading : isOutOfStockLoading;
 
   const handleSwitchSides = (side: "active" | "out_of_stock") => {
     setSwitchSides(side);

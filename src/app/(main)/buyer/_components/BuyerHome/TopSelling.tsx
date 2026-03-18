@@ -4,6 +4,7 @@ import React from "react";
 import { useGetTopSellingProducts } from "@/hooks/queries/useProductQueries";
 import { useRouter } from "next/navigation";
 import { TopSellingProduct } from "@/services/productService";
+import Image from "next/image";
 
 // Map product names to local fallback images
 const productImageMap: Record<string, string> = {
@@ -35,14 +36,6 @@ const getProductImage = (name: string, index: number): string => {
   return fallbackImages[index % fallbackImages.length];
 };
 
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-};
 
 export const TopSelling: React.FC = () => {
   const router = useRouter();
@@ -69,7 +62,7 @@ export const TopSelling: React.FC = () => {
               >
                 <div
                   className="w-full aspect-[2/1] bg-cover bg-center relative"
-                  style={{ backgroundImage: `url(${getProductImage(product.name, index)})` }}
+                  style={{ backgroundImage: `url(${product.image || (product.images && product.images.length > 0 ? product.images[0] : getProductImage(product.name, index))})` }}
                 >
                   <div className="absolute inset-0 bg-black/30" />
                   <span className="absolute inset-0 flex items-center justify-center text-gray-300 text-2xl font-medium font-montserrat drop-shadow-md">
@@ -83,9 +76,11 @@ export const TopSelling: React.FC = () => {
             <>
               {fallbackImages.map((src, i) => (
                 <div key={i}>
-                  <img
+                  <Image
                     src={src}
                     alt="Product"
+                    width={400}
+                    height={200}
                     className="w-full h-auto rounded-md aspect-[2/1] object-cover"
                   />
                 </div>

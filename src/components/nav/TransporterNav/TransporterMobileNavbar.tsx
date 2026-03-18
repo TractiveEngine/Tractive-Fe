@@ -9,7 +9,7 @@ import { Notifications } from "../../Notifications";
 
 export const TransporterMobileNavbar = () => {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const isLoggedIn = status === "authenticated";
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status

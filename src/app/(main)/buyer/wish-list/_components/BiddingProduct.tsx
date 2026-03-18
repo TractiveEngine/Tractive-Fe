@@ -68,6 +68,7 @@ export const BiddingProduct: React.FC = () => {
             bottomLabel="Price:"
             showLeadingImages={false}
             imageClass="h-[200px] object-cover"
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             isWishlisted={(bid?.product as any)?.isWishlisted}
           />
         ))}

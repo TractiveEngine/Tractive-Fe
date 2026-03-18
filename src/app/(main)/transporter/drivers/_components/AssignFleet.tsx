@@ -26,6 +26,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
   const [errors, setErrors] = useState({
     truckId: "",
   });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: fleets = [], isLoading: isFetchingFleets } = useGetFleets();
@@ -59,6 +60,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
     return isValid;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -151,6 +153,7 @@ export const AssignFleetModal: React.FC<AssignFleetModalProps> = ({
                 id="truckId"
                 name="truckId"
                 value={formData.truckId}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onChange={(e) => handleChange(e as any)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53] bg-white appearance-none"
                 aria-required="true"

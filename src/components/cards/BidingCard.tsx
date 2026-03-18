@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useAddToWishlist, useRemoveFromWishlist } from "@/hooks/queries/useUserQueries";
-import { toast } from "sonner";
 
 interface CardProps {
   id: string;
@@ -82,7 +81,7 @@ export default function BidingCard({
       } else {
         await removeMutation.mutateAsync(id);
       }
-    } catch (error) {
+    } catch {
       setLocalWishlisted(previousState);
     }
   };

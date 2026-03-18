@@ -2,16 +2,14 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { CalenderIcon, AddToStoreIcon } from "@/icons/DashboardIcons";
+import { ArrowDownIcon, SearchIcon } from "@/icons/Icons";
 import { ProductTable } from "./table/ProductTable";
-import { productService, SearchFilters } from "@/services/productService";
+import { SearchFilters } from "@/services/productService";
 import {
   useBulkDeleteProducts,
   useBulkUpdateStatus,
 } from "@/hooks/queries/useProductQueries";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { AddToStore } from "../../_components/AddToStore";
 import { DateRangePicker } from "@/components/DateRangePicker";
 
@@ -22,7 +20,6 @@ interface ActiveProductProps {
 export const ActiveProduct: React.FC<ActiveProductProps> = ({
   onProductsUpdate,
 }) => {
-  const router = useRouter();
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     status: "available",

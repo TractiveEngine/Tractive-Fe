@@ -5,8 +5,6 @@ import { SubNavbar } from "@/components/nav/SubNavbar";
 import { FollowingProvider } from "@/hooks/followingContext";
 import { WishlistProvider } from "@/hooks/wishlistContext";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import React from "react";
 
 const topSellers = [
@@ -21,8 +19,6 @@ export default function BuyerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-
   // Use role guard for authentication and authorization
   const { isAuthorized, isLoading } = useRoleGuard("buyer");
 

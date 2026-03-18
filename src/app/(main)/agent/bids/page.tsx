@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
 import { BidActionMenu } from "./_components/BidActionMenu";
 import { BiddersModal } from "./_components/BiddersModal";

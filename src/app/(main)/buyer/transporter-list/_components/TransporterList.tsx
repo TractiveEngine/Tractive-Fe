@@ -16,6 +16,7 @@ export const TransporterList: React.FC<SellerListProps> = ({
   const { data: transportersData, isLoading, isError } = useGetTransporters();
   const rawTransporters = transportersData || [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiTransporters = rawTransporters.map((transporter: any, index: number) => ({
     id: transporter._id || transporter.id || `transporter-${index}`,
     image: transporter.image || transporter.profilePicture || "/images/GoLogistics.png",

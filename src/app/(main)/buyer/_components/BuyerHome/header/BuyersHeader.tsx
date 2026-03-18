@@ -43,6 +43,7 @@ export const BuyersHeader: React.FC = () => {
   const rawTopSellers = topSellersResponse?.data || [];
   
   // Map API response to expected Seller format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const topSellers = rawTopSellers.map((seller: any) => ({
     name: seller.name,
     image: seller.image || "/images/sellersProfiles.png",

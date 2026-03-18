@@ -58,6 +58,7 @@ export const SellerList: React.FC<SellerListProps> = ({
     year,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [accumulatedSellers, setAccumulatedSellers] = useState<any[]>([]);
 
   React.useEffect(() => {
@@ -67,7 +68,8 @@ export const SellerList: React.FC<SellerListProps> = ({
     } else if (currentBatch.length > 0) {
       setAccumulatedSellers((prev) => {
         const existingIds = new Set(prev.map((s) => s.sellerId));
-        const newItems = currentBatch.filter((s: any) => !existingIds.has(s.sellerId));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newItems = currentBatch.filter((s: any) => !existingIds.has(s.sellerId));
         return [...prev, ...newItems];
       });
     }
@@ -90,6 +92,7 @@ export const SellerList: React.FC<SellerListProps> = ({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formattedSellers = accumulatedSellers.map((seller: any) => ({
     id: seller.sellerId,
     image: seller.image || "/images/bidder3.png",

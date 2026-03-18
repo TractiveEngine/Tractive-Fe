@@ -36,7 +36,6 @@ export default function ProduceListPage() {
 
   const {
     data: orderCounts = { new: 0, packed: 0, delivered: 0 },
-    isLoading: isLoadingCounts,
   } = useQuery({
     queryKey: ["orderCounts"],
     queryFn: async () => {

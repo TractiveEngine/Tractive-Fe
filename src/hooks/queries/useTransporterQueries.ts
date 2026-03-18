@@ -5,7 +5,7 @@ export const transporterKeys = {
   all: ["transporters"] as const,
   detail: (id: string) => [...transporterKeys.all, "detail", id] as const,
   reviews: (id: string) => [...transporterKeys.all, "reviews", id] as const,
-  trucks: (params: any) => [...transporterKeys.all, "trucks", params] as const,
+  trucks: (params: Record<string, unknown> | undefined) => [...transporterKeys.all, "trucks", params] as const,
 };
 
 export const useGetTransporters = () => {

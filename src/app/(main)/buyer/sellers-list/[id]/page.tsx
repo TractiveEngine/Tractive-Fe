@@ -4,7 +4,7 @@ import { StoreHeader } from "../_components/sellersStore/StoreHeader";
 import { FilterProduct } from "../_components/sellersStore/FilterProduct";
 import { StoreRecommendation } from "../_components/sellersStore/StoreRecommendation";
 import { OtherStoreProduct } from "../_components/sellersStore/OtherStoreProduct";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   useGetSeller,
@@ -42,8 +42,10 @@ export default function SellersID() {
           switchSide={switchSide}
           setSwitchSide={setSwitchSide}
       />
-      <StoreRecommendation recommendations={seller?.recommendations} isLoading={isSellerLoading} />
-      <OtherStoreProduct products={products} isLoading={isProductsLoading} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <StoreRecommendation recommendations={seller?.recommendations as any} isLoading={isSellerLoading} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <OtherStoreProduct products={products as any} isLoading={isProductsLoading} />
     </div>
   );
 }

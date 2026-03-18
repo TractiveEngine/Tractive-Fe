@@ -16,7 +16,7 @@ export interface Seller {
   averageRating?: number;
   totalReviews?: number;
   amountOfSales?: number;
-  recommendations?: any[];
+  recommendations?: unknown[];
   // UI fields not in API - optional or with defaults
   image?: string;
   rating?: number;
@@ -101,9 +101,9 @@ export interface GetSellerProductsParams {
   status?: "available" | "out_of_stock" | "discontinued";
 }
 
-export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<any[]> => {
+export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<unknown[]> => {
     try {
-        const response = await axios.get<{ success: boolean; data: any[] }>(
+        const response = await axios.get<{ success: boolean; data: unknown[] }>(
             `https://tractive-be.vercel.app/api/sellers/${id}/products`,
             { params }
         );
@@ -118,7 +118,7 @@ export const getSellerProducts = async (id: string, params?: GetSellerProductsPa
 }
 
 // Get seller reviews
-export const getSellerReviews = async (id: string): Promise<any> => {
+export const getSellerReviews = async (id: string): Promise<unknown> => {
     try {
         const response = await axios.get(
             `https://tractive-be.vercel.app/api/sellers/${id}/reviews`
@@ -131,7 +131,7 @@ export const getSellerReviews = async (id: string): Promise<any> => {
 }
 
 // Like a review
-export const likeReview = async (reviewId: string): Promise<any> => {
+export const likeReview = async (reviewId: string): Promise<unknown> => {
     try {
         const response = await axios.post(
             `https://tractive-be.vercel.app/api/reviews/${reviewId}/like`

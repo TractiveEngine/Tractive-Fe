@@ -1,8 +1,9 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IoIosCheckmark } from "react-icons/io";
 import { toast } from "sonner";
@@ -30,7 +31,7 @@ const interests = [
 
 type InterestType = (typeof interests)[number];
 
-export default function OnboardingForm() {
+function OnboardingFormInner() {
   const router = useRouter();
   const { data: session, update } = useSession();
 
@@ -244,6 +245,7 @@ export default function OnboardingForm() {
       // Small delay to allow toast to show
       // setTimeout(() => {
       // }, 1000);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Onboarding error:", error);
       toast.dismiss(toastId);
@@ -462,5 +464,13 @@ export default function OnboardingForm() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function OnboardingForm() {
+  return (
+    <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div></div>}>
+      <OnboardingFormInner />
+    </Suspense>
   );
 }

@@ -16,7 +16,7 @@ interface BidItem {
 }
 
 const Page: React.FC = () => {
-  const { data: checkoutData, isLoading, isError } = useWonBidsCheckout();
+  const { data: checkoutData, isLoading } = useWonBidsCheckout();
   const [bidItems, setBidItems] = useState<BidItem[]>([]);
 
   useEffect(() => {

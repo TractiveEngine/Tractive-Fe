@@ -19,6 +19,7 @@ export const StoreHeader = ({
   seller,
   isLoading,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   seller?: any;
   isLoading: boolean;
 }) => {

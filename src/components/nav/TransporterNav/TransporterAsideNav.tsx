@@ -61,7 +61,7 @@ export const TransporterAsideNav = () => {
       await api.post("/api/auth/logout");
       await signOut({ redirect: false });
       router.push("/login");
-    } catch (error) {
+    } catch {
       await signOut({ redirect: false });
       router.push("/login");
     }

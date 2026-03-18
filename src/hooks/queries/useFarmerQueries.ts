@@ -28,7 +28,7 @@ export const useFarmers = (filters?: FarmerFilters) => {
     queryKey: farmerKeys.list(filters as Record<string, unknown>),
     queryFn: () => farmerService.getFarmers(filters),
     enabled: status === "authenticated",
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: { response?: { status?: number } }) => {
       // Don't retry on auth errors
       if (error.response?.status === 401 || error.response?.status === 403) {
         return false;
@@ -65,7 +65,7 @@ export const useCreateFarmer = () => {
       queryClient.invalidateQueries({ queryKey: farmerKeys.lists() });
       toast.success("Farmer onboarded successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } }; message?: string }) => {
       const message =
         error?.response?.data?.message ||
         error?.message ||
@@ -104,7 +104,7 @@ export const useUpdateFarmer = () => {
 
       toast.success("Farmer updated successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } }; message?: string }) => {
       const message =
         error?.response?.data?.message ||
         error?.message ||
@@ -141,7 +141,7 @@ export const useDeleteFarmer = () => {
 
       toast.success("Farmer deleted successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } }; message?: string }) => {
       const message =
         error?.response?.data?.message ||
         error?.message ||

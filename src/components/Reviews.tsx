@@ -113,19 +113,21 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
   const transporterQuery = useGetTransporterReviews(transporterId as string, { enabled: !!transporterId });
 
   const apiReviewData = sellerId ? sellerQuery.data : transporterQuery.data;
-  const isLoading = sellerId ? sellerQuery.isLoading : transporterQuery.isLoading;
 
   const likeMutation = useLikeReview();
 
   // Map API data if available, otherwise use mock
   const mappedData: ReviewData = React.useMemo(() => {
-    if (apiReviewData && apiReviewData.reviews && apiReviewData.reviews.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rd = apiReviewData as any;
+    if (rd && rd.reviews && rd.reviews.length > 0) {
       return {
-        overallRating: apiReviewData.overallRating || 0,
-        totalReviewers: apiReviewData.totalReviewers || 0,
-        ratings: apiReviewData.ratings || reviewDataMock.ratings,
-        reviewerAvatars: apiReviewData.reviewerAvatars || [],
-        reviews: apiReviewData.reviews.map((r: any) => ({
+        overallRating: rd.overallRating || 0,
+        totalReviewers: rd.totalReviewers || 0,
+        ratings: rd.ratings || reviewDataMock.ratings,
+        reviewerAvatars: rd.reviewerAvatars || [],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        reviews: rd.reviews.map((r: any) => ({
           id: r._id || r.id,
           user: {
             name: r.user?.name || "Anonymous",

@@ -1,5 +1,4 @@
 "use client";
-import { InfoIcon } from "@/icons/Icons";
 import React, { useState, useEffect } from "react";
 import { bidService } from "@/services/bidService";
 import { toast } from "sonner";
@@ -62,6 +61,7 @@ export const MakeBid: React.FC<MakeBidProps> = ({
       // Optionally reset price/quantity or keep them
       
       onBidSuccess();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.message || "Failed to place bid");
     } finally {

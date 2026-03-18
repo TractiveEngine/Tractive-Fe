@@ -8,6 +8,7 @@ import { Driver } from "@/utils/DriverData";
 interface AddDriverProps {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (data: any) => void;
   editDriver?: Driver | null;
 }
@@ -43,6 +44,7 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
         setFormData({
             fullName: editDriver.name || "",
             licenseNumber: editDriver.licenseNumber || "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             phone: editDriver.phone || (editDriver as any).mobile || "",
             phoneNumber: "",
             image: editDriver.image || "/images/bidder1.png",

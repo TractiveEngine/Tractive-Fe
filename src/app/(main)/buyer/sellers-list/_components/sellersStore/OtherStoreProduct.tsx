@@ -1,9 +1,10 @@
+import { RecommendationProduct } from "@/services/productService";
 import BidingCard from "@/components/cards/BidingCard";
 import React from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 interface OtherStoreProductProps {
-  products?: any[];
+  products?: RecommendationProduct[];
   isLoading: boolean;
 }
 
@@ -62,7 +63,7 @@ export const OtherStoreProduct: React.FC<OtherStoreProductProps> = ({
               No products found for this seller.
             </h3>
             <p className="font-montserrat text-[13px] text-[#808080] mt-1 max-w-sm mx-auto">
-              This seller hasn't added any products or no items match your search filter.
+              This seller hasn&apos;t added any products or no items match your search filter.
             </p>
           </div>
         </div>
@@ -76,9 +77,9 @@ export const OtherStoreProduct: React.FC<OtherStoreProductProps> = ({
         Others
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {products.map((product: any) => (
+        {products.map((product: RecommendationProduct) => (
           <BidingCard
-            id={product._id}
+            id={product._id || product.id}
             key={product._id}
             image={product.images?.[0] || "/images/placeholder.png"}
             title={product.name}
@@ -93,7 +94,7 @@ export const OtherStoreProduct: React.FC<OtherStoreProductProps> = ({
             bottomLabel="Price:"
             showLeadingImages={false}
             imageClass="h-[200px] object-cover"
-            isWishlisted={product.isWishlisted}
+            isWishlisted={product.isWishlisted ?? product.wishlisted}
           />
         ))}
       </div>

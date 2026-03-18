@@ -1,6 +1,6 @@
 "use client";
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-import React, { useState } from "react";
+import React from "react";
 import { IoIosCheckmark } from "react-icons/io";
 
 const interests = [

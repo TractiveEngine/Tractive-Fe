@@ -85,6 +85,7 @@ export const userService = {
     country: string;
     state: string;
     lga: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }): Promise<any> => {
     try {
       const response = await api.post("/api/auth/add-account", data);
@@ -100,6 +101,7 @@ export const userService = {
   },
   
   // Follow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   followFarmer: async (farmerId: string): Promise<any> => {
     try {
       const response = await api.post(`/api/buyers/sellers/${farmerId}/follow`);
@@ -111,6 +113,7 @@ export const userService = {
   },
 
   // Unfollow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unfollowFarmer: async (farmerId: string): Promise<any> => {
     try {
       const response = await api.delete(`/api/buyers/sellers/${farmerId}/follow`);
@@ -122,6 +125,7 @@ export const userService = {
   },
 
   // Add product to wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addToWishlist: async (productId: string): Promise<any> => {
     try {
       console.log(`🚀 Adding product ${productId} to wishlist`);
@@ -134,6 +138,7 @@ export const userService = {
   },
 
   // Remove product from wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   removeFromWishlist: async (productId: string): Promise<any> => {
     try {
       console.log(`🚀 Removing product ${productId} from wishlist`);
@@ -151,6 +156,7 @@ export const userService = {
   },
 
   // Get wishlist items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getWishlist: async (page = 1, limit = 20): Promise<any> => {
     try {
       const response = await api.get(`/api/wishlist`, {
@@ -164,6 +170,7 @@ export const userService = {
   },
 
   // Get Top Sellers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getTopSellers: async (): Promise<any> => {
     try {
       const response = await api.get(`/api/buyers/top-sellers`);

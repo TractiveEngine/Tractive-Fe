@@ -138,7 +138,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
     setIsDeliveryDaysOpen(false);
   };
 
-  const { mutate: addFleet, isPending } = useAddFleet();
+  const { mutate: addFleet } = useAddFleet();
 
   // Handle driver image upload
   const handleDriverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

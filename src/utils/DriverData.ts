@@ -9,6 +9,19 @@ export interface Driver {
   licenseNumber?: string;
   date: string;
   image: string;
+  assignedTruck?: {
+    _id: string;
+    plateNumber: string;
+    fleetName: string;
+    fleetNumber: string;
+    iot: string;
+    images?: string[];
+    route: {
+      fromState: string;
+      toState: string;
+    };
+    [key: string]: unknown;
+  };
 }
 
 export const drivers: Driver[] = [

@@ -4,7 +4,6 @@ import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import { ApiProduct } from "@/services/productService";
 import { useAddToWishlist, useRemoveFromWishlist } from "@/hooks/queries/useUserQueries";
-import { toast } from "sonner";
 
 interface ProductInfoProps {
   item: ApiProduct;
@@ -34,7 +33,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
       } else {
         await addToWishlistMutation.mutateAsync(item.id);
       }
-    } catch (error) {
+    } catch {
       setIsWishlisted(previousState);
     }
   };

@@ -1,7 +1,6 @@
 import api from "@/lib/axios";
 import axios from "axios";
 import { toast } from "sonner";
-import { UserProfile, userService } from "./UserService";
 
 // Backend API Farmer Interface (matches API response)
 export interface ApiFarmer {
@@ -128,6 +127,7 @@ export const farmerService = {
     try {
       console.log("🔄 Fetching farmers from API with filters:", filters);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params: any = {
         page: filters.page || 1,
         limit: filters.limit || 10,

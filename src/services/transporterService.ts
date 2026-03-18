@@ -14,7 +14,7 @@ export interface Transporter {
   transporterBio?: string;
   locationFrom?: string;
   locationTo?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const transporterService = {
@@ -53,7 +53,7 @@ export const transporterService = {
    * Get transporter reviews
    * GET /api/transporters/{id}/reviews
    */
-  getTransporterReviews: async (id: string): Promise<any> => {
+  getTransporterReviews: async (id: string): Promise<unknown> => {
     try {
       const response = await api.get(`/api/transporters/${id}/reviews`);
       return response.data.data || response.data;
@@ -71,7 +71,7 @@ export const transporterService = {
     status?: string;
     fromState?: string;
     toState?: string;
-  }): Promise<any> => {
+  }): Promise<unknown> => {
     try {
       const response = await api.get("/api/transporters/trucks", { params });
       return response.data.data || response.data || [];

@@ -150,7 +150,7 @@ export const Biding = () => {
 
       {!hasMore && products.length > 0 && (
         <div className="text-center py-8 text-gray-400 font-montserrat text-sm w-full">
-          You've reached the end of the list
+          You&apos;ve reached the end of the list
         </div>
       )}
     </div>

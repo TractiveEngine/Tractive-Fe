@@ -5,7 +5,6 @@ import {
   useBulkDeleteProducts,
   useBulkUpdateStatus,
 } from "@/hooks/queries/useProductQueries";
-import { toast } from "sonner";
 
 interface BulkActionsBarProps {
   selectedIds: Set<string>;

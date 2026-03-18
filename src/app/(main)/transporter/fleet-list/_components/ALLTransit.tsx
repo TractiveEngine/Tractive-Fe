@@ -7,7 +7,7 @@ import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { FleetTable } from "./table/FleetTable";
 import AddFleet from "../../_components/AddFleet";
 import { ViewFleetModal } from "../../_components/ViewFleetModal";
-import { initialFleets, Fleet } from "@/utils/Fleet";
+import { Fleet } from "@/utils/Fleet";
 import { useGetFleets, useDeleteFleet, useUpdateFleetStatus } from "@/hooks/queries/useFleetQueries";
 import "../../Table.css";
 
@@ -27,7 +27,7 @@ const months = [
 ];
 
 export const AllTransit: React.FC = () => {
-  const { data: fetchedFleets, isLoading } = useGetFleets();
+  const { data: fetchedFleets } = useGetFleets();
 
   const [fleets, setFleets] = useState<Fleet[]>([]);
 

@@ -1,10 +1,10 @@
 import BidingCard from "@/components/cards/BidingCard";
 import React from "react";
-import { ApiProduct } from "@/services/productService";
+import { WishlistItem } from "@/services/productService";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 type WishListProps = {
-  data?: ApiProduct[];
+  data?: WishlistItem[];
   isLoading?: boolean;
   isFetchingNextPage?: boolean;
   hasMore?: boolean;
@@ -52,7 +52,7 @@ export const WishList: React.FC<WishListProps> = ({
   return (
     <div className="w-[90%] mx-auto py-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {data.map((wishlistItem: any) => {
+        {data.map((wishlistItem: WishlistItem) => {
           const product = wishlistItem.product;
           if (!product) return null; // Fallback in case a wishlist item has a missing product reference
           

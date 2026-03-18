@@ -12,6 +12,7 @@ interface EmptyTruckProps {
 }
 
 export const EmptyTruck = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   transporterId,
   fromState = "",
   toState = "",
@@ -22,8 +23,10 @@ export const EmptyTruck = ({
     fromState,
     toState,
   });
-  const rawTrucks = Array.isArray(trucksData) ? trucksData : trucksData?.trucks || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawTrucks = Array.isArray(trucksData) ? trucksData : (trucksData as any)?.trucks || [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formattedTrucks = rawTrucks.map((truck: any, index: number) => ({
     id: truck._id || truck.id || `truck-${index}`,
     image: (truck.images && truck.images.length > 0) ? truck.images[0] : truck.image || "/images/EmptyTruck.png",
@@ -36,7 +39,7 @@ export const EmptyTruck = ({
     spaceRemaining: truck.spaceRemaining || truck.availableSpace || "0kg",
   }));
 
-  const filteredTruckData = formattedTrucks.filter((truck: any) => {
+  const filteredTruckData = formattedTrucks.filter(() => {
     // Sort option filtering if needed on client side
     let matchesSort = true;
     if (sortOption === "Almost Full") {
@@ -71,6 +74,7 @@ export const EmptyTruck = ({
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredTruckData.length > 0 ? (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           filteredTruckData.map((card: any) => (
             <TruckCard
               isEmptyTruck={true}

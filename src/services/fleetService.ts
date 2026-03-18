@@ -35,8 +35,11 @@ export const fleetService = {
     try {
       const response = await api.post("/api/transporters/fleets", data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Failed to create fleet");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to create fleet");
+      }
+      throw new Error("Failed to create fleet");
     }
   },
 
@@ -51,8 +54,11 @@ export const fleetService = {
         return responseData;
       }
       return [];
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Failed to fetch fleets");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to fetch fleets");
+      }
+      throw new Error("Failed to fetch fleets");
     }
   },
 
@@ -61,8 +67,11 @@ export const fleetService = {
     try {
       const response = await api.patch(`/api/transporters/fleet/${id}`, data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Failed to update fleet");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to update fleet");
+      }
+      throw new Error("Failed to update fleet");
     }
   },
 
@@ -71,8 +80,11 @@ export const fleetService = {
     try {
       const response = await api.delete(`/api/transporters/fleet/${id}`);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Failed to delete fleet");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to delete fleet");
+      }
+      throw new Error("Failed to delete fleet");
     }
   },
 
@@ -81,8 +93,11 @@ export const fleetService = {
     try {
       const response = await api.patch(`/api/transporters/fleet/${id}/status`, { status });
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Failed to update fleet status");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to update fleet status");
+      }
+      throw new Error("Failed to update fleet status");
     }
   },
 };

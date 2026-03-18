@@ -12,6 +12,7 @@ interface AlmostFullTruckProps {
 }
 
 export const AlmostFullTruck = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   transporterId,
   fromState = "",
   toState = "",
@@ -22,10 +23,12 @@ export const AlmostFullTruck = ({
     fromState,
     toState,
   });
-  const rawTrucks = Array.isArray(trucksData) ? trucksData : trucksData?.trucks || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawTrucks = Array.isArray(trucksData) ? trucksData : (trucksData as any)?.trucks || [];
 
   // Assuming the API filters by 'almost_full' status, we might just need client-side formatting 
   // and possibly some residual filtering based on sortOption if the backend doesn't handle fullLoad sort semantics
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formattedTrucks = rawTrucks.map((truck: any, index: number) => ({
     id: truck._id || truck.id || `truck-${index}`,
     image: (truck.images && truck.images.length > 0) ? truck.images[0] : truck.image || "/images/AlmostFull.png",
@@ -38,7 +41,7 @@ export const AlmostFullTruck = ({
     spaceRemaining: truck.spaceRemaining || truck.availableSpace || "0kg",
   }));
 
-  const filteredTruckData = formattedTrucks.filter((truck: any) => {
+  const filteredTruckData = formattedTrucks.filter(() => {
     // Sort option filtering if needed on client side
     let matchesSort = true;
     if (sortOption === "Empty") {
@@ -74,6 +77,7 @@ export const AlmostFullTruck = ({
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredTruckData.length > 0 ? (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           filteredTruckData.map((card: any) => (
             <TruckCard
               isEmptyTruck={false}

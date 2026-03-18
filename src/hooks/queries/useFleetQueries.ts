@@ -15,7 +15,7 @@ export const useAddFleet = () => {
       queryClient.invalidateQueries({ queryKey: fleetKeys.all });
       toast.success("Fleet added successfully", { duration: 3000 });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to add fleet", { duration: 3000 });
     },
   });
@@ -38,7 +38,7 @@ export const useUpdateFleet = () => {
       queryClient.invalidateQueries({ queryKey: fleetKeys.all });
       toast.success("Fleet updated successfully", { duration: 3000 });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update fleet", { duration: 3000 });
     },
   });
@@ -53,7 +53,7 @@ export const useDeleteFleet = () => {
       queryClient.invalidateQueries({ queryKey: fleetKeys.all });
       toast.success("Fleet deleted successfully", { duration: 3000 });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to delete fleet", { duration: 3000 });
     },
   });
@@ -69,7 +69,7 @@ export const useUpdateFleetStatus = () => {
       queryClient.invalidateQueries({ queryKey: fleetKeys.all });
       toast.success("Fleet status updated successfully", { duration: 3000 });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update fleet status", { duration: 3000 });
     },
   });

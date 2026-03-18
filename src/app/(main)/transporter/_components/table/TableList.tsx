@@ -9,7 +9,7 @@ import { TickIcon } from "../Icons/TransporterIcons";
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, handlers?: { handleViewDetails?: (id: string) => void }) => React.ReactNode;
   minWidth?: string;
 }
 
@@ -27,6 +27,7 @@ interface ListTableProps<T extends BaseData> {
   handleEdit?: (id: string) => void;
   handleRemove?: (id: string) => void;
   handleAssignFleet?: (id: string) => void;
+  handleViewDetails?: (id: string) => void;
   handleViewBidders?: (id: string) => void;
   handleCustomerInfo?: (id: string) => void;
   handleSupport?: (id: string) => void;
@@ -65,6 +66,7 @@ export const TableList = <T extends BaseData>({
   handleSelectAll,
   allChecked,
   handleSupport,
+  handleViewDetails,
   handleReject,
   handleAccept,
   emptyState,
@@ -211,9 +213,11 @@ export const TableList = <T extends BaseData>({
                   key={col.key as string}
                   className={`py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b] border-y border-gray-200 
                   ${!isCheckboxTable && colIndex === 0 ? "border-l rounded-l-[8px] pl-4" : ""}
+                  ${handleViewDetails ? "cursor-pointer" : ""}
                   `}
+                  onClick={() => handleViewDetails?.(item.id)}
                 >
-                  {col.render ? col.render(item) : String(item[col.key])}
+                  {col.render ? col.render(item, { handleViewDetails }) : String(item[col.key])}
                 </td>
               ))}
               <td className="py-2.5 px-4 relative action-menu-container z-10 border-y border-r border-gray-200 rounded-r-[8px]">

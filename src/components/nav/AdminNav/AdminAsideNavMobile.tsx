@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   OverviewIcon,
   UserIcon,
@@ -179,27 +179,27 @@ export const AdminAsideNavMobile = ({
     },
   ];
 
-  const sectionVariants = {
+  const sectionVariants: Variants = {
     initial: { height: 0, opacity: 0 },
     animate: {
       height: "auto",
       opacity: 1,
-      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
     },
     exit: {
       height: 0,
       opacity: 0,
-      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     initial: { y: 10, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: 10, opacity: 0 },
   };
 
-  const modalVariants = {
+  const modalVariants: Variants = {
     initial: { opacity: 0, scale: 0.8 },
     animate: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
@@ -208,7 +208,7 @@ export const AdminAsideNavMobile = ({
   return (
     <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20">
       {user && (
-        <div className="relative px-[0.5rem] pt-[1rem]" ref={profileRef}>
+        <div className="relative px-2 pt-4" ref={profileRef}>
           <div className="flex items-center justify-between gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 px-2.5 rounded-[4px] hover:bg-[#4a4a4a] transition">
             <button
               className="flex items-center gap-2"
@@ -244,7 +244,7 @@ export const AdminAsideNavMobile = ({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] }}
                 className="w-full rounded-[4px] mt-2 z-30 bg-[#fefefe] shadow-lg"
               >
                 <Admin_ProfileDropDownMobile onLogout={handleLogout} />
@@ -261,15 +261,15 @@ export const AdminAsideNavMobile = ({
             animate="animate"
             exit="exit"
             ref={navRef}
-            className="flex flex-col gap-[2.5rem]"
+            className="flex flex-col gap-10"
           >
-            <div className="flex flex-col gap-[2.5rem]">
+            <div className="flex flex-col gap-10">
               <div className="flex flex-col px-1">
-                <ul className="mt-[1rem] px-[0.5rem]">
+                <ul className="mt-4 px-2">
                   <li>
                     <Link
                       href="/agents"
-                      className={`flex items-start w-[4rem] flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
+                      className={`flex items-start w-16 flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
                         pathname === "/agents"
                           ? "bg-[#3a3a3a]"
                           : "hover:bg-[#4a4a4a]"
@@ -282,9 +282,9 @@ export const AdminAsideNavMobile = ({
                     </Link>
                   </li>
                 </ul>
-                <span className="bg-[#e2e2e2] w-full h-[1px] my-1"></span>
+                <span className="bg-[#e2e2e2] w-full h-px my-1"></span>
                 {navSections.map((section, idx) => (
-                  <div key={section.title} className="px-[0.5rem]">
+                  <div key={section.title} className="px-2">
                     <button
                       onClick={(e) => toggleSection(section.title, e)}
                       className="flex items-center justify-between w-full rounded-md cursor-pointer py-2 px-2.5 text-left font-montserrat text-[#fefefe] text-[11px] font-normal bg-[#3a3a3a] transition-colors duration-200 hover:bg-[#4a4a4a]"
@@ -298,7 +298,7 @@ export const AdminAsideNavMobile = ({
                         )}
                       </div>
                     </button>
-                    <div className="block lg:hidden bg-[#e2e2e2] w-full h-[1px] my-1"></div>
+                    <div className="block lg:hidden bg-[#e2e2e2] w-full h-px my-1"></div>
                     <AnimatePresence>
                       {openSections[section.title] && (
                         <motion.ul
@@ -315,8 +315,8 @@ export const AdminAsideNavMobile = ({
                               transition={{
                                 delay: index * 0.1,
                                 duration: 0.3,
-                                ease: [0.4, 0, 0.2, 1],
-                              }}
+                                  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+                                }}
                             >
                               {item.href ? (
                                 <Link
@@ -363,7 +363,7 @@ export const AdminAsideNavMobile = ({
                       )}
                     </AnimatePresence>
                     {idx < navSections.length - 1 && (
-                      <div className="bg-[#e2e2e2] w-full h-[1px] my-1"></div>
+                      <div className="bg-[#e2e2e2] w-full h-px my-1"></div>
                     )}
                   </div>
                 ))}

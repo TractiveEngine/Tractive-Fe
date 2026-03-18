@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { WishList } from "./_components/WishList";
 import { MyBiding } from "./_components/MyBiding";
 import { useGetWishlist } from "@/hooks/queries/useUserQueries";
+import { WishlistItem } from "@/services/productService";
 
 const Page: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"wish-list" | "my-biddings">(
@@ -16,13 +17,16 @@ const Page: React.FC = () => {
   const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   const [page, setPage] = useState(1);
-  const [accumulatedWishlist, setAccumulatedWishlist] = useState<any[]>([]);
+  const [accumulatedWishlist, setAccumulatedWishlist] = useState<WishlistItem[]>([]);
 
   // Fetch WishList using new API endpoint
   const { data: wishlistResponse, isLoading, isFetching } = useGetWishlist(page, 20);
   
   // Extract data array and pagination metadata
-  const currentWishlistBatch = wishlistResponse?.data?.wishlist || wishlistResponse?.data || wishlistResponse?.wishlist || wishlistResponse || [];
+  const currentWishlistBatch: WishlistItem[] = useMemo(
+    () => wishlistResponse?.data?.wishlist || wishlistResponse?.data || wishlistResponse?.wishlist || wishlistResponse || [],
+    [wishlistResponse]
+  );
   
   useEffect(() => {
     // When we get new data and we are not just loading the first page, append it.
@@ -32,8 +36,10 @@ const Page: React.FC = () => {
     } else if (currentWishlistBatch.length > 0) {
        setAccumulatedWishlist(prev => {
           // Prevent duplicates by checking IDs
-          const existingIds = new Set(prev.map(item => item._id || item.id));
-          const newItems = currentWishlistBatch.filter((item: any) => !existingIds.has(item._id || item.id));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const existingIds = new Set(prev.map(item => item._id || (item as any).id));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const newItems = currentWishlistBatch.filter((item: WishlistItem) => !existingIds.has(item._id || (item as any).id));
           return [...prev, ...newItems];
        });
     }
@@ -51,49 +57,6 @@ const Page: React.FC = () => {
     }
   };
 
-  const biddingProductData = [
-    {
-      id: "productCode1253",
-      image: "/images/pp_onion.png",
-      title: "Pepper",
-      time: "24:08:07",
-      description: "Introducing the humble and delightful Pepper.",
-      timeImage: "/images/redclock.png",
-      crownImage: "/images/leadingcrown.png",
-      leadingProfileImage: "/images/profile1.png",
-      quantity: "50 Bags",
-      amount: "₦400",
-      biddingPrice: "₦350",
-    },
-    {
-      id: "productCode1254",
-      image: "/images/pp_onion.png",
-      title: "Tomato",
-      time: "12:05:03",
-      description: "Fresh and juicy tomatoes for all your needs.",
-      timeImage: "/images/redclock.png",
-      crownImage: "/images/leadingcrown.png",
-      leadingProfileImage: "/images/profile2.png",
-      quantity: "30 Bags",
-      amount: "$250",
-      biddingPrice: "$200",
-    },
-    {
-      id: "productCode1252",
-      image: "/images/pp_onion.png",
-      title: "Maize",
-      time: "18:15:09",
-      description: "High-quality maize for various uses.",
-      timeImage: "/images/redclock.png",
-      crownImage: "/images/leadingcrown.png",
-      leadingProfileImage: "/images/profile3.png",
-      quantity: "75 Bags",
-      amount: "$600",
-      biddingPrice: "$550",
-    },
-    
-    
-  ];
 
   // Update border position and width when active tab changes
   useEffect(() => {

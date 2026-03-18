@@ -49,7 +49,7 @@ export const SimilarProduct: React.FC<SimilarProductProps> = ({ productId }) => 
             quantity={product.quantity ? `${product.quantity} ${product.unit || 'Units'}` : 'N/A'}
             amount={`₦${product.price.toLocaleString()}`}
             biddingPrice={`₦${product.price.toLocaleString()}`} // Defaulting bidding to price
-            isWishlisted={product.isWishlisted}
+            isWishlisted={product.isWishlisted ?? product.wishlisted}
           />
         ))}
       </div>

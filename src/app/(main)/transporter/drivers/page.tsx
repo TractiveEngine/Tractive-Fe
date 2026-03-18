@@ -16,13 +16,14 @@ import {
   CreateDriverPayload,
   UpdateDriverPayload,
 } from "@/services/driverService";
+import { DriverDetailsModal } from "./_components/DriverDetailsModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner"; // Using sonner as seen in package.json, assuming it's configured in layout
 
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, handlers?: Record<string, unknown>) => React.ReactNode;
   minWidth?: string;
 }
 
@@ -108,10 +109,12 @@ const DriversListPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAssignFleetModalOpen, setIsAssignFleetModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
   
   const [editDriver, setEditDriver] = useState<Driver | null>(null);
   const [assignDriver, setAssignDriver] = useState<Driver | null>(null);
   const [deleteDriver, setDeleteDriver] = useState<Driver | null>(null);
+  const [viewDriver, setViewDriver] = useState<Driver | null>(null);
   
   const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
@@ -136,19 +139,24 @@ const DriversListPage: React.FC = () => {
   // Fetch Drivers
   const { data: driversData = [], isLoading } = useQuery({
     queryKey: ["drivers"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queryFn: () => DriverService.getDrivers<any[]>(),
     select: (data) =>
-      data.map((item) => ({
-        id: item._id,
-        name: item.name,
-        route: "",
-        fleet: "",
-        iot: "",
-        phone: item.phone || "",
-        licenseNumber: item.licenseNumber,
-        date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
-        image: item.image || "",
-      })) as Driver[],
+      data.map((item) => {
+        const truck = item.assignedTruck;
+        return {
+          id: item._id,
+          name: item.name,
+          route: truck ? `${truck.route.fromState} - ${truck.route.toState}` : "",
+          fleet: truck?.fleetName || "",
+          iot: truck?.iot || "",
+          phone: item.phone || "",
+          licenseNumber: item.licenseNumber,
+          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+          image: item.image || "",
+          assignedTruck: truck,
+        };
+      }) as Driver[],
   });
 
   // Mutations
@@ -159,6 +167,7 @@ const DriversListPage: React.FC = () => {
       toast.success("Driver created successfully");
       setIsOnboardModalOpen(false);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       console.log(error); // Keep or remove console log if desired
       const errorMessage = error.response?.data?.message || error.message || "Failed to create driver";
@@ -175,6 +184,7 @@ const DriversListPage: React.FC = () => {
       setIsEditModalOpen(false);
       setEditDriver(null);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || error.message || "Failed to update driver";
       toast.error(errorMessage);
@@ -189,6 +199,7 @@ const DriversListPage: React.FC = () => {
       setIsDeleteModalOpen(false);
       setDeleteDriver(null);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || error.message || "Failed to delete driver";
       toast.error(errorMessage);
@@ -204,6 +215,7 @@ const DriversListPage: React.FC = () => {
       setIsAssignFleetModalOpen(false);
       setAssignDriver(null);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || error.message || "Failed to assign fleet";
       toast.error(errorMessage);
@@ -268,17 +280,27 @@ const DriversListPage: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (id: string) => {
+    const driver = driversData.find((d) => d.id === id);
+    if (driver) {
+      setViewDriver(driver);
+      setIsViewDetailsModalOpen(true);
+    }
+  };
+
   const confirmDelete = () => {
     if (deleteDriver) {
         deleteMutation.mutate(deleteDriver.id);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleOnboardSubmit = (data: any) => {
     // data contains name and licenseNumber
     createMutation.mutate(data);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditSubmit = (data: any) => {
     // data contains phone
     if (editDriver) {
@@ -342,18 +364,23 @@ const DriversListPage: React.FC = () => {
             onConfirm={confirmDelete}
             driverName={deleteDriver?.name}
         />
+        <DriverDetailsModal
+          isOpen={isViewDetailsModalOpen}
+          onClose={() => setIsViewDetailsModalOpen(false)}
+          driver={viewDriver}
+        />
         
-        <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
+        <div className="w-full h-px bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[70%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-              <div className="relative w-[100%] sm:w-[70%] flex-grow">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-[70%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
+              <div className="relative w-full sm:w-[70%] grow">
                 <input
                   type="text"
                   placeholder="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                  className="w-full pl-8 py-2 border border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search drivers"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -367,7 +394,7 @@ const DriversListPage: React.FC = () => {
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
                     onClick={() => setIsYearOpen(!isYearOpen)}
-                    className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pl-8 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isYearOpen}
                     aria-controls="year-dropdown"
@@ -389,7 +416,7 @@ const DriversListPage: React.FC = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-100 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -435,7 +462,7 @@ const DriversListPage: React.FC = () => {
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
-                    className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isMonthOpen}
                     aria-controls="month-dropdown"
@@ -456,7 +483,7 @@ const DriversListPage: React.FC = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-100 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -523,6 +550,7 @@ const DriversListPage: React.FC = () => {
                 handleEdit={handleEdit}
                 handleRemove={handleRemove}
                 handleAssignFleet={handleAssignFleet}
+                handleViewDetails={handleViewDetails}
             />
           )}
         </div>

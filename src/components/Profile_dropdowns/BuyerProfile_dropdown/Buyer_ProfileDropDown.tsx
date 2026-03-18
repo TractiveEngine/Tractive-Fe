@@ -71,6 +71,7 @@ export const Buyer_ProfileDropDown = ({ onLogout }: ProfileDropDownProps) => {
 
       // Assuming onboarding status is handled via backend/session or redirect logic
       router.push(`/${role}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Switch role error:", error);
       toast.dismiss(loadingToastId);

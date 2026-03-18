@@ -36,7 +36,7 @@ export const useUserProfile = () => {
       const { data } = await api.get("/api/profile");
       return data.user || data;
     },
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: { response?: { status?: number } }) => {
         if (error.response?.status === 401 || error.response?.status === 403) return false;
         return failureCount < 2;
     }
@@ -90,7 +90,7 @@ export const useProfile = () => {
       return response.data?.user ?? null;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: (failureCount, error: any) =>
+    retry: (failureCount, error: { response?: { status?: number } }) =>
       error?.response?.status !== 401 && failureCount < 2,
   });
 };
@@ -109,6 +109,7 @@ export const useUpdateProfile = () => {
             });
             queryClient.invalidateQueries({ queryKey: ["profile"] });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
             toast.error(
                 error?.response?.data?.message ||
@@ -124,12 +125,13 @@ export const useFollowFarmer = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (farmerId: string) => userService.followFarmer(farmerId),
-        onSuccess: (_, farmerId) => {
+        onSuccess: () => {
             toast.success("You are now following this farmer");
              // Invalidate product queries to refresh checking status if needed
              // Using productKeys.all to be safe, or we could try to be more specific if we had the product ID
              queryClient.invalidateQueries({ queryKey: productKeys.all });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
             const message = error?.response?.data?.message || "Failed to follow farmer";
             toast.error(message);
@@ -141,10 +143,11 @@ export const useUnfollowFarmer = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (farmerId: string) => userService.unfollowFarmer(farmerId),
-        onSuccess: (_, farmerId) => {
+        onSuccess: () => {
              toast.success("You have unfollowed this farmer");
              queryClient.invalidateQueries({ queryKey: productKeys.all });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
              const message = error?.response?.data?.message || "Failed to unfollow farmer";
              toast.error(message);
@@ -162,6 +165,7 @@ export const useAddToWishlist = () => {
              queryClient.invalidateQueries({ queryKey: ["profile"] });
              queryClient.invalidateQueries({ queryKey: ["wishlist"] });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
              const message = error?.response?.data?.error || error?.response?.data?.message || "Failed to add to wishlist";
              toast.error(message);
@@ -179,6 +183,7 @@ export const useRemoveFromWishlist = () => {
              queryClient.invalidateQueries({ queryKey: ["profile"] });
              queryClient.invalidateQueries({ queryKey: ["wishlist"] });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
              const message = error?.response?.data?.error || error?.response?.data?.message || "Failed to remove from wishlist";
              toast.error(message);
@@ -216,6 +221,7 @@ export const useChangePassword = () => {
         position: "top-center",
       });
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(
         error?.response?.data?.message ||

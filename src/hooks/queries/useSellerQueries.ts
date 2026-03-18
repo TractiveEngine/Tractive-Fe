@@ -41,6 +41,7 @@ export const useLikeReview = () => {
              toast.success("Review liked");
              queryClient.invalidateQueries({ queryKey: ["sellerReviews"] });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
              const message = error?.response?.data?.message || "Failed to like review";
              toast.error(message);

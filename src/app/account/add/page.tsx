@@ -108,6 +108,7 @@ export default function AddAccountPage() {
       // Redirect to the new dashboard
       router.push(`/${selectedRole}`);
       
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Failed to create account", error);
       toast.dismiss(toastId);
