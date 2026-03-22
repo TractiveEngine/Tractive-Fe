@@ -3,7 +3,9 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "../../../utils/loginAuth"; // Adjust path as needed
+import { useSession, signOut } from "next-auth/react";
+import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
 import { NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
@@ -11,10 +13,11 @@ import ProfileDropDown from "../../Profile_dropdowns/ProfileDropDown/ProfileDrop
 
 export const TransporterProfileNavbar = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user || null;
+  const isLoggedIn = !!session;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
@@ -29,20 +32,7 @@ export const TransporterProfileNavbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
+    // Login check handled by useSession
 
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications and bids
@@ -55,7 +45,7 @@ export const TransporterProfileNavbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
+    // checkLoginStatus();
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }
@@ -84,10 +74,17 @@ export const TransporterProfileNavbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+      await signOut({ redirect: false });
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+      await signOut({ redirect: false });
+      router.push("/login");
+    }
+
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
     setHasNotifications(false);
@@ -200,9 +197,7 @@ export const TransporterProfileNavbar = () => {
                     />
                   </svg>
                 </div>
-                {isDropdownOpen && (
-                  <ProfileDropDown onLogout={handleLogout} />
-                )}
+                {isDropdownOpen && <ProfileDropDown onLogout={handleLogout} />}
               </div>
             </>
           ) : (

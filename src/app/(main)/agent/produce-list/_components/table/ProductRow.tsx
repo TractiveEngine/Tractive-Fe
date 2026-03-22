@@ -20,6 +20,7 @@ interface ProductRowProps {
   copyToClipboard: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
   handleEdit: (id: string) => void;
+  handleView: (id: string) => void;
   handleOutOfStock: (id: string) => void;
   handleDelete: (id: string) => void;
   isOutOfStockPage: boolean;
@@ -103,8 +104,8 @@ const truncateId = (id: string): string => {
 
 // Format price with proper currency
 const formatPrice = (price: number): string => {
-  if (price === 0 || !price) return "₦0.00";
-  return `₦${price.toFixed(2)}`;
+  if (price === 0 || !price) return "$0.00";
+  return `$${price.toFixed(2)}`;
 };
 
 export const ProductRow: React.FC<ProductRowProps> = ({
@@ -115,26 +116,36 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   copyToClipboard,
   handleCheckboxChange,
   handleEdit,
+  handleView,
   handleOutOfStock,
   handleDelete,
   isOutOfStockPage,
 }) => {
   // Get first image or default
-  const productImage =
-    product.images && product.images.length > 0
-      ? product.images[0]
-      : "/images/tomatoProduct.png";
+  const getSafeImage = (img?: string) => {
+    if (!img || typeof img !== "string") return "/images/tomatoProduct.png";
+    if (img.startsWith("http") || img.startsWith("/")) return img;
+    return `/images/${img}`; // Fallback for relative paths without leading slash
+  };
+
+  const rawImage =
+    product.images && product.images.length > 0 ? product.images[0] : null;
+  const productImage = getSafeImage(rawImage || undefined);
 
   return (
     <motion.tr
-      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative hover:bg-gray-50 transition-colors"
+      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative hover:bg-gray-50 transition-colors cursor-pointer"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
       transition={{ delay: index * 0.05 }}
+      onClick={() => handleView(product.id)}
     >
       {/* Checkbox */}
-      <td className="py-1.5 pl-4 whitespace-nowrap">
+      <td
+        className="py-1.5 pl-4 whitespace-nowrap"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="relative w-5 h-5">
           <input
             type="checkbox"
@@ -171,7 +182,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       </td>
 
       {/* ID */}
-      <td className="py-1.5 px-4">
+      <td className="py-1.5 px-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-1.5 cursor-pointer">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
             {truncateId(product.id || "")}
@@ -192,27 +203,9 @@ export const ProductRow: React.FC<ProductRowProps> = ({
         {formatPrice(product.price)}
       </td>
 
-      {/* Quantity */}
+      {/* Quantity / Stock */}
       <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        {product.quantity || "-"}
-      </td>
-
-      {/* Stock */}
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#538e53]">
-        {product.stock || product.quantity || "-"}
-      </td>
-
-      {/* Reviews */}
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        <div className="flex items-center space-x-2">
-          <StarStrokeIcon />
-          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-            {product.rating || "-"}
-          </span>
-          <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#808080]">
-            ({product.reviews || 0})
-          </span>
-        </div>
+        {product.quantity ? `${product.quantity} ${product.unit || ""}` : "-"}
       </td>
 
       {/* Categories */}
@@ -223,7 +216,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       </td>
 
       {/* Action Menu */}
-      <td className="py-1.5 px-4 relative">
+      <td className="py-1.5 px-4 relative" onClick={(e) => e.stopPropagation()}>
         <ActionMenu
           productId={product.id}
           activeMenu={activeMenu}

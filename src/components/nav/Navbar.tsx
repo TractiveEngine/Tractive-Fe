@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
+import { signOut, useSession } from "next-auth/react";
 
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
@@ -12,10 +12,9 @@ import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDow
 
 export const Navbar = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
@@ -30,21 +29,6 @@ export const Navbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
-
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications and bids
       const mockNotifications = [
@@ -56,7 +40,6 @@ export const Navbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }
@@ -85,13 +68,9 @@ export const Navbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" });
     setIsDropdownOpen(false);
-    setIsNotificationOpen(false);
-    setHasNotifications(false);
   };
 
   const handleNotificationClick = () => {
@@ -168,7 +147,7 @@ export const Navbar = () => {
               {/* ===================== BID icon ========================= */}
               <div className="relative">
                 <Link
-                  href="/buyers/my-biddings"
+                  href="/buyer/my-biddings"
                   className="flex items-center flex-col cursor-pointer"
                 >
                   <span className="relative flex items-center justify-center w-[24px] h-[14.4px] rounded-[3.6px] border-[1.2px] border-[#2b2b2b]">
@@ -196,7 +175,7 @@ export const Navbar = () => {
                 className="rounded-full"
               />
               <span className="text-[#2b2b2b] hidden lg:block text-[0.89rem] font-normal">
-                {user?.name}
+                {session?.user?.name}
               </span>
               <svg
                 className="h-4 w-4 text-[#2b2b2b]"

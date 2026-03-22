@@ -1,12 +1,11 @@
 "use client";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "../../../utils/loginAuth";
+import { signOut } from "next-auth/react";
 import { AdminAsideNav } from "../../../components/nav/AdminNav/AdminAsideNav";
 import { AdminNavbar } from "../../../components/nav/AdminNav/AdminNavbar";
 import { AdminAsideNavMobile } from "../../../components/nav/AdminNav/AdminAsideNavMobile";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
 
 const useBreakpoint = () => {
   const [breakpoint, setBreakpoint] = useState<"xs" | "sm" | "lg">("xs");
@@ -30,65 +29,24 @@ const useBreakpoint = () => {
   return breakpoint;
 };
 
-export default function AgentLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const breakpoint = useBreakpoint();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const userData = getLoggedInUser();
-          if (userData && "fullName" in userData && "email" in userData) {
-            setUser({ name: userData.name, email: userData.email });
-          } else {
-            setUser(null);
-            setIsLoggedIn(false);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    };
+  // Use role guard
+  const { isAuthorized, isLoading, session } = useRoleGuard("admin");
+  const user = session?.user;
 
-    checkLoginStatus();
-  }, []);
-
-  useEffect(() => {
-    if (isLoggedIn === false) {
-      toast.error("Unauthorized access. Please login.", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-    }
-  }, [isLoggedIn, router]);
-
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" });
     setIsDropdownOpen(false);
-    router.push("/login");
   };
 
   const handleUserDropdownClick = () => {
-    console.log("Toggling profile dropdown");
     setIsDropdownOpen((prev) => !prev);
   };
 
@@ -103,11 +61,18 @@ export default function AgentLayout({
     lg: "12.5rem",
   };
 
-  if (isLoggedIn === null) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
   }
 
-  if (!isLoggedIn) {
+  if (!isAuthorized) {
     return null;
   }
 

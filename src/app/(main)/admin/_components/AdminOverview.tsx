@@ -1,7 +1,11 @@
-
 import React from "react";
 import { RedSmallChart, SmallChart } from "./SmallChart";
-import { MoneyReceived, Profile2User, Bag2Icon, EyeIcon } from "../../admin/_components/icons/AdminIcons";
+import {
+  MoneyReceived,
+  Profile2User,
+  Bag2Icon,
+  EyeIcon,
+} from "../../admin/_components/icons/AdminIcons";
 
 export const AdminOverview = () => {
   return (

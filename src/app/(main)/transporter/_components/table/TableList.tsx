@@ -9,7 +9,7 @@ import { TickIcon } from "../Icons/TransporterIcons";
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, handlers?: { handleViewDetails?: (id: string) => void }) => React.ReactNode;
   minWidth?: string;
 }
 
@@ -27,6 +27,7 @@ interface ListTableProps<T extends BaseData> {
   handleEdit?: (id: string) => void;
   handleRemove?: (id: string) => void;
   handleAssignFleet?: (id: string) => void;
+  handleViewDetails?: (id: string) => void;
   handleViewBidders?: (id: string) => void;
   handleCustomerInfo?: (id: string) => void;
   handleSupport?: (id: string) => void;
@@ -39,6 +40,7 @@ interface ListTableProps<T extends BaseData> {
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
+  emptyState?: React.ReactNode;
 }
 
 const rowVariants = {
@@ -64,8 +66,10 @@ export const TableList = <T extends BaseData>({
   handleSelectAll,
   allChecked,
   handleSupport,
+  handleViewDetails,
   handleReject,
   handleAccept,
+  emptyState,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -151,7 +155,7 @@ export const TableList = <T extends BaseData>({
       transition={{ duration: 0.5 }}
       className="Table_Container"
     >
-      <table className="Table_Style">
+      <table className="Table_Style w-full border-separate border-spacing-y-3">
         <thead>
           <tr className="text-left text-[12px] font-normal font-montserrat text-[#2b2b2b] md:text-sm">
             {isCheckboxTable && (
@@ -161,7 +165,7 @@ export const TableList = <T extends BaseData>({
                     type="checkbox"
                     checked={allChecked}
                     onChange={handleSelectAll}
-                    className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
+                    className="w-5 h-5 rounded border border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
                   />
                   {allChecked && <TickIcon />}
                 </div>
@@ -181,37 +185,42 @@ export const TableList = <T extends BaseData>({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
-            <motion.tr
+          {data.length > 0 ? (
+            data.map((item, index) => (
+              <motion.tr
               key={item.id}
-              className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+              className="bg-white hover:bg-gray-50 transition-colors relative"
               variants={rowVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: index * 0.1 }}
             >
               {isCheckboxTable && (
-                <td className="py-1.5 pl-4 whitespace-nowrap">
+                <td className="py-2.5 pl-4 border-y border-l border-gray-200 rounded-l-[8px] whitespace-nowrap">
                   <div className="relative w-5 h-5">
                     <input
                       type="checkbox"
                       checked={item.checked}
                       onChange={() => handleCheckboxChange?.(item.id)}
-                      className="w-5 h-5 rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
+                      className="w-5 h-5 rounded border border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
                     />
                     {item.checked && <TickIcon />}
                   </div>
                 </td>
               )}
-              {columns.map((col) => (
+              {columns.map((col, colIndex) => (
                 <td
                   key={col.key as string}
-                  className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]"
+                  className={`py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b] border-y border-gray-200 
+                  ${!isCheckboxTable && colIndex === 0 ? "border-l rounded-l-[8px] pl-4" : ""}
+                  ${handleViewDetails ? "cursor-pointer" : ""}
+                  `}
+                  onClick={() => handleViewDetails?.(item.id)}
                 >
-                  {col.render ? col.render(item) : String(item[col.key])}
+                  {col.render ? col.render(item, { handleViewDetails }) : String(item[col.key])}
                 </td>
               ))}
-              <td className="py-1.5 px-4 relative">
+              <td className="py-2.5 px-4 relative action-menu-container z-10 border-y border-r border-gray-200 rounded-r-[8px]">
                 {ActionMenuComponent && (
                   <ActionMenuComponent
                     driverId={item.id}
@@ -278,7 +287,19 @@ export const TableList = <T extends BaseData>({
                 )}
               </td>
             </motion.tr>
-          ))}
+            ))
+          ) : emptyState ? (
+            emptyState
+          ) : (
+            <tr>
+              <td
+                colSpan={columns.length + (isCheckboxTable ? 2 : 1)}
+                className="py-10 text-center font-montserrat text-sm text-[#808080]"
+              >
+                No data available
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </motion.div>

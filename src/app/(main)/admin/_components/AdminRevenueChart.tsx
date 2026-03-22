@@ -38,17 +38,19 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     return (
       <div className="p-[7px] bg-[#538e53] flex gap-1 rounded-md border-l-[3px] border-[#538e53]">
         <div className="w-[2px] h-[2.8rem] rounded-md bg-[#fefefe]"></div>
-        
-       <div className="flex flex-col gap-[0.5rem]">
-        <p className="text-medium text-[12px] text-[#fefefe] font-montserrat">
-          {new Date(payload[0].payload.date).toLocaleString("en-US", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
-        </p>
-        <span className="text-[12px] text-[#fefefe] font-montserrat">${payload[0]?.value?.toLocaleString()}</span>
-       </div>
+
+        <div className="flex flex-col gap-[0.5rem]">
+          <p className="text-medium text-[12px] text-[#fefefe] font-montserrat">
+            {new Date(payload[0].payload.date).toLocaleString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+          </p>
+          <span className="text-[12px] text-[#fefefe] font-montserrat">
+            ${payload[0]?.value?.toLocaleString()}
+          </span>
+        </div>
       </div>
     );
   }

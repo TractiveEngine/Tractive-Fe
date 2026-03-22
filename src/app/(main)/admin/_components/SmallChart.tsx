@@ -36,8 +36,8 @@ export const SmallChart = () => {
             y2="12.2161"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#CCE5CC" />
-            <stop offset="1" stop-color="#CCE5CC" stop-opacity="0" />
+            <stop stopColor="#CCE5CC" />
+            <stop offset="1" stopColor="#CCE5CC" stopOpacity="0" />
           </linearGradient>
         </defs>
       </svg>
@@ -71,8 +71,8 @@ export const RedSmallChart = () => {
           y2="16.5502"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B16060" />
-          <stop offset="1" stop-color="#B16060" stop-opacity="0" />
+          <stop stopColor="#B16060" />
+          <stop offset="1" stopColor="#B16060" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>

@@ -31,7 +31,7 @@ export const Agent_ProfileDropDownMobile = ({ onLogout }: ProfileDropDownProps) 
       <span className="w-[100%] h-[1px] bg-[#e2e2e2]"></span>
       {/* ===== Account Switch ====== */}
       <div className="flex flex-col gap-2 px-3 pb-3">
-        <Link href="/buyers" className="flex items-center justify-between cursor-pointer">
+        <Link href="/buyer" className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-1">
             <Image
               src="/images/profile_image.png"

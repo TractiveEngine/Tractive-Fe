@@ -3,13 +3,14 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn } from "../../../utils/loginAuth";
+import { useSession } from "next-auth/react";
 import { MenuIcon, NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 
 export const TransporterMobileNavbar = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { status } = useSession();
+  const isLoggedIn = status === "authenticated";
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
@@ -25,11 +26,6 @@ export const TransporterMobileNavbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-    };
-
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications
       const mockNotifications = [
@@ -41,7 +37,6 @@ export const TransporterMobileNavbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }

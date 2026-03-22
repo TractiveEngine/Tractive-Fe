@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import AddToStore from "../_components/AddToStore";
+import { useProducts } from "@/hooks/queries/useProductQueries";
 import { ActiveProduct } from "./_components/ActiveProduct";
 import { ProductOutOfStock } from "./_components/ProductOutOfStock";
 
@@ -25,70 +27,83 @@ export default function ProduceListPage() {
     width: 0,
   });
 
-  const handleSwitchSides = (side: SideProps["switchSides"]) => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [activeCount, setActiveCount] = useState(0);
+  const [outOfStockCount, setOutOfStockCount] = useState(0);
+
+  // Pre-fetch both lists to display counts immediately
+  const {
+    data: activeData,
+  } = useProducts({ status: "available" });
+  const {
+    data: outOfStockData,
+  } = useProducts({ status: "out_of_stock" });
+
+  // Update counts when data loads
+  useEffect(() => {
+    if (activeData?.total !== undefined) {
+      setActiveCount(activeData.total);
+    }
+  }, [activeData?.total]);
+
+  useEffect(() => {
+    if (outOfStockData?.total !== undefined) {
+      setOutOfStockCount(outOfStockData.total);
+    }
+  }, [outOfStockData?.total]);
+
+  const handleProductsUpdate = useCallback(
+    (counts: { active?: number; out_of_stock?: number }) => {
+      if (counts.active !== undefined) setActiveCount(counts.active);
+      if (counts.out_of_stock !== undefined)
+        setOutOfStockCount(counts.out_of_stock);
+    },
+    [],
+  );
+
+  const handleSwitchSides = (side: "active" | "out_of_stock") => {
     setSwitchSides(side);
   };
 
-  // Update indicator position and width when switchSides changes
   useEffect(() => {
     const updateIndicator = () => {
-      const activeContainer =
+      const activeTab =
         switchSides === "active"
           ? activeContainerRef.current
           : outOfStockContainerRef.current;
-      const container = containerRef.current;
-      if (activeContainer && container) {
-        const containerRect = container.getBoundingClientRect();
-        const tabRect = activeContainer.getBoundingClientRect();
-        const left = tabRect.left - containerRect.left;
-        const width = tabRect.width;
-        setIndicatorStyle({ left, width });
+
+      if (activeTab && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+
+        setIndicatorStyle({
+          left: tabRect.left - containerRect.left,
+          width: tabRect.width,
+        });
       }
     };
 
     updateIndicator();
+    // Update on window resize too for responsiveness
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
   }, [switchSides]);
 
-  const [productCounts, setProductCounts] = useState<{
-    active: number;
-    out_of_stock: number;
-  }>({
-    active: 0,
-    out_of_stock: 0,
-  });
-
-  // FIXED: Memoize the callback to prevent infinite re-renders
-  const handleProductsUpdate = useCallback(
-    (counts: { active: number; out_of_stock: number }) => {
-      setProductCounts((prevCounts) => {
-        // Only update if counts actually changed to prevent unnecessary re-renders
-        if (
-          prevCounts.active !== counts.active ||
-          prevCounts.out_of_stock !== counts.out_of_stock
-        ) {
-          return {
-            active: counts.active,
-            out_of_stock: counts.out_of_stock,
-          };
-        }
-        return prevCounts;
-      });
-    },
-    []
-  ); // Empty dependency array since this function doesn't depend on any props or state
-
-  // Remove this console.log or move it to useEffect to avoid logging on every render
-  useEffect(() => {
-    console.log("Product counts updated:", productCounts);
-  }, [productCounts]);
-
   return (
     <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
-      <h1 className="text-[16px] font-normal font-montserrat mb-4 px-6 pt-6 sm:text-lg">
-        Stock management
-      </h1>
+      {/* ... (Header omitted) ... */}
+      <div className="flex justify-between items-center px-6 pt-6 mb-4">
+        <h1 className="text-[16px] font-normal font-montserrat sm:text-lg">
+          Stock management
+        </h1>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-[#538e53] text-white px-4 py-2 rounded-md text-sm font-montserrat hover:bg-[#467a46] transition-colors"
+        >
+          + Add Item
+        </button>
+      </div>
+
       <div className="flex flex-col">
         <div
           className="relative flex items-center gap-4 sm:gap-6 mb-2 px-6"
@@ -115,7 +130,7 @@ export default function ProduceListPage() {
               Active
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              {productCounts.active}
+              {activeCount}
             </span>
           </div>
           <div
@@ -137,7 +152,7 @@ export default function ProduceListPage() {
               Out of Stock
             </button>
             <span className="bg-[#8B4513] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              {productCounts.out_of_stock}
+              {outOfStockCount}
             </span>
           </div>
           <motion.div
@@ -152,7 +167,7 @@ export default function ProduceListPage() {
       </div>
 
       <div
-        className="mb-4"
+        className="mb-4 min-h-[300px] flex flex-col pt-2"
         role="tabpanel"
         id={switchSides === "active" ? "active-panel" : "out_of_stock-panel"}
       >
@@ -162,6 +177,12 @@ export default function ProduceListPage() {
           <ProductOutOfStock onProductsUpdate={handleProductsUpdate} />
         )}
       </div>
+
+      {/* Add To Store Modal */}
+      <AddToStore
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </div>
   );
 }

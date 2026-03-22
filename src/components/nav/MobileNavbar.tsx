@@ -3,7 +3,9 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { isUserLoggedIn, getLoggedInUser, logoutUser } from "@/utils/loginAuth"; // Adjust path as needed
+import { useSession, signOut } from "next-auth/react";
+import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
 import { MenuIcon, NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
 import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
@@ -11,10 +13,11 @@ import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDow
 
 export const MobileNavbar = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user || null;
+  const isLoggedIn = !!session;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(false);
@@ -32,20 +35,7 @@ export const MobileNavbar = () => {
   ];
 
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = isUserLoggedIn();
-      setIsLoggedIn(loggedIn);
-      if (loggedIn) {
-        const userData = getLoggedInUser();
-        if (userData && "name" in userData && "email" in userData) {
-          setUser({ name: userData.name, email: userData.email });
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
+    // Login check handled by useSession
 
     const fetchNotificationsAndBids = async () => {
       // Mock API call for notifications and bids
@@ -58,7 +48,7 @@ export const MobileNavbar = () => {
       setHasNotifications(mockNotifications.length > 0);
     };
 
-    checkLoginStatus();
+    // checkLoginStatus();
     if (isLoggedIn) {
       fetchNotificationsAndBids();
     }
@@ -94,10 +84,18 @@ export const MobileNavbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-    setUser(null);
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+      await signOut({ redirect: false });
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      await signOut({ redirect: false });
+      router.push("/login");
+    }
+
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
     setHasNotifications(false);
@@ -248,7 +246,7 @@ export const MobileNavbar = () => {
                   {/* ===================== BID icon ========================= */}
                   <div className="relative">
                     <Link
-                      href="/buyers/my-biddings"
+                      href="/buyer/my-biddings"
                       className="relative flex items-center justify-between p-1.5 rounded-[4px] hover:bg-[#f1f1f1] gap-2 cursor-pointer"
                     >
                       <span className="text-[#2b2b2b] hover:text-[#214821] text-[0.79rem] font-normal font-montserrat transition">

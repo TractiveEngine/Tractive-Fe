@@ -4,10 +4,8 @@ import { Navbar } from "@/components/nav/Navbar";
 import { SubNavbar } from "@/components/nav/SubNavbar";
 import { FollowingProvider } from "@/hooks/followingContext";
 import { WishlistProvider } from "@/hooks/wishlistContext";
-import { getLoggedInUser, isUserLoggedIn } from "@/utils/loginAuth";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
+import React from "react";
 
 const topSellers = [
   "Kelvin Chikezie",
@@ -21,51 +19,11 @@ export default function BuyerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  // Use role guard for authentication and authorization
+  const { isAuthorized, isLoading } = useRoleGuard("buyer");
 
-  console.log(user);
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const loggedIn = isUserLoggedIn();
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const userData = getLoggedInUser();
-          if (userData && "name" in userData && "email" in userData) {
-            setUser({ name: userData.name, email: userData.email });
-          } else {
-            setUser(null);
-            setIsLoggedIn(false);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-
-  useEffect(() => {
-    if (isLoggedIn === false) {
-      toast.error("Unauthorized access. Login to become a buyer...", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.replace("/login");
-    }
-  }, [isLoggedIn, router]);
-
-  if (isLoggedIn === null) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="flex items-center gap-2">
@@ -76,22 +34,25 @@ export default function BuyerLayout({
     );
   }
 
-  if (!isLoggedIn) {
+  // Don't render if not authorized (useRoleGuard handles redirects)
+  if (!isAuthorized) {
     return null;
   }
 
   return (
     <FollowingProvider initialSellers={topSellers}>
       <WishlistProvider>
-        <nav className="bg-[#fefefe] w-full">
-          <Navbar />
-          <div className="bg-[#EBEBEB] w-full">
-            <SubNavbar />
+        <div className="flex flex-col min-h-screen">
+          <nav className="bg-[#fefefe] w-full">
+            <Navbar />
+            <div className="bg-[#EBEBEB] w-full">
+              <SubNavbar />
+            </div>
+          </nav>
+          <div className="bg-[#f1f1f1] flex-grow">{children}</div>
+          <div className="bg-[#f1f1f1] w-full mt-auto">
+            <Footer />
           </div>
-        </nav>
-        <div className="bg-[#f1f1f1]">{children}</div>
-        <div className="bg-[#f1f1f1] w-full">
-          <Footer />
         </div>
       </WishlistProvider>
     </FollowingProvider>

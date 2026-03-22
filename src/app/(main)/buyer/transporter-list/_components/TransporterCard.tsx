@@ -76,7 +76,7 @@ export const TransporterCard: React.FC<TransporterCardProps> = ({
           <p className="font-montserrat mt-2 font-normal text-[11px] text-[#2b2b2b]">
             {transporterBio}
           </p>
-          <Link href={`/buyers/transporter-list/${id}`}>
+          <Link href={`/buyer/transporter-list/${id}`}>
             <Button
               text="View"
               onClick={() => {}}

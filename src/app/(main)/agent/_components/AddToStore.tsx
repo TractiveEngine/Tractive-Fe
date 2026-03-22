@@ -3,19 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  GalleryAddIcon,
-  ProfileIcon,
   XModalIcon,
 } from "./Icons/AgentIcons";
-import { toast } from "sonner";
 import { ItemDetailsForm } from "./ItemDetailsForm";
-import { getAuthToken } from "@/utils/loginAuth";
-import axios from "axios";
+import { MediaUpload } from "./MediaUpload";
+import { useFarmers } from "@/hooks/queries/useFarmerQueries";
+import { toast } from "sonner";
 
 interface AddToStoreProps {
   isOpen: boolean;
@@ -23,34 +17,35 @@ interface AddToStoreProps {
 }
 
 export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
-  const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const farmerDropdownRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedProfiles, setSelectedProfiles] = useState<number[]>([]);
+  // Fetch farmers using the query hook
+  const { data: farmersData, isLoading: isLoadingFarmers } = useFarmers();
+  const farmers = farmersData?.farmers || [];
+
+  const [farmerSearchQuery, setFarmerSearchQuery] = useState<string>("");
+  const [selectedFarmerId, setSelectedFarmerId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [productName, setProductName] = useState<string>("");
   const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
+  const [isFarmerOpen, setIsFarmerOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string>("");
-  const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
 
-  interface Profile {
-    id: number;
-    name: string;
-  }
+  // Filter farmers
+  const filteredFarmers = farmers.filter((farmer) =>
+    farmer.name.toLowerCase().includes(farmerSearchQuery.toLowerCase()),
+  );
 
-  const profiles: Profile[] = [
-    { id: 1, name: "Item One" },
-    { id: 2, name: "Item Two" },
-    { id: 3, name: "Item Three" },
-    { id: 4, name: "Item Four" },
-  ];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const categories: string[] = [
     "Grains",
@@ -61,79 +56,13 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     "Vegetables",
   ];
 
-  // Check authentication on component mount or when modal opens
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!isOpen) {
-        setIsAuthChecked(false);
-        return;
-      }
-
-      try {
-        console.log("🔍 Step 1: Checking authentication for AddToStore...");
-
-        const token = getAuthToken();
-
-        if (!token) {
-          console.log("❌ No auth token found, redirecting to login");
-          toast.error("Please login first to add products", {
-            duration: 3000,
-            position: "top-center",
-          });
-          router.push("/login");
-          onClose();
-          return;
-        }
-
-        console.log("✅ Step 2: Auth token verified");
-
-        // Verify token is still valid by calling profile
-        try {
-          const profileResponse = await axios.get(
-            "https://tractive-be.vercel.app/api/profile",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-              timeout: 10000,
-            }
-          );
-
-          console.log("✅ Step 3: Profile verified, user authenticated", profileResponse);
-          setIsAuthChecked(true);
-        } catch (profileError) {
-          if (profileError.response?.status === 401) {
-            console.log("❌ Token expired or invalid");
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("session");
-            toast.error("Session expired. Please login again.", {
-              duration: 3000,
-              position: "top-center",
-            });
-            router.push("/login");
-            onClose();
-          } else {
-            throw profileError;
-          }
-        }
-      } catch (error) {
-        console.error("❌ Auth check error:", error);
-        toast.error("Failed to verify authentication", {
-          duration: 3000,
-          position: "top-center",
-        });
-        onClose();
-      }
-    };
-
-    checkAuth();
-  }, [isOpen, router, onClose]);
-
-  const handleProfileClick = (index: number): void => {
-    setSelectedProfiles((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
+  const handleFarmerSelect = (farmerId: string): void => {
+    const farmer = farmers.find((f) => f.id === farmerId);
+    if (farmer) {
+      setFarmerSearchQuery(farmer.name);
+    }
+    setSelectedFarmerId(farmerId);
+    setIsFarmerOpen(false);
   };
 
   const handleCategorySelect = (category: string): void => {
@@ -141,89 +70,74 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     setIsCategoryOpen(false);
   };
 
-  const handleImageUpload = (
-    index: number,
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
-        return;
-      }
+  const handleImagesSelect = (files: File[]): void => {
+    if (files.length > 0) {
+      const newFiles: File[] = [];
+      const newPreviews: string[] = [];
 
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
-
-      setImageFiles((prev) => {
-        const newFiles = [...prev];
-        newFiles[index] = file;
-        return newFiles;
+      files.forEach((file) => {
+        if (!file.type.startsWith("image/")) {
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`Image ${file.name} is too large (>5MB)`);
+          return;
+        }
+        newFiles.push(file);
+        newPreviews.push(URL.createObjectURL(file));
       });
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews((prev) => {
-          const newPreviews = [...prev];
-          newPreviews[index] = e.target?.result as string;
-          return newPreviews;
-        });
-      };
-      reader.readAsDataURL(file);
+      setImageFiles((prev) => [...prev, ...newFiles]);
+      setImagePreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
-  const handleVideoUpload = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    const file = event.target.files?.[0];
+  const handleVideoSelect = (file: File): void => {
     if (file) {
-      if (!file.type.startsWith("video/")) {
-        alert("Please select a valid video file");
+      if (videoFiles.length >= 1) {
+        toast.error("Only one video is allowed.");
+        return;
+      }
+
+      const validTypes = [
+        "video/mp4",
+        "video/quicktime",
+        "video/x-msvideo",
+        "video/avi",
+      ];
+      if (!file.type.startsWith("video/") && !validTypes.includes(file.type)) {
+        toast.error("Please select a valid video file (mp4, mov, avi)");
         return;
       }
 
       if (file.size > 50 * 1024 * 1024) {
-        alert("Video size should be less than 50MB");
+        toast.error("Video size should be less than 50MB");
         return;
       }
 
-      setVideoFile(file);
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setVideoPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      setVideoFiles([file]); // Replace or set
+      setVideoPreviews([URL.createObjectURL(file)]);
     }
   };
 
-  const removeImage = (index: number): void => {
-    setImageFiles((prev) => {
-      const newFiles = [...prev];
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
-
+  const removeImage = (indexToRemove: number): void => {
+    setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
     setImagePreviews((prev) => {
-      const newPreviews = [...prev];
-      newPreviews.splice(index, 1);
+      const newPreviews = prev.filter((_, index) => index !== indexToRemove);
+      // Revoke object URL for the removed image to avoid memory leak
+      if (prev[indexToRemove]) URL.revokeObjectURL(prev[indexToRemove]);
       return newPreviews;
     });
-
-    if (fileInputRefs.current[index]) {
-      fileInputRefs.current[index]!.value = "";
-    }
   };
 
-  const removeVideo = (): void => {
-    setVideoFile(null);
-    setVideoPreview("");
-    if (videoInputRef.current) {
-      videoInputRef.current.value = "";
-    }
+  const removeVideo = (indexToRemove: number): void => {
+    setVideoFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setVideoPreviews((prev) => {
+      const newPreviews = prev.filter((_, index) => index !== indexToRemove);
+      // Revoke object URL for the removed video to avoid memory leak
+      if (prev[indexToRemove]) URL.revokeObjectURL(prev[indexToRemove]);
+      return newPreviews;
+    });
   };
 
   const handleNext = (): void => {
@@ -233,6 +147,10 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     }
     if (!selectedCategory) {
       alert("Please select a category");
+      return;
+    }
+    if (!selectedFarmerId) {
+      alert("Please select a farmer");
       return;
     }
     setCurrentStep(2);
@@ -256,12 +174,19 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
       ) {
         setIsCategoryOpen(false);
       }
+      if (
+        farmerDropdownRef.current &&
+        !farmerDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFarmerOpen(false);
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         onClose();
         setIsCategoryOpen(false);
+        setIsFarmerOpen(false);
       }
     };
 
@@ -272,28 +197,6 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
-
-  // Don't render until auth is checked
-  if (isOpen && !isAuthChecked) {
-    return (
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#2b2b2bbc] flex items-center justify-center z-50"
-          >
-            <div className="bg-[#fefefe] rounded-lg p-8">
-              <p className="text-[#2b2b2b] font-montserrat">
-                Verifying authentication...
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }
 
   return (
     <AnimatePresence>
@@ -324,82 +227,62 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                   Item upload
                 </h2>
 
-                {/* Profile section */}
-                <div className="relative w-full">
-                  <button
-                    title="scroll left"
-                    onClick={() => {
-                      const container =
-                        document.getElementById("profile-container");
-                      if (container) container.scrollLeft -= 150;
-                    }}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
-                  >
-                    <ArrowLeftIcon className="w-4 h-4" />
-                  </button>
-
-                  <div
-                    id="profile-container"
-                    className="flex overflow-x-auto scroll-smooth gap-4 px-10 py-2 w-full hide-scrollbar"
-                    style={{ scrollBehavior: "smooth" }}
-                  >
-                    {profiles.map((profile, index) => (
-                      <div
-                        key={profile.id}
-                        onClick={() => handleProfileClick(index)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            handleProfileClick(index);
-                          }
+                {/* Farmer Selection (Replaces Profile Section) */}
+                <div className="w-[88%] mx-auto">
+                  <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat mb-1 block">
+                    Select Farmer
+                  </label>
+                  <div ref={farmerDropdownRef} className="relative w-full">
+                    {/* Search Input Trigger */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={farmerSearchQuery}
+                        onChange={(e) => {
+                          setFarmerSearchQuery(e.target.value);
+                          setIsFarmerOpen(true);
+                          setSelectedFarmerId(null); // Clear selection on type? Or keep? clearing is safer for strict select
                         }}
-                        className={`flex-shrink-0 w-[110px] h-[80px] md:w-[135px] md:h-[90px] flex flex-col items-center justify-center gap-1 rounded-lg cursor-pointer ${
-                          selectedProfiles.includes(index)
-                            ? "border-[#538e53] border-2"
-                            : "border-[#2b2b2b] border"
-                        }`}
-                        role="button"
-                        tabIndex={0}
+                        onClick={() => setIsFarmerOpen(true)}
+                        placeholder="Search farmer by name..."
+                        className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat bg-white focus:outline-none focus:border-[#538e53] pr-8"
+                      />
+                      <div
+                        className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                        onClick={() => setIsFarmerOpen(!isFarmerOpen)}
                       >
-                        <div
-                          className={`w-10 h-10 md:w-[50px] md:h-[50px] flex items-center justify-center rounded-full ${
-                            selectedProfiles.includes(index)
-                              ? "bg-[#538e53]"
-                              : "bg-transparent"
-                          }`}
-                        >
-                          <ProfileIcon
-                            className="w-5 h-5 md:w-6 md:h-6"
-                            stroke={
-                              selectedProfiles.includes(index)
-                                ? "#fefefe"
-                                : "#2b2b2b"
-                            }
-                          />
-                        </div>
-                        <span
-                          className={`text-xs md:text-sm font-normal font-montserrat ${
-                            selectedProfiles.includes(index)
-                              ? "text-[#538e53]"
-                              : "text-[#2b2b2b]"
-                          }`}
-                        >
-                          {profile.name}
-                        </span>
+                        {isFarmerOpen ? (
+                          <ArrowUpIcon className="w-4 h-4" />
+                        ) : (
+                          <ArrowDownIcon className="w-4 h-4" />
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  <button
-                    title="scroll right"
-                    onClick={() => {
-                      const container =
-                        document.getElementById("profile-container");
-                      if (container) container.scrollLeft += 150;
-                    }}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
-                  >
-                    <ArrowRightIcon className="w-4 h-4" />
-                  </button>
+                    {isFarmerOpen && (
+                      <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded mt-1 max-h-[200px] overflow-y-auto shadow-lg">
+                        {isLoadingFarmers ? (
+                          <div className="px-3 py-2 text-sm text-gray-500">
+                            Loading farmers...
+                          </div>
+                        ) : filteredFarmers.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-gray-500">
+                            No farmers found matching &quot;{farmerSearchQuery}&quot;
+                          </div>
+                        ) : (
+                          filteredFarmers.map((farmer) => (
+                            <div
+                              key={farmer.id}
+                              onClick={() => handleFarmerSelect(farmer.id)}
+                              className={`px-3 py-2 text-sm font-normal font-montserrat hover:bg-[#f1f1f1] cursor-pointer ${selectedFarmerId === farmer.id ? "bg-[#f1f1f1]" : ""}`}
+                            >
+                              {farmer.name} ({farmer.mobile})
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Product section */}
@@ -420,14 +303,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                   >
                     <div
                       onClick={() => setIsCategoryOpen((prev) => !prev)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          setIsCategoryOpen((prev) => !prev);
-                        }
-                      }}
-                      className="flex items-center justify-between w-full border border-[#2b2b2b] rounded px-3 py-2 cursor-pointer"
-                      role="button"
-                      tabIndex={0}
+                      className="flex items-center justify-between w-full border border-[#2b2b2b] rounded px-3 py-2 cursor-pointer bg-white"
                     >
                       <span className="text-sm font-normal text-[#2b2b2b] font-montserrat">
                         {selectedCategory || "Select Category"}
@@ -439,20 +315,12 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                       )}
                     </div>
                     {isCategoryOpen && (
-                      <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded mt-1 max-h-[200px] overflow-y-auto">
+                      <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded mt-1 max-h-[200px] overflow-y-auto shadow-lg">
                         {categories.map((category) => (
                           <div
                             key={category}
                             onClick={() => handleCategorySelect(category)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                handleCategorySelect(category);
-                              }
-                            }}
                             className="px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat hover:bg-[#f1f1f1] cursor-pointer"
-                            role="option"
-                            aria-selected
-                            tabIndex={0}
                           >
                             {category}
                           </div>
@@ -462,125 +330,16 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Add Image Section */}
-                <div className="w-full">
-                  <div className="relative flex items-center">
-                    <button
-                      title="scroll left"
-                      onClick={() => {
-                        const container =
-                          document.getElementById("image-container");
-                        if (container) container.scrollLeft -= 150;
-                      }}
-                      className="absolute left-0 top-[60%] transform -translate-y-1/2 z-10 flex md:hidden items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
-                    >
-                      <ArrowLeftIcon className="w-4 h-4" />
-                    </button>
-                    <div className="flex flex-col justify-center mx-auto gap-[4px] w-[88%]">
-                      <span className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
-                        Upload Images (Max 3)
-                      </span>
-                      <div
-                        id="image-container"
-                        className="flex overflow-x-auto scroll-smooth gap-4 py-2 w-full hide-scrollbar"
-                        style={{ scrollBehavior: "smooth" }}
-                      >
-                        {[0, 1, 2].map((index) => (
-                          <div
-                            key={index}
-                            className="flex-shrink-0 w-[156px] h-[80px] md:w-[180px] lg:w-[187px] md:h-[90px] relative"
-                          >
-                            {imagePreviews[index] ? (
-                              <div className="relative w-full h-full">
-                                <Image
-                                  src={imagePreviews[index]}
-                                  alt={`Preview ${index + 1}`}
-                                  fill
-                                  className="object-cover rounded"
-                                />
-                                <button
-                                  onClick={() => removeImage(index)}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ) : (
-                              <label className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded cursor-pointer hover:bg-[#e1e1e1] border-2 border-dashed border-[#ccc]">
-                                <div className="text-center">
-                                  <GalleryAddIcon className="w-6 h-6 mx-auto mb-1 text-[#666]" />
-                                  <span className="text-xs text-[#666]">
-                                    Click to upload
-                                  </span>
-                                </div>
-                                <input
-                                  ref={(el) => {
-                                    fileInputRefs.current[index] = el;
-                                  }}
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(index, e)}
-                                  className="hidden"
-                                />
-                              </label>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      title="scroll right"
-                      onClick={() => {
-                        const container =
-                          document.getElementById("image-container");
-                        if (container) container.scrollLeft += 150;
-                      }}
-                      className="absolute right-0 top-[60%] transform -translate-y-1/2 z-10 flex items-center justify-center rounded-full w-8 h-8 bg-[#f1f1f1] hover:bg-[#e1e1e1]"
-                    >
-                      <ArrowRightIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Video Upload */}
+                {/* Media Upload Section */}
                 <div className="w-[88%] mx-auto">
-                  <p className="text-[12px] sm:text-sm font-normal text-[#2b2b2b] font-montserrat mb-2">
-                    30 seconds Farmers testimonial video (optional)
-                  </p>
-                  {videoPreview ? (
-                    <div className="relative w-full h-[100px] md:h-[120px]">
-                      <video
-                        src={videoPreview}
-                        controls
-                        className="w-full h-full object-cover rounded"
-                      />
-                      <button
-                        onClick={removeVideo}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="w-full h-[100px] md:h-[120px] bg-[#f1f1f1] rounded flex items-center justify-center cursor-pointer hover:bg-[#e1e1e1] border-2 border-dashed border-[#ccc]">
-                      <div className="text-center">
-                        <div className="w-8 h-8 mx-auto mb-2 bg-[#666] rounded flex items-center justify-center">
-                          <span className="text-white text-lg">▶</span>
-                        </div>
-                        <span className="text-sm text-[#666]">
-                          Click to upload video
-                        </span>
-                      </div>
-                      <input
-                        ref={videoInputRef}
-                        type="file"
-                        accept="video/*"
-                        onChange={handleVideoUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
+                  <MediaUpload
+                    imagePreviews={imagePreviews}
+                    videoPreviews={videoPreviews}
+                    onImagesSelect={handleImagesSelect}
+                    onVideoSelect={handleVideoSelect}
+                    onRemoveImage={removeImage}
+                    onRemoveVideo={removeVideo}
+                  />
                 </div>
 
                 <button
@@ -599,9 +358,9 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                 onClose={onClose}
                 selectedCategory={selectedCategory}
                 productName={productName}
-                selectedProfiles={selectedProfiles}
+                selectedFarmerId={selectedFarmerId}
                 imageFiles={imageFiles}
-                videoFile={videoFile}
+                videoFiles={videoFiles}
               />
             )}
           </motion.div>

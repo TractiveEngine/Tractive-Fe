@@ -50,8 +50,7 @@ interface ApiError {
 }
 
 export class CustomerService {
-  private static baseURL =
-    process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+  private static baseURL = process.env.NEXT_PUBLIC_API_URL;
 
   /**
    * Get authentication token from localStorage
@@ -195,7 +194,7 @@ export class CustomerService {
    * Get all customers with optional filtering (without query params for testing)
    */
   static async getCustomers(
-    params?: GetCustomersParams
+    params?: GetCustomersParams,
   ): Promise<GetCustomersResponse> {
     try {
       // Log the parameters we received (for debugging)
@@ -271,18 +270,18 @@ export class CustomerService {
    */
   static async initiateChat(
     customerId: string,
-    payload: ChatInitiatePayload
+    payload: ChatInitiatePayload,
   ): Promise<ChatInitiateResponse> {
     try {
       const response = await this.post<ChatInitiateResponse>(
         `/api/customers/${customerId}/chat`,
-        payload
+        payload,
       );
       return response;
     } catch (error) {
       console.error(
         `Error initiating chat with customer ${customerId}:`,
-        error
+        error,
       );
       throw error;
     }

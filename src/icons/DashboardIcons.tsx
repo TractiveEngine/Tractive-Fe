@@ -7,7 +7,10 @@ interface IconProps {
   fill?: string;
 }
 
-export const OverviewIcon = ({stroke="#2b2b2b", fill="#2b2b2b"}: IconProps) => {
+export const OverviewIcon = ({
+  stroke = "#2b2b2b",
+  fill = "#2b2b2b",
+}: IconProps) => {
   return (
     <div className="flex flex-col items-center">
       <svg
@@ -55,19 +58,13 @@ export const OverviewIcon = ({stroke="#2b2b2b", fill="#2b2b2b"}: IconProps) => {
           rx="0.475"
           fill={fill}
         />
-        <rect
-          y="3.68359"
-          width="19"
-          height="0.95"
-          rx="0.475"
-          fill={fill}
-        />
+        <rect y="3.68359" width="19" height="0.95" rx="0.475" fill={fill} />
       </svg>
     </div>
   );
 };
 
-export const AddToStoreIcon = ({stroke="#2b2b2b"}: IconProps) => {
+export const AddToStoreIcon = ({ stroke = "#2b2b2b" }: IconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -94,7 +91,7 @@ export const AddToStoreIcon = ({stroke="#2b2b2b"}: IconProps) => {
     </svg>
   );
 };
-export const ProduceListIcon = ({stroke='#2b2b2b'}: IconProps) => {
+export const ProduceListIcon = ({ stroke = "#2b2b2b" }: IconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +126,10 @@ export const ProduceListIcon = ({stroke='#2b2b2b'}: IconProps) => {
   );
 };
 
-export const FarmersIcon = ({ stroke = "#2b2b2b", fill = "#D9D9D9" }: IconProps) => {
+export const FarmersIcon = ({
+  stroke = "#2b2b2b",
+  fill = "#D9D9D9",
+}: IconProps) => {
   return (
     <div className="flex flex-col items-center">
       <svg
@@ -181,7 +181,7 @@ export const FarmersIcon = ({ stroke = "#2b2b2b", fill = "#D9D9D9" }: IconProps)
             height="2.01923"
             fill={fill}
             stroke={stroke}
-            strokeWidth ="0.403846"
+            strokeWidth="0.403846"
           />
           <rect
             x="3.08864"
@@ -213,7 +213,10 @@ export const FarmersIcon = ({ stroke = "#2b2b2b", fill = "#D9D9D9" }: IconProps)
   );
 };
 
-export const BidsIcon = ({stroke="#2b2b2b", fill="#2b2b2b"}: IconProps) => {
+export const BidsIcon = ({
+  stroke = "#2b2b2b",
+  fill = "#2b2b2b",
+}: IconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -243,9 +246,7 @@ export const BidsIcon = ({stroke="#2b2b2b", fill="#2b2b2b"}: IconProps) => {
   );
 };
 
-
-
-export const Bag2Icon: React.FC<IconProps> = ({ stroke = "#292d32"  }) => {
+export const Bag2Icon: React.FC<IconProps> = ({ stroke = "#292d32" }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -274,7 +275,7 @@ export const Bag2Icon: React.FC<IconProps> = ({ stroke = "#292d32"  }) => {
   );
 };
 
-export const PackedIcon = ({stroke = "#292d32"}: IconProps) => {
+export const PackedIcon = ({ stroke = "#292d32" }: IconProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -433,7 +434,7 @@ export const MoneyReceive2Icon: React.FC<IconProps> = ({
       <path
         d="M9 5.625V12.375"
         stroke={stroke}
-      strokeWidth="1.5"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -484,7 +485,9 @@ export const Profile2UserIcon: React.FC<IconProps> = ({
   );
 };
 
-export const MessageStarIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => {
+export const MessageStarIcon: React.FC<IconProps> = ({
+  stroke = "#292d32",
+}) => {
   return (
     <div className="relative">
       <svg
@@ -513,7 +516,7 @@ export const MessageStarIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => 
         fill="none"
         className="absolute top-[3.7px] lg:top-[3.7px] left-[4.59px] lg:left-[5.59px] w-[5px] h-[6px] lg:w-[6px] lg:h-[7px]"
       >
-        <g clip-path="url(#clip0_10041_90784)">
+        <g clipPath="url(#clip0_10041_90784)">
           <path
             d="M3.43223 1.37766L3.87223 2.25766C3.93223 2.38016 4.09223 2.49766 4.22723 2.52016L5.02473 2.65266C5.53473 2.73766 5.65473 3.10766 5.28723 3.47266L4.66723 4.09266C4.56223 4.19766 4.50473 4.40016 4.53723 4.54516L4.71473 5.31266C4.85473 5.92016 4.53223 6.15516 3.99473 5.83766L3.24723 5.39516C3.11223 5.31516 2.88973 5.31516 2.75223 5.39516L2.00473 5.83766C1.46973 6.15516 1.14473 5.91766 1.28473 5.31266L1.46223 4.54516C1.49473 4.40016 1.43723 4.19766 1.33223 4.09266L0.712233 3.47266C0.347233 3.10766 0.464733 2.73766 0.974733 2.65266L1.77223 2.52016C1.90473 2.49766 2.06473 2.38016 2.12473 2.25766L2.56473 1.37766C2.80473 0.900156 3.19473 0.900156 3.43223 1.37766Z"
             stroke={stroke}
@@ -537,9 +540,7 @@ export const MessageStarIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => 
   );
 };
 
-export const MessagesIcon: React.FC<IconProps> = ({
-  stroke = "#292d32",
-}) => {
+export const MessagesIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -549,7 +550,7 @@ export const MessagesIcon: React.FC<IconProps> = ({
       fill="none"
       className="w-[14px] h-[14px] lg:w-[18px] lg:h-[18px] "
     >
-      <g clip-path="url(#clip0_10041_90800)">
+      <g clipPath="url(#clip0_10041_90800)">
         <path
           d="M12.75 6.75C12.75 9.6525 10.23 12 7.125 12L6.4275 12.84L6.015 13.335C5.6625 13.755 4.9875 13.665 4.755 13.1625L3.75 10.95C2.385 9.99 1.5 8.4675 1.5 6.75C1.5 3.8475 4.02 1.5 7.125 1.5C9.39 1.5 11.3475 2.7525 12.225 4.5525C12.5625 5.22 12.75 5.9625 12.75 6.75Z"
           stroke={stroke}
@@ -574,7 +575,9 @@ export const MessagesIcon: React.FC<IconProps> = ({
   );
 };
 
-export const MessageQuestionIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => {
+export const MessageQuestionIcon: React.FC<IconProps> = ({
+  stroke = "#292d32",
+}) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -603,9 +606,7 @@ export const MessageQuestionIcon: React.FC<IconProps> = ({ stroke = "#292d32" })
   );
 };
 
-export const LogoutIcon: React.FC<IconProps> = ({
-  stroke = "#292d32",
-}) => {
+export const LogoutIcon: React.FC<IconProps> = ({ stroke = "#292d32" }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -626,34 +627,34 @@ export const LogoutIcon: React.FC<IconProps> = ({
     </svg>
   );
 };
-export const CalenderIcon: React.FC<IconProps> = ({className}) => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="19"
-        viewBox="0 0 18 19"
-        fill="none"
-        className={className}
-      >
-        <path
-          d="M6 2V4.25M12 2V4.25M2.625 7.3175H15.375M15.75 6.875V13.25C15.75 15.5 14.625 17 12 17H6C3.375 17 2.25 15.5 2.25 13.25V6.875C2.25 4.625 3.375 3.125 6 3.125H12C14.625 3.125 15.75 4.625 15.75 6.875Z"
-          stroke="#2B2B2B"
-          strokeWidth="1.5"
-          strokeMiterlimit="10"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M11.7715 10.7754H11.7782M11.7715 13.0254H11.7782M8.99645 10.7754H9.00395M8.99645 13.0254H9.00395M6.2207 10.7754H6.2282M6.2207 13.0254H6.2282"
-          stroke="#2B2B2B"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-}
+export const CalenderIcon: React.FC<IconProps> = ({ className }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="19"
+      viewBox="0 0 18 19"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M6 2V4.25M12 2V4.25M2.625 7.3175H15.375M15.75 6.875V13.25C15.75 15.5 14.625 17 12 17H6C3.375 17 2.25 15.5 2.25 13.25V6.875C2.25 4.625 3.375 3.125 6 3.125H12C14.625 3.125 15.75 4.625 15.75 6.875Z"
+        stroke="#2B2B2B"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11.7715 10.7754H11.7782M11.7715 13.0254H11.7782M8.99645 10.7754H9.00395M8.99645 13.0254H9.00395M6.2207 10.7754H6.2282M6.2207 13.0254H6.2282"
+        stroke="#2B2B2B"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
 // export const NameIcon = () => {
 //     return (
 

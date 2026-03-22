@@ -39,7 +39,7 @@ interface ResendResponse {
 export const registerUserWithOtp = async (
   name: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<{ newUser: StoredUser | null; otpSentTo?: string }> => {
   const toastId = toast.loading("Signing you up...");
 
@@ -53,12 +53,6 @@ export const registerUserWithOtp = async (
         email,
         password,
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
     );
 
     console.log("✅ Registration response:", response.data);
@@ -122,7 +116,7 @@ export const registerUserWithOtp = async (
 // Verify OTP code with backend API
 export const verifyOtpCode = async (
   email: string,
-  otp: string
+  otp: string,
 ): Promise<{
   success: boolean;
   message?: string;
@@ -140,12 +134,6 @@ export const verifyOtpCode = async (
         email,
         code: otp, // or 'otp' depending on your backend expectation
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
     );
 
     console.log("✅ Verification response:", response.data);
@@ -211,7 +199,7 @@ export const verifyOtpCode = async (
 
 // Resend OTP code
 export const resendOtpCode = async (
-  email: string
+  email: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const toastId = toast.loading("Resending code...");
 
@@ -221,12 +209,6 @@ export const resendOtpCode = async (
     const response = await axios.post<ResendResponse>(
       "https://tractive-be.vercel.app/api/auth/resend-verification",
       { email },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
     );
 
     console.log("✅ Resend response:", response.data);

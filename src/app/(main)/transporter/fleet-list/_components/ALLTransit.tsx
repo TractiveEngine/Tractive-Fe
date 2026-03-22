@@ -6,7 +6,9 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { FleetTable } from "./table/FleetTable";
 import AddFleet from "../../_components/AddFleet";
-import { initialFleets, Fleet } from "@/utils/Fleet";
+import { ViewFleetModal } from "../../_components/ViewFleetModal";
+import { Fleet } from "@/utils/Fleet";
+import { useGetFleets, useDeleteFleet, useUpdateFleetStatus } from "@/hooks/queries/useFleetQueries";
 import "../../Table.css";
 
 const months = [
@@ -25,20 +27,57 @@ const months = [
 ];
 
 export const AllTransit: React.FC = () => {
-  const [fleets, setFleets] = useState<Fleet[]>(
-    initialFleets.map((fleet) => ({ ...fleet, checked: false }))
-  );
+  const { data: fetchedFleets } = useGetFleets();
+
+  const [fleets, setFleets] = useState<Fleet[]>([]);
+
+  useEffect(() => {
+    if (fetchedFleets) {
+      setFleets(
+        fetchedFleets.map((fleet) => ({
+          id: fleet._id,
+          image: fleet.images?.[0] || "/images/truckcontainer.png",
+          name: fleet.fleetName || "Unknown Fleet",
+          IOT: fleet.iot || "N/A",
+          route: `${fleet.route?.fromState || "Unknown"} - ${fleet.route?.toState || "Unknown"}`,
+          status: fleet.status || fleet.fleetStates || "Available",
+          price: fleet.price || 0,
+          date: new Date(fleet.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: '2-digit', day: '2-digit' }),
+          checked: false,
+          
+          // Extra Details
+          fleetNumber: fleet.fleetNumber,
+          model: fleet.model,
+          size: fleet.size || fleet.capacity,
+          priceNegotiation: fleet.priceNegotiation,
+          fleetDescription: fleet.fleetDescription,
+          images: fleet.images,
+        }))
+      );
+    }
+  }, [fetchedFleets]);
+
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+  const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingFleet, setEditingFleet] = useState<Fleet | null>(null);
+  
+  // View Fleet Modal State
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+  const [selectedFleet, setSelectedFleet] = useState<Fleet | null>(null);
+
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
+  const statuses = ["All", "Available", "Under Maintenance", "On Transit"];
 
   // Filter fleets based on year, month, and search term
   const filteredFleets = useMemo(() => {
@@ -57,9 +96,17 @@ export const AllTransit: React.FC = () => {
         ? fleet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           fleet.IOT.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
-      return matchesYear && matchesMonth && matchesSearch;
+        
+      let matchesStatus = true;
+      if (selectedStatus !== "All") {
+         const normFleetStatus = fleet.status.toLowerCase().replace("_", " ");
+         const normSelected = selectedStatus.toLowerCase();
+         matchesStatus = normFleetStatus === normSelected;
+      }
+        
+      return matchesYear && matchesMonth && matchesSearch && matchesStatus;
     });
-  }, [fleets, selectedYear, selectedMonth, searchTerm]);
+  }, [fleets, selectedYear, selectedMonth, searchTerm, selectedStatus]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -76,6 +123,12 @@ export const AllTransit: React.FC = () => {
       ) {
         setIsMonthOpen(false);
       }
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsStatusOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -87,40 +140,37 @@ export const AllTransit: React.FC = () => {
       if (event.key === "Escape") {
         setIsYearOpen(false);
         setIsMonthOpen(false);
+        setIsStatusOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Mutations
+  const { mutate: deleteFleet } = useDeleteFleet();
+  const { mutate: updateFleetStatus } = useUpdateFleetStatus();
+
   // Handle delete fleet
   const handleDelete = (id: string) => {
-    setFleets(fleets.filter((fleet) => fleet.id !== id));
+    if (window.confirm("Are you sure you want to delete this fleet?")) {
+      deleteFleet(id);
+    }
   };
 
-  // Handle edit fleet (placeholder)
+  // Handle edit fleet
   const handleEdit = (id: string) => {
-    alert(`Edit fleet with ID: ${id}`);
-    // TODO: Implement edit functionality
+    const fleetToEdit = fleets.find(f => f.id === id);
+    if (fleetToEdit) {
+      setEditingFleet(fleetToEdit);
+      setIsModalOpen(true);
+    }
   };
 
-  // Handle set available
-  const handleToggleStatus = (id: string) => {
-    setFleets(
-      fleets.map((fleet) =>
-        fleet.id === id
-          ? {
-              ...fleet,
-              status:
-                fleet.status === "Available"
-                  ? "Under maintenance"
-                  : fleet.status === "Under maintenance"
-                  ? "Available"
-                  : fleet.status,
-            }
-          : fleet
-      )
-    );
+  // Handle set available/maintenance logic replacement
+  const handleToggleStatus = (id: string, newStatusStr: string) => {
+    // Expects strict lowercase: 'available', 'under_maintenance', 'on_transit'
+    updateFleetStatus({ id, status: newStatusStr });
   };
 
   // Handle tracking (placeholder)
@@ -135,6 +185,12 @@ export const AllTransit: React.FC = () => {
     alert(`Copied IOT: ${IOT}`);
   };
 
+  // Handle row click
+  const handleRowClick = (fleet: Fleet) => {
+    setSelectedFleet(fleet);
+    setIsViewModalOpen(true);
+  };
+
   // Dropdown animation variants
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -143,19 +199,33 @@ export const AllTransit: React.FC = () => {
 
   return (
     <div className="w-full mx-auto">
-      <AddFleet isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddFleet 
+        isOpen={isModalOpen} 
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingFleet(null);
+        }} 
+        editFleetData={editingFleet}
+      />
+      
+      <ViewFleetModal 
+        isOpen={isViewModalOpen} 
+        onClose={() => setIsViewModalOpen(false)} 
+        fleet={selectedFleet} 
+      />
+
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
           {/* Search and Dropdowns */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
             {/* Search Input */}
-            <div className="relative w-[100%] sm:w-[70%] flex-grow">
+            <div className="relative w-full sm:w-[70%] grow">
               <input
                 type="text"
                 placeholder="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                className="w-full pl-8 py-2 border border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search all fleets"
                 aria-describedby="search-description"
               />
@@ -174,7 +244,7 @@ export const AllTransit: React.FC = () => {
               <div className="relative flex-1" ref={yearDropdownRef}>
                 <button
                   onClick={() => setIsYearOpen(!isYearOpen)}
-                  className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                  className="px-3 pl-8 pr-1 py-2 border cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[90px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                   role="combobox"
                   aria-expanded={isYearOpen}
                   aria-controls="year-dropdown"
@@ -248,7 +318,7 @@ export const AllTransit: React.FC = () => {
               <div className="relative flex-1" ref={monthDropdownRef}>
                 <button
                   onClick={() => setIsMonthOpen(!isMonthOpen)}
-                  className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                  className="px-3 pr-1 py-2 border-y border-r cursor-pointer border-[#808080] text-sm sm:text-base text-left w-full sm:w-[90px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                   role="combobox"
                   aria-expanded={isMonthOpen}
                   aria-controls="month-dropdown"
@@ -312,6 +382,62 @@ export const AllTransit: React.FC = () => {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Status Dropdown */}
+              <div className="relative flex-1" ref={statusDropdownRef}>
+                <button
+                  onClick={() => setIsStatusOpen(!isStatusOpen)}
+                  className="px-3 pr-1 py-2 border-y border-r cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                  role="combobox"
+                  aria-expanded={isStatusOpen}
+                  aria-controls="status-dropdown"
+                  aria-label={
+                    selectedStatus
+                      ? `Selected status: ${selectedStatus}`
+                      : "Select status"
+                  }
+                >
+                  <span className="truncate inline-block w-[75%]">{selectedStatus || "Status"}</span>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
+                    {isStatusOpen ? (
+                      <ArrowUpIcon className="w-4 h-4" />
+                    ) : (
+                      <ArrowDownIcon className="w-4 h-4" />
+                    )}
+                  </div>
+                </button>
+                <AnimatePresence>
+                  {isStatusOpen && (
+                    <motion.div
+                      id="status-dropdown"
+                      className="absolute z-10 mt-1 w-[120px] sm:w-[150px] right-0 bg-white border border-gray-300 rounded-[4px] shadow-md max-h-40 overflow-y-auto"
+                      role="listbox"
+                      variants={dropdownVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      {statuses.map((status) => (
+                        <div
+                          key={status}
+                          onClick={() => {
+                            setSelectedStatus(status);
+                            setIsStatusOpen(false);
+                          }}
+                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
+                            selectedStatus === status ? "bg-gray-200" : ""
+                          }`}
+                          role="option"
+                          aria-selected={selectedStatus === status}
+                        >
+                          {status}
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
           {/* Buttons */}
@@ -336,8 +462,10 @@ export const AllTransit: React.FC = () => {
           handleDelete={handleDelete}
           handleToggleStatus={handleToggleStatus}
           handleTracking={handleTracking}
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
   );
 };
+

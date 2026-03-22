@@ -17,7 +17,7 @@ export const TransporterOverview = () => {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
-            $25,550,000
+            ₦25,550,000
           </span>
           <span className="bg-[#cce5cc] text-[#2b2b2b] rounded-full px-1.5 py-0.5 text-[10px] font-montserrat">
             +25%

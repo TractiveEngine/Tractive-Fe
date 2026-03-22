@@ -25,7 +25,7 @@ export const Button = ({
   return (
     <button
       type={type}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
+      className={`flex items-center text-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
         ${
           disabled
             ? "bg-[#b8becd] cursor-not-allowed"

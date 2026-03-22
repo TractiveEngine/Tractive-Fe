@@ -1,19 +1,19 @@
-"use client"
+"use client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { isUserLoggedIn } from "@/utils/loginAuth";
+import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
 import { SellerList } from "./_components/SellerList";
 import { FilterSeller } from "./_components/FilterSeller";
 import { FilterSellerMobile } from "./_components/FilterSellerMobile";
 
-
 export default function SellerPage() {
   const router = useRouter();
-  
+  const { status } = useSession();
+
   useEffect(() => {
-    if (!isUserLoggedIn()) {
+    if (status === "unauthenticated") {
       toast.error("Login to view the Sellers List.", {
         duration: 3000,
         position: "top-center",
@@ -22,7 +22,7 @@ export default function SellerPage() {
         router.push("/login");
       }, 1000);
     }
-  }, [router]);
+  }, [status, router]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);

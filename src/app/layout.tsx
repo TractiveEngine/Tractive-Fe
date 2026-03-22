@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner";
-import { UserEmailProvider } from "../hooks/userEmailContext";
-;
+import Providers from "@/components/providers/Providers";
+import AuthGuard from "@/components/guards/AuthGuard";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -27,17 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        <UserEmailProvider>
-          <main>
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              duration={4000}
-            />
-            {children}
-          </main>
-        </UserEmailProvider>
+        <Providers>
+          <AuthGuard>
+            <main>{children}</main>
+          </AuthGuard>
+        </Providers>
       </body>
     </html>
   );

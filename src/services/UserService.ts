@@ -1,9 +1,5 @@
-// services/UserService.ts
-import { getAuthToken } from "@/utils/loginAuth";
+import api from "@/lib/axios";
 import axios from "axios";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
 
 export interface UserProfile {
   _id: string;
@@ -14,6 +10,7 @@ export interface UserProfile {
   businessName: string;
   villageOrLocalMarket: string;
   interests: string[];
+  role?: string[]; // Handle potential backend inconsistency (role vs roles)
   roles: string[];
   activeRole: string;
   isVerified: boolean;
@@ -22,28 +19,12 @@ export interface UserProfile {
   __v: number;
 }
 
-// Create authenticated headers
-const getAuthHeaders = () => {
-  const token = getAuthToken();
-  if (!token) {
-    console.warn("⚠️ No auth token found. User may not be authenticated.");
-    return { "Content-Type": "application/json" };
-  }
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
-
 export const userService = {
   // GET /api/profile - Get current user profile
   getCurrentUser: async (): Promise<UserProfile> => {
     try {
       console.log("🔄 Fetching current user profile...");
-      const response = await axios.get(`${API_URL}/api/profile`, {
-        headers: getAuthHeaders(),
-        timeout: 10000,
-      });
+      const response = await api.get("/api/profile");
 
       console.log("✅ User profile response:", response.data);
 
@@ -91,10 +72,112 @@ export const userService = {
   canManageFarmers: (user: UserProfile | null): boolean => {
     if (!user) return false;
 
-    const farmerManagementRoles = [
-      "admin",
-      "agent",
-    ];
+    const farmerManagementRoles = ["admin", "agent"];
     return farmerManagementRoles.includes(user.activeRole);
+  },
+
+  // Add new account/role
+  addAccount: async (data: {
+    role: string;
+    name: string;
+    phone: string;
+    address: string;
+    country: string;
+    state: string;
+    lga: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Promise<any> => {
+    try {
+      const response = await api.post("/api/auth/add-account", data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error adding account:", error);
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.error || error.message;
+        throw new Error(message || "Failed to add account");
+      }
+      throw error;
+    }
+  },
+  
+  // Follow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  followFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.post(`/api/buyers/sellers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error following farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
+
+  // Unfollow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  unfollowFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.delete(`/api/buyers/sellers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error unfollowing farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
+
+  // Add product to wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addToWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Adding product ${productId} to wishlist`);
+      const response = await api.post(`/api/wishlist`, { productId });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error adding product ${productId} to wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Remove product from wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removeFromWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Removing product ${productId} from wishlist`);
+      const response = await api.delete(`/api/wishlist`, {
+        data: { productId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(
+        `❌ Error removing product ${productId} from wishlist:`,
+        error
+      );
+      throw error;
+    }
+  },
+
+  // Get wishlist items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getWishlist: async (page = 1, limit = 20): Promise<any> => {
+    try {
+      const response = await api.get(`/api/wishlist`, {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Get Top Sellers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTopSellers: async (): Promise<any> => {
+    try {
+      const response = await api.get(`/api/buyers/top-sellers`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching top sellers:`, error);
+      throw error;
+    }
   },
 };

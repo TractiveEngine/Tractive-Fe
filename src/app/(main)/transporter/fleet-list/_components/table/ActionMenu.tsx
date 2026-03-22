@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 
 // Animation variants for dropdown
 const dropdownVariants = {
@@ -16,7 +17,7 @@ interface ActionMenuProps {
   setActiveMenu: (id: string | null) => void;
   handleEdit: (id: string) => void;
   handleDelete: (id: string) => void;
-  handleToggleStatus: (id: string) => void; // Renamed from handleSetAvailable
+  handleToggleStatus: (id: string, newStatusStr: string) => void; // Renamed from handleSetAvailable
   handleTracking: (id: string) => void;
 }
 
@@ -50,50 +51,117 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
 }) => {
   const isOpen = activeMenu === productId;
 
+  const menuRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const isInsideMenu = menuRef.current?.contains(e.target as Node);
+      const isInsideDropdown = dropdownRef.current?.contains(e.target as Node);
+      if (!isInsideMenu && !isInsideDropdown) {
+        setActiveMenu(null);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside, true);
+      // Optional: close on scroll to avoid menu staying fixed while page scrolls
+      document.addEventListener("scroll", handleClickOutside, true);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside, true);
+        document.removeEventListener("scroll", handleClickOutside, true);
+      };
+    }
+  }, [isOpen, setActiveMenu]);
+
+  const currentStatusNorm = status.toLowerCase().replace(" ", "_");
+  const availableStatuses = [
+    { label: "Available", value: "available" },
+    { label: "Under Maintenance", value: "under_maintenance" },
+    { label: "On Transit", value: "on_transit" },
+  ];
+
+  const getMenuPosition = () => {
+    if (!buttonRef.current) return { top: 0, left: 0 };
+    const rect = buttonRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 8,
+      left: rect.right - 140, // 140px accommodates the menu width
+    };
+  };
+
+  const menuPos = isOpen ? getMenuPosition() : { top: 0, left: 0 };
+
   return (
-    <>
+    <div id={`menu-${productId}`} ref={menuRef} className="relative">
       <button
+        ref={buttonRef}
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => setActiveMenu(isOpen ? null : productId)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveMenu(isOpen ? null : productId);
+        }}
         className="bg-[#f1f1f1] rounded-[100px] cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
       </button>
-      {isOpen && (
-        <motion.div
-          className="absolute w-[6.8rem] py-1 px-1 bottom-[0rem] right-16 bg-[#fefefe] rounded-[5px] shadow-lg pointer-events-auto"
-          variants={dropdownVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {status === "On transit" ? (
-            <button
-              onClick={() => {
-                handleTracking(productId);
-                setActiveMenu(null);
+
+      {mounted && createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              ref={dropdownRef}
+              className="fixed z-999 w-[140px] py-2 px-1 bg-[#fefefe] rounded-[5px] shadow-lg flex flex-col gap-1 border border-[#e0e0e0]"
+              style={{
+                top: menuPos.top,
+                left: menuPos.left,
               }}
-              className="block cursor-pointer w-full text-left px-2.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
+              variants={dropdownVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              onClick={(e) => e.stopPropagation()}
             >
-              Tracking
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  handleToggleStatus(productId);
-                  setActiveMenu(null);
-                }}
-                className="block cursor-pointer w-full text-left px-2.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
-              >
-                {status === "Available" ? "Maintenance" : "Available"}
-              </button>
+              {currentStatusNorm === "on_transit" && (
+                <button
+                  onClick={() => {
+                    handleTracking(productId);
+                    setActiveMenu(null);
+                  }}
+                  className="block cursor-pointer w-full text-left px-2.5 py-1.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
+                >
+                  Tracking
+                </button>
+              )}
+              
+              {availableStatuses.filter(s => s.value !== currentStatusNorm).map(s => (
+                <button
+                  key={s.value}
+                  onClick={() => {
+                    handleToggleStatus(productId, s.value);
+                    setActiveMenu(null);
+                  }}
+                  className="block cursor-pointer w-full text-left px-2.5 py-1.5 text-[12px] font-montserrat text-[#538e53] rounded-[4px] hover:bg-gray-100"
+                >
+                  Set {s.label}
+                </button>
+              ))}
+
+              <hr className="my-1 border-gray-200" />
+
               <button
                 onClick={() => {
                   handleEdit(productId);
                   setActiveMenu(null);
                 }}
-                className="block cursor-pointer w-full text-left px-2.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
+                className="block cursor-pointer w-full text-left px-2.5 py-1.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
               >
                 Edit fleet
               </button>
@@ -102,14 +170,15 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
                   handleDelete(productId);
                   setActiveMenu(null);
                 }}
-                className="block cursor-pointer w-full text-left px-2.5 text-[12px] font-montserrat text-[#2b2b2b] rounded-[4px] hover:bg-gray-100"
+                className="block cursor-pointer w-full text-left px-2.5 py-1.5 text-[12px] font-montserrat text-red-500 rounded-[4px] hover:bg-red-50"
               >
                 Delete fleet
               </button>
-            </>
+            </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>,
+        document.body
       )}
-    </>
+    </div>
   );
 };

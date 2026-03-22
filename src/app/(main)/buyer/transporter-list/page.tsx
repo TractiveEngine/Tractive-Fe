@@ -1,18 +1,18 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { FilterTransporter } from "./_components/FilterTransporter";
-import {  TransporterList } from "./_components/TransporterList";
-import { isUserLoggedIn } from "@/utils/loginAuth";
+import { TransporterList } from "./_components/TransporterList";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FilterTransporterMobile } from "./_components/FilterTransporterMobile";
 
-
 export default function TransportersListPage() {
   const router = useRouter();
-  
+  const { status } = useSession();
+
   useEffect(() => {
-    if (!isUserLoggedIn()) {
+    if (status === "unauthenticated") {
       toast.error("Login to Book a transporter.", {
         duration: 3000,
         position: "top-center",
@@ -21,7 +21,7 @@ export default function TransportersListPage() {
         router.push("/login");
       }, 1000);
     }
-  }, [router]);
+  }, [status, router]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);

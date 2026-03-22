@@ -74,7 +74,7 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
 
   // Calculate total amount based on amountPerKg
   const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("$", ""));
+    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
 
   // Handle payment method toggle
   const handlePaymentMethodToggle = (methodId: string) => {

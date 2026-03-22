@@ -1,15 +1,17 @@
 // components/ProductOutOfStock.tsx
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
+import { ArrowDownIcon, SearchIcon } from "@/icons/Icons";
 import { ProductTable } from "./table/ProductTable";
 import { AddToStore } from "../../_components/AddToStore";
-import { productService, SearchFilters } from "@/services/productService";
+import { SearchFilters } from "@/services/productService";
+import {
+  useBulkDeleteProducts,
+  useBulkUpdateStatus,
+} from "@/hooks/queries/useProductQueries";
 import { toast } from "sonner";
-import { getAuthToken } from "@/utils/loginAuth";
-import { useRouter } from "next/navigation";
+import { DateRangePicker } from "@/components/DateRangePicker";
 
 interface ProductOutOfStockProps {
   onProductsUpdate: (counts: { active: number; out_of_stock: number }) => void;
@@ -18,64 +20,53 @@ interface ProductOutOfStockProps {
 export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   onProductsUpdate,
 }) => {
-  const router = useRouter();
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     status: "out_of_stock",
     year: "",
     month: "",
+    category: "",
+    minPrice: undefined,
+    maxPrice: undefined,
+    from: "",
+    to: "",
+    page: 1,
+    limit: 10,
   });
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
-  const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+
+  /* Removed legacy year/month states and refs */
+  const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const yearDropdownRef = useRef<HTMLDivElement>(null);
-  const monthDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Check auth on mount
-  useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      console.log("❌ No auth token in ProductOutOfStock");
-      toast.error("Please login to manage products", {
-        duration: 3000,
-        position: "top-center",
-      });
-      router.push("/login");
-    }
-  }, [router]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>(
+    {},
+  );
 
-  const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Hardcoded categories for now (should fetch from API ideally or shared constant)
+
+  // Hardcoded categories for now (should fetch from API ideally or shared constant)
+  const categories = [
+    "Grains",
+    "Fish",
+    "Tubers",
+    "Legumes",
+    "LiveStocks",
+    "Vegetables",
   ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        yearDropdownRef.current &&
-        !yearDropdownRef.current.contains(event.target as Node)
+        categoryDropdownRef.current &&
+        !categoryDropdownRef.current.contains(event.target as Node)
       ) {
-        setIsYearOpen(false);
-      }
-      if (
-        monthDropdownRef.current &&
-        !monthDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsMonthOpen(false);
+        setIsCategoryOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -85,31 +76,43 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsYearOpen(false);
-        setIsMonthOpen(false);
+        setIsCategoryOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Update filters when search, year, or month changes
+  // Update filters when inputs change (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setFilters((prev) => ({
         ...prev,
-        year: selectedYear,
-        month: selectedMonth,
-        status: "out_of_stock",
+        category: selectedCategory,
+        minPrice: priceRange.min ? Number(priceRange.min) : undefined,
+        maxPrice: priceRange.max ? Number(priceRange.max) : undefined,
+        from: dateRange.from,
+        to: dateRange.to,
+        // status: preserve existing (don't overwrite)
+        page: 1,
       }));
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [selectedYear, selectedMonth]);
+  }, [selectedCategory, priceRange, dateRange]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, search: event.target.value }));
+    setFilters((prev) => ({ ...prev, search: event.target.value, page: 1 }));
   };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPriceRange((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // React Query Mutations for Bulk Actions
+  const bulkDeleteMutation = useBulkDeleteProducts();
+  const bulkUpdateStatusMutation = useBulkUpdateStatus();
 
   // Handle bulk back in stock operation
   const handleBulkBackInStock = async () => {
@@ -123,47 +126,20 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
 
     if (
       !confirm(
-        `Are you sure you want to mark ${selectedProductIds.length} product(s) as back in stock?`
+        `Are you sure you want to mark ${selectedProductIds.length} product(s) as back in stock?`,
       )
     ) {
       return;
     }
 
-    try {
-      console.log(
-        `✅ Marking ${selectedProductIds.length} products as back in stock`
-      );
-
-      await productService.updateMultipleProductsStatus(
-        selectedProductIds,
-        "active"
-      );
-
-      // Clear selection after successful update
-      setSelectedProductIds([]);
-
-      toast.success(
-        `Successfully marked ${selectedProductIds.length} product(s) as back in stock`,
-        {
-          duration: 3000,
-          position: "top-center",
-        }
-      );
-
-      console.log("✅ Bulk status update successful");
-
-      // Force a refresh
-      setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error) {
-      console.error("❌ Bulk back in stock error:", error);
-      toast.error(
-        error.message || "Failed to update products status. Please try again.",
-        {
-          duration: 5000,
-          position: "top-center",
-        }
-      );
-    }
+    bulkUpdateStatusMutation.mutate(
+      { ids: selectedProductIds, status: "available" },
+      {
+        onSuccess: () => {
+          setSelectedProductIds([]); // Clear selection
+        },
+      },
+    );
   };
 
   // Handle bulk delete operation
@@ -178,47 +154,27 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
 
     if (
       !confirm(
-        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`
+        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`,
       )
     ) {
       return;
     }
 
-    try {
-      console.log(`🗑️ Bulk deleting ${selectedProductIds.length} products`);
-
-      await productService.deleteMultipleProducts(selectedProductIds);
-
-      // Clear selection after successful deletion
-      setSelectedProductIds([]);
-
-      toast.success(
-        `Successfully deleted ${selectedProductIds.length} product(s)`,
-        {
-          duration: 3000,
-          position: "top-center",
-        }
-      );
-
-      console.log("✅ Bulk delete successful");
-
-      // Force a refresh
-      setFilters((prev) => ({ ...prev, timestamp: Date.now() }));
-    } catch (error) {
-      console.error("❌ Bulk delete error:", error);
-      toast.error(
-        error.message || "Failed to delete products. Please try again.",
-        {
-          duration: 5000,
-          position: "top-center",
-        }
-      );
-    }
+    bulkDeleteMutation.mutate(selectedProductIds, {
+      onSuccess: () => {
+        setSelectedProductIds([]); // Clear selection
+      },
+    });
   };
 
   // Handle product selection updates from ProductTable
-  const handleProductSelectionUpdate = (selectedIds: string[]) => {
+  const handleProductSelectionUpdate = useCallback((selectedIds: string[]) => {
     setSelectedProductIds(selectedIds);
+  }, []);
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const dropdownVariants = {
@@ -230,168 +186,33 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
     <div className="w-full mx-auto">
       <AddToStore isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-            <div className="relative w-[100%] sm:w-[70%] flex-grow">
-              <input
-                type="text"
-                placeholder="Search"
-                value={filters.search}
-                onChange={handleSearchChange}
-                className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                aria-label="Search out of stock products"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <SearchIcon
-                  stroke="#808080"
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                />
-              </div>
-            </div>
-            <div className="flex items-center w-full sm:w-auto">
-              <div className="relative flex-1" ref={yearDropdownRef}>
-                <button
-                  onClick={() => setIsYearOpen(!isYearOpen)}
-                  className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
-                  role="combobox"
-                  aria-expanded={isYearOpen}
-                  aria-controls="year-dropdown"
-                  aria-label={selectedYear ? "Selected year" : "Select year"}
-                >
-                  {selectedYear || "Year"}
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
-                    {isYearOpen ? (
-                      <ArrowUpIcon className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownIcon className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
-                    <CalenderIcon />
-                  </div>
-                </button>
-                <AnimatePresence>
-                  {isYearOpen && (
-                    <motion.div
-                      id="year-dropdown"
-                      className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
-                      role="listbox"
-                      variants={dropdownVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <div
-                        onClick={() => {
-                          setSelectedYear("");
-                          setIsYearOpen(false);
-                        }}
-                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                          selectedYear === "" ? "bg-gray-200" : ""
-                        }`}
-                        role="option"
-                        aria-selected={selectedYear === ""}
-                      >
-                        Year
-                      </div>
-                      {years.map((year) => (
-                        <div
-                          key={year}
-                          onClick={() => {
-                            setSelectedYear(year.toString());
-                            setIsYearOpen(false);
-                          }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedYear === year.toString()
-                              ? "bg-gray-200"
-                              : ""
-                          }`}
-                          role="option"
-                          aria-selected={selectedYear === year.toString()}
-                        >
-                          {year}
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="relative flex-1" ref={monthDropdownRef}>
-                <button
-                  onClick={() => setIsMonthOpen(!isMonthOpen)}
-                  className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
-                  role="combobox"
-                  aria-expanded={isMonthOpen}
-                  aria-controls="month-dropdown"
-                  aria-label={selectedMonth ? "Selected month" : "Select month"}
-                >
-                  {selectedMonth || "Month"}
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
-                    {isMonthOpen ? (
-                      <ArrowUpIcon className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownIcon className="w-4 h-4" />
-                    )}
-                  </div>
-                </button>
-                <AnimatePresence>
-                  {isMonthOpen && (
-                    <motion.div
-                      id="month-dropdown"
-                      className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
-                      role="listbox"
-                      variants={dropdownVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <div
-                        onClick={() => {
-                          setSelectedMonth("");
-                          setIsMonthOpen(false);
-                        }}
-                        className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                          selectedMonth === "" ? "bg-gray-200" : ""
-                        }`}
-                        role="option"
-                        aria-selected={selectedMonth === ""}
-                      >
-                        Month
-                      </div>
-                      {months.map((month) => (
-                        <div
-                          key={month}
-                          onClick={() => {
-                            setSelectedMonth(month);
-                            setIsMonthOpen(false);
-                          }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedMonth === month ? "bg-gray-200" : ""
-                          }`}
-                          role="option"
-                          aria-selected={selectedMonth === month}
-                        >
-                          {month}
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+        {/* Top Row: Search & Buttons */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6 mb-4">
+          {/* Search Input */}
+          <div className="relative w-full md:w-[40%]">
+            <input
+              type="text"
+              placeholder="Search"
+              value={filters.search}
+              onChange={handleSearchChange}
+              className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] font-montserrat"
+              aria-label="Search out of stock products"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <SearchIcon stroke="#808080" className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex items-center gap-4 justify-start md:justify-end">
+
+          {/* Buttons */}
+          <div className="flex items-center gap-3 justify-start md:justify-end overflow-x-auto w-full md:w-auto">
             <button
               onClick={handleBulkDelete}
               disabled={selectedProductIds.length === 0}
-              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+              className={`whitespace-nowrap px-4 py-2 opacity-[0.9] text-[#f9f9f9] text-[13px] font-normal rounded-[4px] transition-colors ${
                 selectedProductIds.length === 0
                   ? "bg-[#b28362]/50 cursor-not-allowed"
                   : "bg-[#b28362] hover:bg-[#9f6f50]"
               }`}
-              aria-label={`Delete ${selectedProductIds.length} selected products`}
             >
               Delete{" "}
               {selectedProductIds.length > 0
@@ -401,27 +222,118 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
             <button
               onClick={handleBulkBackInStock}
               disabled={selectedProductIds.length === 0}
-              className={`cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors ${
+              className={`whitespace-nowrap px-4 py-2 opacity-[0.9] text-[#f9f9f9] text-[13px] font-normal rounded-[4px] transition-colors ${
                 selectedProductIds.length === 0
                   ? "bg-[#8B4513]/50 cursor-not-allowed"
                   : "bg-[#8B4513] hover:bg-[#7a3a10]"
               }`}
-              aria-label={`Mark ${selectedProductIds.length} selected products as back in stock`}
             >
               Back in Stock{" "}
               {selectedProductIds.length > 0
                 ? `(${selectedProductIds.length})`
                 : ""}
             </button>
-            <button
+            {/* <button
               onClick={() => setIsModalOpen(true)}
-              className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-              aria-label="Add item to store"
+              className="whitespace-nowrap flex items-center gap-[7px] px-4 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[13px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
             >
               <AddToStoreIcon stroke="#fefefe" />
               Add Item
-            </button>
+            </button> */}
           </div>
+        </div>
+
+        {/* Filters Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 px-6">
+          {/* Category Dropdown */}
+          <div className="relative" ref={categoryDropdownRef}>
+            <button
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+              className="w-full px-3 py-2 border-[1px] bg-white border-[#808080] rounded-[4px] text-sm text-left flex justify-between items-center focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+            >
+              <span className="truncate">{selectedCategory || "Category"}</span>
+              <ArrowDownIcon className="w-4 h-4 text-gray-400" />
+            </button>
+            <AnimatePresence>
+              {isCategoryOpen && (
+                <motion.div
+                  className="absolute z-20 mt-1 w-full bg-white border border-gray-300 rounded-[4px] shadow-md max-h-48 overflow-y-auto"
+                  variants={dropdownVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                >
+                  <div
+                    onClick={() => {
+                      setSelectedCategory("");
+                      setIsCategoryOpen(false);
+                    }}
+                    className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 text-gray-500"
+                  >
+                    All Categories
+                  </div>
+                  {categories.map((cat) => (
+                    <div
+                      key={cat}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setIsCategoryOpen(false);
+                      }}
+                      className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${selectedCategory === cat ? "bg-gray-100 font-medium" : ""}`}
+                    >
+                      {cat}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Status Dropdown */}
+          <select
+            value={filters.status}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: e.target.value as
+                  | "out_of_stock"
+                  | "discontinued"
+                  | "available",
+                page: 1,
+              }))
+            }
+            className="w-full px-3 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] bg-white font-montserrat"
+          >
+            <option value="out_of_stock">Out of Stock</option>
+            <option value="discontinued">Discontinued</option>
+          </select>
+
+          {/* Price Range */}
+          <input
+            type="number"
+            name="min"
+            placeholder="Min Price ($)"
+            value={priceRange.min}
+            onChange={handlePriceChange}
+            className="w-full px-3 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] font-montserrat"
+          />
+          <input
+            type="number"
+            name="max"
+            placeholder="Max Price ($)"
+            value={priceRange.max}
+            onChange={handlePriceChange}
+            className="w-full px-3 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] font-montserrat"
+          />
+
+          {/* Date Range */}
+          {/* Date Range Picker */}
+          <DateRangePicker
+            from={dateRange.from}
+            to={dateRange.to}
+            onChange={(range) => setDateRange(range)}
+            className="sm:col-span-2"
+          />
         </div>
 
         {/* Selection Info */}
@@ -438,6 +350,7 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
           filters={filters}
           onProductsUpdate={onProductsUpdate}
           onSelectionUpdate={handleProductSelectionUpdate}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

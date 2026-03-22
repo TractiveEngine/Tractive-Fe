@@ -1,39 +1,71 @@
 "use client";
 import React from "react";
-import { TruckData } from "@/utils/TruckData";
 import TruckCard from "@/components/cards/TruckCard";
+import { useGetTransporterTrucks } from "@/hooks/queries/useTransporterQueries";
+import { Loader2 } from "lucide-react";
 
 interface EmptyTruckProps {
+  transporterId: string;
   fromState?: string;
   toState?: string;
   sortOption?: string;
 }
 
 export const EmptyTruck = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  transporterId,
   fromState = "",
   toState = "",
   sortOption = "All",
 }: EmptyTruckProps) => {
-  const filteredTruckData = TruckData.filter((truck) => {
-    // Route filtering
-    const matchesFrom = fromState ? truck.locationFrom === fromState : true;
-    const matchesTo = toState ? truck.locationTo === toState : true;
+  const { data: trucksData, isLoading, isError } = useGetTransporterTrucks({
+    status: "empty",
+    fromState,
+    toState,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawTrucks = Array.isArray(trucksData) ? trucksData : (trucksData as any)?.trucks || [];
 
-    // Sort option filtering
-    const fullLoadNum = parseFloat(truck.fullLoad.replace("$", ""));
-    const spaceRemainingNum = parseFloat(
-      truck.spaceRemaining.replace("kg", "")
-    );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formattedTrucks = rawTrucks.map((truck: any, index: number) => ({
+    id: truck._id || truck.id || `truck-${index}`,
+    image: (truck.images && truck.images.length > 0) ? truck.images[0] : truck.image || "/images/EmptyTruck.png",
+    truckName: truck.fleetName || truck.model || truck.truckName || truck.name || "Unknown Truck",
+    rating: truck.rating || 0,
+    amountPerKg: truck.price ? `₦${truck.price.toLocaleString()}` : truck.pricePerKg || truck.amountPerKg || "₦0",
+    fullLoad: truck.capacity || truck.size || truck.fullLoad || "Unknown Capacity",
+    locationFrom: truck.route?.fromState || truck.locationFrom || truck.origin || "Unknown",
+    locationTo: truck.route?.toState || truck.locationTo || truck.destination || "Unknown",
+    spaceRemaining: truck.spaceRemaining || truck.availableSpace || "0kg",
+  }));
+
+  const filteredTruckData = formattedTrucks.filter(() => {
+    // Sort option filtering if needed on client side
     let matchesSort = true;
-
-    if (sortOption === "Empty") {
-      matchesSort = spaceRemainingNum >= fullLoadNum;
-    } else if (sortOption === "Almost Full") {
-      matchesSort = spaceRemainingNum > 0 && spaceRemainingNum < fullLoadNum;
+    if (sortOption === "Almost Full") {
+      matchesSort = false;
+    } else if (sortOption === "Empty") {
+      matchesSort = true;
     }
 
-    return matchesFrom && matchesTo && matchesSort;
+    return matchesSort;
   });
+
+  if (isLoading) {
+    return (
+      <div className="w-[90%] mx-auto py-6 flex flex-col justify-center items-center">
+        <Loader2 className="animate-spin text-[#2b2b2b] w-6 h-6" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="w-[90%] mx-auto py-6 flex flex-col justify-center items-center">
+        <p className="text-[#808080] font-montserrat text-[14px]">Failed to load empty trucks.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[90%] mx-auto py-6">
@@ -41,21 +73,28 @@ export const EmptyTruck = ({
         Empty Truck
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredTruckData.map((card) => (
-          <TruckCard
-            isEmptyTruck={true}
-            key={card.id}
-            id={card.id}
-            image={card.image}
-            truckName={card.truckName}
-            rating={card.rating}
-            amountPerKg={card.amountPerKg}
-            fullLoad={card.fullLoad}
-            locationFrom={card.locationFrom}
-            locationTo={card.locationTo}
-            spaceRemaining={card.spaceRemaining}
-          />
-        ))}
+        {filteredTruckData.length > 0 ? (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          filteredTruckData.map((card: any) => (
+            <TruckCard
+              isEmptyTruck={true}
+              key={card.id}
+              id={card.id}
+              image={card.image}
+              truckName={card.truckName}
+              rating={card.rating}
+              amountPerKg={card.amountPerKg}
+              fullLoad={card.fullLoad}
+              locationFrom={card.locationFrom}
+              locationTo={card.locationTo}
+              spaceRemaining={card.spaceRemaining}
+            />
+          ))
+        ) : (
+          <div className="col-span-full py-10 flex justify-center">
+             <p className="text-[#808080] font-montserrat text-[14px]">No empty trucks found.</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -58,9 +58,9 @@ export const TransitTable: React.FC = () => {
     <div className="TransitTable">
       {" "}
       {/* Set minimum width to ensure table doesn't shrink too much */}
-      <table className="w-full table-auto">
+      <table className="w-full table-auto border-separate border-spacing-y-3">
         <thead>
-          <tr className="border-b border-[#e2e2e2]">
+          <tr className="text-left text-[12px] font-normal font-montserrat text-[#808080]">
             <th className="font-montserrat text-[#2b2b2b] text-[12px] font-normal text-left">
               <div className="flex items-center justify-center p-2 bg-[#cce5cc] rounded-tl-[6px] rounded-br-[6px] w-max">
                 On Transit
@@ -81,9 +81,9 @@ export const TransitTable: React.FC = () => {
           {transitData.map((item) => (
             <tr
               key={item.id}
-              className="border-b border-[#e2e2e2] last:border-b-0"
+              className="bg-white hover:bg-gray-50 transition-colors relative"
             >
-              <td className="py-[5px] px-2.5">
+              <td className="py-2.5 px-4 border-y border-l border-gray-200 rounded-l-[8px]">
                 <div className="flex items-center gap-3">
                   <div className="bg-[f1f1f1] flex items-center justify-center rounded-[4px]">
                     <Image
@@ -104,17 +104,17 @@ export const TransitTable: React.FC = () => {
                   </div>
                 </div>
               </td>
-              <td className="py-[5px] px-2.5">
+              <td className="py-2.5 px-4 border-y border-gray-200">
                 <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal hidden sm:flex">
                   {item.iot}
                 </span>
               </td>
-              <td className="py-[5px] px-2.5">
+              <td className="py-2.5 px-4 border-y border-gray-200">
                 <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal hidden lg:flex">
                   {item.route}
                 </span>
               </td>
-              <td className="py-[5px] px-2.5">
+              <td className="py-2.5 px-4 border-y border-r border-gray-200 rounded-r-[8px]">
                 <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal hidden lg:flex">
                   {item.driver}
                 </span>

@@ -8,14 +8,18 @@ import {
   XModalIcon,
 } from "./Icons/TransporterIcons";
 import Image from "next/image";
+import { useAddFleet } from "@/hooks/queries/useFleetQueries";
+import { FleetPayload } from "@/services/fleetService";
 
 // Props for ItemDetailsForm
 interface DriverDetailsFormProps {
   onBack: () => void;
   onClose: () => void;
   formData: {
-    name: string;
-    phoneNumber: string;
+    fleetName: string;
+    fleetNumber: string;
+    iot: string;
+    model: string;
     price: string;
     size: string;
     isNegotiable: boolean;
@@ -26,11 +30,14 @@ interface DriverDetailsFormProps {
     driverImage: File | null;
     driverName: string;
     driverPhone: string;
+    images: string[];
   };
   setFormData: React.Dispatch<
     React.SetStateAction<{
-      name: string;
-      phoneNumber: string;
+      fleetName: string;
+      fleetNumber: string;
+      iot: string;
+      model: string;
       price: string;
       size: string;
       isNegotiable: boolean;
@@ -41,6 +48,7 @@ interface DriverDetailsFormProps {
       driverImage: File | null;
       driverName: string;
       driverPhone: string;
+      images: string[];
     }>
   >;
 }
@@ -130,6 +138,8 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
     setIsDeliveryDaysOpen(false);
   };
 
+  const { mutate: addFleet } = useAddFleet();
+
   // Handle driver image upload
   const handleDriverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -141,8 +151,29 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
-    // Implement upload logic here (e.g., API call)
-    onClose();
+
+    const payload: FleetPayload = {
+      fleetName: formData.fleetName,
+      fleetNumber: formData.fleetNumber, 
+      iot: formData.iot, 
+      model: formData.model, 
+      size: formData.size,
+      price: Number(formData.price),
+      priceNegotiation: formData.isNegotiable,
+      images: formData.images.length > 0 ? formData.images : ["https://example.com/truck1.jpg"], // Temporary replacement until image upload is implemented
+      fleetDescription: formData.description,
+      fleetStates: "Active", // Assuming Active by default
+      route: {
+        fromState: formData.fromState,
+        toState: formData.toState,
+      },
+    };
+
+    addFleet(payload, {
+      onSuccess: () => {
+        onClose();
+      },
+    });
   };
 
   // Trigger file input click
@@ -199,7 +230,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
       exit={{ opacity: 0, x: 50 }}
       className="p-4"
     >
-      <div className="flex items-center justify-between mb-[1rem]">
+      <div className="flex items-center justify-between mb-4">
         <div
           onClick={onBack}
           onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -233,7 +264,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
               <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
                 From
               </label>
-              <div className="flex gap-[1px] w-full max-w-[240px] md:max-w-[142px] items-center">
+              <div className="flex gap-px w-full max-w-[240px] md:max-w-[142px] items-center">
                 <Image
                   src="/images/locationPointer.png"
                   alt="Driver preview"
@@ -243,7 +274,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 />
                 <div
                   onClick={() => setIsFromOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
+                  className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
                   role="button"
                   tabIndex={0}
                 >
@@ -254,7 +285,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 </div>
               </div>
               {isFromOpen && (
-                <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
+                <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
                   {nigerianStates.map((state) => (
                     <div
                       key={state}
@@ -276,7 +307,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
               </label>
               <div
                 onClick={() => setIsToOpen((prev) => !prev)}
-                className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
+                className="flex items-center justify-between w-full max-w-[240px] md:max-w-[142px] border border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
                 role="button"
                 tabIndex={0}
               >
@@ -286,7 +317,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 {isToOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
               </div>
               {isToOpen && (
-                <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
+                <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
                   {nigerianStates.map((state) => (
                     <div
                       key={state}
@@ -305,14 +336,14 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
           </div>
 
           {/* Delivery Days */}
-          <div className="w-[100%] md:w-[30%]">
+          <div className="w-full md:w-[30%]">
             <label className="text-[12px] font-normal text-[#2b2b2b] font-montserrat">
               Delivery
             </label>
             <div className="relative" ref={deliveryDaysDropdownRef}>
               <div
                 onClick={() => setIsDeliveryDaysOpen((prev) => !prev)}
-                className="flex items-center justify-between w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
+                className="flex items-center justify-between w-full border border-[#2b2b2b] rounded-[4px] px-3 py-2 cursor-pointer"
                 role="button"
                 tabIndex={0}
               >
@@ -322,7 +353,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 {isDeliveryDaysOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
               </div>
               {isDeliveryDaysOpen && (
-                <div className="absolute z-10 w-full bg-[#fefefe] border-[1px] border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
+                <div className="absolute z-10 w-full bg-[#fefefe] border border-[#2b2b2b] rounded-[4px] mt-1 max-h-[200px] overflow-y-auto">
                   {deliveryDaysOptions.map((days) => (
                     <div
                       key={days}
@@ -340,7 +371,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
             </div>
           </div>
         </div>
-        <div className="relative border-1 border-[#808080]  w-full max-w-[330px] mx-auto rounded-[8px] p-4">
+        <div className="relative border border-[#808080] w-full max-w-[330px] mx-auto rounded-[8px] p-4">
           <label className="absolute text-[19px] font-normal text-[#808080] font-montserrat">
             Driver
           </label>
@@ -391,7 +422,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 name="driverName"
                 value={formData.driverName}
                 onChange={handleInputChange}
-                className="w-full border-[1px] border-[#808080] rounded-[4px] px-3 py-2 text-[12px] font-montserrat"
+                className="w-full border border-[#808080] rounded-[4px] px-3 py-2 text-[12px] font-montserrat"
                 placeholder="Enter driver name"
               />
             </div>
@@ -404,7 +435,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
                 name="driverPhone"
                 value={formData.driverPhone}
                 onChange={handleInputChange}
-                className="w-full border-[1px] border-[#808080] rounded-[4px] px-3 py-2 text-[12px] font-montserrat"
+                className="w-full border border-[#808080] rounded-[4px] px-3 py-2 text-[12px] font-montserrat"
                 placeholder="Enter driver phone number"
               />
             </div>
@@ -414,7 +445,7 @@ export const DriverDetailsForm: React.FC<DriverDetailsFormProps> = ({
         {/* Upload Button */}
         <button
           type="submit"
-          className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-[100%] font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
+          className="flex items-center justify-center bg-[#538e53] text-[#fefefe] mx-auto w-full font-montserrat font-normal text-[16px] rounded-[4px] p-[0.7rem]"
         >
           Upload
         </button>
