@@ -1,85 +1,93 @@
-# Frontend Role-Based Authentication & Account Management Prompt
+# Frontend Role-Based Authentication, Onboarding & Guards
 
 ## PURPOSE
 
-You are a **Frontend AI Engineer** working on an existing **Next.js role-based application**.
+You are an **AI Frontend Engineer** working on an existing **Next.js application** with **role-based access control**.
 
-Your task is to **implement and refactor frontend authentication, onboarding, and role-switching logic** using the provided APIs, while strictly preserving:
+Your responsibility is to **implement, refactor, and enforce authentication, onboarding, role creation, role switching, and route protection (guards)** using the provided APIs and tools — **without changing the UI**.
 
-- Existing UI design
-- Existing layouts and components
-- Existing user experience flow
-
-This is a **logic and architecture task only**, not a redesign.
+This document is the **single source of truth** for how users move through the system and how frontend guards must behave.
 
 ---
 
-## ABSOLUTE RULES (NON-NEGOTIABLE)
+## NON-NEGOTIABLE RULES
 
-- ❌ DO NOT change UI design, styling, spacing, colours, or layouts
-- ❌ DO NOT modify existing component visuals
-- ❌ DO NOT change backend APIs or payload formats
-- ❌ DO NOT invent endpoints, fields, or responses
-- ❌ DO NOT store auth/session data in Local Storage
-- ❌ DO NOT bypass role logic or hardcode roles
+* ❌ Do NOT change UI design, layout, spacing, colors, or components
+* ❌ Do NOT invent APIs, payloads, fields, or responses
+* ❌ Do NOT store auth/session data in Local Storage
+* ❌ Do NOT hardcode roles or bypass role logic
+* ❌ Do NOT move logic into middleware unless explicitly stated
 
-If something is unclear, **pause and flag it** instead of guessing.
-
----
-
-## TECH STACK EXPECTATION
-
-Use the following tools correctly and intentionally:
-
-- **NextAuth** → Authentication & session handling (JWT-based)
-- **Redux Toolkit** → Global user/profile state
-- **TanStack React Query** → All API calls
-- **Zustand** → Optional, only for transient UI state (not auth)
+If something is unclear → **pause and flag it**.
 
 ---
 
-## AVAILABLE AUTH & PROFILE APIs (SOURCE OF TRUTH)
+## TECH STACK (MANDATORY)
 
-### 1. Add New Account / Role
+* **Next.js App Router**
+* **NextAuth (JWT-based)** → authentication & session
+* **Redux Toolkit** → persistent global user/profile/role state
+* **TanStack React Query** → ALL API calls
+* **Client-side route guards** (layout-based, not middleware)
+
+---
+
+## AUTH & PROFILE APIS (SOURCE OF TRUTH)
+
+
+Note: add a lga input field to the onboarding page that will be use for the add-account api call and give it a label "Local Government Area" 
+
+### 1. Create Role / Account
+
 **POST** `/api/auth/add-account`
 
-Used to create a **new role/account** for an existing or newly registered user.
+Used **after onboarding** to create a role for an existing user.
 
 ```json
 {
   "role": "buyer",
+  "name": "Enrico Tester",
   "phone": "+2348011223344",
   "address": "78 Market Street, Abuja",
   "country": "Nigeria",
-  "state": "Abuja"
+  "state": "Abuja",
+  "lga": "Municipal"
 }
+```
 
+---
 
-2. Get User Profile
+### 2. Get Profile
 
-GET /api/profile
+**GET** `/api/profile`
 
-Returns the authenticated user details.
-
+```json
 {
   "user": {
-    "_id": "696f7f7ab3e9c64e9697d0b9",
-    "email": "490wms5p3b@bwmyga.com",
+    "_id": "...",
+    "email": "user@email.com",
     "roles": [],
     "activeRole": null,
     "isVerified": true,
     "name": "Agent new",
-    "status": "active",
-    "createdAt": "2026-01-20T13:13:30.723Z"
+    "status": "active"
   }
 }
+```
 
-3. Update Profile (Onboarding)
+This endpoint is the **authoritative source** for:
 
-PATCH /api/profile
+* roles
+* activeRole
+* onboarding state
 
-Used during onboarding and profile updates.
+---
 
+### 3. Update Profile (Onboarding)
+
+**PATCH** `/api/profile`
+
+```json
 {
   "name": "Enrico Tester",
   "phone": "+2348011223344",
@@ -88,182 +96,185 @@ Used during onboarding and profile updates.
   "state": "Abuja",
   "interests": ["Grains", "Vegetables"]
 }
+```
 
-4. Get Available Roles for Switching
+---
 
-GET /api/profile/switch-role
+### 4. Get Switchable Roles
 
-Returns roles the user can switch to.
+**GET** `/api/profile/switch-role`
 
+```json
 {
   "activeRole": null,
   "availableRoles": []
 }
+```
 
-5. Switch Active Role
+---
 
-PATCH /api/profile/switch-role
+### 5. Switch Active Role
 
-Used to switch the user’s active role.
+**PATCH** `/api/profile/switch-role`
 
-{
-  "activeRole": "buyer"
-}
-
+```json
+{ "activeRole": "buyer" }
+```
 
 After switching:
 
-Re-fetch /api/profile
+* Re-fetch `/api/profile`
+* Sync Redux + Session
+* Redirect by role
 
-Update session + Redux
+---
 
-Redirect based on activeRole
+## REQUIRED USER FLOWS (STRICT)
 
-REQUIRED USER FLOWS (MUST BE FOLLOWED EXACTLY)
-A. New User Flow
+### A. New User Flow
 
-User signs up
+1. User registers
+2. User verifies email (code)
+3. User logs in
+4. Fetch `/api/profile`
+5. `roles.length === 0` and `activeRole === null`
+6. Redirect → **Register-As page**
+7. User selects role (buyer / agent / transporter)
+8. User clicks **Submit** (role NOT created yet)
+9. Redirect → **Onboarding page**
+10. User completes onboarding form
+11. Call `PATCH /api/profile`
+12. Call `POST /api/auth/add-account`
+13. Re-fetch `/api/profile`
+14. Redirect → role dashboard
 
-User verifies email via code
+---
 
-User logs in
+### B. Existing User Login Flow
 
-User is redirected to Register-As page
+1. User logs in
+2. Fetch `/api/profile`
+3. If `activeRole !== null`
 
-User selects a role (buyer / agent / transporter)
+   * Redirect → role dashboard
+4. If `activeRole === null` but roles exist
 
-User must click Submit to confirm selection
+   * Redirect → role selection page
 
-⚠️ Role must NOT be set instantly on click
+---
 
-User is redirected to Onboarding page
+### C. Role Switching Flow (Navbar)
 
-User completes onboarding form
+1. Fetch `/api/profile/switch-role`
+2. Display roles:
 
-Profile is updated via /api/profile
+   * Available → selectable
+   * Missing → marked "Not created"
+3. User selects available role
+4. Call `PATCH /api/profile/switch-role`
+5. Re-fetch `/api/profile`
+6. Update Redux + session
+7. Redirect → new role dashboard
 
-User is redirected based on selected role
+---
 
-B. Existing User Login Flow
+### D. Creating a Missing Role
 
-User logs in
+1. User clicks role marked "Not created"
+2. Redirect → Create Role page
+3. User confirms role
+4. Call `POST /api/auth/add-account`
+5. Re-fetch `/api/profile`
+6. Redirect → role dashboard
 
-Fetch /api/profile
+---
 
-Detect activeRole
+## FRONTEND GUARDS (CRITICAL)
 
-Redirect user to the correct dashboard based on activeRole
+### Guard 1: Authentication Guard
 
-C. Role Switching Flow (Navbar)
+Applied at **root protected layout**
 
-Fetch /api/profile/switch-role
+* If no NextAuth session → redirect to `/login`
 
-Display:
+---
 
-Available roles → selectable
+### Guard 2: Profile Loaded Guard
 
-Unavailable roles → tagged as “Not created”
+* Always fetch `/api/profile` after login
+* UI must wait until profile is resolved
+* Do NOT guess user state
 
-User selects an available role
+---
 
-Call /api/profile/switch-role (PATCH)
+### Guard 3: Role Existence Guard
 
-Re-fetch /api/profile
+* If `roles.length === 0`
+  → redirect to Register-As
 
-Update session + Redux
+---
 
-Redirect based on new activeRole
+### Guard 4: Active Role Guard
 
-D. Creating a Missing Role
+* If `activeRole === null`
+  → redirect to role selection
 
-User clicks a role marked Not created
+---
 
-Redirect to Create Account / Role page
+### Guard 5: Role-Based Route Guard
 
-Role is selected explicitly
+Each dashboard layout must enforce:
 
-Call /api/auth/add-account
+* buyer → `/buyer/**`
+* agent → `/agent/**`
+* transporter → `/transporter/**`
 
-Use role + profile-derived data
+If mismatch → redirect to correct dashboard
 
-On success:
+---
 
-Re-fetch /api/profile
+## STATE MANAGEMENT RULES
 
-Detect activeRole
+* NextAuth session = authentication truth
+* Redux stores:
 
-Redirect accordingly
+  * user profile
+  * roles
+  * activeRole
+* Redux must sync from `/api/profile`
+* Never infer role locally
 
-STATE MANAGEMENT RULES
+---
 
-NextAuth session is the source of authentication truth
+## UI CONSTRAINTS
 
-Redux Toolkit stores:
+* Keep all existing UI and components
+* No redesigns
+* No layout changes
+* Logic-only changes allowed
 
-User profile
+---
 
-Roles
+## EXPECTED AI OUTPUT
 
-Active role
+You must:
 
-Session data must be synchronised into Redux
+* Follow flows exactly
+* Implement client-side guards via layouts
+* Use React Query for all API calls
+* Keep Redux and session in sync
+* Avoid assumptions
 
-Role detection must always rely on API responses
+If anything is unclear → **ask before coding**.
 
-ROUTING & GUARDS
+---
 
-Routes must be protected by:
+## FINAL NOTE
 
-Authentication status
+This system prioritizes:
 
-Active role
+* correctness
+* predictability
+* scalability
 
-Redirection logic must be centralised
-
-No role-based hardcoding in components
-
-UI CONSTRAINTS (VERY IMPORTANT)
-
-Keep all existing UI components
-
-Keep all existing pages
-
-Keep existing layouts and styling
-
-Only modify:
-
-Logic
-
-State handling
-
-API integration
-
-EXPECTED OUTPUT FROM YOU
-
-You must produce:
-
-Clean, maintainable frontend logic
-
-Correct API integration via React Query
-
-Proper session + Redux synchronisation
-
-Accurate role-based routing
-
-Zero UI changes
-
-If a requirement is unclear, explicitly ask or flag it instead of assuming.
-
-FINAL WARNING
-
-This task prioritises:
-
-Correctness
-
-Stability
-
-Scalability
-
-Discipline
-
-Creativity, shortcuts, and assumptions are not welcome here.
+Shortcuts are unacceptable.

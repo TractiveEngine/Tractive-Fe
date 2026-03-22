@@ -10,17 +10,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html>
-      <body>
-        <UserEmailProvider>
-          <main>
-            {children}
-            <div className="bg-[#f1f1f1] w-full">
-              <Footer />
-            </div>
-          </main>
-        </UserEmailProvider>
-      </body>
-    </html>
+    <UserEmailProvider>
+      <main>
+        {children}
+        <div className="bg-[#f1f1f1] w-full">
+          <Footer />
+        </div>
+      </main>
+    </UserEmailProvider>
   );
 }
