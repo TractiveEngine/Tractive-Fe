@@ -18,8 +18,9 @@ interface ProductRowProps {
   copyToClipboard: (id: string) => void;
   handleEdit: (id: string) => void;
   handleDelete: (id: string) => void;
-  handleToggleStatus: (id: string) => void; // Changed from handleSetAvailable
+  handleToggleStatus: (id: string, newStatusStr: string) => void; // Changed from handleSetAvailable
   handleTracking: (id: string) => void; // Added
+  onRowClick?: (fleet: Fleet) => void;
 }
 
 export const TickIcon = () => {
@@ -74,53 +75,74 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   handleDelete,
   handleToggleStatus,
   handleTracking,
+  onRowClick,
 }) => {
   // Map status to color
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Under maintenance":
-      return "text-[#8B4513]";
-    case "Available":
-      return "text-[#538e53]";
-    case "On transit":
-      return "text-[#2b2b2b]";
-    default:
-      return "text-[#2b2b2b]";
-  }
-};
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Under maintenance":
+        return "text-[#8B4513]";
+      case "Available":
+        return "text-[#538e53]";
+      case "On transit":
+        return "text-[#2b2b2b]";
+      default:
+        return "text-[#2b2b2b]";
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent row click if clicking on actionable items
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest(".action-menu-container") ||
+      target.closest("svg")
+    ) {
+      return;
+    }
+    
+    if (onRowClick) {
+      onRowClick(fleet);
+    }
+  };
 
   return (
     <motion.tr
-      className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+      className="bg-white relative cursor-pointer hover:bg-gray-50 transition-colors"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
       transition={{ delay: index * 0.1 }}
+      onClick={handleClick}
     >
-      <td className="py-1.5 pl-4">
+      <td className="py-2.5 pl-4 border-y border-l border-gray-200 rounded-l-[8px]">
         <div className="flex items-center gap-2">
-          <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px]">
+          <div className="bg-[#f1f1f1] flex items-center justify-center w-[63px] h-[37px] rounded-[4px] overflow-hidden">
             <Image
               src={fleet.image}
               alt={fleet.name}
               width={40}
               height={24}
-              className="object-contain"
+              className="object-contain h-full w-full"
             />
           </div>
           <div>
-            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal truncate font-montserrat text-[#2b2b2b]">
+            <p className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-medium truncate font-montserrat text-[#2b2b2b]">
               {fleet.name}
             </p>
-            <div className="flex items-center gap-1.5 cursor-pointer">
-              <span className="text-[10px] sm:text-[11px] font-montserrat font-normal text-[#2b2b2b]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] sm:text-[11px] font-montserrat font-normal text-[#808080]">
                 {fleet.IOT}
               </span>
               <button
-                onClick={() => copyToClipboard(fleet.IOT)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(fleet.IOT);
+                }}
                 title="Copy Fleet IOT"
                 aria-label="Copy Fleet IOT"
-                className="cursor-pointer"
+                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <IdCopyIcon />
               </button>
@@ -128,38 +150,41 @@ const getStatusColor = (status: string) => {
           </div>
         </div>
       </td>
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        <div className="flex items-center gap-1.5 cursor-pointer">
-          <span className="text-[10px] sm:text-[11px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b] border-y border-gray-200">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] sm:text-[11px] font-montserrat font-normal text-[#808080]">
             {fleet.IOT}
           </span>
           <button
-            onClick={() => copyToClipboard(fleet.IOT)}
+            onClick={(e) => {
+              e.stopPropagation();
+              copyToClipboard(fleet.IOT);
+            }}
             title="Copy Fleet IOT"
             aria-label="Copy Fleet IOT"
-            className="cursor-pointer"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
           >
             <IdCopyIcon />
           </button>
         </div>
       </td>
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b] border-y border-gray-200">
         {fleet.route}
       </td>
       <td
-        className={`py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal ${getStatusColor(
+        className={`py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal ${getStatusColor(
           fleet.status
-        )}`}
+        )} border-y border-gray-200`}
       >
-        {fleet.status}
+        {fleet.status === "On transit" ? "On Transit" : fleet.status}
       </td>
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
-        ${fleet.price.toFixed(2)}
+      <td className="py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-medium text-[#2b2b2b] border-y border-gray-200">
+        ₦{fleet.price.toLocaleString()}
       </td>
-      <td className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#2b2b2b]">
+      <td className="py-2.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-montserrat font-normal text-[#808080] border-y border-gray-200">
         {fleet.date}
       </td>
-      <td className="py-1.5 px-4 relative z-10">
+      <td className="py-2.5 px-4 relative z-10 action-menu-container border-y border-r border-gray-200 rounded-r-[8px]" onClick={(e) => e.stopPropagation()}>
         <ActionMenu
           productId={fleet.id}
           status={fleet.status} // Pass status
@@ -174,3 +199,4 @@ const getStatusColor = (status: string) => {
     </motion.tr>
   );
 };
+

@@ -6,14 +6,24 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
 import { OnboardingDriver } from "./_components/OnboardingDriver";
-import { Driver, drivers } from "@/utils/DriverData";
+import { Driver } from "@/utils/DriverData";
 import { DriverActionMenu } from "./_components/DriverActionMenu";
 import { AssignFleetModal } from "./_components/AssignFleet";
+import { DeleteDriverModal } from "./_components/DeleteDriverModal";
+import { DriverTableSkeleton } from "./_components/DriverTableSkeleton";
+import {
+  DriverService,
+  CreateDriverPayload,
+  UpdateDriverPayload,
+} from "@/services/driverService";
+import { DriverDetailsModal } from "./_components/DriverDetailsModal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner"; // Using sonner as seen in package.json, assuming it's configured in layout
 
 interface ColumnConfig<T> {
   header: string;
   key: keyof T;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, handlers?: Record<string, unknown>) => React.ReactNode;
   minWidth?: string;
 }
 
@@ -25,14 +35,14 @@ const driverColumns: ColumnConfig<Driver>[] = [
     render: (driver) => (
       <div className="flex items-center gap-2">
         <Image
-          src={driver.image}
+          src={driver.image || "/images/bidder1.png"}
           alt={driver.name}
           width={25}
           height={25}
           className="rounded-full w-[25px] h-[25px] sm:w-[35px] sm:h-[35px] object-cover"
         />
         <span className="text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px] font-normal font-montserrat text-[#2b2b2b]">
-          {driver.name}
+          {driver.name || "--"}
         </span>
       </div>
     ),
@@ -41,30 +51,56 @@ const driverColumns: ColumnConfig<Driver>[] = [
     header: "Route",
     key: "route",
     minWidth: "min-w-[100px]",
+    render: (driver) => (
+      <span className="text-sm font-montserrat text-[#2b2b2b]">
+        {driver.route || "--"}
+      </span>
+    ),
   },
   {
     header: "Fleet",
     key: "fleet",
     minWidth: "min-w-[100px]",
+    render: (driver) => (
+      <span className="text-sm font-montserrat text-[#2b2b2b]">
+        {driver.fleet || "--"}
+      </span>
+    ),
   },
   {
     header: "IoT",
     key: "iot",
     minWidth: "min-w-[120px]",
+    render: (driver) => (
+      <span className="text-sm font-montserrat text-[#2b2b2b]">
+        {driver.iot || "--"}
+      </span>
+    ),
   },
   {
-    header: "Mobile",
-    key: "mobile",
+    header: "License Number",
+    key: "licenseNumber",
     minWidth: "min-w-[120px]",
+    render: (driver) => (
+      <span className="text-sm font-montserrat text-[#2b2b2b]">
+        {driver.licenseNumber || "--"}
+      </span>
+    ),
   },
   {
     header: "Date",
     key: "date",
     minWidth: "min-w-[100px]",
+    render: (driver) => (
+      <span className="text-sm font-montserrat text-[#2b2b2b]">
+        {driver.date || "--"}
+      </span>
+    ),
   },
 ];
 
 const DriversListPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
@@ -72,9 +108,14 @@ const DriversListPage: React.FC = () => {
   const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAssignFleetModalOpen, setIsAssignFleetModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
+  
   const [editDriver, setEditDriver] = useState<Driver | null>(null);
   const [assignDriver, setAssignDriver] = useState<Driver | null>(null);
-  const [driversData, setDriversData] = useState<Driver[]>(drivers);
+  const [deleteDriver, setDeleteDriver] = useState<Driver | null>(null);
+  const [viewDriver, setViewDriver] = useState<Driver | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
@@ -94,6 +135,92 @@ const DriversListPage: React.FC = () => {
     "Nov",
     "Dec",
   ];
+
+  // Fetch Drivers
+  const { data: driversData = [], isLoading } = useQuery({
+    queryKey: ["drivers"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryFn: () => DriverService.getDrivers<any[]>(),
+    select: (data) =>
+      data.map((item) => {
+        const truck = item.assignedTruck;
+        return {
+          id: item._id,
+          name: item.name,
+          route: truck ? `${truck.route.fromState} - ${truck.route.toState}` : "",
+          fleet: truck?.fleetName || "",
+          iot: truck?.iot || "",
+          phone: item.phone || "",
+          licenseNumber: item.licenseNumber,
+          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+          image: item.image || "",
+          assignedTruck: truck,
+        };
+      }) as Driver[],
+  });
+
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (data: CreateDriverPayload) => DriverService.createDriver(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      toast.success("Driver created successfully");
+      setIsOnboardModalOpen(false);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.log(error); // Keep or remove console log if desired
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create driver";
+      toast.error(errorMessage);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateDriverPayload }) =>
+      DriverService.updateDriver(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      toast.success("Driver updated successfully");
+      setIsEditModalOpen(false);
+      setEditDriver(null);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update driver";
+      toast.error(errorMessage);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => DriverService.deleteDriver(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      toast.success("Driver deleted successfully");
+      setIsDeleteModalOpen(false);
+      setDeleteDriver(null);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || "Failed to delete driver";
+      toast.error(errorMessage);
+    },
+  });
+
+  const assignFleetMutation = useMutation({
+    mutationFn: ({ id, truckId }: { id: string; truckId: string }) =>
+      DriverService.assignFleet(id, { truckId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      toast.success("Fleet assigned successfully");
+      setIsAssignFleetModalOpen(false);
+      setAssignDriver(null);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || "Failed to assign fleet";
+      toast.error(errorMessage);
+    },
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,6 +249,7 @@ const DriversListPage: React.FC = () => {
         setIsOnboardModalOpen(false);
         setIsEditModalOpen(false);
         setIsAssignFleetModalOpen(false);
+        setIsDeleteModalOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -133,8 +261,6 @@ const DriversListPage: React.FC = () => {
     if (driver) {
       setEditDriver(driver);
       setIsEditModalOpen(true);
-    } else {
-      console.error(`Driver with ID ${id} not found`);
     }
   };
 
@@ -143,65 +269,62 @@ const DriversListPage: React.FC = () => {
     if (driver) {
       setAssignDriver(driver);
       setIsAssignFleetModalOpen(true);
-    } else {
-      console.error(`Driver with ID ${id} not found`);
     }
   };
 
   const handleRemove = (id: string) => {
-    console.log(`Reported driver with ID: ${id}`);
-    alert(`Reported driver with ID: ${id}`);
+    const driver = driversData.find((d) => d.id === id);
+    if (driver) {
+        setDeleteDriver(driver);
+        setIsDeleteModalOpen(true);
+    }
   };
 
-  const handleOnboardSubmit = (
-    formData: Omit<Driver, "id" | "route" | "fleet" | "iot" | "date">
-  ) => {
-    const newDriver: Driver = {
-      id: `driver-${Date.now()}`,
-      route: "",
-      fleet: "",
-      iot: "",
-      date: new Date().toLocaleDateString("en-GB"),
-      ...formData,
-    };
-    setDriversData([newDriver, ...driversData]);
+  const handleViewDetails = (id: string) => {
+    const driver = driversData.find((d) => d.id === id);
+    if (driver) {
+      setViewDriver(driver);
+      setIsViewDetailsModalOpen(true);
+    }
   };
 
-  const handleEditSubmit = (
-    formData: Omit<Driver, "id" | "route" | "fleet" | "iot" | "date">
-  ) => {
+  const confirmDelete = () => {
+    if (deleteDriver) {
+        deleteMutation.mutate(deleteDriver.id);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOnboardSubmit = (data: any) => {
+    // data contains name and licenseNumber
+    createMutation.mutate(data);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditSubmit = (data: any) => {
+    // data contains phone
     if (editDriver) {
-      setDriversData(
-        driversData.map((d) =>
-          d.id === editDriver.id ? { ...d, ...formData } : d
-        )
-      );
-      setIsEditModalOpen(false);
-      setEditDriver(null);
+      updateMutation.mutate({ id: editDriver.id, data });
     }
   };
 
-  const handleAssignFleetSubmit = (iot: string) => {
+  const handleAssignFleetSubmit = (truckId: string) => {
     if (assignDriver) {
-      setDriversData(
-        driversData.map((d) => (d.id === assignDriver.id ? { ...d, iot } : d))
-      );
-      setIsAssignFleetModalOpen(false);
-      setAssignDriver(null);
+      assignFleetMutation.mutate({ id: assignDriver.id, truckId });
     }
   };
 
-  const filteredDrivers = driversData.filter((driver) => {
+  const filteredDrivers = driversData?.filter((driver) => {
     const matchesSearch =
-      driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver.route.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver.fleet.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver.iot.toLowerCase().includes(searchQuery.toLowerCase());
+      driver?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      driver?.route?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      driver?.fleet?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      driver?.iot?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesYear =
-      !selectedYear || driver.date.includes(selectedYear.toString());
+      !selectedYear || driver?.date.includes(selectedYear.toString());
     const matchesMonth =
       !selectedMonth ||
-      driver.date.includes(
+      driver?.date.includes(
         (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
       );
     return matchesSearch && matchesYear && matchesMonth;
@@ -235,17 +358,29 @@ const DriversListPage: React.FC = () => {
           onSubmit={handleAssignFleetSubmit}
           editDriver={assignDriver}
         />
-        <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
+        <DeleteDriverModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onConfirm={confirmDelete}
+            driverName={deleteDriver?.name}
+        />
+        <DriverDetailsModal
+          isOpen={isViewDetailsModalOpen}
+          onClose={() => setIsViewDetailsModalOpen(false)}
+          driver={viewDriver}
+        />
+        
+        <div className="w-full h-px bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[70%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-              <div className="relative w-[100%] sm:w-[70%] flex-grow">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-[70%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
+              <div className="relative w-full sm:w-[70%] grow">
                 <input
                   type="text"
                   placeholder="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                  className="w-full pl-8 py-2 border border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search drivers"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -259,7 +394,7 @@ const DriversListPage: React.FC = () => {
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
                     onClick={() => setIsYearOpen(!isYearOpen)}
-                    className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pl-8 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isYearOpen}
                     aria-controls="year-dropdown"
@@ -281,7 +416,7 @@ const DriversListPage: React.FC = () => {
                     {isYearOpen && (
                       <motion.div
                         id="year-dropdown"
-                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-100 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -327,7 +462,7 @@ const DriversListPage: React.FC = () => {
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
-                    className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isMonthOpen}
                     aria-controls="month-dropdown"
@@ -348,7 +483,7 @@ const DriversListPage: React.FC = () => {
                     {isMonthOpen && (
                       <motion.div
                         id="month-dropdown"
-                        className="absolute z-[100] mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
+                        className="absolute z-100 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
                         role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
@@ -404,15 +539,20 @@ const DriversListPage: React.FC = () => {
           </div>
         </div>
         <div className="my-6 overflow-x-auto">
-          <TableList<Driver>
-            dataType="drivers"
-            columns={driverColumns}
-            initialData={filteredDrivers}
-            ActionMenuComponent={DriverActionMenu}
-            handleEdit={handleEdit}
-            handleRemove={handleRemove}
-            handleAssignFleet={handleAssignFleet}
-          />
+          {isLoading ? (
+             <DriverTableSkeleton />
+          ) : (
+            <TableList<Driver>
+                dataType="drivers"
+                columns={driverColumns}
+                initialData={filteredDrivers}
+                ActionMenuComponent={DriverActionMenu}
+                handleEdit={handleEdit}
+                handleRemove={handleRemove}
+                handleAssignFleet={handleAssignFleet}
+                handleViewDetails={handleViewDetails}
+            />
+          )}
         </div>
       </div>
     </div>

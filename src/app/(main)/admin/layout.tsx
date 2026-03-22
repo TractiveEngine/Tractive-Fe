@@ -1,9 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { AdminAsideNav } from "../../../components/nav/AdminNav/AdminAsideNav";
 import { AdminNavbar } from "../../../components/nav/AdminNav/AdminNavbar";
 import { AdminAsideNavMobile } from "../../../components/nav/AdminNav/AdminAsideNavMobile";
@@ -36,7 +34,6 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const breakpoint = useBreakpoint();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

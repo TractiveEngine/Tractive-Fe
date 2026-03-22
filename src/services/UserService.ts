@@ -10,6 +10,7 @@ export interface UserProfile {
   businessName: string;
   villageOrLocalMarket: string;
   interests: string[];
+  role?: string[]; // Handle potential backend inconsistency (role vs roles)
   roles: string[];
   activeRole: string;
   isVerified: boolean;
@@ -73,5 +74,110 @@ export const userService = {
 
     const farmerManagementRoles = ["admin", "agent"];
     return farmerManagementRoles.includes(user.activeRole);
+  },
+
+  // Add new account/role
+  addAccount: async (data: {
+    role: string;
+    name: string;
+    phone: string;
+    address: string;
+    country: string;
+    state: string;
+    lga: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Promise<any> => {
+    try {
+      const response = await api.post("/api/auth/add-account", data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error adding account:", error);
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.error || error.message;
+        throw new Error(message || "Failed to add account");
+      }
+      throw error;
+    }
+  },
+  
+  // Follow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  followFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.post(`/api/buyers/sellers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error following farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
+
+  // Unfollow a farmer (Buyer action)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  unfollowFarmer: async (farmerId: string): Promise<any> => {
+    try {
+      const response = await api.delete(`/api/buyers/sellers/${farmerId}/follow`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error unfollowing farmer ${farmerId}:`, error);
+      throw error;
+    }
+  },
+
+  // Add product to wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addToWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Adding product ${productId} to wishlist`);
+      const response = await api.post(`/api/wishlist`, { productId });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error adding product ${productId} to wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Remove product from wishlist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removeFromWishlist: async (productId: string): Promise<any> => {
+    try {
+      console.log(`🚀 Removing product ${productId} from wishlist`);
+      const response = await api.delete(`/api/wishlist`, {
+        data: { productId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(
+        `❌ Error removing product ${productId} from wishlist:`,
+        error
+      );
+      throw error;
+    }
+  },
+
+  // Get wishlist items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getWishlist: async (page = 1, limit = 20): Promise<any> => {
+    try {
+      const response = await api.get(`/api/wishlist`, {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching wishlist:`, error);
+      throw error;
+    }
+  },
+
+  // Get Top Sellers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTopSellers: async (): Promise<any> => {
+    try {
+      const response = await api.get(`/api/buyers/top-sellers`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching top sellers:`, error);
+      throw error;
+    }
   },
 };

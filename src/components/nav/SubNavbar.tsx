@@ -18,42 +18,42 @@ export const SubNavbar: React.FC = () => {
 
   const navItems = [
     {
-      href: "/buyers",
+      href: "/buyer",
       name: "Home",
       icon: (
         <HomeIcon
-          isActive={pathname === "/buyers"}
-          isHovered={hoveredItem === "/buyers"}
+          isActive={pathname === "/buyer"}
+          isHovered={hoveredItem === "/buyer"}
         />
       ),
     },
     {
-      href: "/buyers/transporter-list",
+      href: "/buyer/transporter-list",
       name: "Transporters List",
       icon: (
         <TransportationIcon
-          isActive={pathname === "/buyers/transporter-list"}
-          isHovered={hoveredItem === "/buyers/transporter-list"}
+          isActive={pathname === "/buyer/transporter-list"}
+          isHovered={hoveredItem === "/buyer/transporter-list"}
         />
       ),
     },
     {
-      href: "/buyers/sellers-list",
+      href: "/buyer/sellers-list",
       name: "Sellers List",
       icon: (
         <SellerIcon
-          isActive={pathname === "/buyers/sellers-list"}
-          isHovered={hoveredItem === "/buyers/sellers-list"}
+          isActive={pathname === "/buyer/sellers-list"}
+          isHovered={hoveredItem === "/buyer/sellers-list"}
         />
       ),
     },
     {
-      href: "/buyers/wish-list",
+      href: "/buyer/wish-list",
       name: "Wish List",
       icon: (
         <WishListIcon
-          isActive={pathname === "/buyers/wish-list"}
-          isHovered={hoveredItem === "/buyers/wish-list"}
+          isActive={pathname === "/buyer/wish-list"}
+          isHovered={hoveredItem === "/buyer/wish-list"}
         />
       ),
     },

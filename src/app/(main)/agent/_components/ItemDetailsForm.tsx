@@ -2,10 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "./Icons/AgentIcons";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 import { useCreateProduct } from "@/hooks/queries/useProductQueries";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
@@ -28,7 +26,6 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   imageFiles,
   videoFiles = [], // Default to empty array
 }) => {
-  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [quantity, setQuantity] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -40,7 +37,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const { uploadToCloudinary } = useCloudinaryUpload();
 
   // Handle form submission
-  const { mutateAsync: createProduct, isPending: isCreating } =
+  const { mutateAsync: createProduct } =
     useCreateProduct();
 
   const handleSubmit = async (
@@ -135,7 +132,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
       const apiPayload = {
         name: productName.trim(),
         description: description.trim(),
-        price: Number(price),
+        price: parseInt(price, 10),
         quantity: Number(quantity),
         unit: unit.trim(),
         images: imageUrls,
@@ -219,32 +216,7 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
         Item Details
       </h2>
 
-      {/* Display selected product info */}
-      <div className="mb-4 p-3 bg-[#f9f9f9] rounded">
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Product:</strong> {productName}
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Category:</strong> {selectedCategory}
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Images:</strong> {imageFiles.length} file(s)
-        </p>
-        <p className="text-sm text-[#2b2b2b] font-montserrat">
-          <strong>Videos:</strong> {videoFiles.length} file(s)
-        </p>
 
-        {(imageFiles.length > 0 || videoFiles.length > 0) && (
-          <p className="text-sm text-[#666] font-montserrat mt-2">
-            <strong>Total file size:</strong> {totalFileSizeMB} MB
-            {parseFloat(totalFileSizeMB) > 10 && (
-              <span className="text-[#ff6b6b] ml-2">
-                (Large files may take longer to upload)
-              </span>
-            )}
-          </p>
-        )}
-      </div>
 
       {/* Upload Progress */}
       {isLoading && (
@@ -349,16 +321,17 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             Price (₦) *
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             id="price"
             value={price}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPrice(e.target.value)
-            }
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              // Only allow digits
+              const val = e.target.value.replace(/[^0-9]/g, "");
+              setPrice(val);
+            }}
             className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
             placeholder="Enter price in Naira"
-            min="0.01"
-            step="0.01"
             required
             disabled={isLoading}
           />

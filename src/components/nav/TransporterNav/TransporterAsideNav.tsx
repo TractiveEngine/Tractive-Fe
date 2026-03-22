@@ -61,7 +61,7 @@ export const TransporterAsideNav = () => {
       await api.post("/api/auth/logout");
       await signOut({ redirect: false });
       router.push("/login");
-    } catch (error) {
+    } catch {
       await signOut({ redirect: false });
       router.push("/login");
     }
@@ -69,19 +69,19 @@ export const TransporterAsideNav = () => {
 
   // Mapping of labels to their corresponding routes
   const labelToRoute: { [key: string]: string } = {
-    "Fleet list": "/transporters/fleet-list",
-    Drivers: "/transporters/drivers",
-    Negotiations: "/transporters/negotiations",
-    New: "/transporters/new",
-    Picked: "/transporters/picked",
-    OnTransit: "/transporters/on-transit",
-    Delivered: "/transporters/delivered",
-    Pending: "/transporters/pending",
-    Received: "/transporters/received",
-    Customers: "/transporters/customers",
-    Reviews: "/transporters/reviews",
-    Chat: "/transporters/chat",
-    Help: "/transporters/help",
+    "Fleet list": "/transporter/fleet-list",
+    Drivers: "/transporter/drivers",
+    Negotiations: "/transporter/negotiations",
+    New: "/transporter/new",
+    Picked: "/transporter/picked",
+    OnTransit: "/transporter/on-transit",
+    Delivered: "/transporter/delivered",
+    Pending: "/transporter/pending",
+    Received: "/transporter/received",
+    Customers: "/transporter/customers",
+    Reviews: "/transporter/reviews",
+    Chat: "/transporter/chat",
+    Help: "/transporter/help",
   };
 
   const navSections: NavSection[] = [
@@ -94,13 +94,13 @@ export const TransporterAsideNav = () => {
           onClick: () => setIsModalOpen(true),
         },
         {
-          href: "/transporters/fleet-list",
+          href: "/transporter/fleet-list",
           icon: ProduceListIcon,
           label: "Fleet list",
         },
-        { href: "/transporters/drivers", icon: FarmersIcon, label: "Drivers" },
+        { href: "/transporter/drivers", icon: FarmersIcon, label: "Drivers" },
         {
-          href: "/transporters/negotiations",
+          href: "/transporter/negotiations",
           icon: BidsIcon,
           label: "Negotiations",
           hasDot: true,
@@ -111,19 +111,19 @@ export const TransporterAsideNav = () => {
       title: "Bookings",
       items: [
         {
-          href: "/transporters/new",
+          href: "/transporter/new",
           icon: Bag2Icon,
           label: "New",
           hasDot: true,
         },
-        { href: "/transporters/picked", icon: PackedIcon, label: "Picked" },
+        { href: "/transporter/picked", icon: PackedIcon, label: "Picked" },
         {
-          href: "/transporters/on-transit",
+          href: "/transporter/on-transit",
           icon: BoxTickIcon,
           label: "On Transit",
         },
         {
-          href: "/transporters/delivered",
+          href: "/transporter/delivered",
           icon: BoxTickIcon,
           label: "Delivered",
         },
@@ -133,12 +133,12 @@ export const TransporterAsideNav = () => {
       title: "Transactions",
       items: [
         {
-          href: "/transporters/pending",
+          href: "/transporter/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/transporters/received",
+          href: "/transporter/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -148,12 +148,12 @@ export const TransporterAsideNav = () => {
       title: "Customers",
       items: [
         {
-          href: "/transporters/customers",
+          href: "/transporter/customers",
           icon: Profile2UserIcon,
           label: "Customers",
         },
         {
-          href: "/transporters/reviews",
+          href: "/transporter/reviews",
           icon: MessageStarIcon,
           label: "Reviews",
         },
@@ -163,13 +163,13 @@ export const TransporterAsideNav = () => {
       title: "Others",
       items: [
         {
-          href: "/transporters/chat",
+          href: "/transporter/chat",
           icon: MessagesIcon,
           label: "Chat",
           hasDot: true,
         },
         {
-          href: "/transporters/help",
+          href: "/transporter/help",
           icon: MessageQuestionIcon,
           label: "Help",
         },
@@ -181,7 +181,7 @@ export const TransporterAsideNav = () => {
     <aside className="w-25 lg:w-50 bg-[#fefefe] fixed h-full hidden sm:block shadow-md z-20 overflow-y-auto">
       <AddFleet isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <Link
-        href="/transporters"
+        href="/transporter"
         className="flex items-center justify-center lg:justify-start mx-auto my-2 w-[3rem] lg:w-[50%]"
       >
         <Image
@@ -196,9 +196,9 @@ export const TransporterAsideNav = () => {
           <ul>
             <li>
               <Link
-                href="/transporters"
+                href="/transporter"
                 className={`flex items-center gap-2 py-2 px-2 rounded-md transition-colors duration-200 lg:flex-row flex-col ${
-                  pathname === "/transporters"
+                  pathname === "/transporter"
                     ? "bg-[#CCE5CC80]"
                     : "hover:bg-[#f1f1f1]"
                 }`}

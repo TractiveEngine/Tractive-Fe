@@ -20,7 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Transporter_ProfileDropDownMobile } from "../../Profile_dropdowns/TransporterProfile_dropdown/Transporter_ProfileDropDownMobile";
 import AddFleet from "../../../app/(main)/transporter/_components/AddFleet";
 
@@ -104,13 +104,13 @@ export const TransporterAsideNavMobile = ({
           onClick: () => setIsModalOpen(true),
         },
         {
-          href: "/transporters/fleet-list",
+          href: "/transporter/fleet-list",
           icon: ProduceListIcon,
           label: "Fleet list",
         },
-        { href: "/transporters/drivers", icon: FarmersIcon, label: "Drivers" },
+        { href: "/transporter/drivers", icon: FarmersIcon, label: "Drivers" },
         {
-          href: "/transporters/negotiations",
+          href: "/transporter/negotiations",
           icon: BidsIcon,
           label: "Negotiations",
           hasDot: true,
@@ -121,19 +121,19 @@ export const TransporterAsideNavMobile = ({
       title: "Bookings",
       items: [
         {
-          href: "/transporters/new",
+          href: "/transporter/new",
           icon: Bag2Icon,
           label: "New",
           hasDot: true,
         },
-        { href: "/transporters/picked", icon: PackedIcon, label: "Picked" },
+        { href: "/transporter/picked", icon: PackedIcon, label: "Picked" },
         {
-          href: "/transporters/on-transit",
+          href: "/transporter/on-transit",
           icon: BoxTickIcon,
           label: "On Transit",
         },
         {
-          href: "/transporters/delivered",
+          href: "/transporter/delivered",
           icon: BoxTickIcon,
           label: "Delivered",
         },
@@ -143,12 +143,12 @@ export const TransporterAsideNavMobile = ({
       title: "Transactions",
       items: [
         {
-          href: "/transporters/pending",
+          href: "/transporter/pending",
           icon: MoneyReceiveIcon,
           label: "Pending",
         },
         {
-          href: "/transporters/received",
+          href: "/transporter/received",
           icon: MoneyReceive2Icon,
           label: "Received",
         },
@@ -158,12 +158,12 @@ export const TransporterAsideNavMobile = ({
       title: "Customers",
       items: [
         {
-          href: "/transporters/customers",
+          href: "/transporter/customers",
           icon: Profile2UserIcon,
           label: "Customers",
         },
         {
-          href: "/transporters/reviews",
+          href: "/transporter/reviews",
           icon: MessageStarIcon,
           label: "Reviews",
         },
@@ -173,13 +173,13 @@ export const TransporterAsideNavMobile = ({
       title: "Others",
       items: [
         {
-          href: "/transporters/chat",
+          href: "/transporter/chat",
           icon: MessagesIcon,
           label: "Chat",
           hasDot: true,
         },
         {
-          href: "/transporters/help",
+          href: "/transporter/help",
           icon: MessageQuestionIcon,
           label: "Help",
         },
@@ -187,7 +187,7 @@ export const TransporterAsideNavMobile = ({
     },
   ];
 
-  const sectionVariants = {
+  const sectionVariants: Variants = {
     initial: { height: 0, opacity: 0 },
     animate: {
       height: "auto",
@@ -201,7 +201,7 @@ export const TransporterAsideNavMobile = ({
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     initial: { y: 10, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: 10, opacity: 0 },
@@ -211,7 +211,7 @@ export const TransporterAsideNavMobile = ({
     <aside className="w-[95%] rounded-[0.4rem] mx-auto block sm:hidden pb-6 shadow-md mt-[1.3rem] z-20">
         <AddFleet isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {user && (
-        <div className="relative px-[0.5rem] pt-[1rem]" ref={profileRef}>
+        <div className="relative px-2 pt-4" ref={profileRef}>
           <div className="flex items-center justify-between w-full gap-2 cursor-pointer bg-[#3a3a3a] p-1.5 px-2.5 rounded-[4px] hover:bg-[#4a4a4a] transition">
             <button
               className="flex items-center gap-2"
@@ -265,16 +265,16 @@ export const TransporterAsideNavMobile = ({
             animate="animate"
             exit="exit"
             ref={navRef}
-            className="flex flex-col gap-[2.5rem]"
+            className="flex flex-col gap-10"
           >
-            <div className="flex flex-col gap-[2.5rem]" ref={navRef}>
+            <div className="flex flex-col gap-10" ref={navRef}>
               <div className="flex flex-col px-1">
-                <ul className="mt-[1rem] px-[0.5rem]">
+                <ul className="mt-4 px-2">
                   <li>
                     <Link
-                      href="/transporters"
-                      className={`flex items-start w-[4rem] flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
-                        pathname === "/transporters"
+                      href="/transporter"
+                      className={`flex items-start w-16 flex-col bg-[#3a3a3a] gap-2 py-2 px-2 rounded-md transition-colors duration-200 ${
+                        pathname === "/transporter"
                           ? "bg-[#3a3a3a]"
                           : "hover:bg-[#4a4a4a]"
                       }`}
@@ -286,9 +286,9 @@ export const TransporterAsideNavMobile = ({
                     </Link>
                   </li>
                 </ul>
-                <span className="bg-[#e2e2e2] w-full h-[1px] my-1"></span>
+                <span className="bg-[#e2e2e2] w-full h-px my-1"></span>
                 {navSections.map((section, idx) => (
-                  <div key={section.title} className="px-[0.5rem]">
+                  <div key={section.title} className="px-2">
                     <div className="flex items-center justify-between w-full rounded-md cursor-pointer py-2 px-2.5 bg-[#3a3a3a] transition-colors duration-200 hover:bg-[#4a4a4a]">
                       <button
                         onClick={() => toggleSection(section.title)}
@@ -302,7 +302,7 @@ export const TransporterAsideNavMobile = ({
                         )}
                       </button>
                     </div>
-                    <div className="block lg:hidden bg-[#e2e2e2] w-full h-[1px] my-1"></div>
+                    <div className="block lg:hidden bg-[#e2e2e2] w-full h-px my-1"></div>
                     <AnimatePresence>
                       {openSections[section.title] && (
                         <motion.ul
@@ -367,7 +367,7 @@ export const TransporterAsideNavMobile = ({
                       )}
                     </AnimatePresence>
                     {idx < navSections.length - 1 && (
-                      <div className="bg-[#e2e2e2] w-full h-[1px] my-1"></div>
+                      <div className="bg-[#e2e2e2] w-full h-px my-1"></div>
                     )}
                   </div>
                 ))}

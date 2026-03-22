@@ -51,13 +51,13 @@ export const TruckDetailsAndShipProduct: React.FC<
 
   // Calculate total amount
   const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("$", ""));
+    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
 
   // Parse spaceRemaining and fullLoad
   const spaceRemainingNum = parseFloat(
     String(item.spaceRemaining).replace("kg", "")
   );
-  const fullLoadNum = parseFloat(String(item.fullLoad).replace("$", ""));
+  const fullLoadNum = parseFloat(String(item.fullLoad).replace("₦", ""));
   // Infer isEmptyTruck based on whether spaceRemaining equals or exceeds fullLoad
   const isEmptyTruck = spaceRemainingNum >= fullLoadNum;
   // Check if truck has enough space

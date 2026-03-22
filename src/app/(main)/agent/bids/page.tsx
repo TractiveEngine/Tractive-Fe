@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../_components/table/TableList";
-import { Bids, bidsList, Bidder } from "@/utils/BidsData";
 import { BidActionMenu } from "./_components/BidActionMenu";
 import { BiddersModal } from "./_components/BiddersModal";
+import { bidService, BidListing } from "@/services/bidService";
+import { toast } from "sonner";
 
 interface ColumnConfig<T> {
   header: string;
@@ -16,26 +16,28 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const bidsColumns: ColumnConfig<Bids>[] = [
+const bidsColumns: ColumnConfig<BidListing>[] = [
   {
     header: "Item",
-    key: "name",
-    minWidth: "min-w-[150px]",
+    key: "productName",
+    minWidth: "min-w-[200px]",
     render: (bid) => (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <Image
-          src={bid.image}
-          alt={bid.name}
-          width={83}
-          height={47}
-          className="object-cover w-[53px] h-[30px]"
+          src={bid?.productImage || "/images/placeholder.png"}
+          alt={bid?.productName}
+          width={60}
+          height={40}
+          className="object-cover rounded-[5px] w-[60px] h-[40px]"
         />
-        <div className="flex flex-col">
-          <span className="text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {bid.name}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-medium font-montserrat text-[#2b2b2b]">
+            {bid?.productName}
           </span>
-          <span className="text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {bid.description}
+          <span className="text-[11px] font-normal font-montserrat text-[#808080]">
+            {bid?.productDescription && bid?.productDescription.length > 20
+              ? bid?.productDescription.substring(0, 20) + "..."
+              : bid?.productDescription || "No desc"}
           </span>
         </div>
       </div>
@@ -43,73 +45,75 @@ const bidsColumns: ColumnConfig<Bids>[] = [
   },
   {
     header: "Price",
-    key: "price",
+    key: "productPrice",
     minWidth: "min-w-[100px]",
-    render: (bid) => `$${bid.price.toFixed(2)}`,
+    render: (bid) => (
+      <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+        ₦{bid?.productPrice?.toLocaleString() || "0"}
+      </span>
+    ),
   },
   {
-    header: "Bidders",
-    key: "bidders",
+    header: "Bidder",
+    key: "buyer",
     minWidth: "min-w-[120px]",
     render: (bid) => (
-      <div className="flex items-center gap-6 sm:gap-7">
-        <div className="relative w-[30px] h-[30px]">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden relative bg-gray-200">
           <Image
-            src="/images/bidder1.png"
-            alt="Bidder 1"
-            width={20}
-            height={20}
-            className="absolute left-0 z-10 sm:w-[25px] sm:h-[25px]"
-          />
-          <Image
-            src="/images/bidder2.png"
-            alt="Bidder 2"
-            width={20}
-            height={20}
-            className="absolute left-[10px] sm:left-[12px] z-20 sm:w-[25px] sm:h-[25px]"
-          />
-          <Image
-            src="/images/bidder3.png"
-            alt="Bidder 3"
-            width={20}
-            height={20}
-            className="absolute left-[20px] sm:left-[28px] z-30 sm:w-[25px] sm:h-[25px]"
+            src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
+            alt={bid?.buyer?.name}
+            fill
+            className="object-cover"
           />
         </div>
-        <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-          {bid.bidders}
-        </p>
+        <span className="text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+          {bid?.buyer?.name || "Unknown"}
+        </span>
       </div>
     ),
   },
   {
     header: "Leading",
-    key: "leading",
+    key: "proposedPrice",
     minWidth: "min-w-[120px]",
     render: (bid) => (
       <div className="flex items-center gap-2">
-        <Image
-          src="/images/leadingavatar.png"
-          alt="Leading Bid"
-          width={20}
-          height={20}
-          className="w-[20px] h-[20px]"
-        />
-        <span className="font-montserrat font-normal text-[10px] sm:text-[12px] text-[#2b2b2b]">
-          ${bid.leading.toFixed(2)}
+        <div className="w-8 h-8 rounded-full bg-gray-200 border border-white overflow-hidden relative">
+          <Image
+            src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
+            alt="Leading"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+          ₦{bid?.proposedPrice?.toLocaleString()}
         </span>
       </div>
     ),
   },
   {
     header: "Farmer",
-    key: "farmer",
-    minWidth: "min-w-[100px]",
+    key: "farmerId",
+    minWidth: "min-w-[150px]",
+    render: (bid) => (
+      <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+        {bid?.farmerName || (bid?.farmerId
+          ? `Farmer ${bid?.farmerId?.substring(0, 6)}...`
+          : "Kelvin chikezie")}
+      </span>
+    ),
   },
   {
     header: "Date",
-    key: "date",
+    key: "createdAt",
     minWidth: "min-w-[100px]",
+    render: (bid) => (
+      <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+        {new Date(bid?.createdAt).toLocaleDateString()}
+      </span>
+    ),
   },
 ];
 
@@ -118,9 +122,15 @@ const BidsListPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
+
   const [isBiddersModalOpen, setIsBiddersModalOpen] = useState<boolean>(false);
-  const [selectedBidders, setSelectedBidders] = useState<Bidder[]>([]);
-  const [selectedItemName, setSelectedItemName] = useState<string>("");
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(
+    null,
+  );
+
+  const [bids, setBids] = useState<BidListing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +149,23 @@ const BidsListPage: React.FC = () => {
     "Nov",
     "Dec",
   ];
+
+  const fetchBids = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await bidService.getBids();
+      setBids(data);
+    } catch (error) {
+      console.error("Failed to fetch bids", error);
+      toast.error("Failed to fetch bids");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBids();
+  }, [fetchBids]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -159,49 +186,21 @@ const BidsListPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsYearOpen(false);
-        setIsMonthOpen(false);
-        setIsBiddersModalOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    console.log("Modal state:", {
-      isBiddersModalOpen,
-      selectedBidders,
-      selectedItemName,
-    });
-  }, [isBiddersModalOpen, selectedBidders, selectedItemName]);
-
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
   };
 
   const handleViewBidders = (id: string) => {
-    console.log(`handleViewBidders called with id: ${id}`);
-    const bid = bidsList.find((b) => b.id === id);
-    if (bid) {
-      console.log(`Bid found:`, bid);
-      setSelectedBidders(bid.biddersList || []);
-      setSelectedItemName(bid.name);
-      setIsBiddersModalOpen(true);
-    } else {
-      console.log(`No bid found for id: ${id}`);
-    }
+    setSelectedListingId(id);
+    setIsBiddersModalOpen(true);
   };
 
   return (
     <div className="w-full">
       <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <h2 className="text-[17px] font-montserrat text-[#2b2b2b] px-6 pt-6 mb-4">
-          Bids
+          Bids Management
         </h2>
 
         <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
@@ -212,7 +211,7 @@ const BidsListPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search"
-                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080]"
                   aria-label="Search bids"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -223,14 +222,11 @@ const BidsListPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center w-full sm:w-auto">
+                {/* Year Dropdown */}
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
                     onClick={() => setIsYearOpen(!isYearOpen)}
-                    className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
-                    role="combobox"
-                    aria-expanded={isYearOpen}
-                    aria-controls="year-dropdown"
-                    aria-label={selectedYear ? "Selected year" : "Select year"}
+                    className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] bg-white"
                   >
                     {selectedYear || "Year"}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
@@ -240,67 +236,38 @@ const BidsListPage: React.FC = () => {
                         <ArrowDownIcon className="w-4 h-4" />
                       )}
                     </div>
-                    <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
-                      <CalenderIcon />
-                    </div>
                   </button>
                   <AnimatePresence>
                     {isYearOpen && (
                       <motion.div
-                        id="year-dropdown"
                         className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
-                        role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
                         animate="open"
                         exit="closed"
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        <div
-                          onClick={() => {
-                            setSelectedYear("");
-                            setIsYearOpen(false);
-                          }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedYear === "" ? "bg-gray-200" : ""
-                          }`}
-                          role="option"
-                          aria-selected={selectedYear === ""}
-                        >
-                          Year
-                        </div>
-                        {years.map((year) => (
+                        {/* Options */}
+                        {years.map((y) => (
                           <div
-                            key={year}
+                            key={y}
                             onClick={() => {
-                              setSelectedYear(year.toString());
+                              setSelectedYear(String(y));
                               setIsYearOpen(false);
                             }}
-                            className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                              selectedYear === year.toString()
-                                ? "bg-gray-200"
-                                : ""
-                            }`}
-                            role="option"
-                            aria-selected={selectedYear === year.toString()}
+                            className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
                           >
-                            {year}
+                            {y}
                           </div>
                         ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
+                {/* Month Dropdown */}
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
-                    className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
-                    role="combobox"
-                    aria-expanded={isMonthOpen}
-                    aria-controls="month-dropdown"
-                    aria-label={
-                      selectedMonth ? "Selected month" : "Select month"
-                    }
+                    className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] bg-white"
                   >
                     {selectedMonth || "Month"}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400">
@@ -311,45 +278,26 @@ const BidsListPage: React.FC = () => {
                       )}
                     </div>
                   </button>
+
                   <AnimatePresence>
                     {isMonthOpen && (
                       <motion.div
-                        id="month-dropdown"
                         className="absolute z-10 mt-1 w-full sm:w-[100px] bg-white border border-gray-300 rounded-[4px] shadow-md max-h-30 overflow-y-auto"
-                        role="listbox"
                         variants={dropdownVariants}
                         initial="closed"
                         animate="open"
                         exit="closed"
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        <div
-                          onClick={() => {
-                            setSelectedMonth("");
-                            setIsMonthOpen(false);
-                          }}
-                          className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                            selectedMonth === "" ? "bg-gray-200" : ""
-                          }`}
-                          role="option"
-                          aria-selected={selectedMonth === ""}
-                        >
-                          Month
-                        </div>
-                        {months.map((month) => (
+                        {months.map((m) => (
                           <div
-                            key={month}
+                            key={m}
                             onClick={() => {
-                              setSelectedMonth(month);
+                              setSelectedMonth(m);
                               setIsMonthOpen(false);
                             }}
-                            className={`px-3 py-1 text-sm sm:text-base cursor-pointer hover:bg-gray-100 ${
-                              selectedMonth === month ? "bg-gray-200" : ""
-                            }`}
-                            role="option"
-                            aria-selected={selectedMonth === month}
+                            className="px-3 py-1 hover:bg-gray-100 cursor-pointer text-sm"
                           >
-                            {month}
+                            {m}
                           </div>
                         ))}
                       </motion.div>
@@ -361,20 +309,34 @@ const BidsListPage: React.FC = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<Bids>
-            dataType="bids"
-            columns={bidsColumns}
-            initialData={bidsList}
-            ActionMenuComponent={BidActionMenu}
-            handleViewBidders={handleViewBidders}
-          />
+          {isLoading ? (
+            <div className="p-10 flex justify-center">
+              <div className="animate-spin h-8 w-8 border-4 border-[#538e53] border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <TableList<BidListing>
+              dataType="bids"
+              columns={bidsColumns}
+              initialData={bids}
+              ActionMenuComponent={BidActionMenu}
+              handleViewBidders={handleViewBidders}
+            />
+          )}
+
+          {!isLoading && bids.length === 0 && (
+            <div className="text-center py-10 text-gray-400">
+              No active bids found.
+            </div>
+          )}
         </div>
-        <BiddersModal
-          isOpen={isBiddersModalOpen}
-          onClose={() => setIsBiddersModalOpen(false)}
-          bidders={selectedBidders}
-          itemName={selectedItemName}
-        />
+
+        {isBiddersModalOpen && selectedListingId && (
+          <BiddersModal
+            isOpen={isBiddersModalOpen}
+            onClose={() => setIsBiddersModalOpen(false)}
+            listingId={selectedListingId}
+          />
+        )}
       </div>
     </div>
   );

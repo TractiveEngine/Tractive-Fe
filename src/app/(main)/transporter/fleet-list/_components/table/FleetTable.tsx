@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { ProductRow } from "./ProductRow";
 import { Fleet } from "@/utils/Fleet";
 
@@ -11,8 +12,9 @@ interface FleetTableProps {
   copyToClipboard: (id: string) => void;
   handleEdit: (id: string) => void;
   handleDelete: (id: string) => void;
-  handleToggleStatus: (id: string) => void; // Changed from handleSetAvailable
+  handleToggleStatus: (id: string, newStatusStr: string) => void; // Changed from handleSetAvailable
   handleTracking: (id: string) => void;
+  onRowClick?: (fleet: Fleet) => void;
 }
 
 export const FleetTable: React.FC<FleetTableProps> = ({
@@ -22,6 +24,7 @@ export const FleetTable: React.FC<FleetTableProps> = ({
   handleDelete,
   handleToggleStatus,
   handleTracking,
+  onRowClick,
 }) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -33,11 +36,11 @@ export const FleetTable: React.FC<FleetTableProps> = ({
       className="Table_Container"
     >
       <table
-        className="w-full table-auto border-collapse"
+        className="w-full border-separate border-spacing-y-3"
         aria-label="Fleet management table"
       >
         <thead>
-          <tr className="text-left text-[13px] font-normal font-montserrat text-gray-800 md:text-sm">
+          <tr className="text-left text-[13px] font-normal font-montserrat text-[#808080] md:text-sm">
             <th
               className="min-w-[150px] py-1.5 pl-4 font-montserrat font-normal"
               scope="col"
@@ -78,20 +81,43 @@ export const FleetTable: React.FC<FleetTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {fleets.map((fleet, index) => (
-            <ProductRow
-              key={fleet.id}
-              fleet={fleet}
-              index={index}
-              activeMenu={activeMenu}
-              setActiveMenu={setActiveMenu}
-              copyToClipboard={copyToClipboard}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              handleToggleStatus={handleToggleStatus}
-              handleTracking={handleTracking}
-            />
-          ))}
+          {fleets.length > 0 ? (
+            fleets.map((fleet, index) => (
+              <ProductRow
+                key={fleet.id}
+                fleet={fleet}
+                index={index}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                copyToClipboard={copyToClipboard}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                handleToggleStatus={handleToggleStatus}
+                handleTracking={handleTracking}
+                onRowClick={onRowClick}
+              />
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="py-20 text-center">
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <Image
+                    src="/images/truckcontainer.png"
+                    alt="Empty Fleet"
+                    width={80}
+                    height={80}
+                    className="opacity-70 object-contain rounded-full bg-[#f1f1f1] w-[80px] h-[80px]"
+                  />
+                  <h3 className="text-[16px] font-medium font-montserrat text-[#2b2b2b]">
+                    No Fleet Available
+                  </h3>
+                  <p className="text-[13px] font-montserrat text-[#808080]">
+                    Add a fleet to see your fleet list
+                  </p>
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </motion.div>

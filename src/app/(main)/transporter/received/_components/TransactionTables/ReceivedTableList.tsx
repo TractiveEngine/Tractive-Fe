@@ -70,13 +70,13 @@ const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
     header: "Kg",
     key: "KG",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `${transaction.KG} KG`,
+    render: () => `KG`,
   },
   {
     header: "Payment",
     key: "Payment",
     minWidth: "min-w-[100px]",
-    render: (transaction) => `$${transaction.Payment.toFixed(2)}`,
+    render: () => `Payment`,
   },
   {
     header: "Payer",

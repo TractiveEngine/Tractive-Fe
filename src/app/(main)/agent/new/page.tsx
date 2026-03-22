@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { NewProduct } from "./_components/Tables/NewProduct";
 import { DeliveredProduct } from "./_components/Tables/DeliveredProduct";
@@ -16,12 +17,7 @@ interface SideProps {
 export default function ProduceListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("New");
-  const [orderCounts, setOrderCounts] = useState({
-    new: 0,
-    packed: 0,
-    delivered: 0,
-  });
-  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
+
   const newContainerRef = useRef<HTMLDivElement>(null);
   const parkedContainerRef = useRef<HTMLDivElement>(null);
   const deliveredContainerRef = useRef<HTMLDivElement>(null);
@@ -38,56 +34,36 @@ export default function ProduceListPage() {
     setSwitchSides(side);
   };
 
-  // Fetch order counts
-  useEffect(() => {
-    const fetchCounts = async () => {
-      setIsLoadingCounts(true);
-      try {
-        const [
-          newOrdersResponse,
-          packedOrdersResponse,
-          deliveredOrdersResponse,
-        ] = await Promise.all([
+  const {
+    data: orderCounts = { new: 0, packed: 0, delivered: 0 },
+  } = useQuery({
+    queryKey: ["orderCounts"],
+    queryFn: async () => {
+      const [newOrdersResponse, packedOrdersResponse, deliveredOrdersResponse] =
+        await Promise.all([
           OrdersApiService.getOrders({ status: "pending" }),
           OrdersApiService.getOrders({ status: "parked" }),
           OrdersApiService.getOrders({ status: "delivered" }),
         ]);
 
-        // FIX: Ensure all responses are arrays before getting length
-        const newOrders = Array.isArray(newOrdersResponse)
-          ? newOrdersResponse
-          : [];
-        const packedOrders = Array.isArray(packedOrdersResponse)
-          ? packedOrdersResponse
-          : [];
-        const deliveredOrders = Array.isArray(deliveredOrdersResponse)
-          ? deliveredOrdersResponse
-          : [];
+      const newOrders = Array.isArray(newOrdersResponse)
+        ? newOrdersResponse
+        : [];
+      const packedOrders = Array.isArray(packedOrdersResponse)
+        ? packedOrdersResponse
+        : [];
+      const deliveredOrders = Array.isArray(deliveredOrdersResponse)
+        ? deliveredOrdersResponse
+        : [];
 
-        setOrderCounts({
-          new: newOrders.length,
-          packed: packedOrders.length,
-          delivered: deliveredOrders.length,
-        });
-      } catch (error) {
-        console.error("Failed to fetch order counts:", error);
-        // FIX: Set counts to 0 on error instead of keeping previous values
-        setOrderCounts({
-          new: 0,
-          packed: 0,
-          delivered: 0,
-        });
-      } finally {
-        setIsLoadingCounts(false);
-      }
-    };
-
-    fetchCounts();
-    console.log(isLoadingCounts);
-    // Refresh counts every 30 seconds
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
+      return {
+        new: newOrders.length,
+        packed: packedOrders.length,
+        delivered: deliveredOrders.length,
+      };
+    },
+    refetchInterval: 30000,
+  });
 
   // Update indicator position and width when switchSides changes
   useEffect(() => {
@@ -206,15 +182,15 @@ export default function ProduceListPage() {
           switchSides === "New"
             ? "new-panel"
             : switchSides === "Packed"
-            ? "parked-panel"
-            : "delivered-panel"
+              ? "parked-panel"
+              : "delivered-panel"
         }
         aria-labelledby={
           switchSides === "New"
             ? "new-tab"
             : switchSides === "Packed"
-            ? "parked-tab"
-            : "delivered-tab"
+              ? "parked-tab"
+              : "delivered-tab"
         }
       >
         {switchSides === "New" ? (

@@ -98,7 +98,7 @@ export const TransporterNavbar = () => {
             <>
               {/* Logo */}
               <Link
-                href="/transporters"
+                href="/transporter"
                 className="hidden md:flex items-center"
               >
                 <Image

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -104,7 +104,7 @@ export const DeliveredProduct: React.FC = () => {
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const months = [
+  const months = useMemo(() => [
     "Jan",
     "Feb",
     "Mar",
@@ -117,7 +117,7 @@ export const DeliveredProduct: React.FC = () => {
     "Oct",
     "Nov",
     "Dec",
-  ];
+  ], []);
 
   // Fetch orders from API - wrapped in useCallback
   const fetchOrders = useCallback(async () => {

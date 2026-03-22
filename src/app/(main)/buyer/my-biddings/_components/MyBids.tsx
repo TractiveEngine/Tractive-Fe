@@ -130,7 +130,14 @@ export const MyBids: React.FC<MyBidsProps> = ({
       </div>
       <div className="w-full h-[1px] bg-[#808080]"></div>
 
-      {bidItems.map((item, index) => (
+      {bidItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-8 sm:p-12">
+          <p className="font-montserrat font-normal text-sm sm:text-base text-[#808080]">
+            You haven&apos;t won any bids yet.
+          </p>
+        </div>
+      ) : (
+        bidItems.map((item, index) => (
         <React.Fragment key={item.id}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 md:gap-4 w-full p-2 sm:p-3 md:p-3.5">
             <input
@@ -194,7 +201,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
             <div className="w-full h-[1px] bg-[#808080]"></div>
           )}
         </React.Fragment>
-      ))}
+      )))}
     </div>
   );
 };

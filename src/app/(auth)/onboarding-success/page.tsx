@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function OnboardingSuccessPage() {
-  // Initialize userRole from localStorage
+  // Initialize userRole from localStorage (guard against SSR)
   const [userRole] = useState<string>(
-    () => localStorage.getItem("userRole") || ""
+    () => (typeof window !== "undefined" ? localStorage.getItem("userRole") || "" : "")
   );
   const router = useRouter();
 

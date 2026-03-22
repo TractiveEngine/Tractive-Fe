@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -7,7 +7,6 @@ import Image from "next/image";
 import {
   useUserProfile,
   useAddAccount,
-  ContentPayload,
 } from "@/hooks/queries/useUserQueries";
 import { Button } from "@/components/Button";
 import { useForm } from "react-hook-form";
@@ -47,7 +46,7 @@ const ROLE_CONFIGS = {
   },
 };
 
-export default function AddRolePage() {
+function AddRolePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, update } = useSession();
@@ -173,6 +172,7 @@ export default function AddRolePage() {
 
       // Redirect to the new role's dashboard
       router.push(`/${roleParam}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Add role error:", error);
       toast.dismiss(toastId);
@@ -220,7 +220,7 @@ export default function AddRolePage() {
           </h1>
 
           <p className="text-center text-[13px] text-[#808080] mb-6 font-montserrat">
-            You're adding a new role to your existing account
+            You&apos;re adding a new role to your existing account
           </p>
 
           {/* Show existing roles (blurred/disabled) */}
@@ -436,5 +436,13 @@ export default function AddRolePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AddRolePage() {
+  return (
+    <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full"></div></div>}>
+      <AddRolePageInner />
+    </Suspense>
   );
 }

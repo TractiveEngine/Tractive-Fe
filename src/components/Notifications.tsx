@@ -59,14 +59,14 @@ export const Notifications = () => {
       id: "2",
       title: "Congratulations",
       message:
-        "You are the highest bidder of the just concluded 3 bags of tomatoes biding with the sum of $40 dollars.",
+        "You are the highest bidder of the just concluded 3 bags of tomatoes biding with the sum of ₦40 dollars.",
       time: "2hours ago",
       category: "Biddings",
       read: false,
       image: "/images/biddingImageWon.png",
       action: (
         <Link
-          href="/buyers/my-biddings"
+          href="/buyer/my-biddings"
           className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
         >
           <span className="font-montserrat font-normal text-[12px] sm:text-[13px] text-[#fefefe]">
@@ -79,7 +79,7 @@ export const Notifications = () => {
       id: "3",
       title: "Payment failed",
       message:
-        "Your payment of $400 for (123456) was not successful, please try again or contact the admin for more info.",
+        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
       time: "2hours ago",
       category: "Biddings",
       read: false,
@@ -103,14 +103,14 @@ export const Notifications = () => {
       id: "4",
       title: "Bidding Successful",
       message:
-        "Your payment of $400 for (123456) was not successful, please try again or contact the admin for more info.",
+        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
       time: "2hours ago",
       category: "Biddings",
       read: false,
       image: "/images/GreenImage.png",
       action: (
         <Link
-          href="/buyers/wish-list"
+          href="/buyer/wish-list"
           className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
         >
           <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#fefefe]">
@@ -125,7 +125,7 @@ export const Notifications = () => {
     e.stopPropagation();
     console.log("Mark all as read clicked");
     setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true }))
+      prev.map((notification) => ({ ...notification, read: true })),
     );
   };
 
@@ -206,8 +206,8 @@ export const Notifications = () => {
                           notification.title === "Bidding Successful"
                             ? "text-[#538e53]"
                             : notification.title === "Payment failed"
-                            ? "text-[#C23939]"
-                            : "text-[#2b2b2b]"
+                              ? "text-[#C23939]"
+                              : "text-[#2b2b2b]"
                         }`}
                       >
                         {notification.title}
@@ -228,7 +228,7 @@ export const Notifications = () => {
                     className="w-full h-auto max-w-[135px] max-h-[144px]"
                     onError={() =>
                       console.error(
-                        `Failed to load image: ${notification.image}`
+                        `Failed to load image: ${notification.image}`,
                       )
                     }
                   />

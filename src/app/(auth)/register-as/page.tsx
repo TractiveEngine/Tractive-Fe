@@ -1,12 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  useUserProfile,
   useAvailableRoles,
   useSwitchRole,
   useAddAccount,
@@ -46,7 +45,6 @@ export default function RegisterAs() {
   const router = useRouter();
   const { data: session, update } = useSession();
 
-  const { data: userProfile } = useUserProfile();
   const { data: availableRolesData } = useAvailableRoles();
   const switchRoleMutation = useSwitchRole();
   const addAccountMutation = useAddAccount();
@@ -97,6 +95,7 @@ export default function RegisterAs() {
           router.push(`/onboarding?role=${roleId}`);
         }
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error processing role selection:", error);
       toast.dismiss();

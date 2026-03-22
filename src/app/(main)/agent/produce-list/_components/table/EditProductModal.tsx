@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Product, UpdateProductData } from "@/services/productService";
+import { Product } from "@/services/productService";
 import {
   useProduct,
   useUpdateProduct,
@@ -77,7 +77,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
   });
 
   const { uploadToCloudinary, isUploading } = useCloudinaryUpload();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // State for delete confirmation
@@ -126,16 +128,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       });
       setIsDeleteConfirmOpen(false);
     }
-  }, [
-    product?.id,
-    product?.price,
-    product?.quantity,
-    product?.name,
-    product?.description,
-    product?.discount,
-    product?.images, // Be careful with arrays
-    product?.videos,
-  ]);
+  }, [product]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -172,7 +165,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           images: [...prev.images, ...urls],
         }));
         toast.success("Images uploaded successfully");
-      } catch (error) {
+      } catch {
         toast.error("Failed to upload some images");
       }
     }
@@ -205,7 +198,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           videos: [...prev.videos, url],
         }));
         toast.success("Video uploaded successfully");
-      } catch (error) {
+      } catch {
         toast.error("Failed to upload video");
       }
     }
@@ -252,7 +245,6 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           description: formData.description,
           price: Number(formData.price),
           quantity: Number(formData.quantity), // Ensure number
-          discount: Number(formData.discount) || 0,
           images: formData.images,
           videos: formData.videos,
           // Include other fields if required by strict PUT
@@ -473,7 +465,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                                 Price
                               </label>
                               <p className="text-xl font-bold text-[#2b2b2b] font-montserrat">
-                                ₦{product.price?.toLocaleString()}
+                                ${product.price?.toLocaleString()}
                               </p>
                               {product.discount > 0 && (
                                 <span className="text-xs text-red-500 font-medium">
@@ -631,7 +623,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                         <div className="flex gap-4">
                           <div className="flex-1">
                             <label className="block text-sm font-medium text-[#2b2b2b] mb-1 font-montserrat">
-                              Price (₦)
+                              Price ($)
                             </label>
                             <input
                               type="number"
@@ -739,7 +731,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                         Are you really sure?
                       </p>
                       <p className="font-montserrat text-xs text-red-600 mb-4">
-                        This will permanently delete "{product.name}".
+                        This will permanently delete &quot;{product.name}&quot;.
                       </p>
                       <div className="flex gap-3">
                         <button

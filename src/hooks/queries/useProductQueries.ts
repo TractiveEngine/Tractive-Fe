@@ -17,6 +17,7 @@ export const productKeys = {
     [...productKeys.lists(), filters] as const,
   details: () => [...productKeys.all, "detail"] as const,
   detail: (id: string) => [...productKeys.details(), id] as const,
+  similar: (id: string) => [...productKeys.detail(id), "similar"] as const,
 };
 
 /**
@@ -31,12 +32,14 @@ export const useProducts = (filters: SearchFilters = {}) => {
       // If asking specifically for out_of_stock, use the dedicated endpoint
       if (filters.status === "out_of_stock") {
         // Create a copy of filters but remove 'status' as the endpoint implies it
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { status, ...rest } = filters;
         return productService.getOutOfStockProducts(rest);
       }
       return productService.getProducts(filters);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     placeholderData: (previousData: any) => previousData,
   });
 };
@@ -54,6 +57,49 @@ export const useProduct = (id: string | null) => {
 };
 
 /**
+ * Hook to fetch similar products
+ */
+export const useSimilarProducts = (id: string | null) => {
+  return useQuery({
+    queryKey: productKeys.similar(id || ""),
+    queryFn: () => productService.getSimilarProducts(id!),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+/**
+ * Hook to fetch top selling products
+ */
+export const useGetTopSellingProducts = () => {
+  return useQuery({
+    queryKey: [...productKeys.all, "topSelling"],
+    queryFn: () => productService.getTopSellingProducts(),
+  });
+};
+
+/**
+ * Hook to fetch recommendations for buyers
+ */
+export const useGetRecommendations = () => {
+  return useQuery({
+    queryKey: [...productKeys.all, "recommendations"],
+    queryFn: () => productService.getRecommendations(),
+  });
+};
+
+/**
+ * Hook to fetch recommendations for a specific seller store
+ */
+export const useGetSellerRecommendations = (sellerId: string) => {
+  return useQuery({
+    queryKey: [...productKeys.all, "sellerRecommendations", sellerId],
+    queryFn: () => productService.getSellerRecommendations(sellerId),
+    enabled: !!sellerId,
+  });
+};
+
+/**
  * Hook to create a new product
  */
 export const useCreateProduct = () => {
@@ -61,44 +107,17 @@ export const useCreateProduct = () => {
 
   return useMutation({
     mutationFn: (data: CreateProductData) => productService.createProduct(data),
-    onSuccess: (newProduct) => {
-      // Optimistically update the "available" list
-      queryClient.setQueryData(
-        productKeys.list({ status: "available" }),
-        (oldData: ProductsResponse | undefined) => {
-          if (!oldData) {
-            return {
-              products: [newProduct],
-              pagination: {
-                page: 1,
-                limit: 10,
-                total: 1,
-              },
-              total: 1,
-              page: 1,
-              limit: 10,
-            };
-          }
-          // Prepend new product
-          const newTotal = oldData.total + 1;
-          return {
-            ...oldData,
-            products: [newProduct, ...oldData.products],
-            pagination: {
-              ...oldData.pagination,
-              total: newTotal,
-            },
-            total: newTotal,
-          };
-        },
-      );
-
-      // Also invalidate general lists just in case
-      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+    onSuccess: () => {
+      // Invalidate and immediately refetch all active product list queries
+      // (covers any filter combination the ProductTable may be using)
+      queryClient.invalidateQueries({
+        queryKey: productKeys.lists(),
+        refetchType: "active",
+      });
 
       toast.success("Product uploaded successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       const message = error?.message || "Failed to create product";
       toast.error(message);
     },
@@ -136,7 +155,7 @@ export const useUpdateProduct = () => {
 
       toast.success("Product updated successfully");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error?.message || "Failed to update product");
     },
   });
@@ -169,7 +188,7 @@ export const useUpdateProductStatus = () => {
       });
 
       let movedProduct: ApiProduct | undefined;
-      let previousDataMap = new Map(); // To store previous data for rollback
+      const previousDataMap = new Map(); // To store previous data for rollback
 
       queries.forEach(([queryKey, oldData]) => {
         if (!oldData) return;
@@ -356,7 +375,7 @@ export const useBulkUpdateStatus = () => {
         queryKey: productKeys.lists(),
       });
 
-      let movedProducts: ApiProduct[] = [];
+      const movedProducts: ApiProduct[] = [];
 
       // 1. Remove from all method lists & collect moved items
       queries.forEach(([key, oldData]) => {

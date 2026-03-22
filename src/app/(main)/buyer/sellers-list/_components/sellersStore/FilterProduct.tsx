@@ -1,6 +1,6 @@
 "use client";
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-import React, { useState } from "react";
+import React from "react";
 import { IoIosCheckmark } from "react-icons/io";
 
 const interests = [
@@ -12,10 +12,23 @@ const interests = [
   "Vegetable",
 ];
 
-export const FilterProduct = () => {
-  const [switchSide, setSwitchSide] = useState<string>("high-to-low");
-  const [selectedFilter, setSelectedFilter] = useState<string[]>([]);
+export interface FilterProductProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedFilter: string[];
+  setSelectedFilter: (filters: string[] | ((prev: string[]) => string[])) => void;
+  switchSide: string;
+  setSwitchSide: (direction: string) => void;
+}
 
+export const FilterProduct = ({
+  searchQuery,
+  setSearchQuery,
+  selectedFilter,
+  setSelectedFilter,
+  switchSide,
+  setSwitchSide,
+}: FilterProductProps) => {
   const toggleInterest = (interest: string) => {
     setSelectedFilter((prev) => {
       const updated = prev.includes(interest)
@@ -35,6 +48,8 @@ export const FilterProduct = () => {
         <input
           type="text"
           placeholder="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className=" w-[70%] md:w-[500px] h-[2.4rem] p-2 border border-[#808080] rounded-md text-[#2b2b2b] placeholder-[#808080] focus:outline-none focus:ring-1 focus:ring-[#538e53] focus:border-transparent text-[12px] sm:text-[14px]"
         />
 

@@ -5,28 +5,23 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useRef,
 } from "react";
 import { motion } from "framer-motion";
 import { ProductRow } from "./ProductRow";
 import { TickIcon } from "./ProductRow";
 import {
   Product,
-  productService,
   SearchFilters,
-  UpdateProductData,
   ProductsResponse,
 } from "@/services/productService";
 import {
   useProducts,
   useDeleteProduct,
   useUpdateProductStatus,
-  useBulkDeleteProducts,
-  useBulkUpdateStatus,
 } from "@/hooks/queries/useProductQueries";
 import { EditProductModal } from "./EditProductModal";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { ProductTableSkeleton } from "./ProductTableSkeleton";
 
 interface ProductTableProps {
   filters: SearchFilters;
@@ -50,14 +45,11 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   onRefetch,
   onPageChange,
 }) => {
-  const router = useRouter();
-
   // Use React Query hook for data fetching
   // We call it unconditionally to respect hooks rules, but we can utilize its data or the prop data
   const {
     data: queryData,
     isLoading: queryLoading,
-    isError,
     error,
     refetch: queryRefetch,
   } = useProducts(filters);
@@ -69,15 +61,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   const isLoading = isLoadingProp !== undefined ? isLoadingProp : queryLoading;
   const refetch = onRefetch || queryRefetch;
 
-  const allProducts = data?.products || [];
+  const allProducts = useMemo(() => data?.products || [], [data?.products]);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Bulk actions loading state
-  const [bulkActionLoading, setBulkActionLoading] = useState<boolean>(false);
 
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -223,22 +212,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
 
   // ... (edit handlers remain - uses service directly or we can add mutation for it later, but scope mainly focused on list actions)
 
-  // Get selected count
-  const selectedCount = useMemo(
-    () => products.filter((p) => p.checked).length,
-    [products],
-  );
-
+  // Loading state
   // Loading state
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#538e53]"></div>
-        <span className="ml-3 text-[#538e53] font-montserrat">
-          Loading products...
-        </span>
-      </div>
-    );
+    return <ProductTableSkeleton />;
   }
 
   // Error state

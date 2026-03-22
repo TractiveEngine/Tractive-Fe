@@ -1,9 +1,7 @@
 import { useUserProfile } from "@/hooks/queries/useUserQueries";
-import { useRouter } from "next/navigation";
 
 export const usePermission = () => {
   const { data: user, isLoading } = useUserProfile();
-  const router = useRouter();
 
   const getRoles = (): string[] => {
     if (!user) return [];

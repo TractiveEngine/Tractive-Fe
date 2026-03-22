@@ -3,7 +3,6 @@ import {
   AddToStoreIcon,
   Bag2Icon,
   BidsIcon,
-  BoxTickIcon,
   FarmersIcon,
   MessageQuestionIcon,
   MessagesIcon,
@@ -11,7 +10,6 @@ import {
   MoneyReceive2Icon,
   MoneyReceiveIcon,
   OverviewIcon,
-  PackedIcon,
   ProduceListIcon,
   Profile2UserIcon,
 } from "../../../icons/DashboardIcons";
@@ -20,7 +18,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { AddToStore } from "../../../app/(main)/agent/_components/AddToStore";
 import { Agent_ProfileDropDownMobile } from "../../Profile_dropdowns/ProfileDropDown/Agent_ProfileDropDownMobile";
 
@@ -51,13 +49,6 @@ export const AgentAsideNavMobile = ({
   closeDropdown,
 }: AgentAsideNavMobileProps) => {
   const pathname = usePathname();
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-    Store: false,
-    Bookings: false,
-    Transactions: false,
-    Customers: false,
-    Others: false,
-  });
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -65,14 +56,6 @@ export const AgentAsideNavMobile = ({
 
   const toggleNav = () => {
     setIsNavOpen((prev) => !prev);
-  };
-
-  const toggleSection = (section: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setOpenSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
   };
 
   useEffect(() => {
@@ -116,9 +99,7 @@ export const AgentAsideNavMobile = ({
     {
       title: "Orders",
       items: [
-        { href: "/agent/new", icon: Bag2Icon, label: "New", hasDot: true },
-        { href: "/agent/packed", icon: PackedIcon, label: "Packed" },
-        { href: "/agent/delivered", icon: BoxTickIcon, label: "Delivered" },
+        { href: "/agent/new", icon: Bag2Icon, label: "Orders", hasDot: true },
       ],
     },
     {
@@ -161,7 +142,7 @@ export const AgentAsideNavMobile = ({
     },
   ];
 
-  const sectionVariants = {
+  const sectionVariants: Variants = {
     initial: { height: 0, opacity: 0 },
     animate: {
       height: "auto",
@@ -175,10 +156,19 @@ export const AgentAsideNavMobile = ({
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     initial: { y: 10, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: 10, opacity: 0 },
+  };
+
+  const isActive = (label: string, href?: string) => {
+    if (label === "Orders") {
+      return ["/agent/new", "/agent/packed", "/agent/delivered"].some((r) =>
+        pathname.startsWith(r),
+      );
+    }
+    return pathname === href;
   };
 
   return (
@@ -230,6 +220,7 @@ export const AgentAsideNavMobile = ({
           </AnimatePresence>
         </div>
       )}
+
       <AnimatePresence>
         {isNavOpen && (
           <motion.div
@@ -242,6 +233,7 @@ export const AgentAsideNavMobile = ({
           >
             <div className="flex flex-col gap-[2.5rem]" ref={navRef}>
               <div className="flex flex-col px-1">
+                {/* Overview */}
                 <ul className="mt-[1rem] px-[0.5rem]">
                   <li>
                     <Link
@@ -259,86 +251,73 @@ export const AgentAsideNavMobile = ({
                     </Link>
                   </li>
                 </ul>
+
                 <span className="bg-[#e2e2e2] w-full h-[1px] my-1"></span>
+
+                {/* Sections — always visible, no per-section accordion */}
                 {navSections.map((section, idx) => (
                   <div key={section.title} className="px-[0.5rem]">
-                    <button
-                      onClick={(e) => toggleSection(section.title, e)}
-                      className="flex items-center justify-between w-full rounded-md cursor-pointer py-2 px-2.5 text-left font-montserrat text-[#fefefe] text-[11px] font-normal bg-[#3a3a3a] transition-colors duration-200 hover:bg-[#4a4a4a]"
-                    >
-                      <p className="truncate">{section.title}</p>
-                      <div className="flex items-center gap-2">
-                        {openSections[section.title] ? (
-                          <ArrowUpIcon stroke="#fefefe" />
-                        ) : (
-                          <ArrowDownIcon stroke="#fefefe" />
-                        )}
-                      </div>
-                    </button>
+                    {/* Section label */}
+                    <p className="font-montserrat text-[#fefefe] text-[11px] font-normal py-2 px-2.5 bg-[#3a3a3a] rounded-md">
+                      {section.title}
+                    </p>
                     <div className="block lg:hidden bg-[#e2e2e2] w-full h-[1px] my-1"></div>
-                    <AnimatePresence>
-                      {openSections[section.title] && (
-                        <motion.ul
-                          variants={sectionVariants}
-                          initial="initial"
-                          animate="animate"
-                          exit="exit"
-                          className="overflow-hidden grid grid-cols-4 gap-1.5"
+
+                    {/* Items */}
+                    <ul className="grid grid-cols-4 gap-1.5">
+                      {section.items.map((item, index) => (
+                        <motion.li
+                          key={item.href || item.label}
+                          variants={itemVariants}
+                          transition={{
+                            delay: index * 0.1,
+                            duration: 0.3,
+                            ease: [0.4, 0, 0.2, 1],
+                          }}
                         >
-                          {section.items.map((item, index) => (
-                            <motion.li
-                              key={item.href || item.label}
-                              variants={itemVariants}
-                              transition={{
-                                delay: index * 0.1,
-                                duration: 0.3,
-                                ease: [0.4, 0, 0.2, 1],
-                              }}
+                          {item.href ? (
+                            <Link
+                              href={item.href}
+                              className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
+                                isActive(item.label, item.href)
+                                  ? "bg-[#3a3a3a] text-[#fefefe]"
+                                  : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
+                              }`}
                             >
-                              {item.href ? (
-                                <Link
-                                  href={item.href}
-                                  className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
-                                    pathname === item.href
-                                      ? "bg-[#3a3a3a] text-[#fefefe]"
-                                      : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
-                                  }`}
-                                >
-                                  <item.icon stroke="#fefefe" fill="#fefefe" />
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
-                                      {item.label}
-                                    </span>
-                                    {item.hasDot && (
-                                      <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
-                                    )}
-                                  </div>
-                                </Link>
-                              ) : (
-                                <button
-                                  onClick={item.onClick}
-                                  className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
-                                    isModalOpen && item.label === "Add to store"
-                                      ? "bg-[#3a3a3a] text-[#fefefe]"
-                                      : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
-                                  }`}
-                                >
-                                  <item.icon stroke="#fefefe" fill="#fefefe" />
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
-                                      {item.label}
-                                    </span>
-                                    {item.hasDot && (
-                                      <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
-                                    )}
-                                  </div>
-                                </button>
-                              )}
-                            </motion.li>
-                          ))}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
+                              <item.icon stroke="#fefefe" fill="#fefefe" />
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
+                                  {item.label}
+                                </span>
+                                {item.hasDot && (
+                                  <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
+                                )}
+                              </div>
+                            </Link>
+                          ) : (
+                            <button
+                              onClick={item.onClick}
+                              className={`flex flex-col items-start gap-2.5 py-2 px-3.5 rounded-md transition-colors duration-200 ${
+                                isModalOpen && item.label === "Add to store"
+                                  ? "bg-[#3a3a3a] text-[#fefefe]"
+                                  : "bg-[#2b2b2b] text-[#fefefe] hover:bg-[#4a4a4a]"
+                              }`}
+                            >
+                              <item.icon stroke="#fefefe" fill="#fefefe" />
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-montserrat text-[#fefefe] text-left text-[11px] font-normal">
+                                  {item.label}
+                                </span>
+                                {item.hasDot && (
+                                  <span className="bg-[#538e53] rounded-full w-1 lg:w-2 h-1 lg:h-2"></span>
+                                )}
+                              </div>
+                            </button>
+                          )}
+                        </motion.li>
+                      ))}
+                    </ul>
+
                     {idx < navSections.length - 1 && (
                       <div className="bg-[#e2e2e2] w-full h-[1px] my-1"></div>
                     )}

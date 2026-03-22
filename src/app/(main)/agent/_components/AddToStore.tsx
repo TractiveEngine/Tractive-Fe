@@ -3,20 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  GalleryAddIcon,
-  ProfileIcon,
   XModalIcon,
 } from "./Icons/AgentIcons";
-import { toast } from "sonner";
 import { ItemDetailsForm } from "./ItemDetailsForm";
 import { MediaUpload } from "./MediaUpload";
 import { useFarmers } from "@/hooks/queries/useFarmerQueries";
-import { Farmer } from "@/services/FarmerService";
+import { toast } from "sonner";
 
 interface AddToStoreProps {
   isOpen: boolean;
@@ -24,10 +17,10 @@ interface AddToStoreProps {
 }
 
 export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
-  const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const farmerDropdownRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Fetch farmers using the query hook
@@ -51,6 +44,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     farmer.name.toLowerCase().includes(farmerSearchQuery.toLowerCase()),
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const categories: string[] = [
@@ -63,6 +57,10 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   ];
 
   const handleFarmerSelect = (farmerId: string): void => {
+    const farmer = farmers.find((f) => f.id === farmerId);
+    if (farmer) {
+      setFarmerSearchQuery(farmer.name);
+    }
     setSelectedFarmerId(farmerId);
     setIsFarmerOpen(false);
   };
@@ -269,7 +267,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                           </div>
                         ) : filteredFarmers.length === 0 ? (
                           <div className="px-3 py-2 text-sm text-gray-500">
-                            No farmers found matching "{farmerSearchQuery}"
+                            No farmers found matching &quot;{farmerSearchQuery}&quot;
                           </div>
                         ) : (
                           filteredFarmers.map((farmer) => (

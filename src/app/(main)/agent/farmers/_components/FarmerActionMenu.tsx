@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { ActionMenuProps } from "../../_components/ActionMenuProps";
 import { ThreeDotIcon } from "../../produce-list/_components/table/ActionMenu";
 import { useDeleteFarmer } from "@/hooks/queries/useFarmerQueries";
@@ -22,7 +21,6 @@ export const FarmerActionMenu: React.FC<FarmerActionMenuProps> = ({
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const router = useRouter();
   const deleteFarmerMutation = useDeleteFarmer();
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);

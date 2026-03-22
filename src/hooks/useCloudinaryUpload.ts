@@ -44,6 +44,7 @@ export const useCloudinaryUpload = (): UseCloudinaryUploadResult => {
 
       const url = response.data.secure_url;
       return url;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(`Cloudinary ${resourceType} upload error:`, err);
       const errMsg =

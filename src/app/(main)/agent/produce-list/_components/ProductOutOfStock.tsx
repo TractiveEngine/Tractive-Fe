@@ -2,17 +2,15 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
-import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
+import { ArrowDownIcon, SearchIcon } from "@/icons/Icons";
 import { ProductTable } from "./table/ProductTable";
 import { AddToStore } from "../../_components/AddToStore";
-import { productService, SearchFilters } from "@/services/productService";
+import { SearchFilters } from "@/services/productService";
 import {
   useBulkDeleteProducts,
   useBulkUpdateStatus,
 } from "@/hooks/queries/useProductQueries";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { DateRangePicker } from "@/components/DateRangePicker";
 
 interface ProductOutOfStockProps {
@@ -22,7 +20,6 @@ interface ProductOutOfStockProps {
 export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   onProductsUpdate,
 }) => {
-  const router = useRouter();
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     status: "out_of_stock",
@@ -315,7 +312,7 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
           <input
             type="number"
             name="min"
-            placeholder="Min Price (₦)"
+            placeholder="Min Price ($)"
             value={priceRange.min}
             onChange={handlePriceChange}
             className="w-full px-3 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] font-montserrat"
@@ -323,7 +320,7 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
           <input
             type="number"
             name="max"
-            placeholder="Max Price (₦)"
+            placeholder="Max Price ($)"
             value={priceRange.max}
             onChange={handlePriceChange}
             className="w-full px-3 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-[#538e53] font-montserrat"

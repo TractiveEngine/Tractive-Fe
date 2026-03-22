@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { NegotiationProps, negotiations } from "@/utils/Negotiation";
+import { NegotiationProps } from "@/utils/Negotiation";
 import { TableList } from "../_components/table/TableList";
 import { NegotiationActionMenu } from "./_components/NegotiationActionMenu";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { NegotiationService } from "@/services/negotiationService";
+import Image from "next/image";
 
 interface ColumnConfig<T> {
   header: string;
@@ -46,7 +49,7 @@ const negotiationColumns: ColumnConfig<NegotiationProps>[] = [
     header: "Amount",
     key: "amount",
     minWidth: "min-w-[100px]",
-    render: (negotiation) => `₦${negotiation.amount.toLocaleString()}`,
+    render: () => `₦0`,
   },
   {
     header: "Negotiator",
@@ -71,13 +74,12 @@ const negotiationColumns: ColumnConfig<NegotiationProps>[] = [
 ];
 
 const NegotiationListPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const [negotiated, setNegotiated] = useState<NegotiationProps[]>(
-    negotiations.map((item) => ({ ...item, checked: false }))
-  );
+  const [negotiated, setNegotiated] = useState<NegotiationProps[]>([]);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -127,27 +129,80 @@ const NegotiationListPage: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleReject = () => {
-    const selectedIds = negotiated.filter((p) => p.checked).map((p) => p.id);
-    if (selectedIds.length > 0) {
-      console.log(`Reject negotiations with IDs: ${selectedIds.join(", ")}`);
-      alert(`Reject negotiations with IDs: ${selectedIds.join(", ")}`);
-      // Optionally update state to uncheck or remove rejected items
+  const { data: fetchNegotiations, isLoading } = useQuery({
+    queryKey: ["negotiations"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryFn: () => NegotiationService.getNegotiations<any[]>(),
+  });
+
+  useEffect(() => {
+    if (fetchNegotiations) {
       setNegotiated(
-        negotiated.map((p) => (p.checked ? { ...p, checked: false } : p))
+        fetchNegotiations.map((item) => ({
+          id: item._id || item.id,
+          image: item.image || item.fleet?.images?.[0] || "/images/truckcontainer.png",
+          name: item.name || item.fleet?.fleetName || item.fleet?.fleetNumber || "Fleet",
+          description: item.description || item.status || "Pending",
+          negotiator: item.negotiator || (item.buyer?.firstName ? `${item.buyer.firstName} ${item.buyer.lastName}` : "Negotiator"),
+          amount: item.amount || 0,
+          KG: item.KG || item.product?.weight || 0,
+          location: item.location || (item.route ? `${item.route.fromState} - ${item.route.toState}` : "Unknown location"),
+          date: item.date || (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""),
+          checked: false,
+          originalPayloadAmount: item.amount || 0, // Keep original amount for response payload
+        }))
       );
+    }
+  }, [fetchNegotiations]);
+
+  const respondMutation = useMutation({
+    mutationFn: ({ id, action, amount }: { id: string; action: "accept" | "reject"; amount?: number }) =>
+      NegotiationService.respondToNegotiation(id, { action, amount }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["negotiations"] });
+      toast.success(`Negotiation ${variables.action}ed successfully`);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to respond to negotiation");
+    },
+  });
+
+  const handleReject = async (id?: string) => {
+    if (id) {
+       const neg = negotiated.find((n) => n.id === id);
+       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       respondMutation.mutate({ id, action: "reject", amount: (neg as any)?.originalPayloadAmount });
+       return;
+    }
+    const selectedItems = negotiated.filter((p) => p.checked);
+    if (selectedItems.length > 0) {
+      await Promise.all(
+        selectedItems.map((item) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          respondMutation.mutateAsync({ id: item.id, action: "reject", amount: (item as any).originalPayloadAmount })
+        )
+      );
+      setNegotiated(negotiated.map((p) => (p.checked ? { ...p, checked: false } : p)));
     }
   };
 
-  const handleAccept = () => {
-    const selectedIds = negotiated.filter((p) => p.checked).map((p) => p.id);
-    if (selectedIds.length > 0) {
-      console.log(`Accept negotiations with IDs: ${selectedIds.join(", ")}`);
-      alert(`Accept negotiations with IDs: ${selectedIds.join(", ")}`);
-      // Optionally update state to uncheck or remove accepted items
-      setNegotiated(
-        negotiated.map((p) => (p.checked ? { ...p, checked: false } : p))
+  const handleAccept = async (id?: string) => {
+    if (id) {
+        const neg = negotiated.find((n) => n.id === id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        respondMutation.mutate({ id, action: "accept", amount: (neg as any)?.originalPayloadAmount });
+        return;
+    }
+    const selectedItems = negotiated.filter((p) => p.checked);
+    if (selectedItems.length > 0) {
+      await Promise.all(
+        selectedItems.map((item) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          respondMutation.mutateAsync({ id: item.id, action: "accept", amount: (item as any).originalPayloadAmount })
+        )
       );
+      setNegotiated(negotiated.map((p) => (p.checked ? { ...p, checked: false } : p)));
     }
   };
 
@@ -179,15 +234,15 @@ const NegotiationListPage: React.FC = () => {
           Negotiations
         </h2>
 
-        <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
+        <div className="w-full h-px bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-              <div className="relative w-[100%] sm:w-[70%] flex-grow">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
+              <div className="relative w-full sm:w-[70%] grow">
                 <input
                   type="text"
                   placeholder="Search"
-                  className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
+                  className="w-full pl-8 py-2 border border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search negotiations"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -201,7 +256,7 @@ const NegotiationListPage: React.FC = () => {
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
                     onClick={() => setIsYearOpen(!isYearOpen)}
-                    className="px-3 pl-8 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pl-8 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tl-[4px] rounded-bl-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isYearOpen}
                     aria-controls="year-dropdown"
@@ -276,7 +331,7 @@ const NegotiationListPage: React.FC = () => {
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
-                    className="px-3 pr-10 py-2 border-[1px] cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
+                    className="px-3 pr-10 py-2 border cursor-pointer border-[#808080] rounded-tr-[4px] rounded-br-[4px] text-sm sm:text-base text-left w-full sm:w-[100px] focus:outline-none focus:ring-[1px] focus:ring-[#538e53]"
                     role="combobox"
                     aria-expanded={isMonthOpen}
                     aria-controls="month-dropdown"
@@ -350,14 +405,14 @@ const NegotiationListPage: React.FC = () => {
             {hasSelectedItems && (
               <div className="flex items-center gap-4 justify-start md:justify-end">
                 <button
-                  onClick={handleReject}
-                  className="cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] border-[1px] border-[#8B4513] text-[#B28362] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#9f6f50] hover:text-[#fefefe]"
+                  onClick={() => handleReject()}
+                  className="cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] border border-[#8B4513] text-[#B28362] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#9f6f50] hover:text-[#fefefe]"
                   aria-label="Reject selected negotiations"
                 >
                   Reject
                 </button>
                 <button
-                  onClick={handleAccept}
+                  onClick={() => handleAccept()}
                   className="cursor-pointer px-4 sm:px-6 py-2 opacity-[0.9] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
                   aria-label="Accept selected negotiations"
                 >
@@ -368,17 +423,42 @@ const NegotiationListPage: React.FC = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<NegotiationProps>
-            dataType="negotiations"
-            columns={negotiationColumns}
-            initialData={negotiated}
-            ActionMenuComponent={NegotiationActionMenu}
-            handleReject={handleReject}
-            handleAccept={handleAccept}
-            handleCheckboxChange={handleCheckboxChange}
-            handleSelectAll={handleSelectAll}
-            allChecked={negotiated.every((p) => p.checked === true)}
-          />
+          {isLoading ? (
+            <div className="flex justify-center p-8 text-[#808080] font-montserrat">Loading negotiations...</div>
+          ) : (
+            <TableList<NegotiationProps>
+              dataType="negotiations"
+              columns={negotiationColumns}
+              initialData={negotiated} // Passing down local state which tracks checkbox checking
+              ActionMenuComponent={NegotiationActionMenu}
+              handleReject={(id) => handleReject(id)}
+              handleAccept={(id) => handleAccept(id)}
+              handleCheckboxChange={handleCheckboxChange}
+              handleSelectAll={handleSelectAll}
+              allChecked={negotiated.length > 0 && negotiated.every((p) => p.checked === true)}
+              emptyState={
+                <tr>
+                  <td colSpan={8} className="py-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Image
+                        src="/images/truckcontainer.png"
+                        alt="Empty Negotiation"
+                        width={80}
+                        height={80}
+                        className="opacity-70 object-contain rounded-full bg-[#f1f1f1] w-20 h-20"
+                      />
+                      <h3 className="text-[16px] font-medium font-montserrat text-[#2b2b2b]">
+                        No Negotiations Available
+                      </h3>
+                      <p className="text-[13px] font-montserrat text-[#808080]">
+                        You currently have no pending negotiations
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            />
+          )}
         </div>
       </div>
     </div>
