@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(find /c/Users/USER/Documents/Tractive-Fe -type f -name *bid*)",
+      "Bash(ls -la /c/Users/USER/Documents/Tractive-Fe/src/app/\\\\\\(main\\\\\\)/agent/)",
+      "Bash(ls -la /c/Users/USER/Documents/Tractive-Fe/src/app/\\\\\\(main\\\\\\)/agent/bids/_components/)",
+      "Bash(find /c/Users/USER/Documents/Tractive-Fe/src/services -type f -name *.ts)",
+      "Bash(ls -la /c/Users/USER/Documents/Tractive-Fe/src/app/\\\\\\(main\\\\\\)/agent/bids/)",
+      "Bash(npx tsc:*)",
+      "Bash(find \"c:/Users/USER/Documents/Tractive-Fe/src/app/\\(main\\)/buyer/my-biddings\" -type f -name \"*.tsx\" -o -name \"*.ts\" -o -name \"*.jsx\" -o -name \"*.js\")"
     ]
   }
 }

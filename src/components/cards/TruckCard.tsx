@@ -68,23 +68,24 @@ export default function TruckCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-[4px] px-2.5">
+        <div className="flex flex-col gap-2 px-2.5">
           <div className="flex items-center gap-[3px]">
             <LocationIcon />
-            <p className="font-montserrat text-[10px] text-[#2b2b2b] font-medium">
+            <p className="font-montserrat text-[11px] text-[#2b2b2b] font-medium">
               {locationFrom} to {locationTo}
             </p>
           </div>
-          <span className="w-[2px] h-[1rem] bg-[#808080]"></span>
-          <p className="font-montserrat text-[11px] text-[#2b2b2b] font-normal">
-            Per Kg:
-            <span className="font-medium"> {amountPerKg}</span>
-          </p>
-          <span className="w-[2px] h-[1rem] bg-[#808080]"></span>
-          <p className="font-montserrat text-[11px] text-[#2b2b2b] font-normal">
-            Full Load:
-            <span className="font-medium"> {fullLoad}</span>
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="font-montserrat text-[11px] text-[#2b2b2b] font-normal">
+              Per Kg:
+              <span className="font-medium"> {amountPerKg}</span>
+            </p>
+            <span className="w-[2px] h-[1rem] bg-[#808080]"></span>
+            <p className="font-montserrat text-[11px] text-[#2b2b2b] font-normal">
+              Full Load:
+              <span className="font-medium"> {fullLoad}</span>
+            </p>
+          </div>
         </div>
 
         <div className="w-[100%] bg-[#CCE5CCB2] gap-0.5 flex items-center justify-center p-[4px]">

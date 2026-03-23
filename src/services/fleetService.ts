@@ -29,6 +29,13 @@ export interface FleetResponse extends FleetPayload {
   plateNumber?: string;
 }
 
+export interface GetFleetsParams {
+  search?: string;
+  status?: string;
+  year?: number;
+  month?: number;
+}
+
 export const fleetService = {
   // POST /api/transporters/fleets - Add a new fleet
   createFleet: async (data: FleetPayload) => {
@@ -44,9 +51,9 @@ export const fleetService = {
   },
 
   // GET /api/transporters/fleets - Get all fleets for the transporter
-  getFleets: async (): Promise<FleetResponse[]> => {
+  getFleets: async (params?: GetFleetsParams): Promise<FleetResponse[]> => {
     try {
-      const response = await api.get("/api/transporters/fleets");
+      const response = await api.get("/api/transporters/fleets", { params });
       const responseData = response.data;
       if (responseData && Array.isArray(responseData.data)) {
         return responseData.data;

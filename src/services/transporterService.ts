@@ -17,17 +17,21 @@ export interface Transporter {
   [key: string]: unknown;
 }
 
+export interface GetTransportersParams {
+  search?: string;
+  location?: string;
+  rating?: number;
+  yearsOfExperience?: number;
+}
+
 export const transporterService = {
   /**
    * Get all transporters
    * GET /api/transporters
    */
-  getTransporters: async (): Promise<Transporter[]> => {
+  getTransporters: async (params?: GetTransportersParams): Promise<Transporter[]> => {
     try {
-      const response = await api.get("/api/transporters");
-      console.log("[TransporterService] getTransporters response:", response.data);
-      // The backend structure could vary. Trying to return the list.
-      // Often paginated data is in response.data.data
+      const response = await api.get("/api/transporters", { params });
       return response.data.data || response.data || [];
     } catch (error) {
       console.error("[TransporterService] getTransporters error:", error);
@@ -59,6 +63,20 @@ export const transporterService = {
       return response.data.data || response.data;
     } catch (error) {
       console.error(`[TransporterService] getTransporterReviews ${id} error:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get fleet details by id
+   * GET /api/transporters/fleet/{id}
+   */
+  getFleetById: async (id: string): Promise<unknown> => {
+    try {
+      const response = await api.get(`/api/transporters/fleets/${id}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`[TransporterService] getFleetById ${id} error:`, error);
       throw error;
     }
   },

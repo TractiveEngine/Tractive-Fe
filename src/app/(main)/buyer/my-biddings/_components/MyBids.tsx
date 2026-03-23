@@ -54,51 +54,30 @@ export const MyBids: React.FC<MyBidsProps> = ({
   return (
     <div className="w-full bg-[#fefefe] shadow-md my-4 sm:my-6 md:my-8 rounded-[5px] max-w-7xl mx-auto">
       <style jsx>{`
-        .custom-AllRadio {
+        .custom-checkbox {
           appearance: none;
           width: 16px;
           height: 16px;
           border: 1px solid #538e53;
-          border-radius: 50%;
+          border-radius: 3px;
           position: relative;
           cursor: pointer;
+          flex-shrink: 0;
         }
-        .custom-AllRadio:checked::before {
-          content: "";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 10px;
-          height: 10px;
+        .custom-checkbox:checked {
           background-color: #538e53;
-          border-radius: 50%;
-        }
-        .custom-AllRadio:checked {
           border-color: #538e53;
         }
-        .custom-radio {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border: 1px solid #538e53;
-          border-radius: 50%;
-          position: relative;
-          cursor: pointer;
-        }
-        .custom-radio:checked::before {
+        .custom-checkbox:checked::before {
           content: "";
           position: absolute;
-          top: 50%;
+          top: 45%;
           left: 50%;
-          transform: translate(-50%, -50%);
-          width: 10px;
-          height: 10px;
-          background-color: #538e53;
-          border-radius: 50%;
-        }
-        .custom-radio:checked {
-          border-color: #538e53;
+          transform: translate(-50%, -50%) rotate(45deg);
+          width: 5px;
+          height: 9px;
+          border: solid #fff;
+          border-width: 0 2px 2px 0;
         }
       `}</style>
 
@@ -114,10 +93,9 @@ export const MyBids: React.FC<MyBidsProps> = ({
 
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-3.5">
         <input
-          type="radio"
-          name="checkout-all"
+          type="checkbox"
           id="checkout-all"
-          className="custom-AllRadio"
+          className="custom-checkbox cursor-pointer"
           checked={selection.isCheckoutAll}
           onChange={handleCheckoutAllChange}
         />
@@ -141,9 +119,9 @@ export const MyBids: React.FC<MyBidsProps> = ({
         <React.Fragment key={item.id}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 md:gap-4 w-full p-2 sm:p-3 md:p-3.5">
             <input
-              type="radio"
+              type="checkbox"
               id={item.id}
-              className="ml-0 sm:ml-3.5 custom-radio"
+              className="ml-0 sm:ml-3.5 custom-checkbox cursor-pointer"
               checked={
                 selection.isCheckoutAll ||
                 selection.selectedBids.includes(item.id)

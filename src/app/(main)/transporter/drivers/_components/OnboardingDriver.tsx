@@ -26,14 +26,20 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
     licenseNumber: "",
     phoneNumber: "",
     phone: "",
+    trackingNumber: "",
+    fleetId: "",
+    iot: "",
     image: "/images/bidder1.png",
   });
-  
+
   const [errors, setErrors] = useState({
     fullName: "",
     licenseNumber: "",
     phoneNumber: "",
     phone: "",
+    trackingNumber: "",
+    fleetId: "",
+    iot: "",
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +53,11 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             phone: editDriver.phone || (editDriver as any).mobile || "",
             phoneNumber: "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            trackingNumber: (editDriver as any).trackingNumber || "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            fleetId: (editDriver as any).fleetId || editDriver.assignedTruck?._id || "",
+            iot: editDriver.iot || "",
             image: editDriver.image || "/images/bidder1.png",
         });
       } else {
@@ -55,10 +66,13 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
             licenseNumber: "",
             phone: "",
             phoneNumber: "",
+            trackingNumber: "",
+            fleetId: "",
+            iot: "",
             image: "/images/bidder1.png",
         });
       }
-      setErrors({ fullName: "", licenseNumber: "", phoneNumber: "", phone: "" });
+      setErrors({ fullName: "", licenseNumber: "", phoneNumber: "", phone: "", trackingNumber: "", fleetId: "", iot: "" });
     }
   }, [isOpen, editDriver]);
 
@@ -71,6 +85,9 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
       licenseNumber: "",
       phoneNumber: "",
       phone: "",
+      trackingNumber: "",
+      fleetId: "",
+      iot: "",
     };
 
     if (!isEdit) {
@@ -123,7 +140,14 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
     e.preventDefault();
     if (validateForm()) {
         if (isEdit) {
-            onSubmit({ phone: formData.phone });
+            const payload: Record<string, string> = {};
+            if (formData.fullName.trim()) payload.name = formData.fullName;
+            if (formData.phone.trim()) payload.phone = formData.phone;
+            if (formData.licenseNumber.trim()) payload.licenseNumber = formData.licenseNumber;
+            if (formData.trackingNumber.trim()) payload.trackingNumber = formData.trackingNumber;
+            if (formData.fleetId.trim()) payload.fleetId = formData.fleetId;
+            if (formData.iot.trim()) payload.iot = formData.iot;
+            onSubmit(payload);
         } else {
             onSubmit({ 
                 fullName: formData.fullName, 
@@ -280,26 +304,89 @@ export const OnboardingDriver: React.FC<AddDriverProps> = ({
             )}
 
             {isEdit && (
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-montserrat text-[#2b2b2b]"
-                  >
-                    Phone
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
-                    aria-required="true"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-                  )}
-                </div>
+                <>
+                  <div>
+                    <label htmlFor="fullName" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      Name
+                    </label>
+                    <input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      Phone
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="licenseNumber" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      License Number
+                    </label>
+                    <input
+                      id="licenseNumber"
+                      name="licenseNumber"
+                      type="text"
+                      value={formData.licenseNumber}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="trackingNumber" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      Tracking Number
+                    </label>
+                    <input
+                      id="trackingNumber"
+                      name="trackingNumber"
+                      type="text"
+                      value={formData.trackingNumber}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="fleetId" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      Fleet ID
+                    </label>
+                    <input
+                      id="fleetId"
+                      name="fleetId"
+                      type="text"
+                      value={formData.fleetId}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="iot" className="block text-sm font-montserrat text-[#2b2b2b]">
+                      IoT
+                    </label>
+                    <input
+                      id="iot"
+                      name="iot"
+                      type="text"
+                      value={formData.iot}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#538e53]"
+                    />
+                  </div>
+                </>
             )}
             
             <div className="flex justify-center gap-2 mt-6">

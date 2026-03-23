@@ -7,11 +7,22 @@ export interface CreateDriverPayload {
 }
 
 export interface UpdateDriverPayload {
-  phone: string;
+  name?: string;
+  phone?: string;
+  licenseNumber?: string;
+  trackingNumber?: string;
+  fleetId?: string;
+  iot?: string;
 }
 
 export interface AssignFleetPayload {
   truckId: string;
+}
+
+export interface GetDriversParams {
+  search?: string;
+  year?: number;
+  month?: number;
 }
 
 export class DriverService {
@@ -19,10 +30,9 @@ export class DriverService {
    * Get all drivers
    * GET /api/transporters/drivers
    */
-  static async getDrivers<T>(): Promise<T> {
-    const response = await api.get("/api/transporters/drivers");
-    console.log("[DriverService] getDrivers response:", response.data);
-    return response.data.data; // Extract the actual array
+  static async getDrivers<T>(params?: GetDriversParams): Promise<T> {
+    const response = await api.get("/api/transporters/drivers", { params });
+    return response.data.data;
   }
 
   /**

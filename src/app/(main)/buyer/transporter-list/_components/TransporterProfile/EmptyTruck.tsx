@@ -5,24 +5,20 @@ import { useGetTransporterTrucks } from "@/hooks/queries/useTransporterQueries";
 import { Loader2 } from "lucide-react";
 
 interface EmptyTruckProps {
-  transporterId: string;
   fromState?: string;
   toState?: string;
-  sortOption?: string;
 }
 
 export const EmptyTruck = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  transporterId,
   fromState = "",
   toState = "",
-  sortOption = "All",
 }: EmptyTruckProps) => {
   const { data: trucksData, isLoading, isError } = useGetTransporterTrucks({
     status: "empty",
-    fromState,
-    toState,
+    fromState: fromState || undefined,
+    toState: toState || undefined,
   });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rawTrucks = Array.isArray(trucksData) ? trucksData : (trucksData as any)?.trucks || [];
 
@@ -38,18 +34,6 @@ export const EmptyTruck = ({
     locationTo: truck.route?.toState || truck.locationTo || truck.destination || "Unknown",
     spaceRemaining: truck.spaceRemaining || truck.availableSpace || "0kg",
   }));
-
-  const filteredTruckData = formattedTrucks.filter(() => {
-    // Sort option filtering if needed on client side
-    let matchesSort = true;
-    if (sortOption === "Almost Full") {
-      matchesSort = false;
-    } else if (sortOption === "Empty") {
-      matchesSort = true;
-    }
-
-    return matchesSort;
-  });
 
   if (isLoading) {
     return (
@@ -73,9 +57,8 @@ export const EmptyTruck = ({
         Empty Truck
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredTruckData.length > 0 ? (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          filteredTruckData.map((card: any) => (
+        {formattedTrucks.length > 0 ? (
+          formattedTrucks.map((card: { id: string; image: string; truckName: string; rating: number; amountPerKg: string; fullLoad: string; locationFrom: string; locationTo: string; spaceRemaining: string }) => (
             <TruckCard
               isEmptyTruck={true}
               key={card.id}

@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fleetService, FleetPayload } from "@/services/fleetService";
+import { fleetService, FleetPayload, GetFleetsParams } from "@/services/fleetService";
 import { toast } from "sonner";
 
 export const fleetKeys = {
   all: ["fleets"] as const,
+  list: (params?: GetFleetsParams) => [...fleetKeys.all, "list", params] as const,
 };
 
 export const useAddFleet = () => {
@@ -21,10 +22,10 @@ export const useAddFleet = () => {
   });
 };
 
-export const useGetFleets = () => {
+export const useGetFleets = (params?: GetFleetsParams) => {
   return useQuery({
-    queryKey: fleetKeys.all,
-    queryFn: fleetService.getFleets,
+    queryKey: fleetKeys.list(params),
+    queryFn: () => fleetService.getFleets(params),
   });
 };
 

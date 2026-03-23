@@ -27,18 +27,18 @@ export default function TransportersID() {
         setSortOption={setSortOption}
       />
       <TransporterRecommendation transporterId={id} />
-      <AlmostFullTruck
-        transporterId={id}
-        fromState={fromState}
-        toState={toState}
-        sortOption={sortOption}
-      />
-      <EmptyTruck
-        transporterId={id}
-        fromState={fromState}
-        toState={toState}
-        sortOption={sortOption}
-      />
+      {(sortOption === "All" || sortOption === "Almost Full") && (
+        <AlmostFullTruck
+          fromState={fromState}
+          toState={toState}
+        />
+      )}
+      {(sortOption === "All" || sortOption === "Empty") && (
+        <EmptyTruck
+          fromState={fromState}
+          toState={toState}
+        />
+      )}
     </div>
   );
 }
