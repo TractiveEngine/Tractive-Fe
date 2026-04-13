@@ -23,17 +23,34 @@ export const AlmostFullTruck = ({
   const rawTrucks = Array.isArray(trucksData) ? trucksData : (trucksData as any)?.trucks || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const formattedTrucks = rawTrucks.map((truck: any, index: number) => ({
-    id: truck._id || truck.id || `truck-${index}`,
-    image: (truck.images && truck.images.length > 0) ? truck.images[0] : truck.image || "/images/AlmostFull.png",
-    truckName: truck.fleetName || truck.model || truck.truckName || truck.name || "Unknown Truck",
-    rating: truck.rating || 0,
-    amountPerKg: truck.price ? `₦${truck.price.toLocaleString()}` : truck.pricePerKg || truck.amountPerKg || "₦0",
-    fullLoad: truck.capacity || truck.size || truck.fullLoad || "Unknown Capacity",
-    locationFrom: truck.route?.fromState || truck.locationFrom || truck.origin || "Unknown",
-    locationTo: truck.route?.toState || truck.locationTo || truck.destination || "Unknown",
-    spaceRemaining: truck.spaceRemaining || truck.availableSpace || "0kg",
-  }));
+  const formattedTrucks = rawTrucks.map((truck: any, index: number) => {
+    const capacityKg = truck.capacityKg || 0;
+    const remainingCapacityKg = truck.remainingCapacityKg ?? capacityKg;
+    const totalPrice = truck.price || 0;
+    const pricePerKg = truck.pricePerKgEquivalent || 0;
+
+    return {
+      id: truck._id || truck.id || `truck-${index}`,
+      image: (truck.images && truck.images.length > 0) ? truck.images[0] : truck.image || "/images/AlmostFull.png",
+      images: truck.images || [],
+      truckName: truck.fleetName || truck.model || truck.truckName || truck.name || "Unknown Truck",
+      rating: String(truck.rating || 0),
+      amountPerKg: `₦${pricePerKg.toLocaleString()}`,
+      fullLoad: truck.remainingCapacityDisplay || `${capacityKg} kg`,
+      locationFrom: truck.route?.fromState || truck.locationFrom || truck.origin || "Unknown",
+      locationTo: truck.route?.toState || truck.locationTo || truck.destination || "Unknown",
+      spaceRemaining: truck.remainingCapacityDisplay || `${remainingCapacityKg} kg`,
+      fleetDescription: truck.fleetDescription || "",
+      model: truck.model || "",
+      size: truck.size || truck.capacity || "",
+      plateNumber: truck.plateNumber || "",
+      capacityKg,
+      remainingCapacityKg,
+      pricePerKg,
+      totalPrice,
+      priceNegotiation: truck.priceNegotiation || false,
+    };
+  });
 
   if (isLoading) {
     return (
@@ -58,12 +75,13 @@ export const AlmostFullTruck = ({
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {formattedTrucks.length > 0 ? (
-          formattedTrucks.map((card: { id: string; image: string; truckName: string; rating: number; amountPerKg: string; fullLoad: string; locationFrom: string; locationTo: string; spaceRemaining: string }) => (
+          formattedTrucks.map((card: ReturnType<typeof rawTrucks.map>[number]) => (
             <TruckCard
               isEmptyTruck={false}
               key={card.id}
               id={card.id}
               image={card.image}
+              images={card.images}
               truckName={card.truckName}
               rating={card.rating}
               amountPerKg={card.amountPerKg}
@@ -71,6 +89,15 @@ export const AlmostFullTruck = ({
               locationFrom={card.locationFrom}
               locationTo={card.locationTo}
               spaceRemaining={card.spaceRemaining}
+              fleetDescription={card.fleetDescription}
+              model={card.model}
+              size={card.size}
+              plateNumber={card.plateNumber}
+              capacityKg={card.capacityKg}
+              remainingCapacityKg={card.remainingCapacityKg}
+              pricePerKg={card.pricePerKg}
+              totalPrice={card.totalPrice}
+              priceNegotiation={card.priceNegotiation}
             />
           ))
         ) : (

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TruckItem } from "@/utils/TruckData";
 import Image from "next/image";
 import { Button } from "@/components/Button";
+import { DisplayProduct } from "./TruckDetailsAndShipProduct";
 
 interface OnboardingData {
   state: string;
@@ -15,14 +16,10 @@ interface OnboardingData {
 
 interface DeliveryDetailsAndPaymentMethodProps {
   selectedProducts: string[];
+  allProducts: DisplayProduct[];
   item: TruckItem;
-  setCurrentStep: (step: number) => void; // Added to update step
-}
-
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
+  setCurrentStep: (step: number) => void;
+  onPaymentMethodSelect?: (method: string) => void;
 }
 
 interface PaymentMethod {
@@ -30,13 +27,6 @@ interface PaymentMethod {
   name: string;
   image: string;
 }
-
-const products: Product[] = [
-  { id: "12346DRTDF", name: "Tomatoes, best at...", weight: "55kg" },
-  { id: "12347DRTDF", name: "Tomatoes, best at...", weight: "15kg" },
-  { id: "12348DRTDF", name: "Tomatoes, best at...", weight: "45kg" },
-  { id: "12349DRTDF", name: "Tomatoes, best at...", weight: "85kg" },
-];
 
 const paymentMethods: PaymentMethod[] = [
   { id: "card", name: "Pay by Card", image: "/images/card.png" },
@@ -47,7 +37,7 @@ const paymentMethods: PaymentMethod[] = [
 
 export const DeliveryDetailsAndPaymentMethod: React.FC<
   DeliveryDetailsAndPaymentMethodProps
-> = ({ selectedProducts, item, setCurrentStep }) => {
+> = ({ selectedProducts, allProducts, item, setCurrentStep, onPaymentMethodSelect }) => {
   // State for selected payment method
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
@@ -64,17 +54,12 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
   })();
 
   // Calculate total weight of selected products
-  const totalWeight = selectedProducts.reduce((total, productId) => {
-    const product = products.find((p) => p.id === productId);
-    if (product) {
-      return total + parseFloat(product.weight.replace("kg", ""));
-    }
-    return total;
-  }, 0);
+  const selectedItems = allProducts.filter((p) => selectedProducts.includes(p.id));
+  const totalWeight = selectedItems.reduce((total, p) => total + p.weightNum, 0);
 
-  // Calculate total amount based on amountPerKg
-  const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
+  // Calculate transport cost based on truck's pricePerKg
+  const pricePerKg = item.pricePerKg || 0;
+  const transportCost = totalWeight * pricePerKg;
 
   // Handle payment method toggle
   const handlePaymentMethodToggle = (methodId: string) => {
@@ -83,13 +68,13 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
 
   const handleContinueClick = () => {
     if (selectedPaymentMethod) {
-      // Store selected payment method if needed (e.g., for AccountDetails)
       try {
         localStorage.setItem("selected-payment-method", selectedPaymentMethod);
       } catch (error) {
         console.error("Error saving selected-payment-method:", error);
       }
-      setCurrentStep(3); // Move to AccountDetails
+      onPaymentMethodSelect?.(selectedPaymentMethod);
+      setCurrentStep(3);
     }
   };
 
@@ -169,11 +154,12 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
       {/* Total Weight and Amount */}
       <div className="flex flex-col gap-2 px-5">
         <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-          Total: <span className="text-[#2b2b2b]">{totalWeight}kg</span>
+          Total Weight: <span className="text-[#2b2b2b]">{totalWeight.toLocaleString()}kg</span>
         </p>
         <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-          Amount:
-          <span className="text-[#2b2b2b]"> ${totalAmount.toFixed(2)}</span>
+          Transport Cost:
+          <span className="text-[#2b2b2b]"> ₦{transportCost.toLocaleString()}</span>
+          <span className="text-[#808080]"> (₦{pricePerKg}/kg)</span>
         </p>
       </div>
       <span className="w-full h-[1px] bg-[#e2e2e2]" />

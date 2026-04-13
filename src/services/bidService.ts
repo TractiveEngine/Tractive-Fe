@@ -82,6 +82,13 @@ export interface BidResponse {
   __v: number;
 }
 
+export interface WonBidsCheckoutResponse {
+  bids: BidResponse[];
+  productsSubtotal: number;
+  localTransportTotal: number;
+  totalAmount: number;
+}
+
 const handleApiError = (error: unknown, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
   if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -239,14 +246,17 @@ export const bidService = {
   },
 
   // GET /api/buyers/biddings/won/checkout - Get won biddings for checkout
-  getWonBidsCheckout: async (): Promise<BidResponse[]> => {
+  getWonBidsCheckout: async (): Promise<WonBidsCheckoutResponse> => {
     try {
       const response = await api.get("/api/buyers/biddings/won/checkout");
       const data = response.data.data;
-      if (data && Array.isArray(data.bids)) {
-        return data.bids;
-      }
-      return Array.isArray(data) ? data : [];
+      const bids = data && Array.isArray(data.bids) ? data.bids : (Array.isArray(data) ? data : []);
+      return {
+        bids,
+        productsSubtotal: data?.productsSubtotal ?? 0,
+        localTransportTotal: data?.localTransportTotal ?? 0,
+        totalAmount: data?.totalAmount ?? 0,
+      };
     } catch (error) {
       return handleApiError(error, "fetch won bids checkout");
     }

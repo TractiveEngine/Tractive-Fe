@@ -50,6 +50,14 @@ export interface BidSummary {
   };
 }
 
+export interface LocalTransport {
+  required: boolean;
+  fee: number;
+  from: string;
+  to: string;
+  note?: string;
+}
+
 export interface ApiProduct {
   _id?: string;
   id: string;
@@ -58,6 +66,8 @@ export interface ApiProduct {
   price: number;
   quantity: number;
   categories: string[];
+  category?: string;
+  subcategory?: string;
   images: string[];
   videos?: string[];
   farmerId?: string;
@@ -68,8 +78,9 @@ export interface ApiProduct {
   rating?: string;
   reviews?: number;
   unit?: string;
+  unitWeightKg?: number | null;
   discount?: number;
-  // New fields
+  localTransport?: LocalTransport;
   owner?: Owner;
   farmer?: Farmer;
   reviewSummary?: ReviewSummary;
@@ -164,15 +175,29 @@ export interface SearchFilters {
   month?: string;
 }
 
+export interface LocalTransportData {
+  required: boolean;
+  fee: number;
+  from: string;
+  to: string;
+  note?: string;
+}
+
 export interface CreateProductData {
   name: string;
   description: string;
   price: number;
   quantity: number;
+  discount?: number;
   unit: string;
+  unitWeightKg?: number | null;
+  category: string;
+  subcategory: string;
   categories: string[];
   images: string[];
+  videos?: string[];
   farmer: string;
+  localTransport?: LocalTransportData;
 }
 
 export interface UpdateProductData {
@@ -297,7 +322,11 @@ const mapBackendToFrontendProduct = (backendProduct: any): ApiProduct => {
     rating: backendProduct.reviewSummary?.averageRating?.toString() || "0",
     reviews: backendProduct.reviewSummary?.count || 0,
     unit: backendProduct.unit || "",
+    unitWeightKg: backendProduct.unitWeightKg ?? null,
     discount: backendProduct.discount,
+    category: backendProduct.category,
+    subcategory: backendProduct.subcategory,
+    localTransport: backendProduct.localTransport,
     owner: mapOwner(backendProduct.owner),
     farmer: mapFarmer(backendProduct.farmer),
     reviewSummary: backendProduct.reviewSummary,

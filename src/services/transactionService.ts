@@ -99,7 +99,32 @@ const getRandomDescription = () => {
 // Response handling is managed by axios interceptor/wrapper where applicable, but we keep basic error handling here if needed.
 // const handleResponse = ... (removed as axios throws on error status by default or we handle it in catch)
 
+export interface CreateTransactionPayload {
+  order: string;
+  amount: number;
+  paymentMethod: string;
+  paymentReference?: string;
+}
+
+export interface CreateTransactionResponse {
+  transaction: {
+    _id: string;
+    [key: string]: unknown;
+  };
+  message?: string;
+}
+
 export const transactionService = {
+  async createTransaction(payload: CreateTransactionPayload): Promise<CreateTransactionResponse> {
+    try {
+      const response = await api.post("/api/transactions", payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      throw error;
+    }
+  },
+
   async getTransactions(
     params?: GetTransactionsParams,
   ): Promise<FrontendTransaction[]> {

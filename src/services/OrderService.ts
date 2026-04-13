@@ -23,11 +23,62 @@ export interface OrdersQueryParams {
   month?: string;
   buyer?: string;
   location?: string;
+  readyForTransport?: boolean;
+}
+
+export interface CreateOrderPayload {
+  products: { product: string; quantity: number }[];
+  totalAmount: number;
+  address: string;
+  phone: string;
+  notes?: string;
+  bidIds: string[];
+}
+
+export interface CreateOrderResponse {
+  success?: boolean;
+  order: {
+    _id: string;
+    buyer: string;
+    products: {
+      product: string;
+      quantity: number;
+      unitPrice: number;
+      lineSubtotal: number;
+      localTransportRequired: boolean;
+      localTransportFee: number;
+      localTransportFrom: string;
+      localTransportTo: string;
+      localTransportNote: string;
+      _id: string;
+    }[];
+    bidIds: string[];
+    totalAmount: number;
+    status: string;
+    transportStatus: string;
+    address: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  message?: string;
 }
 
 // API_URL and Headers managed by axios
 
 export class OrdersApiService {
+  /**
+   * Create a new order from selected won bids
+   */
+  static async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+    try {
+      const response = await api.post("/api/orders", payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
+  }
+
   /**
    * Fetch orders with optional filters
    */
@@ -41,6 +92,7 @@ export class OrdersApiService {
       if (params?.month) queryParams.append("month", params.month);
       if (params?.buyer) queryParams.append("buyer", params.buyer);
       if (params?.location) queryParams.append("location", params.location);
+      if (params?.readyForTransport) queryParams.append("readyForTransport", "true");
 
       const url = `/api/orders${
         queryParams.toString() ? `?${queryParams.toString()}` : ""

@@ -222,7 +222,6 @@ function OnboardingFormInner() {
           country: finalData.country,
           state: finalData.state,
           lga: finalData.lga,
-          name: finalData.name,
         };
 
         console.log("Calling add-account API with:", addAccountPayload);

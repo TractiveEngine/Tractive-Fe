@@ -3,10 +3,13 @@ import { LocationIcon } from "@/icons/Icon1";
 import { YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import Link from "next/link";
+import { useAppDispatch } from "@/lib/hooks";
+import { setSelectedTruck } from "@/lib/features/truck/truckSlice";
 
 interface CardProps {
   id: string;
   image: string;
+  images?: string[];
   truckName: string;
   amountPerKg?: string;
   locationFrom?: string;
@@ -14,7 +17,16 @@ interface CardProps {
   fullLoad?: string;
   rating?: string;
   spaceRemaining?: string;
-  isEmptyTruck?: boolean; // New prop to toggle label color
+  fleetDescription?: string;
+  model?: string;
+  size?: string;
+  plateNumber?: string;
+  capacityKg?: number;
+  remainingCapacityKg?: number;
+  pricePerKg?: number;
+  totalPrice?: number;
+  priceNegotiation?: boolean;
+  isEmptyTruck?: boolean;
   className?: string;
   imageClass?: string;
   truckNameClass?: string;
@@ -23,6 +35,7 @@ interface CardProps {
 export default function TruckCard({
   id,
   image,
+  images,
   truckName,
   amountPerKg,
   fullLoad,
@@ -30,11 +43,48 @@ export default function TruckCard({
   locationTo,
   rating,
   spaceRemaining,
+  fleetDescription,
+  model,
+  size,
+  plateNumber,
+  capacityKg,
+  remainingCapacityKg,
+  pricePerKg,
+  totalPrice,
+  priceNegotiation,
   isEmptyTruck = false,
   className = "",
   imageClass = "",
   truckNameClass = "",
 }: CardProps) {
+  const dispatch = useAppDispatch();
+
+  const handleClick = () => {
+    dispatch(
+      setSelectedTruck({
+        id,
+        image,
+        images: images || [image],
+        truckName,
+        amountPerKg: amountPerKg || "",
+        fullLoad: fullLoad || "",
+        locationFrom: locationFrom || "",
+        locationTo: locationTo || "",
+        rating: rating || "0",
+        spaceRemaining: spaceRemaining || "0kg",
+        fleetDescription: fleetDescription || "",
+        model: model || "",
+        size: size || "",
+        plateNumber: plateNumber || "",
+        capacityKg,
+        remainingCapacityKg,
+        pricePerKg,
+        totalPrice,
+        priceNegotiation,
+      })
+    );
+  };
+
   return (
     <div
       className={`bg-[#f9f9f9] rounded-lg shadow-md w-[100%] overflow-hidden ${className}`}
@@ -50,6 +100,7 @@ export default function TruckCard({
       </div>
       <Link
         href={`/buyer/transporter-list/booking-transporter/${id}`}
+        onClick={handleClick}
         className="flex flex-col gap-3"
       >
         <div className="px-2.5 pt-2">

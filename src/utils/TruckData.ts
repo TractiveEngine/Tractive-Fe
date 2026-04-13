@@ -1,6 +1,7 @@
 export interface TruckItem {
   id: string;
   image: string;
+  images?: string[];
   rating: string;
   truckName: string;
   amountPerKg: string;
@@ -8,6 +9,16 @@ export interface TruckItem {
   spaceRemaining: string;
   locationFrom: string;
   locationTo: string;
+  fleetDescription?: string;
+  model?: string;
+  size?: string;
+  plateNumber?: string;
+  capacityKg?: number;
+  capacity?: number;
+  remainingCapacityKg?: number;
+  pricePerKg?: number;
+  totalPrice?: number;
+  priceNegotiation?: boolean;
 }
 
 export const TruckData: TruckItem[] = [

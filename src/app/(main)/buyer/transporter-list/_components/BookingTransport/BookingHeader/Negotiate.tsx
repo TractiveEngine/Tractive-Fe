@@ -1,68 +1,85 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { TruckItem } from "@/utils/TruckData";
+import { useCreateFleetBid } from "@/hooks/queries/useTransporterQueries";
+import { DisplayProduct } from "./TruckDetailsAndShipProduct";
 
 interface NegotiateProps {
   selectedProducts: string[];
+  products: DisplayProduct[];
   item: TruckItem;
+  onBidSent: () => void;
 }
-
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
-}
-
-const products: Product[] = [
-  { id: "12346DRTDF", name: "Tomatoes, best at...", weight: "55kg" },
-  { id: "12347DRTDF", name: "Tomatoes, best at...", weight: "15kg" },
-  { id: "12348DRTDF", name: "Tomatoes, best at...", weight: "45kg" },
-  { id: "12349DRTDF", name: "Tomatoes, best at...", weight: "85kg" },
-];
 
 export const Negotiate: React.FC<NegotiateProps> = ({
   selectedProducts,
+  products,
   item,
+  onBidSent,
 }) => {
+  const router = useRouter();
   const [negotiatedAmount, setNegotiatedAmount] = useState("");
+  const [message, setMessage] = useState("");
+
+  const { mutate: createBid, isPending } = useCreateFleetBid();
+
+  // Get selected product details
+  const selectedProductDetails = products.filter((p) =>
+    selectedProducts.includes(p.id)
+  );
 
   // Calculate total weight of selected products
-  const totalWeight = selectedProducts.reduce((total, productId) => {
-    const product = products.find((p) => p.id === productId);
-    if (product) {
-      return total + parseFloat(product.weight.replace("kg", ""));
-    }
-    return total;
-  }, 0);
+  const totalWeight = selectedProductDetails.reduce(
+    (total, product) => total + product.weightNum,
+    0
+  );
 
-  // Calculate total amount based on amountPerKg
-  const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
+  // Calculate total amount based on pricePerKg
+  const totalAmount = totalWeight * (item.pricePerKg || 0);
 
   // Handle input change for negotiated amount
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow only numbers and decimals
-    if (value === "" || /^\d*\.?\d*₦/.test(value)) {
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setNegotiatedAmount(value);
     }
   };
 
   // Handle negotiation request submission
   const handleSubmit = () => {
-    if (negotiatedAmount && parseFloat(negotiatedAmount) > 0) {
-      // Placeholder for sending request to transporter
-      console.log({
-        truckId: item.id,
-        truckName: item.truckName,
-        selectedProducts,
-        totalWeight: `₦{totalWeight}kg`,
-        originalAmount: `₦₦{totalAmount.toFixed(2)}`,
-        negotiatedAmount: `₦₦{parseFloat(negotiatedAmount).toFixed(2)}`,
-      });
-      // Reset input after submission
-      setNegotiatedAmount("");
-    }
+    const amount = parseFloat(negotiatedAmount);
+    if (!amount || amount <= 0 || !item.id) return;
+
+    const shipmentItems = selectedProductDetails.map((product) => ({
+      orderId: product.orderId,
+      productId: product.productId,
+      quantity: product.weightNum,
+    }));
+
+    createBid(
+      {
+        fleetId: item.id,
+        payload: {
+          amount,
+          shipmentItems,
+          ...(message.trim() && { message: message.trim() }),
+        },
+      },
+      {
+        onSuccess: () => {
+          setNegotiatedAmount("");
+          setMessage("");
+          onBidSent();
+          setTimeout(() => {
+            router.push("/buyer/my-biddings?tab=fleet-bids");
+          }, 1500);
+        },
+      }
+    );
   };
+
+  const isDisabled =
+    !negotiatedAmount || parseFloat(negotiatedAmount) <= 0 || isPending;
 
   return (
     <div className="flex flex-col gap-4 px-4 sm:px-5 py-4 ">
@@ -72,7 +89,7 @@ export const Negotiate: React.FC<NegotiateProps> = ({
         </p>
         <p className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#808080] font-normal">
           Amount:
-          <span className="text-[#2b2b2b]"> ${totalAmount.toFixed(2)}</span>
+          <span className="text-[#2b2b2b]"> ₦{totalAmount.toFixed(2)}</span>
         </p>
       </div>
       <div className="flex flex-col gap-2">
@@ -87,20 +104,37 @@ export const Negotiate: React.FC<NegotiateProps> = ({
           id="negotiatedAmount"
           value={negotiatedAmount}
           onChange={handleInputChange}
+          placeholder="Enter amount"
           className="border border-[#e2e2e2] rounded-[4px] px-3 py-1.5 w-full font-montserrat text-[12px] sm:text-[13px] text-[#2b2b2b] focus:outline-none focus:border-[#538e53]"
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="bidMessage"
+          className="font-montserrat text-[11px] sm:text-[12px] text-[#2b2b2b] font-normal"
+        >
+          Message (optional)
+        </label>
+        <textarea
+          id="bidMessage"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Add a message to the transporter"
+          rows={2}
+          className="border border-[#e2e2e2] rounded-[4px] px-3 py-1.5 w-full font-montserrat text-[12px] sm:text-[13px] text-[#2b2b2b] focus:outline-none focus:border-[#538e53] resize-none"
         />
       </div>
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={!negotiatedAmount || parseFloat(negotiatedAmount) <= 0}
-        className={`bg-[#538e53] w-full h-9 text-[#fefefe] font-normal text-[13px] rounded-tl-[6px] rounded-br-[6px] px-4 py-2 transition duration-200 ease-in-out ${
-          !negotiatedAmount || parseFloat(negotiatedAmount) <= 0
+        disabled={isDisabled}
+        className={`bg-[#538e53] w-full h-9 text-[#fefefe] font-normal text-[13px] rounded-tl-[6px] rounded-br-[6px] px-4 py-2 transition duration-200 ease-in-out cursor-pointer ${
+          isDisabled
             ? "opacity-50 cursor-not-allowed"
             : "hover:bg-[#3a6b3a]"
         }`}
       >
-        Send Request
+        {isPending ? "Sending..." : "Send Request"}
       </button>
     </div>
   );

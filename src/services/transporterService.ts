@@ -17,6 +17,55 @@ export interface Transporter {
   [key: string]: unknown;
 }
 
+export interface ApiTruckBidder {
+  id: string;
+  name: string;
+  loadWeightKg: number;
+  loadWeightTonnes: number;
+  equivalent50kgBags: number;
+  equivalent100kgBags: number;
+  loadDisplay: string;
+}
+
+export interface ApiTruckBidSummary {
+  totalBids: number;
+  activeBidsCount: number;
+  successfulBidsCount: number;
+  highestBidAmount: number;
+  latestBidAmount: number;
+  activeBidders: ApiTruckBidder[];
+  successfulBidders: ApiTruckBidder[];
+}
+
+export interface ApiTruck {
+  _id: string;
+  plateNumber: string;
+  fleetName: string;
+  model: string;
+  size: string;
+  capacity: string;
+  capacityKg: number;
+  currentLoadKg: number;
+  remainingCapacityKg: number;
+  remainingCapacityDisplay: string;
+  price: number;
+  pricingModel: string;
+  wholeTruckOnly: boolean;
+  estimatedDeliveryValue: number;
+  estimatedDeliveryUnit: string;
+  estimatedDeliveryText: string;
+  bidSummary: ApiTruckBidSummary;
+  priceUnitLabel: string;
+  pricePerKgEquivalent: number;
+  status: string;
+  images?: string[];
+  image?: string;
+  locationFrom?: string;
+  locationTo?: string;
+  rating?: string;
+  fleetDescription?: string;
+}
+
 export interface GetTransportersParams {
   search?: string;
   location?: string;
@@ -77,6 +126,20 @@ export const transporterService = {
       return response.data.data || response.data;
     } catch (error) {
       console.error(`[TransporterService] getFleetById ${id} error:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get truck by id
+   * GET /api/transporters/trucks/{id}
+   */
+  getTruckById: async (id: string): Promise<ApiTruck> => {
+    try {
+      const response = await api.get(`/api/transporters/trucks/${id}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`[TransporterService] getTruckById ${id} error:`, error);
       throw error;
     }
   },

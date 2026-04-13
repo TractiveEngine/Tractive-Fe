@@ -29,6 +29,12 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+const forceLogout = async () => {
+  tokenManager.clearToken();
+  await signOut({ redirect: false });
+  window.location.href = "/login";
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -40,12 +46,11 @@ api.interceptors.response.use(
 
       try {
         const newToken = await tokenManager.getRefreshTokenHelper(async () => {
-          // Call backend to refresh token (assumes HttpOnly cookie is present)
           const res = await axios.post(
             `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
             {},
             {
-              withCredentials: true, // Important for cookies
+              withCredentials: true,
             },
           );
 
@@ -57,12 +62,21 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
         }
+
+        // Refresh returned no token — force logout
+        await forceLogout();
+        return Promise.reject(error);
       } catch (refreshError) {
-        // Refresh failed - logout user
-        tokenManager.clearToken();
-        await signOut({ redirect: true, callbackUrl: "/login" });
+        // Refresh call failed — force logout
+        await forceLogout();
         return Promise.reject(refreshError);
       }
+    }
+
+    // Already retried and still 401 — force logout
+    if (error.response?.status === 401 && originalRequest._retry) {
+      await forceLogout();
+      return Promise.reject(error);
     }
 
     // Handle other errors gracefully

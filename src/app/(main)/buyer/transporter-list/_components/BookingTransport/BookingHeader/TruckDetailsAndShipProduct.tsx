@@ -1,16 +1,11 @@
 "use client";
-import React, { useState } from "react";
-import { SearchIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
+import React, { useState, useEffect } from "react";
+import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { LocationIcon } from "@/icons/Icon1";
 import Image from "next/image";
 import { Negotiate } from "./Negotiate";
 import { TruckItem } from "@/utils/TruckData";
-
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
-}
+import { useTransportReadyOrders } from "@/hooks/queries/useOrderQueries";
 
 interface TruckDetailsAndShipProductProps {
   item: TruckItem;
@@ -18,14 +13,74 @@ interface TruckDetailsAndShipProductProps {
   isNegotiating: boolean;
   setIsNegotiating: (isNegotiating: boolean) => void;
   setSelectedProducts: (products: string[]) => void;
+  setAllProducts: (products: DisplayProduct[]) => void;
 }
 
-const products: Product[] = [
-  { id: "12346DRTDF", name: "Tomatoes, best at...", weight: "55kg" },
-  { id: "12347DRTDF", name: "Tomatoes, best at...", weight: "15kg" },
-  { id: "12348DRTDF", name: "Tomatoes, best at...", weight: "45kg" },
-  { id: "12349DRTDF", name: "Tomatoes, best at...", weight: "85kg" },
-];
+// Shape of a product within an order from the API
+interface OrderProduct {
+  product: string | {
+    _id: string;
+    name: string;
+    images?: string[];
+    quantity?: number;
+    unit?: string;
+    unitWeightKg?: number | null;
+    price?: number;
+  };
+  quantity: number;
+  unitPrice?: number | null;
+  localTransportRequired?: boolean;
+  localTransportFee?: number;
+  _id: string;
+}
+
+// Shape of an order from the API
+interface TransportOrder {
+  _id: string;
+  products: OrderProduct[];
+  totalAmount: number;
+  status: string;
+  transportStatus: string;
+  [key: string]: unknown;
+}
+
+// Flattened product for display
+export interface DisplayProduct {
+  id: string; // order product _id
+  orderId: string;
+  productId: string; // actual product _id
+  name: string;
+  image: string;
+  weight: string;
+  weightNum: number; // total weight in kg
+  quantity: number;
+  unitWeightKg: number;
+  orderTotalAmount: number; // use order.totalAmount, not lineSubtotal
+}
+
+function flattenOrderProducts(orders: TransportOrder[]): DisplayProduct[] {
+  const items: DisplayProduct[] = [];
+  for (const order of orders) {
+    for (const op of order.products) {
+      const prod = typeof op.product === "object" ? op.product : null;
+      const unitWeightKg = prod?.unitWeightKg || 0;
+      const totalWeightKg = unitWeightKg > 0 ? unitWeightKg : op.quantity;
+      items.push({
+        id: op._id,
+        orderId: order._id,
+        productId: prod?._id || (typeof op.product === "string" ? op.product : ""),
+        name: prod?.name || `Order #${order._id.slice(-6)}`,
+        image: prod?.images?.[0] || "/images/placeholder.png",
+        weight: `${totalWeightKg.toLocaleString()}kg`,
+        weightNum: totalWeightKg,
+        quantity: op.quantity,
+        unitWeightKg,
+        orderTotalAmount: order.totalAmount,
+      });
+    }
+  }
+  return items;
+}
 
 export const TruckDetailsAndShipProduct: React.FC<
   TruckDetailsAndShipProductProps
@@ -35,33 +90,48 @@ export const TruckDetailsAndShipProduct: React.FC<
   isNegotiating,
   setIsNegotiating,
   setSelectedProducts,
+  setAllProducts,
 }) => {
   const [selectedProductsState, setSelectedProductsState] = useState<string[]>(
     []
   );
 
+  const { data: ordersData, isLoading: isOrdersLoading } = useTransportReadyOrders();
+
+  const orders: TransportOrder[] = (() => {
+    if (!ordersData) return [];
+    // Handle both { data: [...] } and direct array responses
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d = ordersData as any;
+    if (Array.isArray(d)) return d;
+    if (Array.isArray(d?.data)) return d.data;
+    if (Array.isArray(d?.orders)) return d.orders;
+    return [];
+  })();
+
+  const products = flattenOrderProducts(orders);
+
+  // Sync products to parent for step 2
+  useEffect(() => {
+    setAllProducts(products);
+  }, [orders.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Calculate total weight of selected products
   const totalWeight = selectedProductsState.reduce((total, productId) => {
     const product = products.find((p) => p.id === productId);
-    if (product) {
-      return total + parseFloat(product.weight.replace("kg", ""));
-    }
-    return total;
+    return product ? total + product.weightNum : total;
   }, 0);
 
-  // Calculate total amount
-  const totalAmount =
-    totalWeight * parseFloat(String(item.amountPerKg).replace("₦", ""));
+  // Use numeric fields from the truck data
+  const pricePerKg = item.pricePerKg || 0;
+  const capacityKg = item.capacityKg || 0;
+  const remainingCapacityKg = item.remainingCapacityKg ?? capacityKg;
 
-  // Parse spaceRemaining and fullLoad
-  const spaceRemainingNum = parseFloat(
-    String(item.spaceRemaining).replace("kg", "")
-  );
-  const fullLoadNum = parseFloat(String(item.fullLoad).replace("₦", ""));
-  // Infer isEmptyTruck based on whether spaceRemaining equals or exceeds fullLoad
-  const isEmptyTruck = spaceRemainingNum >= fullLoadNum;
-  // Check if truck has enough space
-  const isTruckFull = spaceRemainingNum <= 0 || totalWeight > spaceRemainingNum;
+  // Calculate transport cost based on weight and truck's price per kg
+  const transportCost = totalWeight * pricePerKg;
+
+  const isEmptyTruck = remainingCapacityKg >= capacityKg;
+  const isTruckFull = remainingCapacityKg <= 0 || totalWeight > remainingCapacityKg;
 
   const handleProductToggle = (productId: string) => {
     setSelectedProductsState((prev) =>
@@ -166,115 +236,128 @@ export const TruckDetailsAndShipProduct: React.FC<
       {isNegotiating ? (
         <Negotiate
           selectedProducts={selectedProductsState}
+          products={products}
           item={item}
+          onBidSent={() => setIsNegotiating(false)}
         />
       ) : (
         <>
           {/* === I want to ship ==== */}
           <div className="flex flex-col gap-2 sm:gap-3">
             <div className="flex flex-col gap-1 sm:gap-2 px-4 sm:px-5">
-              <SearchIcon stroke="#2b2b2b" className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#2b2b2b] font-normal">
+              {/* <SearchIcon stroke="#2b2b2b" className="w-4 h-4 sm:w-5 sm:h-5" /> */}
+              <span className="font-montserrat text-[13px] sm:text-[12px] md:text-[13px] text-[#2b2b2b] font-bold">
                 I want to ship
               </span>
             </div>
-            <div className="flex flex-col gap-2 sm:gap-3 px-4 sm:px-5">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => handleProductToggle(product.id)}
-                  className={`flex items-center justify-between px-2 sm:px-3 py-1 sm:py-1.5 cursor-pointer rounded-md transition-colors ${
-                    selectedProductsState.includes(product.id)
-                      ? "bg-[#538e53]"
-                      : "hover:bg-[#f5f5f5]"
-                  }`}
-                >
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <Image
-                      src="/images/tomatoProduct.png"
-                      alt="Tomato Product"
-                      width={65}
-                      height={40}
-                      className="object-cover w-12 h-8 sm:w-14 sm:h-9 md:w-16 md:h-10"
-                      sizes="(max-width: 639px) 48px, (max-width: 767px) 56px, 64px"
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span
-                        className={`font-montserrat text-[10px] sm:text-[11px] lg:text-[12px] text-[#2b2b2b] font-normal ${
-                          selectedProductsState.includes(product.id)
-                            ? "text-[#fefefe]"
-                            : ""
-                        }`}
-                      >
-                        {product.name}
-                      </span>
-                      <span
-                        className={`font-montserrat text-[10px] sm:text-[11px] lg:text-[12px] text-[#2b2b2b] font-normal ${
-                          selectedProductsState.includes(product.id)
-                            ? "text-[#fefefe]"
-                            : ""
-                        }`}
-                      >
-                        ID: {product.id}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <span
-                      className={`font-montserrat text-[10px] sm:text-[11px] lg:text-[12px] text-[#2b2b2b] font-normal ${
-                        selectedProductsState.includes(product.id)
-                          ? "text-[#fefefe]"
-                          : ""
+
+            {isOrdersLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : products.length === 0 ? (
+              <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] text-center py-4 px-4">
+                No orders ready for transport.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2 sm:gap-3 px-4 sm:px-5">
+                {products.map((product) => {
+                  const isSelected = selectedProductsState.includes(product.id);
+                  return (
+                    <div
+                      key={product.id}
+                      onClick={() => handleProductToggle(product.id)}
+                      className={`flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 cursor-pointer rounded-md border transition-colors ${
+                        isSelected
+                          ? "bg-[#538e53] border-[#538e53]"
+                          : "border-[#e2e2e2] hover:border-[#538e53] hover:bg-[#f5f5f5]"
                       }`}
                     >
-                      {product.weight}
-                    </span>
-                    <input
-                      type="radio"
-                      checked={selectedProductsState.includes(product.id)}
-                      onChange={() => handleProductToggle(product.id)}
-                      className="custom-radio"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          width={65}
+                          height={40}
+                          className="object-cover w-12 h-8 sm:w-14 sm:h-9 md:w-16 md:h-10 rounded flex-shrink-0"
+                          sizes="(max-width: 639px) 48px, (max-width: 767px) 56px, 64px"
+                        />
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span
+                            className={`font-montserrat text-[11px] sm:text-[12px] font-medium truncate ${
+                              isSelected ? "text-[#fefefe]" : "text-[#2b2b2b]"
+                            }`}
+                          >
+                            {product.name}
+                          </span>
+                          <span
+                            className={`font-montserrat text-[9px] sm:text-[10px] font-normal ${
+                              isSelected ? "text-[#d4ecd4]" : "text-[#808080]"
+                            }`}
+                          >
+                            {product.quantity} units{product.unitWeightKg > 0 ? ` · ${product.unitWeightKg}kg total` : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
+                        <span
+                          className={`font-montserrat text-[10px] sm:text-[11px] lg:text-[12px] font-medium whitespace-nowrap ${
+                            isSelected ? "text-[#fefefe]" : "text-[#2b2b2b]"
+                          }`}
+                        >
+                          {product.weight}
+                        </span>
+                        <input
+                          type="radio"
+                          checked={isSelected}
+                          onChange={() => handleProductToggle(product.id)}
+                          className="custom-radio"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <span className="w-full h-[1px] bg-[#e2e2e2]" />
 
-          <div className="relative flex items-center justify-between w-full px-4 sm:px-5 pb-3">
-            <div className="flex flex-col gap-2 sm:gap-3">
+          <div className="flex flex-col gap-3 w-full px-4 sm:px-5 pb-3">
+            <div className="flex flex-col gap-1">
               <p className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#808080] font-normal">
-                Total: <span className="text-[#2b2b2b]">{totalWeight}kg</span>
+                Total Weight: <span className="text-[#2b2b2b]">{totalWeight.toLocaleString()}kg</span>
               </p>
-              <span className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#2b2b2b] font-normal">
-                Amount: ${totalAmount.toFixed(2)}
-              </span>
+              <p className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#808080] font-normal">
+                Transport Cost: <span className="text-[#2b2b2b]">₦{transportCost.toLocaleString()}</span>
+                <span className="text-[#808080]"> (₦{pricePerKg}/kg)</span>
+              </p>
             </div>
 
-            <div className="absolute bottom-0 right-0 flex items-center gap-2 lg:gap-8">
-              <span
-                className={`font-montserrat text-[11px] sm:text-[12px] md:text-[13px] font-normal ${
-                  isTruckFull || selectedProductsState.length === 0
-                    ? "text-[#808080] cursor-not-allowed"
-                    : "text-[#538e53] cursor-pointer hover:text-[#3a6b3a]"
-                }`}
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
                 onClick={
                   isTruckFull || selectedProductsState.length === 0
                     ? undefined
                     : handleNegotiateClick
                 }
+                disabled={isTruckFull || selectedProductsState.length === 0}
+                className={`font-montserrat text-[12px] sm:text-[13px] md:text-[14px] font-normal px-4 py-2 rounded-[6px] border transition duration-200 ease-in-out ${
+                  isTruckFull || selectedProductsState.length === 0
+                    ? "border-[#d0d0d0] text-[#808080] cursor-not-allowed bg-[#f5f5f5]"
+                    : "border-[#538e53] text-[#538e53] cursor-pointer hover:bg-[#538e53] hover:text-[#fefefe]"
+                }`}
               >
                 {isTruckFull ? "Not enough space" : "Negotiate"}
-              </span>
+              </button>
               <button
                 type="button"
                 onClick={handlePayClick}
                 disabled={selectedProductsState.length === 0 || isTruckFull}
-                className={`bg-[#538e53] w-24 sm:w-[5rem] h-8 sm:h-9 md:h-10 font-normal text-[12px] sm:text-[13px] md:text-[14px] rounded-tl-[6px] rounded-br-[6px] px-3 sm:px-4 py-1.5 sm:py-2 transition duration-200 ease-in-out ${
+                className={`font-montserrat text-[12px] sm:text-[13px] md:text-[14px] font-normal px-6 py-2 rounded-[6px] transition duration-200 ease-in-out ${
                   selectedProductsState.length === 0 || isTruckFull
                     ? "opacity-50 cursor-not-allowed bg-[#b8becd] text-[#022702]"
-                    : "hover:bg-[#3a6b3a] cursor-pointer text-[#fefefe]"
+                    : "bg-[#538e53] hover:bg-[#3a6b3a] cursor-pointer text-[#fefefe]"
                 }`}
               >
                 Pay

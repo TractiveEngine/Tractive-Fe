@@ -17,12 +17,14 @@ interface MyBidsProps {
   bidItems: BidItem[];
   selection: { isCheckoutAll: boolean; selectedBids: string[] };
   setSelection: (isCheckoutAll: boolean, selectedBids: string[]) => void;
+  isRefetching?: boolean;
 }
 
 export const MyBids: React.FC<MyBidsProps> = ({
   bidItems,
   selection,
   setSelection,
+  isRefetching,
 }) => {
   const handleCheckoutAllChange = () => {
     if (!selection.isCheckoutAll) {
@@ -108,7 +110,14 @@ export const MyBids: React.FC<MyBidsProps> = ({
       </div>
       <div className="w-full h-[1px] bg-[#808080]"></div>
 
-      {bidItems.length === 0 ? (
+      {isRefetching ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-3 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 font-montserrat text-[13px] text-[#808080]">
+            Updating your bids...
+          </span>
+        </div>
+      ) : bidItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 sm:p-12">
           <p className="font-montserrat font-normal text-sm sm:text-base text-[#808080]">
             You haven&apos;t won any bids yet.

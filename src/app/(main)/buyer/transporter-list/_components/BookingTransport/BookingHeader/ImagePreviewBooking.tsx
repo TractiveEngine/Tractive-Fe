@@ -1,26 +1,32 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import { FaCheck, FaAngleLeft } from "react-icons/fa";
-import { TruckDetailsAndShipProduct } from "./TruckDetailsAndShipProduct";
+import { TruckDetailsAndShipProduct, DisplayProduct } from "./TruckDetailsAndShipProduct";
 import { DeliveryDetailsAndPaymentMethod } from "./DeliveryDetailsAndPaymentMethod";
 import { AccountDetails } from "./AccountDetails";
 import { TruckItem } from "@/utils/TruckData";
 interface ImagePreviewBookingProps {
   item: TruckItem;
+  selectedImage: string;
   currentStep: number;
   setCurrentStep: (step: number) => void;
   isNegotiating: boolean;
   setIsNegotiating: (isNegotiating: boolean) => void;
+  fleetBidId?: string;
 }
 
 export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
   item,
+  selectedImage,
   currentStep,
   setCurrentStep,
   isNegotiating,
   setIsNegotiating,
+  fleetBidId,
 }) => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [allProducts, setAllProducts] = useState<DisplayProduct[]>([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const steps = ["Select Truck", "Confirm Details", "Payment"];
 
   const handleBackClick = () => {
@@ -38,8 +44,6 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
     }
   };
 
-  // selectedProducts state is already defined above, so this duplicate declaration is removed.
-
   const renderBookingDetails = () => {
     switch (currentStep) {
       case 1:
@@ -50,6 +54,7 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
             isNegotiating={isNegotiating}
             setIsNegotiating={setIsNegotiating}
             setSelectedProducts={setSelectedProducts}
+            setAllProducts={setAllProducts}
           />
         );
       case 2:
@@ -57,11 +62,20 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
           <DeliveryDetailsAndPaymentMethod
             item={item}
             selectedProducts={selectedProducts}
-            setCurrentStep={setCurrentStep} // Pass setCurrentStep
+            allProducts={allProducts}
+            setCurrentStep={setCurrentStep}
+            onPaymentMethodSelect={setSelectedPaymentMethod}
           />
         );
       case 3:
-        return <AccountDetails />;
+        return (
+          <AccountDetails
+            fleetBidId={fleetBidId}
+            paymentMethod={selectedPaymentMethod}
+            locationFrom={item.locationFrom}
+            locationTo={item.locationTo}
+          />
+        );
       default:
         return null;
     }
@@ -69,20 +83,19 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row gap-4 w-full mb-4">
-      <div className="w-full lg:w-[100%] h-max  rounded-md shadow-md overflow-hidden">
+      <div className="relative w-full lg:w-[100%] h-[300px] sm:h-[400px] md:h-[562px] rounded-md shadow-md overflow-hidden">
         <Image
-          src={item.image}
-          alt={item.truckName}
-          width={979}
-          height={602}
-          className="object-cover w-full h-[100%] rounded-md"
+          src={selectedImage}
+          alt={item?.truckName}
+          fill
+          className="object-cover rounded-md"
           sizes="(max-width: 639px) 100vw, (max-width: 767px) 100vw, (max-width: 1023px) 60vw, 66vw"
         />
       </div>
 
       {/* Booking Summary */}
-      <div className="flex flex-col h-fit md:h-[562px] w-[100%] md:w-[90%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe]">
-        <div className="flex flex-col">
+      <div className="flex flex-col h-fit md:max-h-[562px] w-[100%] md:w-[90%] lg:w-3/5 rounded-md shadow-md bg-[#fefefe] overflow-hidden">
+        <div className="flex flex-col h-full overflow-y-auto">
           <div className="flex justify-between items-center px-5 pt-4">
             {currentStep === 1 && !isNegotiating ? (
               <span className="text-[12px] sm:text-[13px] md:text-[14px] text-[#2b2b2b] font-montserrat font-normal">

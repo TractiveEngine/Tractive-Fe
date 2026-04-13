@@ -7,6 +7,7 @@ interface MakeBidProps {
   productId: string;
   defaultPrice?: number;
   defaultQuantity?: number;
+  unit?: string;
   onBidSuccess: () => void;
 }
 
@@ -15,6 +16,7 @@ export const MakeBid: React.FC<MakeBidProps> = ({
   defaultPrice,
   onBidSuccess,
   defaultQuantity,
+  unit,
 }) => {
   const [proposedPrice, setProposedPrice] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number | "">("");
@@ -98,7 +100,7 @@ export const MakeBid: React.FC<MakeBidProps> = ({
             htmlFor="quantity"
             className="font-montserrat text-[13px] md:text-[14px] font-normal"
           >
-            Quantity
+            Quantity{unit ? ` (${unit})` : ""}
           </label>
           <input
             type="number"
