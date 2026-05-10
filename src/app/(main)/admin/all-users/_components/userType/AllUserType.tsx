@@ -79,12 +79,11 @@ const nigeriaStates = [
 type statusTypes = "All" | "Active" | "Suspended" | "Removed";
 const statusTypes: statusTypes[] = ["All", "Active", "Suspended", "Removed"];
 
-type ProfessionTypes = "All" | "Agents" | "Transporter" | "Farmer" | "Buyer";
+type ProfessionTypes = "All" | "Agents" | "Transporter" | "Buyer";
 const ProfessionTypes: ProfessionTypes[] = [
   "All",
   "Agents",
   "Transporter",
-  "Farmer",
   "Buyer",
 ];
 
@@ -96,9 +95,6 @@ const professionToApi = (p: ProfessionTypes): AdminProfession | undefined => {
       return "transporter";
     case "Buyer":
       return "buyer";
-    case "Farmer":
-      // Backend has no "farmer" value; kept in UI per current tab strip.
-      return undefined;
     default:
       return undefined;
   }
@@ -213,7 +209,13 @@ const columns: ColumnConfig<User>[] = [
   },
 ];
 
-export const AllUserType: React.FC = () => {
+interface AllUserTypeProps {
+  lockedProfession?: AdminProfession;
+}
+
+export const AllUserType: React.FC<AllUserTypeProps> = ({
+  lockedProfession,
+}) => {
   const [admins, setAdmins] = useState<User[]>([]);
   const [adminsRaw, setAdminsRaw] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -263,7 +265,7 @@ export const AllUserType: React.FC = () => {
     setIsLoading(true);
     try {
       const { data, pagination } = await adminUserService.getUsers({
-        profession: professionToApi(selectedProfession),
+        profession: lockedProfession ?? professionToApi(selectedProfession),
         status: statusToApi(selectedStatus),
         search: debouncedSearch || undefined,
         page,
@@ -283,7 +285,14 @@ export const AllUserType: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProfession, selectedStatus, debouncedSearch, page, limit]);
+  }, [
+    lockedProfession,
+    selectedProfession,
+    selectedStatus,
+    debouncedSearch,
+    page,
+    limit,
+  ]);
 
   useEffect(() => {
     fetchUsers();
@@ -773,7 +782,8 @@ export const AllUserType: React.FC = () => {
               </AnimatePresence>
             </div>
 
-            {/* Profession Dropdown */}
+            {/* Profession Dropdown — hidden when the parent locks the profession (per-type tabs) */}
+            {!lockedProfession && (
             <div
               className="relative flex-shrink-0 md:min-w-[100px]"
               ref={ProfessionDropdownRef}
@@ -833,6 +843,7 @@ export const AllUserType: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
+            )}
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { TransactionsFilters } from "./_components/TransactionsFilters";
 import { TransactionsTable } from "./_components/TransactionsTable";
 import { TableSkeleton } from "@/app/(main)/admin/_components/TableSkeleton";
 
-type TabKey = "pending" | "payment_pending" | "paid" | "delivered";
+type TabKey = "pending" | "paid";
 
 const TABS: { key: TabKey; label: string; status: BuyerTransactionStatus }[] = [
   { key: "pending", label: "Pending", status: "pending" },
@@ -89,7 +89,7 @@ const orderToRow = (raw: OrderRecord): BuyerTransactionRow | null => {
 
 export default function BuyerTransactionsPage() {
   const { data: ordersRaw, isLoading } = useOrders();
-  const [activeTab, setActiveTab] = useState<TabKey>("payment_pending");
+  const [activeTab, setActiveTab] = useState<TabKey>("pending");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -97,9 +97,7 @@ export default function BuyerTransactionsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
     pending: null,
-    payment_pending: null,
     paid: null,
-    delivered: null,
   });
   const [indicatorStyle, setIndicatorStyle] = useState<{
     left: number;
@@ -134,9 +132,7 @@ export default function BuyerTransactionsPage() {
   const tabCounts = useMemo(() => {
     const counts: Record<TabKey, number> = {
       pending: 0,
-      payment_pending: 0,
       paid: 0,
-      delivered: 0,
     };
     for (const r of allRows) {
       const tab = TABS.find((t) => t.status === r.status);
