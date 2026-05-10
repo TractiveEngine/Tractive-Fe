@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Negotiate } from "./Negotiate";
 import { TruckItem } from "@/utils/TruckData";
 import { useTransportReadyOrders } from "@/hooks/queries/useOrderQueries";
+import { useAppSelector } from "@/lib/hooks";
 
 interface TruckDetailsAndShipProductProps {
   item: TruckItem;
@@ -55,6 +56,7 @@ export interface DisplayProduct {
   weightNum: number; // total weight in kg
   quantity: number;
   unitWeightKg: number;
+  sellerUnit: string; // seller-defined unit (e.g., "bags", "kg")
   orderTotalAmount: number; // use order.totalAmount, not lineSubtotal
 }
 
@@ -64,7 +66,9 @@ function flattenOrderProducts(orders: TransportOrder[]): DisplayProduct[] {
     for (const op of order.products) {
       const prod = typeof op.product === "object" ? op.product : null;
       const unitWeightKg = prod?.unitWeightKg || 0;
-      const totalWeightKg = unitWeightKg > 0 ? unitWeightKg : op.quantity;
+      const quantity = op.quantity || 0;
+      const totalWeightKg = unitWeightKg > 0 ? unitWeightKg * quantity : quantity;
+      const sellerUnit = prod?.unit || "";
       items.push({
         id: op._id,
         orderId: order._id,
@@ -73,14 +77,25 @@ function flattenOrderProducts(orders: TransportOrder[]): DisplayProduct[] {
         image: prod?.images?.[0] || "/images/placeholder.png",
         weight: `${totalWeightKg.toLocaleString()}kg`,
         weightNum: totalWeightKg,
-        quantity: op.quantity,
+        quantity,
         unitWeightKg,
+        sellerUnit,
         orderTotalAmount: order.totalAmount,
       });
     }
   }
   return items;
 }
+
+type CapacityUnit = "kg" | "tons";
+
+const formatWeight = (kg: number, unit: CapacityUnit): string => {
+  if (unit === "tons") {
+    const tons = kg / 1000;
+    return `${tons.toLocaleString(undefined, { maximumFractionDigits: 2 })} tons`;
+  }
+  return `${kg.toLocaleString()} kg`;
+};
 
 export const TruckDetailsAndShipProduct: React.FC<
   TruckDetailsAndShipProductProps
@@ -94,6 +109,12 @@ export const TruckDetailsAndShipProduct: React.FC<
 }) => {
   const [selectedProductsState, setSelectedProductsState] = useState<string[]>(
     []
+  );
+  const [capacityUnit, setCapacityUnit] = useState<CapacityUnit>("kg");
+  const [hasPreselected, setHasPreselected] = useState(false);
+
+  const pendingOrderIds = useAppSelector(
+    (state) => state.pendingTransport.orderIds
   );
 
   const { data: ordersData, isLoading: isOrdersLoading } = useTransportReadyOrders();
@@ -115,6 +136,22 @@ export const TruckDetailsAndShipProduct: React.FC<
   useEffect(() => {
     setAllProducts(products);
   }, [orders.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Preselect products belonging to the orders the buyer picked on My Orders.
+  // Runs once after products load; users can still toggle freely afterwards.
+  useEffect(() => {
+    if (hasPreselected) return;
+    if (products.length === 0) return;
+    if (pendingOrderIds.length === 0) return;
+    const ids = products
+      .filter((p) => pendingOrderIds.includes(p.orderId))
+      .map((p) => p.id);
+    if (ids.length > 0) {
+      setSelectedProductsState(ids);
+      setSelectedProducts(ids);
+    }
+    setHasPreselected(true);
+  }, [products, pendingOrderIds, hasPreselected, setSelectedProducts]);
 
   // Calculate total weight of selected products
   const totalWeight = selectedProductsState.reduce((total, productId) => {
@@ -160,12 +197,23 @@ export const TruckDetailsAndShipProduct: React.FC<
       <style jsx>{`
         .custom-radio {
           appearance: none;
-          width: 18px;
-          height: 18px;
-          border: 1px solid #2b2b2b;
+          width: 20px;
+          height: 20px;
+          border: 1.5px solid #2b2b2b;
           border-radius: 50%;
           position: relative;
           cursor: pointer;
+          background-color: transparent;
+          transition: border-color 150ms ease, background-color 150ms ease,
+            box-shadow 150ms ease;
+          flex-shrink: 0;
+        }
+        .custom-radio:hover {
+          border-color: #538e53;
+        }
+        .custom-radio:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(83, 142, 83, 0.35);
         }
         .custom-radio:checked::before {
           content: "";
@@ -173,13 +221,18 @@ export const TruckDetailsAndShipProduct: React.FC<
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 12px;
-          height: 12px;
+          width: 10px;
+          height: 10px;
           background-color: #fefefe;
           border-radius: 50%;
         }
         .custom-radio:checked {
           border-color: #fefefe;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .custom-radio {
+            transition: none;
+          }
         }
       `}</style>
       {/* Truck Details */}
@@ -214,8 +267,41 @@ export const TruckDetailsAndShipProduct: React.FC<
           </p>
           <span className="w-[2px] h-[1rem] bg-[#808080]" />
           <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
-            Full Load: <span className="font-medium">{item.fullLoad}</span>
+            Full Load: <span className="font-medium">{formatWeight(capacityKg, capacityUnit)}</span>
           </p>
+        </div>
+
+        {/* Capacity Unit Toggle */}
+        <div className="flex items-center justify-end gap-2 px-4 sm:px-5">
+          <span className="font-montserrat text-[10px] sm:text-[11px] text-[#808080] font-normal">
+            Display capacity in:
+          </span>
+          <div className="inline-flex rounded-[6px] border border-[#538e53] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setCapacityUnit("kg")}
+              className={`cursor-pointer font-montserrat text-[10px] sm:text-[11px] font-medium px-3 py-1 transition-colors ${
+                capacityUnit === "kg"
+                  ? "bg-[#538e53] text-[#fefefe]"
+                  : "bg-transparent text-[#538e53] hover:bg-[#f0f7f0]"
+              }`}
+              aria-pressed={capacityUnit === "kg"}
+            >
+              Kg
+            </button>
+            <button
+              type="button"
+              onClick={() => setCapacityUnit("tons")}
+              className={`cursor-pointer font-montserrat text-[10px] sm:text-[11px] font-medium px-3 py-1 transition-colors ${
+                capacityUnit === "tons"
+                  ? "bg-[#538e53] text-[#fefefe]"
+                  : "bg-transparent text-[#538e53] hover:bg-[#f0f7f0]"
+              }`}
+              aria-pressed={capacityUnit === "tons"}
+            >
+              Tons
+            </button>
+          </div>
         </div>
 
         <div className="w-full bg-[#CCE5CCB2] flex items-center justify-center gap-0.5 p-1 sm:p-[4px]">
@@ -227,7 +313,7 @@ export const TruckDetailsAndShipProduct: React.FC<
             {isEmptyTruck ? "Space Remaining:" : "Remaining Space:"}
           </p>
           <span className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
-            {item.spaceRemaining}
+            {formatWeight(remainingCapacityKg, capacityUnit)}
           </span>
         </div>
       </div>
@@ -282,37 +368,68 @@ export const TruckDetailsAndShipProduct: React.FC<
                           className="object-cover w-12 h-8 sm:w-14 sm:h-9 md:w-16 md:h-10 rounded flex-shrink-0"
                           sizes="(max-width: 639px) 48px, (max-width: 767px) 56px, 64px"
                         />
-                        <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex flex-col gap-1 min-w-0">
                           <span
-                            className={`font-montserrat text-[11px] sm:text-[12px] font-medium truncate ${
+                            className={`font-montserrat text-[12px] sm:text-[13px] font-semibold truncate ${
                               isSelected ? "text-[#fefefe]" : "text-[#2b2b2b]"
                             }`}
                           >
                             {product.name}
                           </span>
-                          <span
-                            className={`font-montserrat text-[9px] sm:text-[10px] font-normal ${
-                              isSelected ? "text-[#d4ecd4]" : "text-[#808080]"
+                          <dl
+                            className={`font-montserrat text-[11px] sm:text-[12px] flex flex-wrap items-center gap-x-2 gap-y-0.5 tabular-nums ${
+                              isSelected ? "text-[#e8f4e8]" : "text-[#5a5a5a]"
                             }`}
                           >
-                            {product.quantity} units{product.unitWeightKg > 0 ? ` · ${product.unitWeightKg}kg total` : ""}
-                          </span>
+                            <div className="flex items-center gap-1">
+                              <dt className="font-normal opacity-80">Qty</dt>
+                              <dd className="font-semibold">
+                                {product.quantity.toLocaleString()}
+                              </dd>
+                            </div>
+                            {product.unitWeightKg > 0 && (
+                              <>
+                                <span
+                                  aria-hidden="true"
+                                  className={`hidden sm:inline-block w-1 h-1 rounded-full ${
+                                    isSelected ? "bg-[#e8f4e8]" : "bg-[#a8a8a8]"
+                                  }`}
+                                />
+                                <dd className="font-semibold">
+                                  {formatWeight(product.unitWeightKg, capacityUnit)}
+                                </dd>
+                              </>
+                            )}
+                          </dl>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
-                        <span
-                          className={`font-montserrat text-[10px] sm:text-[11px] lg:text-[12px] font-medium whitespace-nowrap ${
-                            isSelected ? "text-[#fefefe]" : "text-[#2b2b2b]"
-                          }`}
-                        >
-                          {product.weight}
+                      <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 ml-2">
+                        <div className="flex flex-col items-end leading-tight">
+                          <span
+                            className={`font-montserrat text-[9px] sm:text-[10px] font-normal uppercase tracking-wide ${
+                              isSelected ? "text-[#e8f4e8]" : "text-[#808080]"
+                            }`}
+                          >
+                            Total
+                          </span>
+                          <span
+                            className={`font-montserrat text-[12px] sm:text-[13px] lg:text-[14px] font-bold whitespace-nowrap tabular-nums ${
+                              isSelected ? "text-[#fefefe]" : "text-[#2b2b2b]"
+                            }`}
+                          >
+                            {formatWeight(product.weightNum, capacityUnit)}
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center justify-center w-11 h-11 -mr-2">
+                          <input
+                            type="radio"
+                            checked={isSelected}
+                            onChange={() => handleProductToggle(product.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${product.name} for shipping`}
+                            className="custom-radio"
+                          />
                         </span>
-                        <input
-                          type="radio"
-                          checked={isSelected}
-                          onChange={() => handleProductToggle(product.id)}
-                          className="custom-radio"
-                        />
                       </div>
                     </div>
                   );
@@ -320,12 +437,10 @@ export const TruckDetailsAndShipProduct: React.FC<
               </div>
             )}
           </div>
-          <span className="w-full h-[1px] bg-[#e2e2e2]" />
-
-          <div className="flex flex-col gap-3 w-full px-4 sm:px-5 pb-3">
+          <div className="sticky bottom-0 z-20 bg-[#fefefe] border-t border-[#e2e2e2] shadow-[0_-4px_10px_rgba(0,0,0,0.04)] flex flex-col gap-3 w-full px-4 sm:px-5 py-3">
             <div className="flex flex-col gap-1">
               <p className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#808080] font-normal">
-                Total Weight: <span className="text-[#2b2b2b]">{totalWeight.toLocaleString()}kg</span>
+                Total Weight: <span className="text-[#2b2b2b]">{formatWeight(totalWeight, capacityUnit)}</span>
               </p>
               <p className="font-montserrat text-[11px] sm:text-[12px] md:text-[13px] text-[#808080] font-normal">
                 Transport Cost: <span className="text-[#2b2b2b]">₦{transportCost.toLocaleString()}</span>

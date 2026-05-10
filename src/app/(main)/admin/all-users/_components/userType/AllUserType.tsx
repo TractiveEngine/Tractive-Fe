@@ -1,14 +1,23 @@
 "use client";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { initialUsers, User } from "@/utils/userTypes";
+import { User } from "@/utils/userTypes";
 import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";
 import { UserActionMenu } from "../UserActionMenu";
 import Image from "next/image";
+import {
+  adminUserService,
+  AdminProfession,
+  AdminUser,
+  AdminUserStatus,
+} from "@/services/adminUserService";
+import { toast } from "sonner";
+import { UserDetailModal } from "../UserDetailModal";
+import { TableSkeleton } from "../../../_components/TableSkeleton";
 
 // List of months in a Year
 const months = [
@@ -67,8 +76,8 @@ const nigeriaStates = [
   "Zamfara",
 ];
 
-type statusTypes = "All" | "Active" | "Suspended";
-const statusTypes: statusTypes[] = ["All", "Active", "Suspended"];
+type statusTypes = "All" | "Active" | "Suspended" | "Removed";
+const statusTypes: statusTypes[] = ["All", "Active", "Suspended", "Removed"];
 
 type ProfessionTypes = "All" | "Agents" | "Transporter" | "Farmer" | "Buyer";
 const ProfessionTypes: ProfessionTypes[] = [
@@ -78,6 +87,59 @@ const ProfessionTypes: ProfessionTypes[] = [
   "Farmer",
   "Buyer",
 ];
+
+const professionToApi = (p: ProfessionTypes): AdminProfession | undefined => {
+  switch (p) {
+    case "Agents":
+      return "agent";
+    case "Transporter":
+      return "transporter";
+    case "Buyer":
+      return "buyer";
+    case "Farmer":
+      // Backend has no "farmer" value; kept in UI per current tab strip.
+      return undefined;
+    default:
+      return undefined;
+  }
+};
+
+const statusToApi = (s: statusTypes): AdminUserStatus | undefined => {
+  switch (s) {
+    case "Active":
+      return "active";
+    case "Suspended":
+      return "suspended";
+    case "Removed":
+      return "removed";
+    default:
+      return undefined;
+  }
+};
+
+const titleCase = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
+
+const mapToUiUser = (u: AdminUser): User => {
+  const id = (u._id as string) || "";
+  const statusRaw = (u.status as string) || "active";
+  const activeRole = (u.activeRole as string) || "";
+  return {
+    id,
+    userID: id,
+    image: (u.avatar as string) || "/images/placeholder-avatar.png",
+    fullname: (u.name as string) || "Unknown",
+    email: (u.email as string) || "",
+    location: (u.state as string) || (u.address as string) || "—",
+    profession: titleCase(activeRole),
+    mobile: (u.phone as string) || "",
+    status: titleCase(statusRaw),
+    date: u.createdAt
+      ? new Date(u.createdAt as string).toLocaleDateString()
+      : "",
+    checked: false,
+  };
+};
 
 // Define table columns with improved responsive min-widths
 const columns: ColumnConfig<User>[] = [
@@ -123,7 +185,26 @@ const columns: ColumnConfig<User>[] = [
   {
     key: "status",
     header: "Status",
-    minWidth: "min-w-[80px] sm:min-w-[90px] md:min-w-[100px]",
+    minWidth: "min-w-[90px] sm:min-w-[100px] md:min-w-[110px]",
+    render: (item: User) => {
+      const s = (item.status || "").toLowerCase();
+      const styles =
+        s === "active"
+          ? "bg-green-50 text-green-600 border-green-100"
+          : s === "suspended"
+          ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+          : s === "removed"
+          ? "bg-red-50 text-red-600 border-red-100"
+          : "bg-gray-50 text-gray-600 border-gray-200";
+      const label = s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
+      return (
+        <span
+          className={`inline-block text-[10px] font-medium font-montserrat px-2 py-0.5 rounded-full border ${styles}`}
+        >
+          {label}
+        </span>
+      );
+    },
   },
   {
     key: "date",
@@ -133,9 +214,14 @@ const columns: ColumnConfig<User>[] = [
 ];
 
 export const AllUserType: React.FC = () => {
-  const [admins, setAdmins] = useState<User[]>(
-    initialUsers.map((admin) => ({ ...admin, checked: false }))
-  );
+  const [admins, setAdmins] = useState<User[]>([]);
+  const [adminsRaw, setAdminsRaw] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [detailUserId, setDetailUserId] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
@@ -143,6 +229,7 @@ export const AllUserType: React.FC = () => {
   const [selectedProfession, setSelectedProfession] =
     useState<ProfessionTypes>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
@@ -155,56 +242,72 @@ export const AllUserType: React.FC = () => {
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const ProfessionDropdownRef = useRef<HTMLDivElement>(null);
 
+  const pageSizeOptions = [5, 10, 20, 50];
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
 
-  // Filter admins based on year, month, and search term
-  const filteredAdmin = useMemo(() => {
-    return admins.filter((admin) => {
-      const matchesYear = selectedYear
-        ? admin.date.includes(selectedYear)
-        : true;
-      const matchesMonth = selectedMonth
-        ? admin.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`
-          )
-        : true;
-      const matchesState = selectedState
-        ? admin.location.toLowerCase() === selectedState.toLowerCase()
-        : true;
-      const matchesStatus =
-        selectedStatus === "All"
-          ? true
-          : admin.status.toLowerCase() === selectedStatus.toLowerCase();
-      const matchesProfession =
-        selectedProfession === "All"
-          ? true
-          : admin.profession.toLowerCase() === selectedProfession.toLowerCase();
-      const matchesSearch = searchTerm
-        ? admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          admin.userID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          admin.email.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      return (
-        matchesYear &&
-        matchesMonth &&
-        matchesSearch &&
-        matchesState &&
-        matchesStatus &&
-        matchesProfession
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedProfession, selectedStatus, debouncedSearch]);
+
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data, pagination } = await adminUserService.getUsers({
+        profession: professionToApi(selectedProfession),
+        status: statusToApi(selectedStatus),
+        search: debouncedSearch || undefined,
+        page,
+        limit,
+      });
+      setAdmins(data.map(mapToUiUser));
+      setAdminsRaw(data);
+      setTotalItems(pagination?.total ?? data.length);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to fetch users",
       );
-    });
-  }, [
-    admins,
-    selectedYear,
-    selectedMonth,
-    selectedState,
-    searchTerm,
-    selectedStatus,
-    selectedProfession,
-  ]);
+      setAdmins([]);
+      setAdminsRaw([]);
+      setTotalItems(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedProfession, selectedStatus, debouncedSearch, page, limit]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
+  // Client-side-only filters (year, month, state) — backend doesn't accept these yet
+  const filteredAdmin = admins.filter((admin) => {
+    const matchesYear = selectedYear ? admin.date.includes(selectedYear) : true;
+    const matchesMonth = selectedMonth
+      ? admin.date.startsWith(
+          `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
+            months.indexOf(selectedMonth) + 1
+          }`,
+        )
+      : true;
+    const matchesState = selectedState
+      ? admin.location.toLowerCase() === selectedState.toLowerCase()
+      : true;
+    return matchesYear && matchesMonth && matchesState;
+  });
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -259,29 +362,76 @@ export const AllUserType: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle view profile (edit)
+  const openDetail = (id: string) => {
+    setDetailUserId(id);
+  };
+
   const handleViewProfile = (id: string) => {
-    alert(`View profile for user with ID: ${id}`);
-    // TODO: Implement view profile functionality
+    openDetail(id);
   };
 
-  // Handle suspend user (delete)
-  const handleSuspended = (id: string) => {
-    setAdmins(admins.filter((admin) => admin.userID !== id));
+  // Resolve the API profession value for a given user id from the current list
+  const professionForId = (id: string): AdminProfession | undefined => {
+    const raw = adminsRaw.find((u) => (u._id as string) === id);
+    if (!raw) return undefined;
+    const candidate = (
+      (raw.activeRole as string) ||
+      (Array.isArray(raw.profession) ? (raw.profession as string[])[0] : "") ||
+      ""
+    ).toLowerCase();
+    if (
+      candidate === "buyer" ||
+      candidate === "agent" ||
+      candidate === "transporter" ||
+      candidate === "admin"
+    ) {
+      return candidate as AdminProfession;
+    }
+    return undefined;
   };
 
-  // Handle toggle status
-  const handleToggleStatus = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.userID === id
-          ? {
-              ...admin,
-              status: admin.status === "Active" ? "Suspended" : "Active",
-            }
-          : admin
-      )
-    );
+  // Remove (soft-delete) via PATCH
+  const handleSuspended = async (id: string) => {
+    const profession = professionForId(id);
+    if (!profession) {
+      toast.error("Cannot determine user profession for this action");
+      return;
+    }
+    try {
+      await adminUserService.updateUser(id, {
+        status: "removed",
+        profession,
+      });
+      toast.success("User removed");
+      fetchUsers();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove user");
+    }
+  };
+
+  // Toggle Active <-> Suspended, or reactivate if Removed
+  const handleToggleStatus = async (id: string) => {
+    const current = admins.find((a) => a.userID === id);
+    if (!current) return;
+    const profession = professionForId(id);
+    try {
+      if (current.status.toLowerCase() === "removed") {
+        await adminUserService.reactivateUser(id);
+        toast.success("User reactivated");
+      } else {
+        if (!profession) {
+          toast.error("Cannot determine user profession for this action");
+          return;
+        }
+        const next: AdminUserStatus =
+          current.status.toLowerCase() === "active" ? "suspended" : "active";
+        await adminUserService.updateUser(id, { status: next, profession });
+        toast.success(`User ${next}`);
+      }
+      fetchUsers();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update user");
+    }
   };
 
   // Handle checkbox change
@@ -689,18 +839,82 @@ export const AllUserType: React.FC = () => {
 
       {/* Table Container with improved responsive handling */}
       <div className="mt-6 w-full">
-        <AdminTable<User>
-          dataType="initialUsers"
-          columns={columns}
-          initialData={filteredAdmin}
-          ActionMenuComponent={UserActionMenu}
-          handleViewProfile={handleViewProfile}
-          handleSuspended={handleSuspended}
-          handleToggleStatus={handleToggleStatus}
-          handleCheckboxChange={handleCheckboxChange}
-          handleSelectAll={handleSelectAll}
-          allChecked={allChecked}
+        {isLoading ? (
+          <TableSkeleton columns={6} rows={limit > 6 ? 6 : limit} />
+        ) : (
+          <AdminTable<User>
+            dataType="initialUsers"
+            columns={columns}
+            initialData={filteredAdmin}
+            ActionMenuComponent={UserActionMenu}
+            handleViewProfile={handleViewProfile}
+            handleSuspended={handleSuspended}
+            handleToggleStatus={handleToggleStatus}
+            handleCheckboxChange={handleCheckboxChange}
+            handleSelectAll={handleSelectAll}
+            allChecked={allChecked}
+            onRowClick={openDetail}
+          />
+        )}
+
+        {!isLoading && admins.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No users found.
+          </div>
+        )}
+
+        <UserDetailModal
+          isOpen={!!detailUserId}
+          userId={detailUserId}
+          onClose={() => setDetailUserId(null)}
+          onUpdated={fetchUsers}
         />
+
+        {!isLoading && totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 sm:px-6 py-4 border-t border-gray-100 bg-gray-50 mt-2">
+            <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+              <span>Rows per page</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="ml-3 text-gray-500">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, totalItems)} of {totalItems}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-montserrat text-gray-600 px-2">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

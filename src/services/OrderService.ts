@@ -16,14 +16,73 @@ export interface Order {
   checked?: boolean;
 }
 
+export type OrderStatus =
+  | "pending"
+  | "payment_pending"
+  | "paid"
+  | "delivered";
+
+export type OrderTransportStatus =
+  | "pending"
+  | "picked"
+  | "on_transit"
+  | "delivered";
+
 export interface OrdersQueryParams {
   search?: string;
-  status?: "parked" | "delivered" | "pending";
+  status?: OrderStatus | "parked";
+  transportStatus?: OrderTransportStatus;
   year?: string;
   month?: string;
   buyer?: string;
   location?: string;
   readyForTransport?: boolean;
+  paidForTransport?: boolean;
+}
+
+export interface OrderProductLine {
+  _id?: string;
+  product?:
+    | string
+    | {
+        _id?: string;
+        name?: string;
+        images?: string[];
+        unit?: string;
+      };
+  quantity?: number;
+  unitPrice?: number;
+  lineSubtotal?: number;
+  localTransportRequired?: boolean;
+  localTransportFee?: number;
+  localTransportFrom?: string;
+  localTransportTo?: string;
+  localTransportNote?: string;
+}
+
+export interface OrderRecord {
+  _id?: string;
+  id?: string;
+  buyer?: string | { _id?: string; name?: string };
+  products?: OrderProductLine[];
+  bidIds?: string[];
+  totalAmount?: number;
+  status?: string;
+  transportStatus?: string;
+  readyForTransport?: boolean;
+  paidForTransport?: boolean;
+  address?: string;
+  phone?: string;
+  transporter?:
+    | string
+    | {
+        _id?: string;
+        name?: string;
+        phone?: string;
+      };
+  createdAt?: string;
+  updatedAt?: string;
+  deliveredAt?: string;
 }
 
 export interface CreateOrderPayload {
@@ -33,6 +92,20 @@ export interface CreateOrderPayload {
   phone: string;
   notes?: string;
   bidIds: string[];
+}
+
+export type TransportStatus =
+  | "pending"
+  | "ready"
+  | "picked"
+  | "on_transit"
+  | "delivered"
+  | "cancelled";
+
+export interface UpdateTransportStatusPayload {
+  transportStatus: TransportStatus;
+  note?: string;
+  location?: string;
 }
 
 export interface CreateOrderResponse {
@@ -80,26 +153,33 @@ export class OrdersApiService {
   }
 
   /**
-   * Fetch orders with optional filters
+   * Fetch orders with optional filters.
+   * Unwraps `{ success, data, pagination }` envelope and returns the array.
    */
-  static async getOrders(params?: OrdersQueryParams): Promise<Order[]> {
+  static async getOrders(params?: OrdersQueryParams): Promise<OrderRecord[]> {
     try {
       const queryParams = new URLSearchParams();
 
       if (params?.search) queryParams.append("search", params.search);
       if (params?.status) queryParams.append("status", params.status);
+      if (params?.transportStatus)
+        queryParams.append("transportStatus", params.transportStatus);
       if (params?.year) queryParams.append("year", params.year);
       if (params?.month) queryParams.append("month", params.month);
       if (params?.buyer) queryParams.append("buyer", params.buyer);
       if (params?.location) queryParams.append("location", params.location);
       if (params?.readyForTransport) queryParams.append("readyForTransport", "true");
+      if (params?.paidForTransport) queryParams.append("paidForTransport", "true");
 
       const url = `/api/orders${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
 
       const response = await api.get(url);
-      return response.data;
+      const body = response.data;
+      if (Array.isArray(body)) return body as OrderRecord[];
+      if (body && Array.isArray(body.data)) return body.data as OrderRecord[];
+      return [];
     } catch (error) {
       console.error("Error fetching orders:", error);
       if (
@@ -130,6 +210,88 @@ export class OrdersApiService {
       ) {
         toast.error("Failed to load order details. Please try again.");
       }
+      throw error;
+    }
+  }
+
+  /**
+   * Get buyer details for an order assigned to the transporter.
+   * GET /api/transporters/orders/{orderId}/buyer
+   */
+  static async getTransporterOrderBuyer(orderId: string): Promise<unknown> {
+    try {
+      const response = await api.get(
+        `/api/transporters/orders/${orderId}/buyer`,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(
+        `Error fetching buyer for transporter order ${orderId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get product details for an order assigned to the transporter.
+   * GET /api/transporters/orders/{orderId}/product
+   */
+  static async getTransporterOrderProduct(orderId: string): Promise<unknown> {
+    try {
+      const response = await api.get(
+        `/api/transporters/orders/${orderId}/product`,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(
+        `Error fetching product for transporter order ${orderId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update the delivery/transport status on an order the transporter is fulfilling.
+   * PATCH /api/transporters/orders/{orderId}/status
+   */
+  static async updateTransportStatus(
+    orderId: string,
+    payload: UpdateTransportStatusPayload,
+  ): Promise<unknown> {
+    try {
+      const response = await api.patch(
+        `/api/transporters/orders/${orderId}/status`,
+        payload,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(
+        `Error updating transport status for order ${orderId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get tracking info (timeline + GPS) for an order assigned to the transporter.
+   * GET /api/transporters/orders/{orderId}/tracking
+   */
+  static async getTransporterOrderTracking(
+    orderId: string,
+  ): Promise<unknown> {
+    try {
+      const response = await api.get(
+        `/api/transporters/orders/${orderId}/tracking`,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(
+        `Error fetching tracking for transporter order ${orderId}:`,
+        error,
+      );
       throw error;
     }
   }

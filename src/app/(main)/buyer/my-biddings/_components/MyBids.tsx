@@ -84,8 +84,8 @@ export const MyBids: React.FC<MyBidsProps> = ({
       `}</style>
 
       <div className="flex items-center gap-2 p-2 sm:p-3 md:p-3.5">
-        <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
-          My Bids
+        <p className="font-montserrat font-medium text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
+          Ready to checkout
         </p>
         <span className="font-montserrat font-normal text-[10px] sm:text-[11px] md:text-[12px] text-[#fefefe] bg-[#538e53] w-4 h-4 sm:w-[14px] sm:h-[15px] md:w-[15px] md:h-[16px] p-1 flex justify-center items-center rounded-[3px]">
           {bidItems.length}
@@ -120,7 +120,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
       ) : bidItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 sm:p-12">
           <p className="font-montserrat font-normal text-sm sm:text-base text-[#808080]">
-            You haven&apos;t won any bids yet.
+            No bids ready for checkout yet.
           </p>
         </div>
       ) : (
@@ -169,7 +169,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
                     </div>
                   </div>
                   <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
-                    ${item.price}
+                    ₦{item.price.toLocaleString()}
                   </p>
                 </div>
               </div>

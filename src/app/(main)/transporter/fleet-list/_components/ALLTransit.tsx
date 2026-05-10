@@ -187,10 +187,10 @@ export const AllTransit: React.FC = () => {
         editFleetData={editingFleet}
       />
       
-      <ViewFleetModal 
-        isOpen={isViewModalOpen} 
-        onClose={() => setIsViewModalOpen(false)} 
-        fleet={selectedFleet} 
+      <ViewFleetModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        fleet={selectedFleet}
       />
 
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">

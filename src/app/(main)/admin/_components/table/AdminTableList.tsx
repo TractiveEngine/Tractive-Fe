@@ -48,6 +48,7 @@ interface ListTableProps<T extends BaseData> {
   handleCheckboxChange?: (id: string) => void;
   fetchData?: (dataType: string) => Promise<T[]>;
   ActionMenuComponent?: React.ComponentType<AdminActionMenuProps>;
+  onRowClick?: (id: string) => void;
 }
 
 const rowVariants = {
@@ -84,6 +85,7 @@ export const AdminTable = <T extends BaseData>({
   handleCheckboxChange,
   handleAdminOnboarding,
   handleTransporterInfo,
+  onRowClick,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   // const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -231,14 +233,20 @@ export const AdminTable = <T extends BaseData>({
           {data.map((item, index) => (
             <motion.tr
               key={item.id}
-              className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+              className={`border-gray-200 border-b-[1px] py-1.5 px-4 relative ${
+                onRowClick ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+              }`}
               variants={rowVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: index * 0.1 }}
+              onClick={onRowClick ? () => onRowClick(item.id) : undefined}
             >
               {isCheckboxTable && (
-                <td className="py-1.5 pl-4 whitespace-nowrap">
+                <td
+                  className="py-1.5 pl-4 whitespace-nowrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="relative w-5 h-5">
                     <input
                       type="checkbox"
@@ -260,7 +268,10 @@ export const AdminTable = <T extends BaseData>({
                     : String(item[col.key as keyof T])}
                 </td>
               ))}
-              <td className="py-1.5 px-4 relative">
+              <td
+                className="py-1.5 px-4 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {ActionMenuComponent && (
                   <ActionMenuComponent
                     userTypeId={item.id}

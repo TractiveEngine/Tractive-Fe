@@ -20,6 +20,9 @@ const BookingTransport: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const truckItem = useAppSelector((state) => state.truck.selectedTruck);
+  const pendingOrderIds = useAppSelector(
+    (state) => state.pendingTransport.orderIds
+  );
   const { data: apiTruck, isLoading } = useGetTruckById(truckId);
 
   if (isLoading) {
@@ -75,6 +78,34 @@ const BookingTransport: React.FC = () => {
 
   return (
     <div className="w-[90%] mx-auto py-6 flex flex-col gap-3.5">
+      {pendingOrderIds.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-[#e9f4ea] border border-[#b7dfc1] rounded-[5px]">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M9 12l2 2 4-4"
+              stroke="#538e53"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="12" cy="12" r="9" stroke="#538e53" strokeWidth="2" />
+          </svg>
+          <p className="font-montserrat text-[12px] text-[#2b2b2b]">
+            Products from your{" "}
+            <span className="font-semibold">
+              {pendingOrderIds.length} selected order
+              {pendingOrderIds.length > 1 ? "s" : ""}
+            </span>{" "}
+            are pre-selected below. Review, then Negotiate or Pay.
+          </p>
+        </div>
+      )}
       <ImagePreviewBooking
         item={effectiveTruckItem}
         selectedImage={selectedImage}
@@ -83,6 +114,7 @@ const BookingTransport: React.FC = () => {
         isNegotiating={isNegotiating}
         setIsNegotiating={setIsNegotiating}
         fleetBidId={fleetBidId}
+        fleetId={truckId || undefined}
       />
       <TruckShowCase
         images={allImages}

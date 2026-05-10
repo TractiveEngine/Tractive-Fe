@@ -32,7 +32,15 @@ api.interceptors.request.use(async (config) => {
 const forceLogout = async () => {
   tokenManager.clearToken();
   await signOut({ redirect: false });
-  window.location.href = "/login";
+
+  const current = window.location.pathname + window.location.search;
+  const isOnAuthPage =
+    current.startsWith("/login") || current.startsWith("/signup");
+  const redirectParam = !isOnAuthPage
+    ? `?redirect=${encodeURIComponent(current)}`
+    : "";
+
+  window.location.href = `/login${redirectParam}`;
 };
 
 api.interceptors.response.use(

@@ -205,16 +205,6 @@ export default function TrackAgentPage() {
               >
                 {tab.displayLabel}
               </button>
-              {/* Tab count badge */}
-              <span
-                className={` ${
-                  activeTab === tab.label
-                    ? `${tab.colorClass} text-[#fefefe]`
-                    : `${tab.colorClassFaded} bg-[#2b2b2b]`
-                } rounded-[4px] px-1 py-[1px] text-[10px] font-normal font-montserrat`}
-              >
-                {tab.count}
-              </span>
             </div>
           ))}
           {/* Animated tab indicator */}

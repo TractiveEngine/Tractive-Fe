@@ -28,6 +28,8 @@ export const AlmostFullTruck = ({
     const remainingCapacityKg = truck.remainingCapacityKg ?? capacityKg;
     const totalPrice = truck.price || 0;
     const pricePerKg = truck.pricePerKgEquivalent || 0;
+    const capacityTons = (capacityKg / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    const remainingCapacityTons = (remainingCapacityKg / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
     return {
       id: truck._id || truck.id || `truck-${index}`,
@@ -36,10 +38,10 @@ export const AlmostFullTruck = ({
       truckName: truck.fleetName || truck.model || truck.truckName || truck.name || "Unknown Truck",
       rating: String(truck.rating || 0),
       amountPerKg: `₦${pricePerKg.toLocaleString()}`,
-      fullLoad: truck.remainingCapacityDisplay || `${capacityKg} kg`,
+      fullLoad: `${capacityTons} tons`,
       locationFrom: truck.route?.fromState || truck.locationFrom || truck.origin || "Unknown",
       locationTo: truck.route?.toState || truck.locationTo || truck.destination || "Unknown",
-      spaceRemaining: truck.remainingCapacityDisplay || `${remainingCapacityKg} kg`,
+      spaceRemaining: `${remainingCapacityTons} tons`,
       fleetDescription: truck.fleetDescription || "",
       model: truck.model || "",
       size: truck.size || truck.capacity || "",

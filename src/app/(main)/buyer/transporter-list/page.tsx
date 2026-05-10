@@ -3,14 +3,36 @@ import React, { useEffect, useState, useMemo } from "react";
 import { FilterTransporter } from "./_components/FilterTransporter";
 import { TransporterList } from "./_components/TransporterList";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { FilterTransporterMobile } from "./_components/FilterTransporterMobile";
 import { GetTransportersParams } from "@/services/transporterService";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import {
+  setPendingTransportOrderIds,
+  clearPendingTransport,
+} from "@/lib/features/pendingTransport/pendingTransportSlice";
 
 export default function TransportersListPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const { status } = useSession();
+
+  const urlOrderIds = useMemo(() => {
+    const raw =
+      searchParams.get("orderIds") || searchParams.get("orderId") || "";
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [searchParams]);
+
+  const storeOrderIds = useAppSelector(
+    (state) => state.pendingTransport.orderIds
+  );
+  const pendingOrderIds =
+    urlOrderIds.length > 0 ? urlOrderIds : storeOrderIds;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -23,6 +45,12 @@ export default function TransportersListPage() {
       }, 1000);
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (urlOrderIds.length > 0) {
+      dispatch(setPendingTransportOrderIds(urlOrderIds));
+    }
+  }, [urlOrderIds, dispatch]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
@@ -57,6 +85,40 @@ export default function TransportersListPage() {
 
   return (
     <div className="w-full bg-[#f1f1f1] min-h-screen">
+      {pendingOrderIds.length > 0 && (
+        <div className="w-full sm:w-[90%] mx-auto px-4 sm:px-0 pt-4">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#e9f4ea] border border-[#b7dfc1] rounded-[5px]">
+            <p className="font-montserrat text-[12px] text-[#2b2b2b]">
+              Booking transport for{" "}
+              <span className="font-semibold">
+                {pendingOrderIds.length} order
+                {pendingOrderIds.length > 1 ? "s" : ""}
+              </span>
+              {pendingOrderIds.length === 1 && (
+                <>
+                  {" "}
+                  (#
+                  <span className="font-semibold">
+                    {pendingOrderIds[0].slice(-8).toUpperCase()}
+                  </span>
+                  )
+                </>
+              )}
+              . Pick a transporter below to continue.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                dispatch(clearPendingTransport());
+                router.push("/buyer/transporter-list");
+              }}
+              className="font-montserrat text-[12px] text-[#538e53] hover:underline cursor-pointer whitespace-nowrap"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
       <div className="w-full sm:w-[90%] flex flex-col gap-[1.5rem] sm:flex-row sm:gap-4 lg:gap-8 mx-auto py-6 px-4 sm:px-0">
         <FilterTransporter
           selectedRatings={selectedRatings}

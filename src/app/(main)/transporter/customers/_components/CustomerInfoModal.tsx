@@ -2,10 +2,10 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Customer } from "@/utils/CustomersData";
+import { TransporterCustomer } from "@/services/transporterService";
 
 interface CustomerInfoModalProps {
-  customer: Customer | null;
+  customer: TransporterCustomer | null;
   isOpen: boolean;
   onClose: () => void;
 }

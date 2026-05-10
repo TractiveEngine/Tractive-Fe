@@ -16,10 +16,12 @@ export interface Customer {
 }
 
 export interface GetCustomersParams {
-  search?: string;
-  location?: string;
   page?: number;
   limit?: number;
+  search?: string;
+  name?: string;
+  state?: string;
+  year?: number;
 }
 
 export interface GetCustomersResponse {
@@ -191,33 +193,34 @@ export class CustomerService {
   }
 
   /**
-   * Get all customers with optional filtering (without query params for testing)
+   * Get all customers with optional filtering
+   * GET /api/customers?page&limit&search&name&state&year
    */
   static async getCustomers(
     params?: GetCustomersParams,
   ): Promise<GetCustomersResponse> {
     try {
-      // Log the parameters we received (for debugging)
-      console.log("📋 Received filter parameters:", params);
+      const queryParams = new URLSearchParams();
 
-      // For testing, use basic endpoint without query string
-      const endpoint = "/api/customers";
-      console.log("🔍 Testing basic API endpoint without query parameters...");
+      if (params?.page !== undefined)
+        queryParams.append("page", String(params.page));
+      if (params?.limit !== undefined)
+        queryParams.append("limit", String(params.limit));
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.name) queryParams.append("name", params.name);
+      if (params?.state) queryParams.append("state", params.state);
+      if (params?.year !== undefined)
+        queryParams.append("year", String(params.year));
+
+      const queryString = queryParams.toString();
+      const endpoint = queryString
+        ? `/api/customers?${queryString}`
+        : "/api/customers";
 
       const response = await this.get<GetCustomersResponse>(endpoint);
       return response;
     } catch (error) {
       console.error("Error fetching customers:", error);
-
-      // Detailed error logging
-      console.error("❌ Error details:", {
-        baseURL: this.baseURL,
-        endpoint: "/api/customers",
-        fullURL: `${this.baseURL}/api/customers`,
-        params: params,
-        error,
-      });
-
       throw error;
     }
   }

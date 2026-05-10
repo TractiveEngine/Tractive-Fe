@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { AccountDetails } from "./AccountDetails";
 import { DeliveryDetailsAndPaymentMethod } from "./DeliveryDetailsAndPaymentMethod";
 import { PaymentMethod } from "./PaymentMethod";
+import { PaymentSuccessModal } from "./PaymentSuccessModal";
 import { useCreateOrder } from "@/hooks/queries/useOrderQueries";
 import { useCreateTransaction } from "@/hooks/queries/useTransactionQueries";
 import { BidResponse } from "@/services/bidService";
@@ -80,6 +81,7 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
   const [modalStep, setModalStep] = useState<"payment" | "bank-details" | null>(null);
   const [orderId, setOrderId] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
+  const [isPaymentSuccessOpen, setIsPaymentSuccessOpen] = useState<boolean>(false);
 
   const createOrderMutation = useCreateOrder();
   const createTransactionMutation = useCreateTransaction();
@@ -93,7 +95,7 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
 
     const products = selectedBids.map((bid) => ({
       product: bid.product._id,
-      quantity: bid.product.quantity,
+      quantity: bid.quantity,
     }));
 
     const bidIds = selectedBids.map((bid) => bid._id);
@@ -176,6 +178,7 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
           setOrderId("");
           setSelectedPaymentMethod("");
           onTransactionSuccess?.();
+          setIsPaymentSuccessOpen(true);
         },
       }
     );
@@ -273,6 +276,12 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
       </Modal>
 
       <PaymentMethod />
+
+      {/* Step 3: Post-payment success — prompt buyer to find a transporter or keep shopping */}
+      <PaymentSuccessModal
+        isOpen={isPaymentSuccessOpen}
+        onClose={() => setIsPaymentSuccessOpen(false)}
+      />
     </div>
   );
 };

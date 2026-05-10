@@ -6,11 +6,6 @@ import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
 import { ReviewService, Review, ReviewSummary } from "@/services/reviewService";
 
-// Props interface for the component
-interface ReviewsPageProps {
-  agentId?: string; // Make agentId optional with fallback
-}
-
 // Sample fallback data
 const fallbackReviewData = {
   overallRating: 4.0,
@@ -31,9 +26,7 @@ const fallbackReviewData = {
   ],
 };
 
-const ReviewsPage: React.FC<ReviewsPageProps> = ({
-  agentId = "default-agent-id",
-}) => {
+const ReviewsPage: React.FC = () => {
   const [reviewData, setReviewData] = useState<ReviewSummary | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,27 +46,22 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
   );
 
   // Fetch reviews and summary data
-  const fetchReviewData = async (agentId: string) => {
+  const fetchReviewData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log("🔄 Fetching reviews for agent:", agentId);
 
-      // Fetch reviews summary
-      const summary = await ReviewService.getReviewsSummary(agentId);
+      const [summary, reviewsResponse] = await Promise.all([
+        ReviewService.getReviewsSummary(),
+        ReviewService.getReviews(),
+      ]);
+
       setReviewData(summary);
-
-      // Fetch actual reviews
-      const reviewsResponse = await ReviewService.getReviews({
-        agentId,
-        limit: 10,
-      });
       setReviews(reviewsResponse.reviews);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error fetching review data:", err);
-      setError(err.message || "Failed to load reviews");
+      setError((err as { message?: string })?.message || "Failed to load reviews");
 
-      // Set fallback data
       setReviewData({
         overallRating: fallbackReviewData.overallRating,
         totalReviews: fallbackReviewData.totalReviewers,
@@ -89,12 +77,9 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
     }
   };
 
-  // Fetch data when component mounts or agentId changes
   useEffect(() => {
-    if (agentId) {
-      fetchReviewData(agentId);
-    }
-  }, [agentId]);
+    fetchReviewData();
+  }, []);
 
   // Animate progress bars when data changes
   useEffect(() => {
@@ -169,19 +154,12 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({
 
   return (
     <div className="relative bg-[#fefefe] flex flex-col items-center w-[95%] mx-auto mb-[2rem] px-6 py-6 gap-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
-      {/* Agent ID Info (for debugging) */}
-      <div className="w-full text-right mb-2">
-        <span className="text-xs text-gray-500 font-montserrat">
-          Agent: {agentId}
-        </span>
-      </div>
-
       {error && (
         <div className="w-full p-3 mb-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 font-montserrat text-sm">{error}</p>
           <button
-            onClick={() => fetchReviewData(agentId)}
-            className="mt-2 px-4 py-2 bg-[#538e53] text-white text-xs font-montserrat rounded hover:bg-[#467746]"
+            onClick={() => fetchReviewData()}
+            className="mt-2 px-4 py-2 cursor-pointer bg-[#538e53] text-white text-xs font-montserrat rounded hover:bg-[#467746]"
           >
             Retry
           </button>

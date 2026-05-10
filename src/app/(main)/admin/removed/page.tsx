@@ -1,23 +1,25 @@
 "use client";
 
-// Import necessary React hooks and libraries
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { SuspendedTable } from "./_components/ASRTable/SuspendedTable";
 import { RemovedTable } from "./_components/ASRTable/RemovedTable";
 import { ActiveTable } from "./_components/ASRTable/ActiveTable";
-import { AdminControl, ASRDataControl } from "@/utils/AdminControl";
+import { AdminControl } from "@/utils/AdminControl";
+import {
+  adminUserService,
+  AdminProfession,
+  AdminUser,
+} from "@/services/adminUserService";
 
-// Define types for slide switching
 type SlideType = "Active" | "Suspended" | "Removed";
 
-// Interface for tab indicator styles
 interface IndicatorStyle {
   left: number;
   width: number;
 }
 
-// Interface for tab configuration
 interface TabConfig {
   id: string;
   label: SlideType;
@@ -28,43 +30,117 @@ interface TabConfig {
   colorClassFaded: string;
 }
 
-// Main ActivePage component
+const titleCase = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
+
+const mapToAdminControl = (u: AdminUser): AdminControl => {
+  const id = (u._id as string) || "";
+  const status = titleCase((u.status as string) || "") as
+    | "Active"
+    | "Suspended"
+    | "Removed";
+  return {
+    id,
+    fullName: (u.name as string) || "Unknown",
+    email: (u.email as string) || "",
+    image: (u.avatar as string) || "/images/placeholder-avatar.png",
+    location: (u.state as string) || (u.address as string) || "—",
+    mobile: (u.phone as string) || "",
+    status,
+    date: u.createdAt
+      ? new Date(u.createdAt as string).toLocaleDateString()
+      : "",
+    checked: false,
+  };
+};
+
+const pickProfession = (u: AdminUser): AdminProfession | undefined => {
+  const active = (u.activeRole as string) || "";
+  const list = Array.isArray(u.profession) ? (u.profession as string[]) : [];
+  const candidate = (active || list[0] || "").toLowerCase();
+  if (
+    candidate === "buyer" ||
+    candidate === "agent" ||
+    candidate === "transporter" ||
+    candidate === "admin"
+  ) {
+    return candidate as AdminProfession;
+  }
+  return undefined;
+};
+
 export default function ActivePage() {
-  // State to track the currently active tab (Active, Suspended, or Removed)
   const [activeTab, setActiveTab] = useState<SlideType>("Removed");
-
-  // State to manage data with checkbox status
-  const [ASRTab, setASRTab] = useState<AdminControl[]>(
-    ASRDataControl.map((control) => ({ ...control, checked: false }))
-  );
-
-  // State to track if all items in the active tab are checked
+  const [data, setData] = useState<AdminControl[]>([]);
+  const [rawData, setRawData] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allChecked, setAllChecked] = useState<boolean>(false);
+  const [counts, setCounts] = useState<Record<SlideType, number>>({
+    Active: 0,
+    Suspended: 0,
+    Removed: 0,
+  });
 
-  // Refs to store tab elements for calculating indicator position
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // Ref for the tab container to calculate relative positions
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // State for the sliding indicator's position and width
   const [indicatorStyle, setIndicatorStyle] = useState<IndicatorStyle>({
     left: 0,
     width: 0,
   });
 
-  // Calculate counts for each tab
-  const counts = useMemo(
-    () => ({
-      Active: ASRTab.filter((control) => control.status === "Active").length,
-      Suspended: ASRTab.filter((control) => control.status === "Suspended")
-        .length,
-      Removed: ASRTab.filter((control) => control.status === "Removed").length,
-    }),
-    [ASRTab]
-  );
+  const fetchForTab = useCallback(async (tab: SlideType) => {
+    setIsLoading(true);
+    try {
+      if (tab === "Removed") {
+        const res = await adminUserService.getRemovedUsers({ limit: 100 });
+        setRawData(res.data);
+        setData(res.data.map(mapToAdminControl));
+        setCounts((c) => ({ ...c, Removed: res.pagination?.total ?? res.data.length }));
+      } else {
+        const status = tab === "Active" ? "active" : "suspended";
+        const res = await adminUserService.getUsers({ status, limit: 100 });
+        setRawData(res.data);
+        setData(res.data.map(mapToAdminControl));
+        setCounts((c) => ({ ...c, [tab]: res.pagination?.total ?? res.data.length }));
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load users");
+      setData([]);
+      setRawData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Define tab configuration
+  useEffect(() => {
+    fetchForTab(activeTab);
+  }, [activeTab, fetchForTab]);
+
+  // Fetch counts for the inactive tabs too (so badges are accurate) — fire-and-forget
+  useEffect(() => {
+    (async () => {
+      try {
+        const [active, suspended, removed] = await Promise.all([
+          adminUserService.getUsers({ status: "active", limit: 1 }),
+          adminUserService.getUsers({ status: "suspended", limit: 1 }),
+          adminUserService.getRemovedUsers({ limit: 1 }),
+        ]);
+        setCounts({
+          Active: active.pagination?.total ?? 0,
+          Suspended: suspended.pagination?.total ?? 0,
+          Removed: removed.pagination?.total ?? 0,
+        });
+      } catch {
+        // non-fatal
+      }
+    })();
+  }, []);
+
+  const professionForId = (id: string): AdminProfession | undefined => {
+    const raw = rawData.find((u) => (u._id as string) === id);
+    return raw ? pickProfession(raw) : undefined;
+  };
+
   const tabs: TabConfig[] = useMemo(
     () => [
       {
@@ -95,103 +171,95 @@ export default function ActivePage() {
         colorClassFaded: "text-[#fefefe]",
       },
     ],
-    [counts]
+    [counts],
   );
 
-  // Handle tab switching
   const handleSwitchTab = (tab: SlideType) => {
     setActiveTab(tab);
-    setAllChecked(false); // Reset select all when switching tabs
+    setAllChecked(false);
   };
 
-  // Handle checkbox change for individual items
   const handleCheckboxChange = (id: string) => {
-    setASRTab(
-      ASRTab.map((control) =>
-        control.id === id ? { ...control, checked: !control.checked } : control
-      )
+    setData((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, checked: !c.checked } : c)),
     );
   };
 
-  // Handle select all checkboxes for the active tab
   const handleSelectAll = () => {
-    const newAllChecked = !allChecked;
-    setAllChecked(newAllChecked);
-    setASRTab(
-      ASRTab.map((control) =>
-        control.status === activeTab
-          ? { ...control, checked: newAllChecked }
-          : control
-      )
-    );
+    const next = !allChecked;
+    setAllChecked(next);
+    setData((prev) => prev.map((c) => ({ ...c, checked: next })));
   };
 
-  // Handle admin suspension
-  const handleAdminSuspended = (id: string) => {
-    console.log(`Suspended admin with ID: ${id}`);
-    setASRTab(
-      ASRTab.map((control) =>
-        control.id === id ? { ...control, status: "Suspended" } : control
-      )
-    );
+  const patchStatus = async (
+    id: string,
+    status: "suspended" | "removed" | "active",
+  ) => {
+    const profession = professionForId(id);
+    if (!profession) {
+      toast.error("Cannot determine user profession for this action");
+      return;
+    }
+    try {
+      await adminUserService.updateUser(id, { status, profession });
+      toast.success(`User ${status}`);
+      fetchForTab(activeTab);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update user");
+    }
   };
 
-  // Handle admin removal
-  const handleAdminRemoved = (id: string) => {
-    console.log(`Removed admin with ID: ${id}`);
-    setASRTab(
-      ASRTab.map((control) =>
-        control.id === id ? { ...control, status: "Removed" } : control
-      )
-    );
+  const handleAdminSuspended = (id: string) => patchStatus(id, "suspended");
+  const handleAdminRemoved = (id: string) => patchStatus(id, "removed");
+
+  const handleReactivate = async (id: string) => {
+    try {
+      await adminUserService.reactivateUser(id);
+      toast.success("User reactivated");
+      fetchForTab(activeTab);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to reactivate user",
+      );
+    }
   };
 
-  // Handle admin reactivation
-  const handleReactivate = (id: string) => {
-    console.log(`Reactivated admin with ID: ${id}`);
-    setASRTab(
-      ASRTab.map((control) =>
-        control.id === id ? { ...control, status: "Active" } : control
-      )
-    );
+  const handleAdminOnboarding = async (id: string) => {
+    // Onboarding = reactivate (brings removed user back to active)
+    await handleReactivate(id);
   };
 
-  // Handle admin onboarding
-  const handleAdminOnboarding = (id: string) => {
-    console.log(`Onboarded admin with ID: ${id}`);
-    // Add onboarding logic here (e.g., API call or state update)
-  };
-
-  // Update the indicator position and width when activeTab changes
   useEffect(() => {
     const updateIndicator = () => {
       const activeTabIndex = tabs.findIndex((tab) => tab.label === activeTab);
       const activeContainer = tabRefs.current[activeTabIndex];
       const container = containerRef.current;
-
       if (activeContainer && container) {
         const containerRect = container.getBoundingClientRect();
         const tabRect = activeContainer.getBoundingClientRect();
-        const left = tabRect.left - containerRect.left;
-        const width = tabRect.width;
-        setIndicatorStyle({ left, width });
+        setIndicatorStyle({
+          left: tabRect.left - containerRect.left,
+          width: tabRect.width,
+        });
       }
     };
-
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
   }, [activeTab, tabs]);
 
-  // Render the appropriate component based on activeTab
   const renderContent = () => {
-    const filteredData = ASRTab.filter(
-      (control) => control.status === activeTab
-    );
+    if (isLoading) {
+      return (
+        <div className="flex justify-center py-10">
+          <div className="animate-spin h-8 w-8 border-4 border-[#538e53] border-t-transparent rounded-full" />
+        </div>
+      );
+    }
     const componentMap: Record<SlideType, React.ReactNode> = {
       Active: (
         <ActiveTable
-          data={filteredData}
+          data={data}
           handleAdminSuspended={handleAdminSuspended}
           handleAdminRemoved={handleAdminRemoved}
           handleCheckboxChange={handleCheckboxChange}
@@ -201,7 +269,7 @@ export default function ActivePage() {
       ),
       Suspended: (
         <SuspendedTable
-          data={filteredData}
+          data={data}
           handleReactivate={handleReactivate}
           handleAdminRemoved={handleAdminRemoved}
           handleCheckboxChange={handleCheckboxChange}
@@ -211,7 +279,7 @@ export default function ActivePage() {
       ),
       Removed: (
         <RemovedTable
-          data={filteredData}
+          data={data}
           handleAdminOnboarding={handleAdminOnboarding}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
@@ -222,15 +290,12 @@ export default function ActivePage() {
     return componentMap[activeTab];
   };
 
-  // Main component render
   return (
     <div className="w-[95%] mx-auto mb-5 rounded-[10px] bg-[#fefefe] shadow-md">
-      {/* Page title */}
       <h1 className="mb-4 px-6 pt-6 text-base font-normal font-montserrat sm:text-lg">
         Approvals
       </h1>
       <div className="flex flex-col overflow-x-auto flex-nowrap">
-        {/* Tab navigation */}
         <div
           className="relative mb-2 flex items-center gap-3 px-6 flex-nowrap"
           ref={containerRef}
@@ -247,7 +312,6 @@ export default function ActivePage() {
                 tabRefs.current[index] = el;
               }}
             >
-              {/* Tab button */}
               <button
                 role="tab"
                 id={tab.id}
@@ -260,19 +324,8 @@ export default function ActivePage() {
               >
                 {tab.displayLabel}
               </button>
-              {/* Tab count badge */}
-              <span
-                className={` ${
-                  activeTab === tab.label
-                    ? `${tab.colorClass} text-[#fefefe]`
-                    : `${tab.colorClassFaded} bg-[#2b2b2b]`
-                } rounded-[4px] px-1 py-[1px] text-[10px] font-normal font-montserrat`}
-              >
-                {tab.count}
-              </span>
             </div>
           ))}
-          {/* Animated tab indicator */}
           <motion.div
             className={`absolute -bottom-2 h-[3.7px] rounded-t-[10px] ${
               tabs.find((tab) => tab.label === activeTab)?.colorClass ||
@@ -282,11 +335,9 @@ export default function ActivePage() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
           />
         </div>
-        {/* Divider line */}
         <div className="h-[1px] w-[100%] bg-gray-200" />
       </div>
 
-      {/* Content area for the active tab */}
       <div
         className="mb-4"
         role="tabpanel"

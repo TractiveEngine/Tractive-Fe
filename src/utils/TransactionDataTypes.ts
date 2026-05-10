@@ -9,6 +9,9 @@ export interface Transaction {
   date: string;
   checked: boolean;
   status: "Pending" | "Approved" | "Failed" | "Refunded";
+  productName?: string;
+  productImage?: string;
+  productCount?: number;
 }
 
 export const TransactionalData: Transaction[] = [

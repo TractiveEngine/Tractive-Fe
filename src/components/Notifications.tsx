@@ -1,140 +1,43 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
+import { formatDistanceToNow } from "date-fns";
+import {
+  useMarkAllNotificationsRead,
+  useNotifications,
+} from "@/hooks/queries/useNotificationQueries";
+import type { AppNotification } from "@/services/notificationService";
 
-interface OnboardingData {
-  state: string;
-  CAC: string;
-  address: string;
-  mobile: string;
-  alternativeMobile: string;
-  businessName: string;
-  interests: string[];
-}
+const toneForTitle = (title?: string) => {
+  if (!title) return "text-[#2b2b2b]";
+  const lower = title.toLowerCase();
+  if (lower.includes("congrat") || lower.includes("success")) {
+    return "text-[#538e53]";
+  }
+  if (lower.includes("fail") || lower.includes("error") || lower.includes("reject")) {
+    return "text-[#C23939]";
+  }
+  if (lower.includes("counter")) {
+    return "text-[#004085]";
+  }
+  return "text-[#2b2b2b]";
+};
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  category: string;
-  read: boolean;
-  image: string;
-  action?: React.ReactNode;
-}
+const formatTime = (iso: string) => {
+  try {
+    return formatDistanceToNow(new Date(iso), { addSuffix: true });
+  } catch {
+    return "";
+  }
+};
 
 export const Notifications = () => {
-  const onboardingData: OnboardingData | null = (() => {
-    try {
-      const data = localStorage.getItem("onboarding-data");
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Error parsing onboarding-Data:", error);
-      return null;
-    }
-  })();
+  const { data: notifications = [], isLoading, isError } = useNotifications();
+  const { mutate: markAllRead, isPending: isMarking } =
+    useMarkAllNotificationsRead();
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: `Dear ${onboardingData?.businessName || "User"}`,
-      message:
-        "Your order (123456) has arrived and it is ready for pick up at 12 benz road by john tel enterprises. contact: 09034145971.",
-      time: "2hours ago",
-      category: "Orders",
-      read: false,
-      image: "/images/orderedItem.png",
-      action: (
-        <Image
-          src="/images/mapImage.png"
-          alt="Map Image"
-          width={503}
-          height={147}
-          className="w-full max-w-[503px] h-auto mt-4"
-          onError={() => console.error("Failed to load mapImage.png")}
-        />
-      ),
-    },
-    {
-      id: "2",
-      title: "Congratulations",
-      message:
-        "You are the highest bidder of the just concluded 3 bags of tomatoes biding with the sum of ₦40 dollars.",
-      time: "2hours ago",
-      category: "Biddings",
-      read: false,
-      image: "/images/biddingImageWon.png",
-      action: (
-        <Link
-          href="/buyer/my-biddings"
-          className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
-        >
-          <span className="font-montserrat font-normal text-[12px] sm:text-[13px] text-[#fefefe]">
-            Checkout Item
-          </span>
-        </Link>
-      ),
-    },
-    {
-      id: "3",
-      title: "Payment failed",
-      message:
-        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
-      time: "2hours ago",
-      category: "Biddings",
-      read: false,
-      image: "/images/GreenImage.png",
-      action: (
-        <div className="flex items-center gap-3 mt-4">
-          <button className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] px-4">
-            <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#fefefe]">
-              Try again
-            </span>
-          </button>
-          <button className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#CCE5CC] border-[1px] border-[#808080] rounded-[2px] px-4">
-            <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#2b2b2b]">
-              Contact admin
-            </span>
-          </button>
-        </div>
-      ),
-    },
-    {
-      id: "4",
-      title: "Bidding Successful",
-      message:
-        "Your payment of ₦400 for (123456) was not successful, please try again or contact the admin for more info.",
-      time: "2hours ago",
-      category: "Biddings",
-      read: false,
-      image: "/images/GreenImage.png",
-      action: (
-        <Link
-          href="/buyer/wish-list"
-          className="flex items-center justify-center w-auto max-w-[150px] h-[35px] bg-[#2a942a] rounded-[2px] mt-4 px-4"
-        >
-          <span className="font-montserrat font-normal text-[12px] sm:text-[13.8px] text-[#fefefe]">
-            View Bidding
-          </span>
-        </Link>
-      ),
-    },
-  ]);
-
-  const handleMarkAllRead = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    console.log("Mark all as read clicked");
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true })),
-    );
-  };
-
-  if (!onboardingData) {
-    console.warn("No onboarding data found, rendering error message");
-    return <div className="text-red-500">No onboarding data found.</div>;
-  }
-
-  console.log("Rendering notifications:", notifications);
+  const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
     <div className="w-full flex flex-col gap-4 max-h-[500px] overflow-y-auto">
@@ -163,84 +66,99 @@ export const Notifications = () => {
           border-color: #538e53;
         }
       `}</style>
-      <div className="flex items-center justify-between px-5">
-        <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+
+      <div className="flex items-center justify-between px-5 pt-1">
+        <p className="font-montserrat font-medium text-[14px] text-[#2b2b2b]">
           Notifications
         </p>
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => markAllRead()}
+          disabled={!hasUnread || isMarking}
+          className="flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           <input
             type="checkbox"
-            className="custom-AllRadio"
-            onChange={handleMarkAllRead}
-            onClick={(e) => e.stopPropagation()}
+            className="custom-AllRadio pointer-events-none"
+            checked={!hasUnread}
+            readOnly
           />
-          <span className="font-montserrat font-normal text-[13.6px] text-[#2b2b2b]">
+          <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
             Mark all as read
           </span>
-        </div>
+        </button>
       </div>
 
-      {notifications.length === 0 ? (
-        <div className="px-5 py-2 text-gray-500">
-          No notifications available
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : isError ? (
+        <div className="px-5 py-6 text-center text-[#808080] font-montserrat text-[13px]">
+          Couldn&apos;t load notifications. Try again later.
+        </div>
+      ) : notifications.length === 0 ? (
+        <div className="px-5 py-6 text-center text-[#808080] font-montserrat text-[13px]">
+          You&apos;re all caught up.
         </div>
       ) : (
-        notifications.map((notification, index) => (
-          <React.Fragment key={notification.id}>
-            <div
-              className={`w-full min-w-0 ${
-                notification.read ||
-                notification.title ===
-                  `Dear ${onboardingData?.businessName || "User"}`
-                  ? "bg-[#f1f1f1]"
-                  : "bg-[#fefefe]"
-              }`}
-            >
-              <div className="flex flex-col px-5 pt-5">
-                <div className="flex flex-col sm:flex-row gap-[19px]">
-                  <div className="flex flex-col gap-8 min-w-0">
-                    <div className="flex flex-col gap-2">
-                      <p
-                        className={`font-montserrat font-medium text-[13.6px] ${
-                          notification.title === "Congratulations" ||
-                          notification.title === "Bidding Successful"
-                            ? "text-[#538e53]"
-                            : notification.title === "Payment failed"
-                              ? "text-[#C23939]"
-                              : "text-[#2b2b2b]"
-                        }`}
-                      >
-                        {notification.title}
-                      </p>
-                      <p className="font-montserrat font-normal text-[12px] sm:text-[13.6px] text-[#2b2b2b]">
-                        {notification.message}
-                      </p>
-                    </div>
-                    <span className="font-montserrat font-normal text-[12.5px] sm:text-[13.6px] text-[#808080]">
-                      {notification.time}. {notification.category}
-                    </span>
+        notifications.map((n: AppNotification, index) => {
+          const title = n.title || n.type || "Notification";
+          const time = formatTime(n.createdAt);
+          const category = n.type || "";
+          const body = (
+            <div className="flex flex-col px-5 pt-5">
+              <div className="flex flex-col sm:flex-row gap-[19px]">
+                <div className="flex flex-col gap-6 min-w-0 flex-1">
+                  <div className="flex flex-col gap-2">
+                    <p
+                      className={`font-montserrat font-medium text-[13.6px] ${toneForTitle(title)}`}
+                    >
+                      {title}
+                    </p>
+                    <p className="font-montserrat font-normal text-[12px] sm:text-[13.6px] text-[#2b2b2b]">
+                      {n.message}
+                    </p>
                   </div>
+                  <span className="font-montserrat font-normal text-[12.5px] sm:text-[13px] text-[#808080]">
+                    {time}
+                    {category ? ` · ${category}` : ""}
+                  </span>
+                </div>
+                {n.image && (
                   <Image
-                    src={notification.image}
-                    alt="Notification Image"
+                    src={n.image}
+                    alt={title}
                     width={135}
                     height={144}
-                    className="w-full h-auto max-w-[135px] max-h-[144px]"
-                    onError={() =>
-                      console.error(
-                        `Failed to load image: ${notification.image}`,
-                      )
-                    }
+                    className="w-full h-auto max-w-[135px] max-h-[144px] object-cover"
                   />
-                </div>
-                {notification.action}
+                )}
               </div>
             </div>
-            {index < notifications.length - 1 && (
-              <div className="w-full h-[1px] border-t-[1px] border-[#808080]"></div>
-            )}
-          </React.Fragment>
-        ))
+          );
+
+          return (
+            <React.Fragment key={n._id}>
+              <div
+                className={`w-full min-w-0 ${
+                  n.isRead ? "bg-[#f1f1f1]" : "bg-[#fefefe]"
+                }`}
+              >
+                {n.link ? (
+                  <Link href={n.link} className="block hover:bg-[#f6f6f6]">
+                    {body}
+                  </Link>
+                ) : (
+                  body
+                )}
+              </div>
+              {index < notifications.length - 1 && (
+                <div className="w-full h-[1px] border-t-[1px] border-[#e2e2e2]"></div>
+              )}
+            </React.Fragment>
+          );
+        })
       )}
     </div>
   );

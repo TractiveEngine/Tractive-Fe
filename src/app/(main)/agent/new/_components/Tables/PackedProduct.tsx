@@ -150,7 +150,7 @@ export const PackedProduct: React.FC = () => {
   // Sync query data with local state for checkbox manipulation
   useEffect(() => {
     if (queryData) {
-      setProducts(queryData);
+      setProducts(queryData as unknown as Order[]);
     }
   }, [queryData]);
 

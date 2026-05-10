@@ -16,6 +16,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // 1. Login to get token
+          console.log("[AUTH] Attempting login with email:", credentials.email);
           const loginRes = await fetch(
             "https://tractive-be.vercel.app/api/auth/login",
             {
@@ -29,14 +30,17 @@ export const authOptions: NextAuthOptions = {
           );
 
           const loginData = await loginRes.json();
+          console.log("[AUTH] Login response status:", loginRes.status, "Data:", loginData);
 
           if (!loginRes.ok || !loginData.token) {
-            throw new Error(
-              loginData.error || loginData.message || "Login failed",
-            );
+            const errorMsg = loginData.error || loginData.message || "Login failed";
+            console.error("[AUTH] Login failed:", errorMsg, "Status:", loginRes.status);
+            throw new Error(errorMsg);
           }
+          console.log("[AUTH] Login successful, token received");
 
           // 2. Fetch User Profile to get roles
+          console.log("[AUTH] Fetching user profile...");
           const profileRes = await fetch(
             "https://tractive-be.vercel.app/api/profile",
             {
@@ -46,12 +50,17 @@ export const authOptions: NextAuthOptions = {
             },
           );
 
+          console.log("[AUTH] Profile response status:", profileRes.status);
+          
           if (!profileRes.ok) {
+            const errorText = await profileRes.text();
+            console.error("[AUTH] Profile fetch failed:", profileRes.status, errorText);
             throw new Error("Failed to fetch user profile");
           }
 
           const profileData = await profileRes.json();
           const user = profileData.user || profileData;
+          console.log("[AUTH] Profile fetched successfully, user:", user.email);
 
           return {
             id: user._id || "user-id",
@@ -64,7 +73,8 @@ export const authOptions: NextAuthOptions = {
           };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-          console.error("Auth Error:", error);
+          console.error("[AUTH] Authorization failed:", error.message || error);
+          console.error("[AUTH] Full error:", error);
           throw new Error(error.message || "Authentication failed");
         }
       },

@@ -6,13 +6,68 @@ import { motion } from "framer-motion"; // Adjust the import path as needed
 import { TrackPicked } from "./_components/TrackPicked";
 import { TrackOnTransit } from "./_components/TrackOnTransit";
 import { TrackDelivered } from "./_components/TrackDelivered";
+import { TransporterData } from "@/utils/TrackTransporterData";
+import { useFleetTrips } from "@/hooks/queries/useTransporterQueries";
 import {
-  TrackTransporterData,
-  TransporterData,
-} from "@/utils/TrackTransporterData";
+  FleetTripStatus,
+  FleetTripSummary,
+} from "@/services/fleetTripService";
 
 // Define types for slide switching
 type SlideType = "Picked" | "OnTransit" | "Delivered";
+
+const TAB_TO_STATUS: Record<SlideType, FleetTripStatus> = {
+  Picked: "picked",
+  OnTransit: "on_transit",
+  Delivered: "delivered",
+};
+
+const tripFleetName = (trip: FleetTripSummary): string => {
+  if (trip.fleet && typeof trip.fleet === "object") {
+    return trip.fleet.fleetName || trip.fleet.plateNumber || "Fleet";
+  }
+  return (trip.fleet as string) || "Fleet";
+};
+
+const tripFleetIot = (trip: FleetTripSummary): string => {
+  if (trip.fleet && typeof trip.fleet === "object") {
+    return trip.fleet.iot || trip.fleet.plateNumber || "—";
+  }
+  return "—";
+};
+
+const tripFleetImage = (trip: FleetTripSummary): string => {
+  if (trip.fleet && typeof trip.fleet === "object") {
+    return (
+      trip.fleet.image ||
+      (trip.fleet.images && trip.fleet.images[0]) ||
+      "/images/truckcontainer.png"
+    );
+  }
+  return "/images/truckcontainer.png";
+};
+
+const formatDate = (iso?: string) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-CA");
+};
+
+const tripToTransporterData = (trip: FleetTripSummary): TransporterData => {
+  const id = (trip._id || trip.id || "") as string;
+  const buyer = trip.buyers?.[0];
+  return {
+    id,
+    IOT: tripFleetIot(trip),
+    image: tripFleetImage(trip),
+    title: tripFleetName(trip),
+    description: (trip.fromLocation || "") + " → " + (trip.toLocation || ""),
+    buyerName: buyer?.name || "—",
+    transporterName: tripFleetName(trip),
+    amount: "—",
+    date: formatDate(trip.createdAt),
+    checked: false,
+  };
+};
 
 // Interface for tab indicator styles
 interface IndicatorStyle {
@@ -36,9 +91,19 @@ export default function TrackTransporterPage() {
   // State to track the currently active tab (Picked, OnTransit, Delivered)
   const [activeTab, setActiveTab] = useState<SlideType>("Picked");
 
+  // Fetch real fleet trips for the active tab's status
+  const { data: tripsRaw } = useFleetTrips({
+    status: TAB_TO_STATUS[activeTab],
+  });
+
   // State to manage order data with checkbox status
-  const [transporterData, setTransporterData] =
-    useState<TransporterData[]>(TrackTransporterData);
+  const [transporterData, setTransporterData] = useState<TransporterData[]>([]);
+
+  // Sync API data into local state (so checkbox toggles work)
+  useEffect(() => {
+    const list: FleetTripSummary[] = Array.isArray(tripsRaw) ? tripsRaw : [];
+    setTransporterData(list.map(tripToTransporterData));
+  }, [tripsRaw]);
 
   // State to track if all items in the active tab are checked
   const [allChecked, setAllChecked] = useState<boolean>(false);
@@ -55,14 +120,14 @@ export default function TrackTransporterPage() {
     width: 0,
   });
 
-  // Calculate counts for each tab
+  // Count for the current tab (the others are unknown until that tab is opened)
   const counts = useMemo(
     () => ({
-      Picked: transporterData.length, // Adjust logic if filtering by status is needed
-      OnTransit: transporterData.length, // Adjust logic if filtering by status is needed
-      Delivered: transporterData.length, // Adjust logic if filtering by status is needed
+      Picked: activeTab === "Picked" ? transporterData.length : 0,
+      OnTransit: activeTab === "OnTransit" ? transporterData.length : 0,
+      Delivered: activeTab === "Delivered" ? transporterData.length : 0,
     }),
-    [transporterData]
+    [activeTab, transporterData]
   );
 
   // Define tab configuration
@@ -244,16 +309,6 @@ export default function TrackTransporterPage() {
               >
                 {tab.displayLabel}
               </button>
-              {/* Tab count badge */}
-              <span
-                className={` ${
-                  activeTab === tab.label
-                    ? `${tab.colorClass} text-[#fefefe]`
-                    : `${tab.colorClassFaded} bg-[#2b2b2b]`
-                } rounded-[4px] px-1 py-[1px] text-[10px] font-normal font-montserrat`}
-              >
-                {tab.count}
-              </span>
             </div>
           ))}
           {/* Animated tab indicator */}

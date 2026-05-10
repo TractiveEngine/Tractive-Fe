@@ -117,7 +117,12 @@ export const AdminAsideNavMobile = ({
         {
           href: "/admin/transactions",
           icon: moneyChange,
-          label: "Transactions",
+          label: "Product Payment",
+        },
+        {
+          href: "/admin/fleet-payments",
+          icon: moneyChange,
+          label: "Fleet Payments",
         },
       ],
     },

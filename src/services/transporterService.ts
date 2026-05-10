@@ -73,6 +73,133 @@ export interface GetTransportersParams {
   yearsOfExperience?: number;
 }
 
+export interface TransporterCustomer {
+  id: string;
+  name: string;
+  image?: string;
+  state: string;
+  mobile: string;
+  orders: number | string;
+  revenue: number | string;
+  date: string;
+  email?: string;
+  address?: string;
+}
+
+export interface GetTransporterCustomersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  name?: string;
+  state?: string;
+  year?: number;
+  month?: string;
+}
+
+export interface GetTransporterCustomersResponse {
+  data: TransporterCustomer[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface TransporterReviewBuyer {
+  _id?: string;
+  id?: string;
+  name?: string;
+  email?: string;
+  image?: string;
+  avatar?: string;
+}
+
+export interface TransporterReview {
+  _id?: string;
+  id?: string;
+  buyer?: TransporterReviewBuyer | string;
+  rating: number;
+  comment: string;
+  image?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  likes?: number;
+  replies?: number | unknown[];
+}
+
+export interface GetTransporterReviewsParams {
+  page?: number;
+  limit?: number;
+  rating?: number;
+  search?: string;
+}
+
+export interface GetTransporterReviewsResponse {
+  reviews: TransporterReview[];
+  overallRating?: number;
+  totalReviews?: number;
+  ratingDistribution?: { rating: number; count: number; percentage: number }[];
+  recentReviewers?: { id?: string; name?: string; avatar?: string }[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface TransporterTransactionApi {
+  _id?: string;
+  id?: string;
+  status?: "pending" | "approved" | string;
+  amount?: number;
+  paymentMethod?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  order?: {
+    _id?: string;
+    iot?: string;
+    weightKg?: number;
+    weight?: number;
+    fleet?: {
+      _id?: string;
+      fleetName?: string;
+      name?: string;
+      description?: string;
+      image?: string;
+      images?: string[];
+      plateNumber?: string;
+    } | string;
+    truck?: {
+      _id?: string;
+      fleetName?: string;
+      name?: string;
+      description?: string;
+      plateNumber?: string;
+      image?: string;
+      images?: string[];
+    } | string;
+    [key: string]: unknown;
+  } | string;
+  buyer?: {
+    _id?: string;
+    name?: string;
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | string;
+  payer?: {
+    _id?: string;
+    name?: string;
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
+  } | string;
+  [key: string]: unknown;
+}
+
 export const transporterService = {
   /**
    * Get all transporters
@@ -158,6 +285,95 @@ export const transporterService = {
       return response.data.data || response.data || [];
     } catch (error) {
       console.error("[TransporterService] getTransporterTrucks error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get transporter customers
+   * GET /api/transporters/customers?search&year&month&state&page&limit
+   */
+  getCustomers: async (
+    params?: GetTransporterCustomersParams,
+  ): Promise<GetTransporterCustomersResponse> => {
+    try {
+      const response = await api.get("/api/transporters/customers", { params });
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const list: TransporterCustomer[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.customers)
+          ? payload.customers
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+      const pagination = body?.pagination ?? payload?.pagination;
+      return { data: list, pagination };
+    } catch (error) {
+      console.error("[TransporterService] getCustomers error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get a single transporter customer profile
+   * GET /api/transporters/customers/{id}
+   */
+  getCustomerById: async (id: string): Promise<TransporterCustomer> => {
+    try {
+      const response = await api.get(`/api/transporters/customers/${id}`);
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(`[TransporterService] getCustomerById ${id} error:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get reviews for the authenticated transporter
+   * GET /api/transporters/reviews
+   */
+  getReviews: async (
+    params?: GetTransporterReviewsParams,
+  ): Promise<GetTransporterReviewsResponse> => {
+    try {
+      const response = await api.get("/api/transporters/reviews", { params });
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const reviews: TransporterReview[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.reviews)
+          ? payload.reviews
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+      return {
+        reviews,
+        overallRating: payload?.overallRating,
+        totalReviews: payload?.totalReviews,
+        ratingDistribution: payload?.ratingDistribution,
+        recentReviewers: payload?.recentReviewers,
+        pagination: body?.pagination ?? payload?.pagination,
+      };
+    } catch (error) {
+      console.error("[TransporterService] getReviews error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get transporter transactions
+   * GET /api/transporters/transactions
+   */
+  getTransactions: async (): Promise<TransporterTransactionApi[]> => {
+    try {
+      const response = await api.get("/api/transporters/transactions");
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const list = payload?.transactions ?? payload ?? [];
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      console.error("[TransporterService] getTransactions error:", error);
       throw error;
     }
   },

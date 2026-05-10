@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../../../_components/table/TableList";
@@ -9,7 +10,11 @@ import { copyToClipboard } from "@/utils/Clipboard";
 import { CustomerCareModal } from "../CustomerCareModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
 import { IdCopyIcon } from "../../../_components/Icons/TransporterIcons";
-import { TransporterPendingData, TransporterTransaction } from "@/utils/TransporterTransactionData";
+import {
+  TransporterTransaction,
+  mapTransporterTransaction,
+} from "@/utils/TransporterTransactionData";
+import { transporterService } from "@/services/transporterService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -51,15 +56,17 @@ const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
     minWidth: "min-w-[100px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
-        <span>{transaction.id}</span>
-        <button
-          onClick={() => copyToClipboard(transaction.id)}
-          title="Copy Product ID"
-          aria-label="Copy Product ID"
-          className="cursor-pointer"
-        >
-          <IdCopyIcon />
-        </button>
+        <span>{transaction.IOT || "--"}</span>
+        {transaction.IOT && (
+          <button
+            onClick={() => copyToClipboard(transaction.IOT)}
+            title="Copy IOT"
+            aria-label="Copy IOT"
+            className="cursor-pointer"
+          >
+            <IdCopyIcon />
+          </button>
+        )}
       </div>
     ),
   },
@@ -67,13 +74,17 @@ const transactionColumns: ColumnConfig<TransporterTransaction>[] = [
     header: "Kg",
     key: "KG",
     minWidth: "min-w-[100px]",
-    render: () => `KG`,
+    render: (transaction) =>
+      transaction.KG ? `${transaction.KG.toLocaleString()} KG` : "--",
   },
   {
     header: "Payment",
     key: "Payment",
     minWidth: "min-w-[100px]",
-    render: () => `Payment`,
+    render: (transaction) =>
+      typeof transaction.Payment === "number"
+        ? `₦${transaction.Payment.toLocaleString()}`
+        : "--",
   },
   {
     header: "Payer",
@@ -145,20 +156,34 @@ export const PendingTableList = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const filteredTransactions = TransporterPendingData.filter((transaction) => {
-    const matchesSearch =
-      transaction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.Seller.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear =
-      !selectedYear || transaction.date.includes(selectedYear.toString());
-    const matchesMonth =
-      !selectedMonth ||
-      transaction.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
-      );
-    return matchesSearch && matchesYear && matchesMonth;
+  const { data: transactions = [], isLoading, isError } = useQuery({
+    queryKey: ["transporter-transactions"],
+    queryFn: () => transporterService.getTransactions(),
+    select: (data) => data.map(mapTransporterTransaction),
   });
+
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter((transaction) => {
+        if (transaction.status && transaction.status !== "pending") return false;
+        const search = searchQuery.toLowerCase();
+        const matchesSearch =
+          !search ||
+          transaction.name.toLowerCase().includes(search) ||
+          transaction.Seller.toLowerCase().includes(search) ||
+          transaction.id.toLowerCase().includes(search);
+        const matchesYear =
+          !selectedYear || transaction.date.includes(selectedYear.toString());
+        const matchesMonth =
+          !selectedMonth ||
+          transaction.date.includes(
+            (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0"),
+          );
+        return matchesSearch && matchesYear && matchesMonth;
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [transactions, searchQuery, selectedYear, selectedMonth],
+  );
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -326,13 +351,23 @@ export const PendingTableList = () => {
           </div>
         </div>
         <div className="my-6">
-          <TableList<TransporterTransaction>
-            dataType="pending"
-            columns={transactionColumns}
-            initialData={filteredTransactions}
-            ActionMenuComponent={TransactionActionMenu}
-            handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
-          />
+          {isLoading ? (
+            <div className="py-10 text-center font-montserrat text-sm text-[#808080]">
+              Loading transactions...
+            </div>
+          ) : isError ? (
+            <div className="py-10 text-center font-montserrat text-sm text-[#c0392b]">
+              Failed to load transactions.
+            </div>
+          ) : (
+            <TableList<TransporterTransaction>
+              dataType="pending"
+              columns={transactionColumns}
+              initialData={filteredTransactions}
+              ActionMenuComponent={TransactionActionMenu}
+              handleCustomerCare={() => setIsCustomerCareModalOpen(true)}
+            />
+          )}
         </div>
         <CustomerCareModal
           isOpen={isCustomerCareModalOpen}

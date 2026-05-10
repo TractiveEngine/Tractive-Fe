@@ -13,6 +13,7 @@ interface ImagePreviewBookingProps {
   isNegotiating: boolean;
   setIsNegotiating: (isNegotiating: boolean) => void;
   fleetBidId?: string;
+  fleetId?: string;
 }
 
 export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
@@ -23,6 +24,7 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
   isNegotiating,
   setIsNegotiating,
   fleetBidId,
+  fleetId,
 }) => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [allProducts, setAllProducts] = useState<DisplayProduct[]>([]);
@@ -71,9 +73,12 @@ export const ImagePreviewBooking: React.FC<ImagePreviewBookingProps> = ({
         return (
           <AccountDetails
             fleetBidId={fleetBidId}
+            fleetId={fleetId}
             paymentMethod={selectedPaymentMethod}
             locationFrom={item.locationFrom}
             locationTo={item.locationTo}
+            selectedProducts={selectedProducts}
+            allProducts={allProducts}
           />
         );
       default:

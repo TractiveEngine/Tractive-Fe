@@ -1,8 +1,15 @@
 import api from "@/lib/axios";
 
 export interface NegotiationRespondPayload {
-  action: "accept" | "reject";
+  action: "accept" | "reject" | "counter";
   amount?: number;
+  message?: string;
+}
+
+export interface TransporterBidRespondPayload {
+  action: "accept" | "reject" | "counter";
+  amount?: number;
+  message?: string;
 }
 
 export interface FleetBidShipmentItem {
@@ -34,6 +41,18 @@ export interface FleetBidResponse {
 export interface CreateFleetPaymentPayload {
   fleetBidId: string;
   paymentMethod: string;
+  note?: string;
+}
+
+export interface DirectFleetShipmentItem {
+  orderId: string;
+  productId: string;
+  quantityToShip: number;
+}
+
+export interface CreateDirectFleetPaymentPayload {
+  paymentMethod: string;
+  shipmentItems: DirectFleetShipmentItem[];
   note?: string;
 }
 
@@ -87,6 +106,33 @@ export class NegotiationService {
   }
 
   /**
+   * Transporter lists all bids placed on one of their fleets.
+   * GET /api/transporters/fleet/{fleetId}/bids
+   */
+  static async getFleetBidsForTransporter(fleetId: string): Promise<unknown> {
+    const response = await api.get(
+      `/api/transporters/fleet/${fleetId}/bids`
+    );
+    return response.data.data ?? response.data ?? [];
+  }
+
+  /**
+   * Transporter responds to a buyer's bid on their fleet (accept/reject/counter).
+   * POST /api/transporters/fleet/{fleetId}/bids/{bidId}/respond
+   */
+  static async respondToFleetBidAsTransporter(
+    fleetId: string,
+    bidId: string,
+    payload: TransporterBidRespondPayload
+  ): Promise<unknown> {
+    const response = await api.post(
+      `/api/transporters/fleet/${fleetId}/bids/${bidId}/respond`,
+      payload
+    );
+    return response.data;
+  }
+
+  /**
    * Buyer responds to a transporter's counter-offer on a fleet bid
    * POST /api/transporters/fleet/{fleetId}/bids/{bidId}/buyer-respond
    */
@@ -111,6 +157,21 @@ export class NegotiationService {
   ): Promise<unknown> {
     const response = await api.post(
       `/api/transporters/fleet/payments`,
+      payload
+    );
+    return response.data;
+  }
+
+  /**
+   * Pay a transporter directly (no prior bid) for specific shipment items.
+   * POST /api/transporters/fleet/{fleetId}/payments
+   */
+  static async createDirectFleetPayment(
+    fleetId: string,
+    payload: CreateDirectFleetPaymentPayload
+  ): Promise<unknown> {
+    const response = await api.post(
+      `/api/transporters/fleet/${fleetId}/payments`,
       payload
     );
     return response.data;

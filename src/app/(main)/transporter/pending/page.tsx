@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { PendingTableList } from "./_components/TransactionTables/PendingTableList";
 import { ApprovedTableList } from "./_components/TransactionTables/ReceivedTableList";
+import { transporterService } from "@/services/transporterService";
 
 interface SideProps {
   switchSides: "Pending" | "Approved";
@@ -10,6 +12,16 @@ interface SideProps {
 }
 
 export default function PendingTransactionListPage() {
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transporter-transactions"],
+    queryFn: () => transporterService.getTransactions(),
+  });
+  const pendingCount = transactions.filter(
+    (t) => !t.status || t.status === "pending",
+  ).length;
+  const approvedCount = transactions.filter(
+    (t) => t.status === "approved",
+  ).length;
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Pending");
   const PendingContainerRef = useRef<HTMLDivElement>(null);
@@ -78,7 +90,7 @@ export default function PendingTransactionListPage() {
               Pending
             </button>
             <span className="bg-[#E0A63A] text-[#fefefe] text-[10px] font-montserrat font-medium rounded-[4px] px-[4px] py-[1px]">
-              15
+              {pendingCount}
             </span>
           </div>
           <div
@@ -98,7 +110,7 @@ export default function PendingTransactionListPage() {
               Approved
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[4px] py-[1px]">
-              15
+              {approvedCount}
             </span>
           </div>
           <motion.div

@@ -93,7 +93,30 @@ const columns: ColumnConfig<AdminControl>[] = [
   },
   { key: "location", header: "Location", minWidth: "min-w-[120px]" },
   { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
-  { key: "status", header: "Status", minWidth: "min-w-[100px]" },
+  {
+    key: "status",
+    header: "Status",
+    minWidth: "min-w-[100px]",
+    render: (item: AdminControl) => {
+      const s = (item.status || "").toLowerCase();
+      const styles =
+        s === "active"
+          ? "bg-green-50 text-green-600 border-green-100"
+          : s === "suspended"
+          ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+          : s === "removed"
+          ? "bg-red-50 text-red-600 border-red-100"
+          : "bg-gray-50 text-gray-600 border-gray-200";
+      const label = s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
+      return (
+        <span
+          className={`inline-block text-[10px] font-medium font-montserrat px-2 py-0.5 rounded-full border ${styles}`}
+        >
+          {label}
+        </span>
+      );
+    },
+  },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 export const ActiveTable: React.FC<AdminMethodProps> = ({

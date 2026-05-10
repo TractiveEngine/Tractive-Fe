@@ -304,20 +304,22 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             htmlFor="unit"
             className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            Unit (e.g., kg, pieces, bags) *
+            Unit *
           </label>
-          <input
-            type="text"
+          <select
             id="unit"
             value={unit}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               setUnit(e.target.value)
             }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-            placeholder="Enter unit"
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53] cursor-pointer"
             required
             disabled={isLoading}
-          />
+          >
+            <option value="">Select unit</option>
+            <option value="kg">Kilogram (kg)</option>
+            <option value="tonne">Tonne</option>
+          </select>
         </div>
 
         {/* Description */}
@@ -389,13 +391,13 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
           />
         </div>
 
-        {/* Unit Weight (kg) */}
+        {/* Unit Weight */}
         <div className="flex flex-col gap-2">
           <label
             htmlFor="unitWeightKg"
             className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            Unit Weight (kg)
+            Unit Weight ({unit || "unit"})
           </label>
           <input
             type="number"
@@ -405,10 +407,10 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
               setUnitWeightKg(e.target.value)
             }
             className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-            placeholder="Enter unit weight in kg (optional)"
+            placeholder={`Enter unit weight in ${unit || "selected unit"} (optional)`}
             min="0"
             step="0.1"
-            disabled={isLoading}
+            disabled={isLoading || !unit}
           />
         </div>
 
