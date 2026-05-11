@@ -9,6 +9,13 @@ export interface AgentsProps {
   NIN: string;
   date: string;
   checked: boolean;
+  businessName?: string;
+  address?: string;
+  state?: string;
+  approvalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
+  status?: string;
+  createdAt?: string;
 }
 
 export interface FarmersProps {
@@ -36,8 +43,17 @@ export interface TransportersProps {
   plateNumber: string;
   date: string;
   checked: boolean;
+  businessName?: string;
+  address?: string;
+  state?: string;
+  approvalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
+  status?: string;
+  createdAt?: string;
 }
 
+
+import type { BulkAction } from "@/app/(main)/admin/_components/BulkActionBar";
 
 export interface ApprovalsAgentsProps {
   data: AgentsProps[];
@@ -47,6 +63,9 @@ export interface ApprovalsAgentsProps {
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  onRowClick?: (id: string) => void;
+  bulkActions?: BulkAction[];
+  bulkDisabled?: boolean;
 }
 
 // Props interface for ApprovalFarmers
@@ -69,6 +88,9 @@ export interface ApprovalsTransportersProps {
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  onRowClick?: (id: string) => void;
+  bulkActions?: BulkAction[];
+  bulkDisabled?: boolean;
 }
 
 

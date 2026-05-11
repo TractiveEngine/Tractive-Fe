@@ -10,17 +10,17 @@ import React, {
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Image from "next/image";
-import {
-  adminUserService,
-  AdminUser,
-} from "@/services/adminUserService";
 import { approvalService } from "@/services/approvalService";
+import { AgentsProps, TransportersProps } from "@/utils/Approvals";
 import AdminTable, {
   ColumnConfig,
 } from "../_components/table/AdminTableList";
 import { TableSkeleton } from "../_components/TableSkeleton";
 import { RejectedActionMenu } from "./_components/RejectedActionMenu";
 import { ConfirmActionModal } from "../_components/ConfirmActionModal";
+import { UserDetailsModal } from "../_components/UserDetailsModal";
+import { BulkAction } from "../_components/BulkActionBar";
+import { BulkActionButtons } from "../_components/BulkActionButtons";
 
 type SlideType = "Agents" | "Transporters";
 
@@ -49,16 +49,25 @@ interface RejectedRow {
   checked: boolean;
 }
 
-const mapToRow = (u: AdminUser): RejectedRow => ({
-  id: (u._id as string) || "",
-  fullname: (u.name as string) || "—",
-  email: (u.email as string) || "—",
-  image: (u.avatar as string) || "/images/TopAgent.png",
-  location: (u.state as string) || (u.address as string) || "—",
-  mobile: (u.phone as string) || "—",
-  date: u.createdAt
-    ? new Date(u.createdAt as string).toLocaleDateString()
-    : "—",
+const mapAgentToRow = (a: AgentsProps): RejectedRow => ({
+  id: a.id,
+  fullname: a.fullname,
+  email: a.email,
+  image: a.image,
+  location: a.location,
+  mobile: a.mobile,
+  date: a.date,
+  checked: false,
+});
+
+const mapTransporterToRow = (t: TransportersProps): RejectedRow => ({
+  id: t.id,
+  fullname: t.fullname,
+  email: t.email,
+  image: t.image,
+  location: t.location,
+  mobile: t.mobile,
+  date: t.date,
   checked: false,
 });
 
@@ -105,6 +114,10 @@ export default function RejectedPage() {
 
   const [agents, setAgents] = useState<RejectedRow[]>([]);
   const [transporters, setTransporters] = useState<RejectedRow[]>([]);
+  const [agentsRaw, setAgentsRaw] = useState<AgentsProps[]>([]);
+  const [transportersRaw, setTransportersRaw] = useState<TransportersProps[]>(
+    [],
+  );
   const [agentsLoading, setAgentsLoading] = useState<boolean>(true);
   const [transportersLoading, setTransportersLoading] = useState<boolean>(true);
   const [allChecked, setAllChecked] = useState<boolean>(false);
@@ -114,6 +127,18 @@ export default function RejectedPage() {
     "agent",
   );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const [selectedUser, setSelectedUser] = useState<
+    AgentsProps | TransportersProps | null
+  >(null);
+  const [selectedKind, setSelectedKind] = useState<"agent" | "transporter">(
+    "agent",
+  );
+
+  const [pendingBulk, setPendingBulk] = useState<{
+    kind: "agent" | "transporter";
+    ids: string[];
+  } | null>(null);
 
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,16 +150,18 @@ export default function RejectedPage() {
   const fetchRejectedAgents = useCallback(async () => {
     setAgentsLoading(true);
     try {
-      const { data } = await adminUserService.getUsers({
-        agentApprovalStatus: "rejected",
-        limit: 100,
+      const { data } = await approvalService.getPendingAgents({
+        status: "rejected",
+        limit: 10,
       });
-      setAgents(data.map(mapToRow));
+      setAgents(data.map(mapAgentToRow));
+      setAgentsRaw(data);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to load rejected agents",
       );
       setAgents([]);
+      setAgentsRaw([]);
     } finally {
       setAgentsLoading(false);
     }
@@ -143,11 +170,12 @@ export default function RejectedPage() {
   const fetchRejectedTransporters = useCallback(async () => {
     setTransportersLoading(true);
     try {
-      const { data } = await adminUserService.getUsers({
-        transporterApprovalStatus: "rejected",
-        limit: 100,
+      const { data } = await approvalService.getPendingTransporters({
+        status: "rejected",
+        limit: 10,
       });
-      setTransporters(data.map(mapToRow));
+      setTransporters(data.map(mapTransporterToRow));
+      setTransportersRaw(data);
     } catch (err) {
       toast.error(
         err instanceof Error
@@ -155,6 +183,7 @@ export default function RejectedPage() {
           : "Failed to load rejected transporters",
       );
       setTransporters([]);
+      setTransportersRaw([]);
     } finally {
       setTransportersLoading(false);
     }
@@ -231,6 +260,113 @@ export default function RejectedPage() {
   const handleTransporterApprove = (id: string) =>
     requestApprove("transporter", id);
 
+  const handleAgentRowClick = (id: string) => {
+    const found = agentsRaw.find((a) => a.id === id);
+    if (!found) return;
+    setSelectedKind("agent");
+    setSelectedUser(found);
+  };
+
+  const handleTransporterRowClick = (id: string) => {
+    const found = transportersRaw.find((t) => t.id === id);
+    if (!found) return;
+    setSelectedKind("transporter");
+    setSelectedUser(found);
+  };
+
+  const closeDetails = () => {
+    if (isSubmitting) return;
+    setSelectedUser(null);
+  };
+
+  const approveFromDetails = (id: string) => {
+    setSelectedUser(null);
+    requestApprove(selectedKind, id);
+  };
+
+  const selectedAgentIds = useMemo(
+    () => agents.filter((a) => a.checked).map((a) => a.id),
+    [agents],
+  );
+  const selectedTransporterIds = useMemo(
+    () => transporters.filter((t) => t.checked).map((t) => t.id),
+    [transporters],
+  );
+
+  const selectedIds =
+    activeTab === "Agents" ? selectedAgentIds : selectedTransporterIds;
+
+  const clearSelection = () => {
+    setAllChecked(false);
+    if (activeTab === "Agents") {
+      setAgents((prev) => prev.map((a) => ({ ...a, checked: false })));
+    } else {
+      setTransporters((prev) => prev.map((t) => ({ ...t, checked: false })));
+    }
+  };
+
+  const requestBulkApprove = () => {
+    if (selectedIds.length === 0) return;
+    setPendingBulk({
+      kind: activeTab === "Agents" ? "agent" : "transporter",
+      ids: selectedIds,
+    });
+  };
+
+  const cancelPendingBulk = () => {
+    if (isSubmitting) return;
+    setPendingBulk(null);
+  };
+
+  const confirmPendingBulk = async () => {
+    if (!pendingBulk) return;
+    const { kind, ids } = pendingBulk;
+    setIsSubmitting(true);
+    try {
+      if (kind === "agent") {
+        await approvalService.bulkUpdateAgentApproval({
+          agentIds: ids,
+          status: "approved",
+          reason: "Bulk approval",
+        });
+      } else {
+        await approvalService.bulkUpdateTransporterApproval({
+          transporterIds: ids,
+          status: "approved",
+          reason: "Bulk approval",
+        });
+      }
+      toast.success(
+        `${ids.length} ${kind}${ids.length > 1 ? "s" : ""} approved`,
+      );
+      clearSelection();
+      if (kind === "agent") {
+        await fetchRejectedAgents();
+      } else {
+        await fetchRejectedTransporters();
+      }
+      setPendingBulk(null);
+    } catch {
+      // service layer toasts
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const bulkActions: BulkAction[] =
+    selectedIds.length === 0
+      ? []
+      : [
+          {
+            id: "approve",
+            label: "Approve",
+            tone: "success",
+            onClick: requestBulkApprove,
+          },
+        ];
+
+  const bulkDisabled = isSubmitting;
+
   const cancelPending = () => {
     if (isSubmitting) return;
     setPendingId(null);
@@ -296,6 +432,7 @@ export default function RejectedPage() {
             handleCheckboxChange={handleCheckboxChange}
             handleSelectAll={handleSelectAll}
             allChecked={allChecked}
+            onRowClick={handleAgentRowClick}
           />
           {agents.length === 0 && (
             <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
@@ -317,6 +454,7 @@ export default function RejectedPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleTransporterRowClick}
         />
         {transporters.length === 0 && (
           <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
@@ -375,6 +513,10 @@ export default function RejectedPage() {
         <div className="h-px w-full bg-gray-200" />
       </div>
 
+      <div className="flex justify-end px-6 mt-3">
+        <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
+      </div>
+
       <div
         className="mb-4"
         role="tabpanel"
@@ -383,6 +525,16 @@ export default function RejectedPage() {
       >
         {renderContent()}
       </div>
+
+      <UserDetailsModal
+        isOpen={!!selectedUser}
+        kind={selectedKind}
+        user={selectedUser}
+        canReject={false}
+        isSubmitting={isSubmitting}
+        onClose={closeDetails}
+        onApprove={approveFromDetails}
+      />
 
       <ConfirmActionModal
         isOpen={!!pendingId}
@@ -393,6 +545,25 @@ export default function RejectedPage() {
         isSubmitting={isSubmitting}
         onCancel={cancelPending}
         onConfirm={confirmApprove}
+      />
+
+      <ConfirmActionModal
+        isOpen={!!pendingBulk}
+        title={
+          pendingBulk
+            ? `Approve ${pendingBulk.ids.length} ${pendingBulk.kind}${pendingBulk.ids.length > 1 ? "s" : ""}?`
+            : ""
+        }
+        description={
+          pendingBulk
+            ? `This will approve ${pendingBulk.ids.length} selected ${pendingBulk.kind}${pendingBulk.ids.length > 1 ? "s" : ""} and grant access to the platform.`
+            : ""
+        }
+        confirmLabel="Approve all"
+        tone="success"
+        isSubmitting={isSubmitting}
+        onCancel={cancelPendingBulk}
+        onConfirm={confirmPendingBulk}
       />
     </div>
   );

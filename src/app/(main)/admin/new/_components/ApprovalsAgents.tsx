@@ -12,6 +12,7 @@ import { CalenderIcon } from "@/icons/DashboardIcons";
 import { AgentActionMenu } from "./AgentActionMenu";
 import Image from "next/image";
 import { TableSkeleton } from "../../_components/TableSkeleton";
+import { BulkActionButtons } from "../../_components/BulkActionButtons";
 
 const months = [
   "Jan",
@@ -109,6 +110,9 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  onRowClick,
+  bulkActions = [],
+  bulkDisabled,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -435,6 +439,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
               </div>
             </div>
           </div>
+          <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
         </div>
       </div>
       <div className="mt-6 w-full">
@@ -452,6 +457,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
               handleCheckboxChange={handleCheckboxChange}
               handleSelectAll={handleSelectAll}
               allChecked={allChecked}
+              onRowClick={onRowClick}
             />
             {filteredAgents.length === 0 && (
               <div className="text-center py-10 text-gray-400 text-sm font-montserrat">

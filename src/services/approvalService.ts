@@ -12,6 +12,7 @@ export interface ApprovalQueryParams {
   state?: string;
   year?: string;
   month?: string;
+  status?: "pending" | "approved" | "rejected";
 }
 
 export interface ApprovalListResponse<T> {
@@ -43,6 +44,10 @@ interface ApiAgent {
   NIN?: string;
   createdAt?: string;
   date?: string;
+  businessName?: string;
+  status?: string;
+  agentApprovalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
   [key: string]: unknown;
 }
 
@@ -68,6 +73,10 @@ interface ApiTransporter {
   licenseNumber?: string;
   createdAt?: string;
   date?: string;
+  businessName?: string;
+  status?: string;
+  transporterApprovalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
   [key: string]: unknown;
 }
 
@@ -89,6 +98,13 @@ const mapApiAgent = (a: ApiAgent): AgentsProps => ({
   NIN: a.nin || a.NIN || "—",
   date: formatDate(a.createdAt || a.date),
   checked: false,
+  businessName: a.businessName,
+  address: a.address,
+  state: a.state,
+  approvalStatus: a.agentApprovalStatus,
+  approvalNotes: a.approvalNotes,
+  status: a.status,
+  createdAt: a.createdAt,
 });
 
 const mapApiTransporter = (t: ApiTransporter): TransportersProps => ({
@@ -103,6 +119,13 @@ const mapApiTransporter = (t: ApiTransporter): TransportersProps => ({
   plateNumber: t.plateNumber || t.licenseNumber || "—",
   date: formatDate(t.createdAt || t.date),
   checked: false,
+  businessName: t.businessName,
+  address: t.address,
+  state: t.state,
+  approvalStatus: t.transporterApprovalStatus,
+  approvalNotes: t.approvalNotes,
+  status: t.status,
+  createdAt: t.createdAt,
 });
 
 const extractList = <T,>(payload: unknown): T[] => {
@@ -159,6 +182,7 @@ export const approvalService = {
           ...(params.state ? { state: params.state } : {}),
           ...(params.year ? { year: params.year } : {}),
           ...(params.month ? { month: params.month } : {}),
+          ...(params.status ? { status: params.status } : {}),
           page: params.page ?? 1,
           limit: params.limit ?? 10,
         },
@@ -189,6 +213,19 @@ export const approvalService = {
     }
   },
 
+  // PATCH /api/admin/approvals/agents (bulk)
+  bulkUpdateAgentApproval: async (payload: {
+    agentIds: string[];
+    status: ApprovalDecision;
+    reason: string;
+  }): Promise<void> => {
+    try {
+      await api.patch("/api/admin/approvals/agents", payload);
+    } catch (error) {
+      return handleError(error, "bulk update agent approvals");
+    }
+  },
+
   // GET /api/admin/approvals/transporters
   getPendingTransporters: async (
     params: ApprovalQueryParams = {},
@@ -200,6 +237,7 @@ export const approvalService = {
           ...(params.state ? { state: params.state } : {}),
           ...(params.year ? { year: params.year } : {}),
           ...(params.month ? { month: params.month } : {}),
+          ...(params.status ? { status: params.status } : {}),
           page: params.page ?? 1,
           limit: params.limit ?? 10,
         },
@@ -227,6 +265,19 @@ export const approvalService = {
       await api.patch(`/api/admin/approvals/transporters/${id}`, payload);
     } catch (error) {
       return handleError(error, "update transporter approval");
+    }
+  },
+
+  // PATCH /api/admin/approvals/transporters (bulk)
+  bulkUpdateTransporterApproval: async (payload: {
+    transporterIds: string[];
+    status: ApprovalDecision;
+    reason: string;
+  }): Promise<void> => {
+    try {
+      await api.patch("/api/admin/approvals/transporters", payload);
+    } catch (error) {
+      return handleError(error, "bulk update transporter approvals");
     }
   },
 

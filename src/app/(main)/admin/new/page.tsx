@@ -11,6 +11,8 @@ import {
   ApprovalDecision,
 } from "@/services/approvalService";
 import { ConfirmActionModal } from "../_components/ConfirmActionModal";
+import { UserDetailsModal } from "../_components/UserDetailsModal";
+import { BulkAction } from "../_components/BulkActionBar";
 
 type SlideType = "Agents" | "Transporters";
 type ApprovalKind = "agent" | "transporter";
@@ -36,6 +38,12 @@ interface PendingAction {
   decision: ApprovalDecision;
 }
 
+interface PendingBulk {
+  kind: ApprovalKind;
+  ids: string[];
+  decision: ApprovalDecision;
+}
+
 export default function ApprovalPage() {
   const [activeTab, setActiveTab] = useState<SlideType>("Agents");
 
@@ -49,6 +57,13 @@ export default function ApprovalPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  const [selectedUser, setSelectedUser] = useState<
+    AgentsProps | TransportersProps | null
+  >(null);
+  const [selectedKind, setSelectedKind] = useState<ApprovalKind>("agent");
+
+  const [pendingBulk, setPendingBulk] = useState<PendingBulk | null>(null);
+
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState<IndicatorStyle>({
@@ -59,7 +74,7 @@ export default function ApprovalPage() {
   const fetchAgents = useCallback(async () => {
     setAgentsLoading(true);
     try {
-      const { data } = await approvalService.getPendingAgents();
+      const { data } = await approvalService.getPendingAgents({ limit: 10 });
       setAgents(data.map((a) => ({ ...a, checked: false })));
     } catch {
       setAgents([]);
@@ -71,7 +86,9 @@ export default function ApprovalPage() {
   const fetchTransporters = useCallback(async () => {
     setTransportersLoading(true);
     try {
-      const { data } = await approvalService.getPendingTransporters();
+      const { data } = await approvalService.getPendingTransporters({
+        limit: 10,
+      });
       setTransporters(data.map((t) => ({ ...t, checked: false })));
     } catch {
       setTransporters([]);
@@ -161,6 +178,130 @@ export default function ApprovalPage() {
   const handleTransporterDecline = (id: string) =>
     requestAction({ kind: "transporter", id, decision: "rejected" });
 
+  const handleAgentRowClick = (id: string) => {
+    const found = agents.find((a) => a.id === id);
+    if (!found) return;
+    setSelectedKind("agent");
+    setSelectedUser(found);
+  };
+
+  const handleTransporterRowClick = (id: string) => {
+    const found = transporters.find((t) => t.id === id);
+    if (!found) return;
+    setSelectedKind("transporter");
+    setSelectedUser(found);
+  };
+
+  const closeDetails = () => {
+    if (isSubmitting) return;
+    setSelectedUser(null);
+  };
+
+  const approveFromDetails = (id: string) => {
+    setSelectedUser(null);
+    requestAction({ kind: selectedKind, id, decision: "approved" });
+  };
+
+  const rejectFromDetails = (id: string) => {
+    setSelectedUser(null);
+    requestAction({ kind: selectedKind, id, decision: "rejected" });
+  };
+
+  const selectedAgentIds = useMemo(
+    () => agents.filter((a) => a.checked).map((a) => a.id),
+    [agents],
+  );
+  const selectedTransporterIds = useMemo(
+    () => transporters.filter((t) => t.checked).map((t) => t.id),
+    [transporters],
+  );
+
+  const selectedIds =
+    activeTab === "Agents" ? selectedAgentIds : selectedTransporterIds;
+
+  const clearSelection = () => {
+    setAllChecked(false);
+    if (activeTab === "Agents") {
+      setAgents((prev) => prev.map((a) => ({ ...a, checked: false })));
+    } else {
+      setTransporters((prev) => prev.map((t) => ({ ...t, checked: false })));
+    }
+  };
+
+  const requestBulk = (decision: ApprovalDecision) => {
+    if (selectedIds.length === 0) return;
+    setPendingBulk({
+      kind: activeTab === "Agents" ? "agent" : "transporter",
+      ids: selectedIds,
+      decision,
+    });
+  };
+
+  const cancelPendingBulk = () => {
+    if (isSubmitting) return;
+    setPendingBulk(null);
+  };
+
+  const confirmPendingBulk = async () => {
+    if (!pendingBulk) return;
+    const { kind, ids, decision } = pendingBulk;
+    const reason =
+      decision === "approved" ? "Bulk approval" : "Bulk rejection";
+
+    setIsSubmitting(true);
+    try {
+      if (kind === "agent") {
+        await approvalService.bulkUpdateAgentApproval({
+          agentIds: ids,
+          status: decision,
+          reason,
+        });
+      } else {
+        await approvalService.bulkUpdateTransporterApproval({
+          transporterIds: ids,
+          status: decision,
+          reason,
+        });
+      }
+      toast.success(
+        decision === "approved"
+          ? `${ids.length} ${kind}${ids.length > 1 ? "s" : ""} approved`
+          : `${ids.length} ${kind}${ids.length > 1 ? "s" : ""} rejected`,
+      );
+      clearSelection();
+      if (kind === "agent") {
+        await fetchAgents();
+      } else {
+        await fetchTransporters();
+      }
+      setPendingBulk(null);
+    } catch {
+      // service layer toasts
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const bulkActions: BulkAction[] =
+    selectedIds.length === 0
+      ? []
+      : [
+          {
+            id: "approve",
+            label: "Approve",
+            tone: "success",
+            onClick: () => requestBulk("approved"),
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            tone: "danger",
+            onClick: () => requestBulk("rejected"),
+          },
+        ];
+
+  const bulkDisabled = isSubmitting;
+
   const cancelPendingAction = () => {
     if (isSubmitting) return;
     setPendingAction(null);
@@ -234,6 +375,9 @@ export default function ApprovalPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleAgentRowClick}
+          bulkActions={bulkActions}
+          bulkDisabled={bulkDisabled}
         />
       ),
       Transporters: (
@@ -245,6 +389,9 @@ export default function ApprovalPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleTransporterRowClick}
+          bulkActions={bulkActions}
+          bulkDisabled={bulkDisabled}
         />
       ),
     };
@@ -312,6 +459,16 @@ export default function ApprovalPage() {
         {renderContent()}
       </div>
 
+      <UserDetailsModal
+        isOpen={!!selectedUser}
+        kind={selectedKind}
+        user={selectedUser}
+        isSubmitting={isSubmitting}
+        onClose={closeDetails}
+        onApprove={approveFromDetails}
+        onReject={rejectFromDetails}
+      />
+
       <ConfirmActionModal
         isOpen={!!pendingAction}
         title={`${modalIsApprove ? "Approve" : "Reject"} ${modalSubject}?`}
@@ -325,6 +482,29 @@ export default function ApprovalPage() {
         isSubmitting={isSubmitting}
         onCancel={cancelPendingAction}
         onConfirm={confirmPendingAction}
+      />
+
+      <ConfirmActionModal
+        isOpen={!!pendingBulk}
+        title={
+          pendingBulk
+            ? `${pendingBulk.decision === "approved" ? "Approve" : "Reject"} ${pendingBulk.ids.length} ${pendingBulk.kind}${pendingBulk.ids.length > 1 ? "s" : ""}?`
+            : ""
+        }
+        description={
+          pendingBulk
+            ? pendingBulk.decision === "approved"
+              ? `This will approve ${pendingBulk.ids.length} selected ${pendingBulk.kind}${pendingBulk.ids.length > 1 ? "s" : ""} and grant access to the platform.`
+              : `This will reject ${pendingBulk.ids.length} selected ${pendingBulk.kind}${pendingBulk.ids.length > 1 ? "s' applications" : "'s application"}.`
+            : ""
+        }
+        confirmLabel={
+          pendingBulk?.decision === "approved" ? "Approve all" : "Reject all"
+        }
+        tone={pendingBulk?.decision === "approved" ? "success" : "danger"}
+        isSubmitting={isSubmitting}
+        onCancel={cancelPendingBulk}
+        onConfirm={confirmPendingBulk}
       />
     </div>
   );

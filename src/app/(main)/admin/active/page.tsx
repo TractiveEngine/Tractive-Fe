@@ -12,6 +12,15 @@ import {
   AdminUser,
 } from "@/services/adminUserService";
 import { TableSkeleton } from "../_components/TableSkeleton";
+import { ConfirmActionModal } from "../_components/ConfirmActionModal";
+import { BulkAction } from "../_components/BulkActionBar";
+
+type BulkUserAction = "suspend" | "remove" | "reactivate";
+
+interface PendingBulk {
+  action: BulkUserAction;
+  ids: string[];
+}
 
 type SlideType = "Active" | "Suspended" | "Removed";
 
@@ -70,6 +79,9 @@ export default function ActivePage() {
   const [totalItems, setTotalItems] = useState<number>(0);
   const pageSizeOptions = [5, 10, 20, 50];
   const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+  const [pendingBulk, setPendingBulk] = useState<PendingBulk | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -226,6 +238,134 @@ export default function ActivePage() {
     await handleReactivate(id);
   };
 
+  const selectedIds = useMemo(
+    () => data.filter((u) => u.checked).map((u) => u.id),
+    [data],
+  );
+
+  const clearSelection = () => {
+    setAllChecked(false);
+    setData((prev) => prev.map((u) => ({ ...u, checked: false })));
+  };
+
+  const requestBulk = (action: BulkUserAction) => {
+    if (selectedIds.length === 0) return;
+    setPendingBulk({ action, ids: selectedIds });
+  };
+
+  const cancelPendingBulk = () => {
+    if (isSubmitting) return;
+    setPendingBulk(null);
+  };
+
+  const confirmPendingBulk = async () => {
+    if (!pendingBulk) return;
+    const { action, ids } = pendingBulk;
+    setIsSubmitting(true);
+    try {
+      if (action === "suspend") {
+        await adminUserService.bulkUpdateUserStatus({
+          userIds: ids,
+          status: "suspended",
+        });
+        toast.success(`${ids.length} user${ids.length > 1 ? "s" : ""} suspended`);
+      } else if (action === "remove") {
+        await adminUserService.bulkRemoveUsers({ userIds: ids });
+        toast.success(`${ids.length} user${ids.length > 1 ? "s" : ""} removed`);
+      } else {
+        await adminUserService.bulkReactivateUsers({ userIds: ids });
+        toast.success(
+          `${ids.length} user${ids.length > 1 ? "s" : ""} reactivated`,
+        );
+      }
+      clearSelection();
+      await fetchForTab(activeTab, page, limit);
+      setPendingBulk(null);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Bulk action failed",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const bulkActions = useMemo<BulkAction[]>(() => {
+    if (selectedIds.length === 0) return [];
+    if (activeTab === "Active") {
+      return [
+        {
+          id: "suspend",
+          label: "Suspend",
+          tone: "success",
+          onClick: () => requestBulk("suspend"),
+        },
+        {
+          id: "remove",
+          label: "Remove",
+          tone: "danger",
+          onClick: () => requestBulk("remove"),
+        },
+      ];
+    }
+    if (activeTab === "Suspended") {
+      return [
+        {
+          id: "reactivate",
+          label: "Reactivate",
+          tone: "success",
+          onClick: () => requestBulk("reactivate"),
+        },
+        {
+          id: "remove",
+          label: "Remove",
+          tone: "danger",
+          onClick: () => requestBulk("remove"),
+        },
+      ];
+    }
+    return [
+      {
+        id: "onboard",
+        label: "Onboard",
+        tone: "success",
+        onClick: () => requestBulk("reactivate"),
+      },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedIds]);
+
+  const bulkDisabled = isSubmitting;
+
+  const bulkConfirm = (() => {
+    if (!pendingBulk)
+      return { title: "", description: "", confirmLabel: "", tone: "info" as const };
+    const count = pendingBulk.ids.length;
+    const plural = count > 1 ? "s" : "";
+    if (pendingBulk.action === "suspend") {
+      return {
+        title: `Suspend ${count} user${plural}?`,
+        description: `This will suspend ${count} selected user${plural}. They will lose access until reactivated.`,
+        confirmLabel: "Suspend all",
+        tone: "danger" as const,
+      };
+    }
+    if (pendingBulk.action === "remove") {
+      return {
+        title: `Remove ${count} user${plural}?`,
+        description: `This will remove ${count} selected user${plural} from the platform.`,
+        confirmLabel: "Remove all",
+        tone: "danger" as const,
+      };
+    }
+    return {
+      title: `Reactivate ${count} user${plural}?`,
+      description: `This will reactivate ${count} selected user${plural} and restore platform access.`,
+      confirmLabel: "Reactivate all",
+      tone: "success" as const,
+    };
+  })();
+
   useEffect(() => {
     const updateIndicator = () => {
       const activeTabIndex = tabs.findIndex((tab) => tab.label === activeTab);
@@ -265,6 +405,8 @@ export default function ActivePage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          bulkActions={bulkActions}
+          bulkDisabled={bulkDisabled}
         />
       ),
       Suspended: (
@@ -275,6 +417,8 @@ export default function ActivePage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          bulkActions={bulkActions}
+          bulkDisabled={bulkDisabled}
         />
       ),
       Removed: (
@@ -284,6 +428,8 @@ export default function ActivePage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          bulkActions={bulkActions}
+          bulkDisabled={bulkDisabled}
         />
       ),
     };
@@ -346,6 +492,17 @@ export default function ActivePage() {
       >
         {renderContent()}
       </div>
+
+      <ConfirmActionModal
+        isOpen={!!pendingBulk}
+        title={bulkConfirm.title}
+        description={bulkConfirm.description}
+        confirmLabel={bulkConfirm.confirmLabel}
+        tone={bulkConfirm.tone}
+        isSubmitting={isSubmitting}
+        onCancel={cancelPendingBulk}
+        onConfirm={confirmPendingBulk}
+      />
 
       {!isLoading && totalItems > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">

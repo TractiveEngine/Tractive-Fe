@@ -4,7 +4,22 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AdminActionMenuProps } from "../AdminActionMenuProps";
 import "../../Table.css";
-import { TickIcon } from "../../../../../app/(main)/agent/_components/Icons/AgentIcons";
+
+const CheckTickIcon = () => (
+  <svg
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
+    viewBox="0 0 16 16"
+    fill="#fefefe"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M6.4 11.2L3.2 8L2 9.2L6.4 13.6L14 6L12.8 4.8L6.4 11.2Z"
+      stroke="#fefefe"
+      strokeWidth="1"
+    />
+  </svg>
+);
 
 interface BaseData {
   id: string;
@@ -227,7 +242,7 @@ export const AdminTable = <T extends BaseData>({
                     onChange={handleSelectAll}
                     className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
                   />
-                  {allChecked && <TickIcon />}
+                  {allChecked && <CheckTickIcon />}
                 </div>
               </th>
             )}
@@ -269,7 +284,7 @@ export const AdminTable = <T extends BaseData>({
                       onChange={() => handleCheckboxChange?.(item.id)}
                       className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
                     />
-                    {item.checked && <TickIcon />}
+                    {item.checked && <CheckTickIcon />}
                   </div>
                 </td>
               )}

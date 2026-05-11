@@ -12,6 +12,7 @@ import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TransporterActionMenu } from "./TransporterActionMenu";
 import Image from "next/image";
 import { TableSkeleton } from "../../_components/TableSkeleton";
+import { BulkActionButtons } from "../../_components/BulkActionButtons";
 
 const months = [
   "Jan",
@@ -108,6 +109,9 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  onRowClick,
+  bulkActions = [],
+  bulkDisabled,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -423,6 +427,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
               </div>
             </div>
           </div>
+          <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
         </div>
       </div>
       <div className="mt-6 w-full">
@@ -440,6 +445,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
               handleCheckboxChange={handleCheckboxChange}
               handleSelectAll={handleSelectAll}
               allChecked={allChecked}
+              onRowClick={onRowClick}
             />
             {filteredTransporters.length === 0 && (
               <div className="text-center py-10 text-gray-400 text-sm font-montserrat">

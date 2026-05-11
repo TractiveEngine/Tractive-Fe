@@ -153,6 +153,41 @@ export const adminUserService = {
     }
   },
 
+  // PATCH /api/admin/users/status (bulk)
+  bulkUpdateUserStatus: async (payload: {
+    userIds: string[];
+    status: AdminUserStatus;
+  }): Promise<void> => {
+    try {
+      await api.patch("/api/admin/users/status", payload);
+    } catch (error) {
+      return handleApiError(error, "bulk update user status");
+    }
+  },
+
+  // POST /api/admin/users/reactivate (bulk)
+  bulkReactivateUsers: async (payload: {
+    userIds: string[];
+  }): Promise<void> => {
+    try {
+      await api.post("/api/admin/users/reactivate", payload);
+    } catch (error) {
+      return handleApiError(error, "bulk reactivate users");
+    }
+  },
+
+  // PATCH /api/admin/users/remove (bulk)
+  bulkRemoveUsers: async (payload: { userIds: string[] }): Promise<void> => {
+    try {
+      await api.patch("/api/admin/users/remove", {
+        ...payload,
+        status: "removed",
+      });
+    } catch (error) {
+      return handleApiError(error, "bulk remove users");
+    }
+  },
+
   // GET /api/admin/users/removed
   getRemovedUsers: async (
     params: Omit<AdminUserListParams, "status"> = {},
