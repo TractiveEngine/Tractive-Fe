@@ -12,6 +12,7 @@ import {
   FleetTripStatus,
   FleetTripSummary,
 } from "@/services/fleetTripService";
+import { TableSkeleton } from "../../_components/TableSkeleton";
 
 // Define types for slide switching
 type SlideType = "Picked" | "OnTransit" | "Delivered";
@@ -92,7 +93,7 @@ export default function TrackTransporterPage() {
   const [activeTab, setActiveTab] = useState<SlideType>("Picked");
 
   // Fetch real fleet trips for the active tab's status
-  const { data: tripsRaw } = useFleetTrips({
+  const { data: tripsRaw, isLoading } = useFleetTrips({
     status: TAB_TO_STATUS[activeTab],
   });
 
@@ -233,6 +234,9 @@ export default function TrackTransporterPage() {
 
   // Render the appropriate component based on activeTab
   const renderContent = () => {
+    if (isLoading) {
+      return <TableSkeleton columns={6} rows={6} />;
+    }
     const componentMap: Record<SlideType, React.ReactNode> = {
       Picked: (
         <TrackPicked

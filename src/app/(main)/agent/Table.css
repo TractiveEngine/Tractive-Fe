@@ -1,5 +1,5 @@
 .Table_Container {
-  @apply mb-[1rem] w-full max-w-[100vw] overflow-x-auto overflow-y-hidden shadow-[inset_-10px_0_8px_-8px_rgba(0\\,_0\\,_0\\,_0.05)];
+  @apply mb-[1rem] w-full max-w-[100vw] overflow-x-auto overflow-y-hidden px-[1rem] shadow-[inset_-10px_0_8px_-8px_rgba(0\\,_0\\,_0\\,_0.05)];
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,4 +27,24 @@
 
 .Table_Style {
   @apply w-full rounded-[8px] table-auto;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.Table_Style tbody tr td {
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff;
+}
+
+.Table_Style tbody tr td:first-child {
+  border-left: 1px solid #e5e7eb;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.Table_Style tbody tr td:last-child {
+  border-right: 1px solid #e5e7eb;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }

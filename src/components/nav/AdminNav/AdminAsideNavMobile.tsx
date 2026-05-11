@@ -130,7 +130,7 @@ export const AdminAsideNavMobile = ({
       title: "Approvers",
       items: [
         { href: "/admin/new", icon: UserIcon, label: "New", hasDot: true },
-        { href: "/admin/declined", icon: userRemoveIcon, label: "Declined" },
+        { href: "/admin/rejected", icon: userRemoveIcon, label: "Rejected" },
       ],
     },
     {

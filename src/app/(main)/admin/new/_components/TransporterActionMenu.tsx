@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AdminActionMenuProps } from "../../_components/AdminActionMenuProps";
 import { ThreeDotIcon } from "@/app/(main)/agent/produce-list/_components/table/ActionMenu";
 
-export const FarmerActionMenu: React.FC<AdminActionMenuProps> = ({
+export const TransporterActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
-  handleFarmerApprove,
-  handleFarmerDecline,
+  handleTransporterApprove,
+  handleTransporterDecline,
 }) => {
   const [isActive, setIsActive] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -47,10 +47,10 @@ export const FarmerActionMenu: React.FC<AdminActionMenuProps> = ({
             exit="hidden"
             transition={{ duration: 0.2 }}
           >
-            {handleFarmerApprove && (
+            {handleTransporterApprove && (
               <button
                 onClick={() => {
-                  handleFarmerApprove(userTypeId);
+                  handleTransporterApprove(userTypeId);
                   setIsActive(false);
                 }}
                 className="w-full text-left px-2 py-1 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
@@ -58,15 +58,15 @@ export const FarmerActionMenu: React.FC<AdminActionMenuProps> = ({
                 Approve
               </button>
             )}
-            {handleFarmerDecline && (
+            {handleTransporterDecline && (
               <button
                 onClick={() => {
-                  handleFarmerDecline(userTypeId);
+                  handleTransporterDecline(userTypeId);
                   setIsActive(false);
                 }}
                 className="w-full text-left px-2 py-1 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
               >
-                Decline
+                Reject
               </button>
             )}
           </motion.div>

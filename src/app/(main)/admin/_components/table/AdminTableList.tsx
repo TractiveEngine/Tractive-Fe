@@ -42,6 +42,8 @@ interface ListTableProps<T extends BaseData> {
   handleAgentDecline?: (id: string) => void;
   handleFarmerApprove?: (id: string) => void;
   handleFarmerDecline?: (id: string) => void;
+  handleTransporterApprove?: (id: string) => void;
+  handleTransporterDecline?: (id: string) => void;
   handleAdminSuspended?: (id: string) => void;
   handleAdminOnboarding?: (id: string) => void;
   handleTransporterInfo?: (id: string) => void;
@@ -81,6 +83,8 @@ export const AdminTable = <T extends BaseData>({
   ActionMenuComponent,
   handleFarmerApprove,
   handleFarmerDecline,
+  handleTransporterApprove,
+  handleTransporterDecline,
   handleAdminSuspended,
   handleCheckboxChange,
   handleAdminOnboarding,
@@ -95,6 +99,7 @@ export const AdminTable = <T extends BaseData>({
     "TransactionalData",
     "AgentsData",
     "FarmersData",
+    "TransportersData",
     "ASRDataControl",
   ].includes(dataType);
 
@@ -148,6 +153,16 @@ export const AdminTable = <T extends BaseData>({
 
   const defaultHandleFarmerDecline = (id: string) => {
     console.log(`Default handleFarmerDecline called for id: ${id}`);
+    alert(`Decline ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleTransporterApprove = (id: string) => {
+    console.log(`Default handleTransporterApprove called for id: ${id}`);
+    alert(`Approve ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleTransporterDecline = (id: string) => {
+    console.log(`Default handleTransporterDecline called for id: ${id}`);
     alert(`Decline ${dataType} with ID: ${id}`);
   };
 
@@ -328,6 +343,18 @@ export const AdminTable = <T extends BaseData>({
                     handleFarmerDecline={
                       dataType === "FarmersData"
                         ? handleFarmerDecline || defaultHandleFarmerDecline
+                        : undefined
+                    }
+                    handleTransporterApprove={
+                      dataType === "TransportersData"
+                        ? handleTransporterApprove ||
+                          defaultHandleTransporterApprove
+                        : undefined
+                    }
+                    handleTransporterDecline={
+                      dataType === "TransportersData"
+                        ? handleTransporterDecline ||
+                          defaultHandleTransporterDecline
                         : undefined
                     }
                     handleAdminSuspended={

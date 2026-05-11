@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { SearchIcon } from "@/icons/Icons";
+import { XIcon } from "@/icons/Icon1";
 import { OrderListCard } from "./_components/OrderListCard";
 import { OrderTrackingMap } from "./_components/OrderTrackingMap";
 import { TransporterInfoPanel } from "./_components/TransporterInfoPanel";
@@ -25,16 +26,18 @@ const asObject = (v: unknown): ApiObject =>
 
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
-const asString = (v: unknown, fallback = "—"): string =>
+const NA = "N/A";
+
+const asString = (v: unknown, fallback: string = NA): string =>
   typeof v === "string" && v ? v : fallback;
 
 const asNumber = (v: unknown, fallback = 0): number =>
   typeof v === "number" ? v : fallback;
 
 const formatDateShort = (iso?: unknown): string => {
-  if (typeof iso !== "string" || !iso) return "—";
+  if (typeof iso !== "string" || !iso) return NA;
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return NA;
   return d.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
@@ -68,48 +71,48 @@ const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
 
   const updatedAt = formatDateShort(o.updatedAt);
   const pickedAt =
-    formatDateShort(o.pickedAt) !== "—"
+    formatDateShort(o.pickedAt) !== NA
       ? formatDateShort(o.pickedAt)
       : status !== "pending"
         ? updatedAt
-        : "—";
+        : NA;
   const onTransitAt =
-    formatDateShort(o.onTransitAt) !== "—"
+    formatDateShort(o.onTransitAt) !== NA
       ? formatDateShort(o.onTransitAt)
       : status === "on_transit" || status === "delivered"
         ? updatedAt
-        : "—";
+        : NA;
   const deliveredAt =
-    formatDateShort(o.deliveredAt) !== "—"
+    formatDateShort(o.deliveredAt) !== NA
       ? formatDateShort(o.deliveredAt)
       : status === "delivered"
         ? updatedAt
-        : "—";
+        : NA;
 
   return {
     id,
     transporter: {
-      name: asString(transporter.name ?? transporter.businessName, "Transporter"),
+      name: asString(transporter.name ?? transporter.businessName),
       logo: asString(transporter.logo ?? transporter.image, "/images/truckcontainer.png"),
-      rating: asNumber(transporter.rating, 4),
+      rating: asNumber(transporter.rating, 0),
       avatar: asString(transporter.avatar ?? transporter.image, "/images/profileSettingImage.png"),
-      company: asString(transporter.company ?? transporter.businessName ?? transporter.name, "Goddess corporation"),
-      location: asString(transporter.location, asString(firstLine.localTransportFrom, "—")),
+      company: asString(transporter.company ?? transporter.businessName ?? transporter.name),
+      location: asString(transporter.location, asString(firstLine.localTransportFrom)),
       yearsOfService: asNumber(transporter.yearsOfService, 0),
       followers: asNumber(transporter.followers, 0),
-      ratingLabel: asString(transporter.ratingLabel, "—"),
+      ratingLabel: asString(transporter.ratingLabel),
     },
     fleet: {
-      name: asString(fleet.fleetName ?? fleet.name ?? fleet.plateNumber, "—"),
-      iot: asString(fleet.iot ?? fleet.plateNumber, "—"),
+      name: asString(fleet.fleetName ?? fleet.name ?? fleet.plateNumber),
+      iot: asString(fleet.iot ?? fleet.plateNumber),
       image: asString(
         fleet.image ?? asArray(fleet.images)[0],
         "/images/truckcontainer.png",
       ),
     },
     product: {
-      name: asString(firstProduct.name, "—"),
-      id: asString(firstProduct._id ?? firstProduct.id, "—"),
+      name: asString(firstProduct.name),
+      id: asString(firstProduct._id ?? firstProduct.id),
       image: asString(productImages[0], "/images/foodTracked.png"),
     },
     status,
@@ -117,13 +120,9 @@ const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
     onTransitAt,
     deliveredAt,
     estDeliveryDate: formatDateShort(o.estDeliveryDate),
-    fromLocation: asString(
-      o.fromLocation ?? firstLine.localTransportFrom,
-      "—",
-    ),
+    fromLocation: asString(o.fromLocation ?? firstLine.localTransportFrom),
     toLocation: asString(
       o.toLocation ?? firstLine.localTransportTo ?? o.address,
-      "—",
     ),
     packages: products.map((p, i): TrackOrderPackage => {
       const line = asObject(p);
@@ -131,8 +130,8 @@ const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
       const imgs = asArray(prod.images);
       return {
         id: asString(line._id ?? prod._id ?? `pkg-${i}`, `pkg-${i}`),
-        productId: asString(prod._id ?? prod.id, "—"),
-        name: asString(prod.name, "—"),
+        productId: asString(prod._id ?? prod.id),
+        name: asString(prod.name),
         image: asString(imgs[0], "/images/foodTracked.png"),
         description: asString(prod.description, ""),
       };
@@ -154,6 +153,14 @@ export default function BuyerTrackOrdersPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("new");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedId, setSelectedId] = useState<string>("");
+  // Mobile-only: when the user taps an order card, show details in a modal
+  // instead of pushing the panel below the list.
+  const [mobileDetailOpen, setMobileDetailOpen] = useState<boolean>(false);
+
+  const handleSelectOrder = (id: string) => {
+    setSelectedId(id);
+    setMobileDetailOpen(true);
+  };
 
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
@@ -236,6 +243,26 @@ export default function BuyerTrackOrdersPage() {
     if (!stillVisible) setSelectedId(filteredOrders[0].id);
   }, [filteredOrders, selectedId]);
 
+  // Lock body scroll while the mobile modal is open
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileDetailOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileDetailOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileDetailOpen]);
+
   const selectedOrder = useMemo(
     () => trackOrders.find((o) => o.id === selectedId) ?? null,
     [trackOrders, selectedId],
@@ -317,14 +344,15 @@ export default function BuyerTrackOrdersPage() {
                 key={order.id}
                 order={order}
                 selected={order.id === selectedOrder?.id}
-                onSelect={setSelectedId}
+                onSelect={handleSelectOrder}
               />
             ))
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      {/* Desktop: side-by-side details panel. Hidden below lg, where the modal takes over. */}
+      <div className="hidden lg:flex flex-col gap-4">
         {isLoading ? (
           <TrackingDetailSkeleton />
         ) : selectedOrder ? (
@@ -341,6 +369,56 @@ export default function BuyerTrackOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile/tablet: tracking detail in a modal so it doesn't push the list down. */}
+      <AnimatePresence>
+        {mobileDetailOpen && selectedOrder && (
+          <motion.div
+            key="track-order-mobile-modal"
+            className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Order tracking details"
+          >
+            <button
+              type="button"
+              aria-label="Close tracking details"
+              onClick={() => setMobileDetailOpen(false)}
+              className="absolute inset-0 bg-black/50 cursor-pointer"
+            />
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="relative w-full sm:w-[90%] sm:max-w-140 max-h-[90vh] overflow-y-auto bg-[#f7f7f7] rounded-t-2xl sm:rounded-2xl p-3 sm:p-4 flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-montserrat font-medium text-[14px] text-[#2b2b2b]">
+                  Tracking details
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMobileDetailOpen(false)}
+                  aria-label="Close"
+                  className="w-8 h-8 rounded-full bg-[#fefefe] shadow flex items-center justify-center cursor-pointer hover:bg-[#f1f1f1]"
+                >
+                  <XIcon />
+                </button>
+              </div>
+              <OrderTrackingMap order={selectedOrder} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <TransporterInfoPanel order={selectedOrder} />
+                <PackagesPanel order={selectedOrder} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

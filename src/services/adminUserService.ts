@@ -18,6 +18,8 @@ export interface AdminUser {
   activeRole?: string;
   roles?: string[];
   status?: AdminUserStatus | string;
+  agentApprovalStatus?: boolean;
+  transporterApprovalStatus?: boolean;
   createdAt?: string;
   updatedAt?: string;
   // Allow unknown backend fields until the exact return shape is confirmed.
@@ -30,6 +32,8 @@ export interface AdminUserListParams {
   search?: string;
   page?: number;
   limit?: number;
+  agentApprovalStatus?: boolean;
+  transporterApprovalStatus?: boolean;
 }
 
 export interface AdminUserListResponse {
@@ -76,6 +80,12 @@ export const adminUserService = {
           ...(params.profession ? { profession: params.profession } : {}),
           ...(params.status ? { status: params.status } : {}),
           ...(params.search ? { search: params.search } : {}),
+          ...(typeof params.agentApprovalStatus === "boolean"
+            ? { agentApprovalStatus: params.agentApprovalStatus }
+            : {}),
+          ...(typeof params.transporterApprovalStatus === "boolean"
+            ? { transporterApprovalStatus: params.transporterApprovalStatus }
+            : {}),
           page: params.page ?? 1,
           limit: params.limit ?? 10,
         },
@@ -114,6 +124,21 @@ export const adminUserService = {
       return response.data?.data ?? response.data;
     } catch (error) {
       return handleApiError(error, "update user");
+    }
+  },
+
+  // PATCH /api/admin/users/{id}/status
+  updateUserStatus: async (
+    id: string,
+    status: AdminUserStatus,
+  ): Promise<AdminUser> => {
+    try {
+      const response = await api.patch(`/api/admin/users/${id}/status`, {
+        status,
+      });
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      return handleApiError(error, "update user status");
     }
   },
 

@@ -1,6 +1,6 @@
 import {
-  AgentsProps,
-  ApprovalsAgentsProps,
+  TransportersProps,
+  ApprovalsTransportersProps,
 } from "@/utils/Approvals";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,8 +9,9 @@ import AdminTable, {
 } from "../../_components/table/AdminTableList";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
-import { AgentActionMenu } from "./AgentActionMenu";
+import { TransporterActionMenu } from "./TransporterActionMenu";
 import Image from "next/image";
+import { TableSkeleton } from "../../_components/TableSkeleton";
 
 const months = [
   "Jan",
@@ -27,7 +28,6 @@ const months = [
   "Dec",
 ];
 
-// List of Nigeria's 36 states plus FCT
 const nigeriaStates = [
   "Abia",
   "Adamawa",
@@ -68,11 +68,11 @@ const nigeriaStates = [
   "Zamfara",
 ];
 
-const columns: ColumnConfig<AgentsProps>[] = [
+const columns: ColumnConfig<TransportersProps>[] = [
   {
     key: "fullname",
     header: "FullName",
-    render: (item: AgentsProps) => (
+    render: (item: TransportersProps) => (
       <div className="flex items-center gap-3">
         <Image
           src={item.image}
@@ -94,16 +94,17 @@ const columns: ColumnConfig<AgentsProps>[] = [
     minWidth: "min-w-[200px]",
   },
   { key: "location", header: "Location", minWidth: "min-w-[120px]" },
-  { key: "profession", header: "Profession", minWidth: "min-w-[100px]" },
+  { key: "vehicleType", header: "Vehicle", minWidth: "min-w-[100px]" },
+  { key: "plateNumber", header: "Plate Number", minWidth: "min-w-[110px]" },
   { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
-  { key: "NIN", header: "NIN", minWidth: "min-w-[100px]" },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 
-export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
+export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
   data,
-  handleAgentApprove,
-  handleAgentDecline,
+  isLoading = false,
+  handleTransporterApprove,
+  handleTransporterDecline,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
@@ -119,32 +120,29 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   const monthDropdownRef = useRef<HTMLDivElement>(null);
   const stateDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-  const filteredAgents = useMemo(() => {
-    return data.filter((agent) => {
-      const matchesYear = selectedYear
-        ? agent.date.includes(selectedYear)
-        : true;
+
+  const filteredTransporters = useMemo(() => {
+    return data.filter((t) => {
+      const matchesYear = selectedYear ? t.date.includes(selectedYear) : true;
       const matchesMonth = selectedMonth
-        ? agent.date.startsWith(
+        ? t.date.startsWith(
             `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
               months.indexOf(selectedMonth) + 1
-            }`
+            }`,
           )
         : true;
       const matchesState = selectedState
-        ? agent.location.toLowerCase() === selectedState.toLowerCase()
+        ? t.location.toLowerCase() === selectedState.toLowerCase()
         : true;
       const matchesSearch = searchTerm
-        ? agent.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          agent.email.toLowerCase().includes(searchTerm.toLowerCase())
+        ? t.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.email.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
       return matchesYear && matchesMonth && matchesState && matchesSearch;
     });
   }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -170,7 +168,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -183,7 +180,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Dropdown animation variants
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -10 },
@@ -193,9 +189,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
     <div className="w-full mx-auto">
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 px-6">
-          {/* Search and Dropdowns */}
           <div className="flex flex-col sm:flex-row items-center gap-4 w-[100%] sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%]">
-            {/* Search Input */}
             <div className="relative w-[100%] sm:w-[70%] flex-grow">
               <input
                 type="text"
@@ -203,11 +197,11 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
-                aria-label="Search all transactions"
+                aria-label="Search all transporters"
                 aria-describedby="search-description"
               />
               <span id="search-description" className="sr-only">
-                Search for transactions by name or email
+                Search for transporters by name or email
               </span>
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <SearchIcon
@@ -218,7 +212,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
             </div>
             <div className="flex items-center gap-8 w-full sm:w-auto">
               <div className="flex items-center w-full sm:w-auto">
-                {/* Year Dropdown */}
                 <div className="relative flex-1" ref={yearDropdownRef}>
                   <button
                     onClick={() => setIsYearOpen(!isYearOpen)}
@@ -292,7 +285,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                   </AnimatePresence>
                 </div>
 
-                {/* Month Dropdown */}
                 <div className="relative flex-1" ref={monthDropdownRef}>
                   <button
                     onClick={() => setIsMonthOpen(!isMonthOpen)}
@@ -362,7 +354,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                 </div>
               </div>
 
-              {/* State Dropdown */}
               <div className="relative flex-1" ref={stateDropdownRef}>
                 <button
                   onClick={() => setIsStateOpen(!isStateOpen)}
@@ -435,17 +426,28 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
         </div>
       </div>
       <div className="mt-6 w-full">
-        <AdminTable<AgentsProps>
-          dataType="AgentsData"
-          columns={columns}
-          initialData={filteredAgents}
-          ActionMenuComponent={AgentActionMenu}
-          handleApprove={handleAgentApprove}
-          handleDecline={handleAgentDecline}
-          handleCheckboxChange={handleCheckboxChange}
-          handleSelectAll={handleSelectAll}
-          allChecked={allChecked}
-        />
+        {isLoading ? (
+          <TableSkeleton columns={columns.length} rows={6} />
+        ) : (
+          <>
+            <AdminTable<TransportersProps>
+              dataType="TransportersData"
+              columns={columns}
+              initialData={filteredTransporters}
+              ActionMenuComponent={TransporterActionMenu}
+              handleTransporterApprove={handleTransporterApprove}
+              handleTransporterDecline={handleTransporterDecline}
+              handleCheckboxChange={handleCheckboxChange}
+              handleSelectAll={handleSelectAll}
+              allChecked={allChecked}
+            />
+            {filteredTransporters.length === 0 && (
+              <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+                No transporters pending approval.
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

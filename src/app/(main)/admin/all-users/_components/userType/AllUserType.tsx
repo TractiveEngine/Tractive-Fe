@@ -79,27 +79,6 @@ const nigeriaStates = [
 type statusTypes = "All" | "Active" | "Suspended" | "Removed";
 const statusTypes: statusTypes[] = ["All", "Active", "Suspended", "Removed"];
 
-type ProfessionTypes = "All" | "Agents" | "Transporter" | "Buyer";
-const ProfessionTypes: ProfessionTypes[] = [
-  "All",
-  "Agents",
-  "Transporter",
-  "Buyer",
-];
-
-const professionToApi = (p: ProfessionTypes): AdminProfession | undefined => {
-  switch (p) {
-    case "Agents":
-      return "agent";
-    case "Transporter":
-      return "transporter";
-    case "Buyer":
-      return "buyer";
-    default:
-      return undefined;
-  }
-};
-
 const statusToApi = (s: statusTypes): AdminUserStatus | undefined => {
   switch (s) {
     case "Active":
@@ -116,7 +95,14 @@ const statusToApi = (s: statusTypes): AdminUserStatus | undefined => {
 const titleCase = (s: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 
-const mapToUiUser = (u: AdminUser): User => {
+const professionArray = (u: AdminUser): string[] => {
+  const raw = u.profession;
+  if (Array.isArray(raw)) return raw.map((p) => String(p).toLowerCase());
+  if (typeof raw === "string") return [raw.toLowerCase()];
+  return [];
+};
+
+const mapToUiUser = (u: AdminUser, displayProfession?: string): User => {
   const id = (u._id as string) || "";
   const statusRaw = (u.status as string) || "active";
   const activeRole = (u.activeRole as string) || "";
@@ -127,7 +113,7 @@ const mapToUiUser = (u: AdminUser): User => {
     fullname: (u.name as string) || "Unknown",
     email: (u.email as string) || "",
     location: (u.state as string) || (u.address as string) || "—",
-    profession: titleCase(activeRole),
+    profession: titleCase(displayProfession || activeRole),
     mobile: (u.phone as string) || "",
     status: titleCase(statusRaw),
     date: u.createdAt
@@ -228,21 +214,17 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<statusTypes>("All");
-  const [selectedProfession, setSelectedProfession] =
-    useState<ProfessionTypes>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
   const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
-  const [isProfessionOpen, setIsProfessionOpen] = useState<boolean>(false);
   const [allChecked, setAllChecked] = useState<boolean>(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
-  const ProfessionDropdownRef = useRef<HTMLDivElement>(null);
 
   const pageSizeOptions = [5, 10, 20, 50];
   const totalPages = Math.max(1, Math.ceil(totalItems / limit));
@@ -259,21 +241,24 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
   // Reset to first page whenever filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedProfession, selectedStatus, debouncedSearch]);
+  }, [selectedStatus, debouncedSearch]);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, pagination } = await adminUserService.getUsers({
-        profession: lockedProfession ?? professionToApi(selectedProfession),
+        profession: lockedProfession,
         status: statusToApi(selectedStatus),
         search: debouncedSearch || undefined,
         page,
         limit,
       });
-      setAdmins(data.map(mapToUiUser));
-      setAdminsRaw(data);
-      setTotalItems(pagination?.total ?? data.length);
+      const scoped = lockedProfession
+        ? data.filter((u) => professionArray(u).includes(lockedProfession))
+        : data;
+      setAdmins(scoped.map((u) => mapToUiUser(u, lockedProfession)));
+      setAdminsRaw(scoped);
+      setTotalItems(pagination?.total ?? scoped.length);
     } catch (error) {
       console.error("Failed to fetch users", error);
       toast.error(
@@ -287,7 +272,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
     }
   }, [
     lockedProfession,
-    selectedProfession,
     selectedStatus,
     debouncedSearch,
     page,
@@ -345,12 +329,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
       ) {
         setIsStatusOpen(false);
       }
-      if (
-        ProfessionDropdownRef.current &&
-        !ProfessionDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsProfessionOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -364,7 +342,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
         setIsMonthOpen(false);
         setIsStateOpen(false);
         setIsStatusOpen(false);
-        setIsProfessionOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -782,68 +759,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
               </AnimatePresence>
             </div>
 
-            {/* Profession Dropdown — hidden when the parent locks the profession (per-type tabs) */}
-            {!lockedProfession && (
-            <div
-              className="relative flex-shrink-0 md:min-w-[100px]"
-              ref={ProfessionDropdownRef}
-            >
-              <button
-                onClick={() => setIsProfessionOpen(!isProfessionOpen)}
-                className="w-full px-2 pr-7 py-2.5 border-[1px] border-[#808080] rounded-md text-xs sm:text-sm font-montserrat text-left focus:outline-none focus:ring-[1px] focus:ring-[#538e53] hover:bg-gray-50 transition-colors"
-                role="combobox"
-                aria-expanded={isProfessionOpen}
-                aria-controls="profession-dropdown"
-                aria-label={
-                  selectedProfession
-                    ? `Selected profession: ${selectedProfession}`
-                    : "Select profession"
-                }
-              >
-                <span className="truncate">{selectedProfession}</span>
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                  {isProfessionOpen ? (
-                    <ArrowUpIcon className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ArrowDownIcon className="w-4 h-4 text-gray-400" />
-                  )}
-                </div>
-              </button>
-              <AnimatePresence>
-                {isProfessionOpen && (
-                  <motion.div
-                    id="profession-dropdown"
-                    className="absolute z-20 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
-                    role="listbox"
-                    variants={dropdownVariants}
-                    initial="closed"
-                    animate="open"
-                    exit="closed"
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                  >
-                    {ProfessionTypes.map((profession) => (
-                      <div
-                        key={profession}
-                        onClick={() => {
-                          setSelectedProfession(profession as ProfessionTypes);
-                          setIsProfessionOpen(false);
-                        }}
-                        className={`px-3 py-2 text-xs sm:text-sm cursor-pointer font-montserrat hover:bg-gray-100 ${
-                          selectedProfession === profession
-                            ? "bg-gray-100 font-medium"
-                            : ""
-                        }`}
-                        role="option"
-                        aria-selected={selectedProfession === profession}
-                      >
-                        {profession}
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            )}
           </div>
         </div>
       </div>

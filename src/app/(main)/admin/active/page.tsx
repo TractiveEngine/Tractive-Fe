@@ -9,9 +9,9 @@ import { ActiveTable } from "./_components/ASRTable/ActiveTable";
 import { AdminControl } from "../../../../utils/AdminControl";
 import {
   adminUserService,
-  AdminProfession,
   AdminUser,
 } from "@/services/adminUserService";
+import { TableSkeleton } from "../_components/TableSkeleton";
 
 type SlideType = "Active" | "Suspended" | "Removed";
 
@@ -54,25 +54,9 @@ const mapToAdminControl = (u: AdminUser): AdminControl => {
   };
 };
 
-const pickProfession = (u: AdminUser): AdminProfession | undefined => {
-  const active = (u.activeRole as string) || "";
-  const list = Array.isArray(u.profession) ? (u.profession as string[]) : [];
-  const candidate = (active || list[0] || "").toLowerCase();
-  if (
-    candidate === "buyer" ||
-    candidate === "agent" ||
-    candidate === "transporter" ||
-    candidate === "admin"
-  ) {
-    return candidate as AdminProfession;
-  }
-  return undefined;
-};
-
 export default function ActivePage() {
   const [activeTab, setActiveTab] = useState<SlideType>("Active");
   const [data, setData] = useState<AdminControl[]>([]);
-  const [rawData, setRawData] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allChecked, setAllChecked] = useState<boolean>(false);
   const [counts, setCounts] = useState<Record<SlideType, number>>({
@@ -103,7 +87,6 @@ export default function ActivePage() {
             page: p,
             limit: l,
           });
-          setRawData(res.data);
           setData(res.data.map(mapToAdminControl));
           const total = res.pagination?.total ?? res.data.length;
           setTotalItems(total);
@@ -115,7 +98,6 @@ export default function ActivePage() {
             page: p,
             limit: l,
           });
-          setRawData(res.data);
           setData(res.data.map(mapToAdminControl));
           const total = res.pagination?.total ?? res.data.length;
           setTotalItems(total);
@@ -124,7 +106,6 @@ export default function ActivePage() {
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load users");
         setData([]);
-        setRawData([]);
         setTotalItems(0);
       } finally {
         setIsLoading(false);
@@ -160,11 +141,6 @@ export default function ActivePage() {
       }
     })();
   }, []);
-
-  const professionForId = (id: string): AdminProfession | undefined => {
-    const raw = rawData.find((u) => (u._id as string) === id);
-    return raw ? pickProfession(raw) : undefined;
-  };
 
   const tabs: TabConfig[] = useMemo(
     () => [
@@ -222,13 +198,8 @@ export default function ActivePage() {
     id: string,
     status: "suspended" | "removed" | "active",
   ) => {
-    const profession = professionForId(id);
-    if (!profession) {
-      toast.error("Cannot determine user profession for this action");
-      return;
-    }
     try {
-      await adminUserService.updateUser(id, { status, profession });
+      await adminUserService.updateUserStatus(id, status);
       toast.success(`User ${status}`);
       fetchForTab(activeTab, page, limit);
     } catch (err) {
@@ -276,9 +247,12 @@ export default function ActivePage() {
 
   const renderContent = () => {
     if (isLoading) {
+      return <TableSkeleton columns={5} rows={limit > 6 ? 6 : limit} />;
+    }
+    if (data.length === 0) {
       return (
-        <div className="flex justify-center py-10">
-          <div className="animate-spin h-8 w-8 border-4 border-[#538e53] border-t-transparent rounded-full" />
+        <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+          No {activeTab.toLowerCase()} users found.
         </div>
       );
     }

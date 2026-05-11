@@ -24,9 +24,24 @@ export interface FarmersProps {
   checked: boolean;
 }
 
+export interface TransportersProps {
+  id: string;
+  fullname: string;
+  email: string;
+  image: string;
+  location: string;
+  profession: string;
+  mobile: string;
+  vehicleType: string;
+  plateNumber: string;
+  date: string;
+  checked: boolean;
+}
+
 
 export interface ApprovalsAgentsProps {
   data: AgentsProps[];
+  isLoading?: boolean;
   handleAgentApprove: (id: string) => void;
   handleAgentDecline: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
@@ -37,8 +52,20 @@ export interface ApprovalsAgentsProps {
 // Props interface for ApprovalFarmers
 export interface ApprovalsFarmersProps {
   data: FarmersProps[];
+  isLoading?: boolean;
   handleFarmerApprove: (id: string) => void;
   handleFarmerDecline: (id: string) => void;
+  handleCheckboxChange: (id: string) => void;
+  handleSelectAll: () => void;
+  allChecked: boolean;
+}
+
+// Props interface for ApprovalTransporters
+export interface ApprovalsTransportersProps {
+  data: TransportersProps[];
+  isLoading?: boolean;
+  handleTransporterApprove: (id: string) => void;
+  handleTransporterDecline: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
