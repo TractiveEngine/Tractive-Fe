@@ -3,6 +3,7 @@ import axios from "axios";
 
 export type AdminProfession = "buyer" | "agent" | "transporter" | "admin";
 export type AdminUserStatus = "active" | "suspended" | "removed";
+export type AdminApprovalStatus = "approved" | "rejected" | "pending";
 
 export interface AdminUser {
   _id: string;
@@ -18,8 +19,8 @@ export interface AdminUser {
   activeRole?: string;
   roles?: string[];
   status?: AdminUserStatus | string;
-  agentApprovalStatus?: boolean;
-  transporterApprovalStatus?: boolean;
+  agentApprovalStatus?: AdminApprovalStatus | string;
+  transporterApprovalStatus?: AdminApprovalStatus | string;
   createdAt?: string;
   updatedAt?: string;
   // Allow unknown backend fields until the exact return shape is confirmed.
@@ -32,8 +33,8 @@ export interface AdminUserListParams {
   search?: string;
   page?: number;
   limit?: number;
-  agentApprovalStatus?: boolean;
-  transporterApprovalStatus?: boolean;
+  agentApprovalStatus?: AdminApprovalStatus;
+  transporterApprovalStatus?: AdminApprovalStatus;
 }
 
 export interface AdminUserListResponse {
@@ -80,10 +81,10 @@ export const adminUserService = {
           ...(params.profession ? { profession: params.profession } : {}),
           ...(params.status ? { status: params.status } : {}),
           ...(params.search ? { search: params.search } : {}),
-          ...(typeof params.agentApprovalStatus === "boolean"
+          ...(params.agentApprovalStatus
             ? { agentApprovalStatus: params.agentApprovalStatus }
             : {}),
-          ...(typeof params.transporterApprovalStatus === "boolean"
+          ...(params.transporterApprovalStatus
             ? { transporterApprovalStatus: params.transporterApprovalStatus }
             : {}),
           page: params.page ?? 1,

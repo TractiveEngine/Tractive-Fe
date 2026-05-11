@@ -126,7 +126,7 @@ export default function RejectedPage() {
     setAgentsLoading(true);
     try {
       const { data } = await adminUserService.getUsers({
-        agentApprovalStatus: false,
+        agentApprovalStatus: "rejected",
         limit: 100,
       });
       setAgents(data.map(mapToRow));
@@ -144,7 +144,7 @@ export default function RejectedPage() {
     setTransportersLoading(true);
     try {
       const { data } = await adminUserService.getUsers({
-        transporterApprovalStatus: false,
+        transporterApprovalStatus: "rejected",
         limit: 100,
       });
       setTransporters(data.map(mapToRow));

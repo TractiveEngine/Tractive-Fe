@@ -47,8 +47,11 @@ export interface OrderProductLine {
     | {
         _id?: string;
         name?: string;
+        description?: string;
         images?: string[];
         unit?: string;
+        price?: number;
+        owner?: { _id?: string; name?: string; businessName?: string | null };
       };
   quantity?: number;
   unitPrice?: number;
@@ -135,6 +138,45 @@ export interface CreateOrderResponse {
   };
   message?: string;
 }
+
+const formatOrderDate = (raw?: string): string => {
+  if (!raw) return "—";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  return d.toISOString().split("T")[0];
+};
+
+const normalizeOrderStatus = (
+  status?: string,
+): "pending" | "parked" | "delivered" => {
+  if (status === "parked" || status === "delivered") return status;
+  return "pending";
+};
+
+export const mapOrderRecord = (record: OrderRecord): Order => {
+  const firstLine = record.products?.[0];
+  const productRef = firstLine?.product;
+  const product =
+    productRef && typeof productRef === "object" ? productRef : undefined;
+
+  const buyer = record.buyer;
+  const buyerName =
+    typeof buyer === "string"
+      ? buyer
+      : buyer?.name ?? "";
+
+  return {
+    id: record._id ?? record.id ?? "",
+    name: product?.name ?? "—",
+    description: product?.description ?? "",
+    image: product?.images?.[0] ?? "/images/noData.png",
+    amount: typeof record.totalAmount === "number" ? record.totalAmount : 0,
+    buyer: buyerName || "—",
+    location: record.address || "—",
+    date: formatOrderDate(record.createdAt),
+    status: normalizeOrderStatus(record.status),
+  };
+};
 
 // API_URL and Headers managed by axios
 
