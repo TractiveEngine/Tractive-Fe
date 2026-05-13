@@ -5,6 +5,33 @@ export type AdminProfession = "buyer" | "agent" | "transporter" | "admin";
 export type AdminUserStatus = "active" | "suspended" | "removed";
 export type AdminApprovalStatus = "approved" | "rejected" | "pending";
 
+export type HistoryRole = "buyer" | "agent" | "transporter";
+
+export type HistoryResource =
+  | "orders"
+  | "transactions"
+  | "transport-payments"
+  | "sales"
+  | "products"
+  | "payments"
+  | "trips";
+
+export const HISTORY_RESOURCES_BY_ROLE: Record<HistoryRole, HistoryResource[]> = {
+  buyer: ["orders", "transactions", "transport-payments"],
+  agent: ["sales", "products"],
+  transporter: ["orders", "payments", "trips"],
+};
+
+export const HISTORY_RESOURCE_LABELS: Record<HistoryResource, string> = {
+  orders: "Orders",
+  transactions: "Transactions",
+  "transport-payments": "Transport Payments",
+  sales: "Sales",
+  products: "Products",
+  payments: "Payments",
+  trips: "Trips",
+};
+
 export interface AdminUser {
   _id: string;
   name?: string;
@@ -25,6 +52,46 @@ export interface AdminUser {
   updatedAt?: string;
   // Allow unknown backend fields until the exact return shape is confirmed.
   [key: string]: unknown;
+}
+
+export type AdminUserHistoryItem = Record<string, unknown>;
+
+// Per-role history block from GET /api/admin/users/{id}.
+// Shape varies per role (e.g. agent has productsCount/salesCount/recentSales,
+// buyer has ordersCount/recentOrders, transporter has tripsCount/recentTrips).
+export type AdminUserRoleHistory = Record<string, unknown>;
+
+// Maps each resource to the `recent<Camel>` key the backend returns inside
+// the per-role history block.
+export const RECENT_KEY_BY_RESOURCE: Record<HistoryResource, string> = {
+  orders: "recentOrders",
+  transactions: "recentTransactions",
+  "transport-payments": "recentTransportPayments",
+  sales: "recentSales",
+  products: "recentProducts",
+  payments: "recentPayments",
+  trips: "recentTrips",
+};
+
+export interface AdminUserSummary extends AdminUser {
+  image?: string;
+  approvalStatus?: AdminApprovalStatus | string;
+  approvalNotes?: string;
+  history?: Partial<Record<HistoryRole, AdminUserRoleHistory | null>>;
+}
+
+export interface AdminUserHistoryParams {
+  role: HistoryRole;
+  resource: HistoryResource;
+  page?: number;
+  limit?: number;
+}
+
+export interface AdminUserHistoryResponse<
+  T extends AdminUserHistoryItem = AdminUserHistoryItem,
+> {
+  data: T[];
+  pagination: { page: number; limit: number; total: number };
 }
 
 export interface AdminUserListParams {
@@ -112,6 +179,40 @@ export const adminUserService = {
       return response.data?.data ?? response.data;
     } catch (error) {
       return handleApiError(error, "fetch user");
+    }
+  },
+
+  // GET /api/admin/users/{id}
+  // Same endpoint, typed for the consolidated detail view (summary + counts + recent items).
+  getUserSummary: async (id: string): Promise<AdminUserSummary> => {
+    try {
+      const response = await api.get(`/api/admin/users/${id}`);
+      return (response.data?.data ?? response.data) as AdminUserSummary;
+    } catch (error) {
+      return handleApiError(error, "fetch user summary");
+    }
+  },
+
+  // GET /api/admin/users/{id}/history
+  getUserHistory: async (
+    id: string,
+    { role, resource, page = 1, limit = 10 }: AdminUserHistoryParams,
+  ): Promise<AdminUserHistoryResponse> => {
+    try {
+      const response = await api.get(`/api/admin/users/${id}/history`, {
+        params: { role, resource, page, limit },
+      });
+      const data: AdminUserHistoryItem[] = response.data?.data ?? [];
+      return {
+        data,
+        pagination: response.data?.pagination ?? {
+          page,
+          limit,
+          total: data.length,
+        },
+      };
+    } catch (error) {
+      return handleApiError(error, "fetch user history");
     }
   },
 

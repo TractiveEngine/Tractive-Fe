@@ -263,8 +263,8 @@ export const AdminTable = <T extends BaseData>({
           {data.map((item, index) => (
             <motion.tr
               key={item.id}
-              className={`border-gray-200 border-b-[1px] py-1.5 px-4 relative ${
-                onRowClick ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+              className={`border-gray-200 border-b-[1px] py-1.5 px-4 relative transition-colors ${
+                onRowClick ? "cursor-pointer hover:bg-[#EFF7EF]" : "hover:bg-[#EFF7EF]"
               }`}
               variants={rowVariants}
               initial="hidden"

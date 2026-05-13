@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
@@ -16,7 +17,6 @@ import {
   AdminUserStatus,
 } from "@/services/adminUserService";
 import { toast } from "sonner";
-import { UserDetailModal } from "../UserDetailModal";
 import { TableSkeleton } from "../../../_components/TableSkeleton";
 
 // List of months in a Year
@@ -202,10 +202,10 @@ interface AllUserTypeProps {
 export const AllUserType: React.FC<AllUserTypeProps> = ({
   lockedProfession,
 }) => {
+  const router = useRouter();
   const [admins, setAdmins] = useState<User[]>([]);
   const [adminsRaw, setAdminsRaw] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [detailUserId, setDetailUserId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -348,9 +348,12 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const openDetail = (id: string) => {
-    setDetailUserId(id);
-  };
+  const openDetail = useCallback(
+    (id: string) => {
+      router.push(`/admin/all-users/${id}`);
+    },
+    [router],
+  );
 
   const handleViewProfile = (id: string) => {
     openDetail(id);
@@ -788,13 +791,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
             No users found.
           </div>
         )}
-
-        <UserDetailModal
-          isOpen={!!detailUserId}
-          userId={detailUserId}
-          onClose={() => setDetailUserId(null)}
-          onUpdated={fetchUsers}
-        />
 
         {!isLoading && totalItems > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 sm:px-6 py-4 border-t border-gray-100 bg-gray-50 mt-2">
