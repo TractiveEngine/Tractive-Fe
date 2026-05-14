@@ -8,13 +8,21 @@ interface AuthGuardProps {
     children: React.ReactNode;
 }
 
+const PUBLIC_ROUTES = ["/login", "/signup", "/forget-password", "/reset-password"];
+
+function isPublicRoute(pathname: string) {
+    return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+}
+
 export default function AuthGuard({ children }: AuthGuardProps) {
     const { data: session, status } = useSession();
     const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
     const router = useRouter();
     const pathname = usePathname();
 
-    const isLoading = status === "loading" || isProfileLoading;
+    const currentPath = pathname || "";
+    const isPublic = isPublicRoute(currentPath);
+    const isLoading = status === "loading" || (!isPublic && isProfileLoading);
     const isAuthenticated = status === "authenticated";
 
     useEffect(() => {
@@ -72,6 +80,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         // (This part is often handled by specific layout guards, but global guard can enforce basics)
 
     }, [isLoading, isAuthenticated, session, userProfile, router, pathname]);
+
+    // Always render public routes immediately
+    if (isPublic) return <>{children}</>;
 
     if (isLoading) {
         return (

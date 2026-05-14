@@ -11,26 +11,35 @@ interface ItemDetailsFormProps {
   onBack: () => void;
   onClose: () => void;
   selectedCategory: string | null;
+  subcategory: string;
   productName: string;
   selectedFarmerId: string | null;
   imageFiles: File[];
-  videoFiles?: File[]; // Optional array of videos
+  videoFiles?: File[];
 }
 
 export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   onBack,
   onClose,
   selectedCategory,
+  subcategory,
   productName,
   selectedFarmerId,
   imageFiles,
-  videoFiles = [], // Default to empty array
+  videoFiles = [],
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [quantity, setQuantity] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
+  const [discount, setDiscount] = useState<string>("");
   const [unit, setUnit] = useState<string>("");
+  const [unitWeightKg, setUnitWeightKg] = useState<string>("");
+  const [localTransportRequired, setLocalTransportRequired] = useState<boolean>(false);
+  const [localTransportFee, setLocalTransportFee] = useState<string>("");
+  const [localTransportFrom, setLocalTransportFrom] = useState<string>("");
+  const [localTransportTo, setLocalTransportTo] = useState<string>("");
+  const [localTransportNote, setLocalTransportNote] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
@@ -129,17 +138,37 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
       setUploadProgress(70);
 
       // Prepare API payload matching the spec
-      const apiPayload = {
+      const categories = [selectedCategory!];
+      if (subcategory.trim()) {
+        categories.push(subcategory.trim());
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiPayload: any = {
         name: productName.trim(),
         description: description.trim(),
         price: parseInt(price, 10),
         quantity: Number(quantity),
+        discount: discount ? Number(discount) : 0,
         unit: unit.trim(),
+        unitWeightKg: unitWeightKg ? Number(unitWeightKg) : null,
+        category: selectedCategory,
+        subcategory: subcategory.trim() || selectedCategory,
+        categories,
         images: imageUrls,
-        videos: videoUrls, // Include videos
-        categories: [selectedCategory],
+        videos: videoUrls,
         farmer: selectedFarmerId,
       };
+
+      if (localTransportRequired) {
+        apiPayload.localTransport = {
+          required: true,
+          fee: Number(localTransportFee) || 0,
+          from: localTransportFrom.trim(),
+          to: localTransportTo.trim(),
+          note: localTransportNote.trim() || undefined,
+        };
+      }
 
       console.log("✅ Step 5: Payload prepared", apiPayload);
       setUploadProgress(80);
@@ -275,20 +304,22 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             htmlFor="unit"
             className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
           >
-            Unit (e.g., kg, pieces, bags) *
+            Unit *
           </label>
-          <input
-            type="text"
+          <select
             id="unit"
             value={unit}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               setUnit(e.target.value)
             }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
-            placeholder="Enter unit"
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53] cursor-pointer"
             required
             disabled={isLoading}
-          />
+          >
+            <option value="">Select unit</option>
+            <option value="kg">Kilogram (kg)</option>
+            <option value="tonne">Tonne</option>
+          </select>
         </div>
 
         {/* Description */}
@@ -335,6 +366,153 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             required
             disabled={isLoading}
           />
+        </div>
+
+        {/* Discount */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="discount"
+            className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+          >
+            Discount (%)
+          </label>
+          <input
+            type="number"
+            id="discount"
+            value={discount}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setDiscount(e.target.value)
+            }
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+            placeholder="Enter discount percentage (optional)"
+            min="0"
+            max="100"
+            disabled={isLoading}
+          />
+        </div>
+
+        {/* Unit Weight */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="unitWeightKg"
+            className="text-[14px] font-normal text-[#2b2b2b] font-montserrat"
+          >
+            Unit Weight ({unit || "unit"})
+          </label>
+          <input
+            type="number"
+            id="unitWeightKg"
+            value={unitWeightKg}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setUnitWeightKg(e.target.value)
+            }
+            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+            placeholder={`Enter unit weight in ${unit || "selected unit"} (optional)`}
+            min="0"
+            step="0.1"
+            disabled={isLoading || !unit}
+          />
+        </div>
+
+        {/* Local Transport */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[14px] font-normal text-[#2b2b2b] font-montserrat">
+            Local Transport
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="localTransportRequired"
+              checked={localTransportRequired}
+              onChange={(e) => setLocalTransportRequired(e.target.checked)}
+              className="w-4 h-4 accent-[#538e53] cursor-pointer"
+              disabled={isLoading}
+            />
+            <label
+              htmlFor="localTransportRequired"
+              className="text-sm text-[#2b2b2b] font-montserrat cursor-pointer"
+            >
+              Requires local transport (farm-to-pickup)
+            </label>
+          </div>
+
+          {localTransportRequired && (
+            <div className="space-y-3 mt-2 p-3 border border-[#e0e0e0] rounded-[4px] bg-[#f9f9f9]">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="localTransportFee"
+                  className="text-[13px] text-[#2b2b2b] font-montserrat"
+                >
+                  Transport Fee (₦) *
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="localTransportFee"
+                  value={localTransportFee}
+                  onChange={(e) =>
+                    setLocalTransportFee(e.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                  placeholder="Enter transport fee"
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label
+                    htmlFor="localTransportFrom"
+                    className="text-[13px] text-[#2b2b2b] font-montserrat"
+                  >
+                    From *
+                  </label>
+                  <input
+                    type="text"
+                    id="localTransportFrom"
+                    value={localTransportFrom}
+                    onChange={(e) => setLocalTransportFrom(e.target.value)}
+                    className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                    placeholder="e.g., Kachia Farm"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label
+                    htmlFor="localTransportTo"
+                    className="text-[13px] text-[#2b2b2b] font-montserrat"
+                  >
+                    To *
+                  </label>
+                  <input
+                    type="text"
+                    id="localTransportTo"
+                    value={localTransportTo}
+                    onChange={(e) => setLocalTransportTo(e.target.value)}
+                    className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                    placeholder="e.g., Kaduna Aggregation Point"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="localTransportNote"
+                  className="text-[13px] text-[#2b2b2b] font-montserrat"
+                >
+                  Note
+                </label>
+                <input
+                  type="text"
+                  id="localTransportNote"
+                  value={localTransportNote}
+                  onChange={(e) => setLocalTransportNote(e.target.value)}
+                  className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+                  placeholder="e.g., Farm gate pickup to interstate loading point"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* File Upload Summary */}

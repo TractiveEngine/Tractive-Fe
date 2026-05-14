@@ -17,12 +17,14 @@ interface MyBidsProps {
   bidItems: BidItem[];
   selection: { isCheckoutAll: boolean; selectedBids: string[] };
   setSelection: (isCheckoutAll: boolean, selectedBids: string[]) => void;
+  isRefetching?: boolean;
 }
 
 export const MyBids: React.FC<MyBidsProps> = ({
   bidItems,
   selection,
   setSelection,
+  isRefetching,
 }) => {
   const handleCheckoutAllChange = () => {
     if (!selection.isCheckoutAll) {
@@ -54,57 +56,36 @@ export const MyBids: React.FC<MyBidsProps> = ({
   return (
     <div className="w-full bg-[#fefefe] shadow-md my-4 sm:my-6 md:my-8 rounded-[5px] max-w-7xl mx-auto">
       <style jsx>{`
-        .custom-AllRadio {
+        .custom-checkbox {
           appearance: none;
           width: 16px;
           height: 16px;
           border: 1px solid #538e53;
-          border-radius: 50%;
+          border-radius: 3px;
           position: relative;
           cursor: pointer;
+          flex-shrink: 0;
         }
-        .custom-AllRadio:checked::before {
-          content: "";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 10px;
-          height: 10px;
+        .custom-checkbox:checked {
           background-color: #538e53;
-          border-radius: 50%;
-        }
-        .custom-AllRadio:checked {
           border-color: #538e53;
         }
-        .custom-radio {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border: 1px solid #538e53;
-          border-radius: 50%;
-          position: relative;
-          cursor: pointer;
-        }
-        .custom-radio:checked::before {
+        .custom-checkbox:checked::before {
           content: "";
           position: absolute;
-          top: 50%;
+          top: 45%;
           left: 50%;
-          transform: translate(-50%, -50%);
-          width: 10px;
-          height: 10px;
-          background-color: #538e53;
-          border-radius: 50%;
-        }
-        .custom-radio:checked {
-          border-color: #538e53;
+          transform: translate(-50%, -50%) rotate(45deg);
+          width: 5px;
+          height: 9px;
+          border: solid #fff;
+          border-width: 0 2px 2px 0;
         }
       `}</style>
 
       <div className="flex items-center gap-2 p-2 sm:p-3 md:p-3.5">
-        <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
-          My Bids
+        <p className="font-montserrat font-medium text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
+          Ready to checkout
         </p>
         <span className="font-montserrat font-normal text-[10px] sm:text-[11px] md:text-[12px] text-[#fefefe] bg-[#538e53] w-4 h-4 sm:w-[14px] sm:h-[15px] md:w-[15px] md:h-[16px] p-1 flex justify-center items-center rounded-[3px]">
           {bidItems.length}
@@ -114,10 +95,9 @@ export const MyBids: React.FC<MyBidsProps> = ({
 
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-3.5">
         <input
-          type="radio"
-          name="checkout-all"
+          type="checkbox"
           id="checkout-all"
-          className="custom-AllRadio"
+          className="custom-checkbox cursor-pointer"
           checked={selection.isCheckoutAll}
           onChange={handleCheckoutAllChange}
         />
@@ -130,10 +110,17 @@ export const MyBids: React.FC<MyBidsProps> = ({
       </div>
       <div className="w-full h-[1px] bg-[#808080]"></div>
 
-      {bidItems.length === 0 ? (
+      {isRefetching ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-3 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 font-montserrat text-[13px] text-[#808080]">
+            Updating your bids...
+          </span>
+        </div>
+      ) : bidItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 sm:p-12">
           <p className="font-montserrat font-normal text-sm sm:text-base text-[#808080]">
-            You haven&apos;t won any bids yet.
+            No bids ready for checkout yet.
           </p>
         </div>
       ) : (
@@ -141,9 +128,9 @@ export const MyBids: React.FC<MyBidsProps> = ({
         <React.Fragment key={item.id}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 md:gap-4 w-full p-2 sm:p-3 md:p-3.5">
             <input
-              type="radio"
+              type="checkbox"
               id={item.id}
-              className="ml-0 sm:ml-3.5 custom-radio"
+              className="ml-0 sm:ml-3.5 custom-checkbox cursor-pointer"
               checked={
                 selection.isCheckoutAll ||
                 selection.selectedBids.includes(item.id)
@@ -182,7 +169,7 @@ export const MyBids: React.FC<MyBidsProps> = ({
                     </div>
                   </div>
                   <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
-                    ${item.price}
+                    ₦{item.price.toLocaleString()}
                   </p>
                 </div>
               </div>

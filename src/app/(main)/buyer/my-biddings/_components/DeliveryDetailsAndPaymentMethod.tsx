@@ -14,20 +14,19 @@ interface OnboardingData {
   interests: string[];
 }
 
-interface PaymentMethod {
+interface PaymentMethodOption {
   id: string;
   name: string;
   image: string;
 }
 
-
 interface DeliveryDetailsAndPaymentMethodProps {
-  totalPrice: number;
-  onContinue: () => void;
+  totalAmount: number;
+  onContinue: (paymentMethod: string) => void;
   className?: string;
 }
 
-const paymentMethods: PaymentMethod[] = [
+const paymentMethods: PaymentMethodOption[] = [
   { id: "card", name: "Pay by Card", image: "/images/card.png" },
   { id: "deposit", name: "Pay by Deposit", image: "/images/deposit.png" },
   { id: "transfer", name: "Pay by Transfer", image: "/images/transfer.png" },
@@ -36,7 +35,7 @@ const paymentMethods: PaymentMethod[] = [
 
 export const DeliveryDetailsAndPaymentMethod: React.FC<
   DeliveryDetailsAndPaymentMethodProps
-> = ({ totalPrice, onContinue }) => {
+> = ({ totalAmount, onContinue }) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
 
@@ -52,6 +51,11 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
 
   const handlePaymentMethodToggle = (methodId: string) => {
     setSelectedPaymentMethod(methodId);
+  };
+
+  const handleContinue = () => {
+    if (!selectedPaymentMethod) return;
+    onContinue(selectedPaymentMethod);
   };
 
   return (
@@ -128,8 +132,8 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
 
       <div className="flex flex-col gap-2 px-5">
         <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-          Grind Total:{" "}
-          <span className="text-[#2b2b2b]">${totalPrice.toLocaleString()}</span>
+          Grand Total:{" "}
+          <span className="text-[#2b2b2b]">₦{totalAmount.toLocaleString()}</span>
         </p>
       </div>
       <span className="w-full h-[1px] bg-[#e2e2e2]" />
@@ -181,7 +185,7 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
         </div>
         <Button
           text="Continue"
-          onClick={onContinue}
+          onClick={handleContinue}
           className="justify-center"
           disabled={!selectedPaymentMethod}
         />

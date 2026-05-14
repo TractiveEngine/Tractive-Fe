@@ -59,6 +59,7 @@ const ProductDetail: React.FC = () => {
           productId={id}
           defaultPrice={product.price}
           defaultQuantity={product.quantity}
+          unit={product.unit}
           onBidSuccess={handleBidSuccess}
         />
       </div>

@@ -1,14 +1,14 @@
-"use client"
-import React, { useEffect, useMemo } from "react";
+"use client";
+import React, { useEffect, useMemo, useState } from "react";
 import { ReviewIcon } from "@/icons/Icon1";
 import { LikeIcon, ReplyIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
-// Define TypeScript interfaces for the data structure
-interface User {
-  name: string;
-  avatar: string;
-}
+import {
+  transporterService,
+  TransporterReview,
+  TransporterReviewBuyer,
+} from "@/services/transporterService";
 
 interface Rating {
   stars: string;
@@ -16,131 +16,174 @@ interface Rating {
   percentage: number;
 }
 
-interface Review {
-  id: number;
-  user: User;
-  rating: number;
-  comment: string;
-  date: string;
-  image: string;
-  replies: number;
-  likes: number;
-}
+const fallbackAvatar = "/images/placeholder.png";
 
-interface ReviewData {
-  overallRating: number;
-  totalReviewers: number;
-  ratings: Rating[];
-  reviews: Review[];
-  reviewerAvatars: string[];
-}
+const resolveBuyer = (
+  buyer: TransporterReview["buyer"],
+): TransporterReviewBuyer => {
+  if (!buyer) return {};
+  if (typeof buyer === "string") return { _id: buyer };
+  return buyer;
+};
 
-// Sample review data
-const reviewData: ReviewData = {
-  overallRating: 4.0,
-  totalReviewers: 25000,
-  ratings: [
-    { stars: "5 star", count: 8000, percentage: 80 },
-    { stars: "4 star", count: 6000, percentage: 60 },
-    { stars: "3 star", count: 4000, percentage: 40 },
-    { stars: "2 star", count: 2000, percentage: 20 },
-    { stars: "1 star", count: 1000, percentage: 10 },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: {
-        name: "Kelvin Chikezie",
-        avatar: "/images/bidder4.png",
-      },
-      rating: 4,
-      comment:
-        "Thank you Mr. Kelvin, the corn I ordered has arrived and they are in good condition.",
-      date: "2022-06-13",
-      image: "/images/orderedImage.png",
-      replies: 12,
-      likes: 12,
-    },
-    {
-      id: 2,
-      user: {
-        name: "Amara Okoye",
-        avatar: "/images/bidder3.png",
-      },
-      rating: 5,
-      comment:
-        "Amazing service! The delivery was fast, and the grains were fresh.",
-      date: "2022-07-01",
-      image: "/images/orderedImage.png",
-      replies: 8,
-      likes: 15,
-    },
-    {
-      id: 3,
-      user: {
-        name: "Chidi Nwosu",
-        avatar: "/images/bidder2.png",
-      },
-      rating: 3,
-      comment: "The order was okay, but the packaging could be improved.",
-      date: "2022-08-15",
-      image: "/images/orderedImage.png",
-      replies: 5,
-      likes: 7,
-    },
-  ],
-  reviewerAvatars: [
-    "/images/bidder1.png",
-    "/images/bidder2.png",
-    "/images/bidder3.png",
-    "/images/bidder4.png",
-  ],
+const replyCount = (replies: TransporterReview["replies"]): number => {
+  if (typeof replies === "number") return replies;
+  if (Array.isArray(replies)) return replies.length;
+  return 0;
 };
 
 const ReviewsPage: React.FC = () => {
-  const { overallRating, totalReviewers, ratings, reviews, reviewerAvatars } =
-    reviewData;
+  const [reviews, setReviews] = useState<TransporterReview[]>([]);
+  const [overallRating, setOverallRating] = useState<number>(0);
+  const [totalReviewers, setTotalReviewers] = useState<number>(0);
+  const [ratings, setRatings] = useState<Rating[]>([
+    { stars: "5 star", count: 0, percentage: 0 },
+    { stars: "4 star", count: 0, percentage: 0 },
+    { stars: "3 star", count: 0, percentage: 0 },
+    { stars: "2 star", count: 0, percentage: 0 },
+    { stars: "1 star", count: 0, percentage: 0 },
+  ]);
+  const [reviewerAvatars, setReviewerAvatars] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize individual animation controls for each rating
   const control1 = useAnimation();
   const control2 = useAnimation();
   const control3 = useAnimation();
   const control4 = useAnimation();
   const control5 = useAnimation();
 
-  // Memoize the controls array
   const controls = useMemo(
     () => [control1, control2, control3, control4, control5],
-    [control1, control2, control3, control4, control5]
+    [control1, control2, control3, control4, control5],
   );
 
   useEffect(() => {
-    // Start animation for each progress bar on mount
+    let isMounted = true;
+    (async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await transporterService.getReviews();
+        if (!isMounted) return;
+
+        const list = response.reviews ?? [];
+        setReviews(list);
+
+        const total = response.totalReviews ?? list.length;
+        setTotalReviewers(total);
+
+        if (response.overallRating !== undefined) {
+          setOverallRating(response.overallRating);
+        } else if (list.length) {
+          const sum = list.reduce((acc, r) => acc + (r.rating || 0), 0);
+          setOverallRating(parseFloat((sum / list.length).toFixed(1)));
+        } else {
+          setOverallRating(0);
+        }
+
+        if (response.ratingDistribution?.length) {
+          const ordered = [5, 4, 3, 2, 1].map((star) => {
+            const found = response.ratingDistribution!.find(
+              (r) => r.rating === star,
+            );
+            return {
+              stars: `${star} star`,
+              count: found?.count ?? 0,
+              percentage: found?.percentage ?? 0,
+            };
+          });
+          setRatings(ordered);
+        } else {
+          const totalForPct = list.length || 1;
+          setRatings(
+            [5, 4, 3, 2, 1].map((star) => {
+              const count = list.filter((r) => r.rating === star).length;
+              return {
+                stars: `${star} star`,
+                count,
+                percentage: Math.round((count / totalForPct) * 100),
+              };
+            }),
+          );
+        }
+
+        const recent =
+          response.recentReviewers
+            ?.map((r) => r.avatar)
+            .filter((a): a is string => !!a) ?? [];
+        if (recent.length) {
+          setReviewerAvatars(recent.slice(0, 4));
+        } else {
+          const fromReviews = list
+            .map((r) => {
+              const buyer = resolveBuyer(r.buyer);
+              return buyer.avatar || buyer.image;
+            })
+            .filter((a): a is string => !!a)
+            .slice(0, 4);
+          setReviewerAvatars(fromReviews);
+        }
+      } catch (err: unknown) {
+        if (!isMounted) return;
+        console.error("Error fetching transporter reviews:", err);
+        setError(
+          (err as { message?: string })?.message || "Failed to load reviews",
+        );
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     controls.forEach((control, index) => {
       control.start({
-        width: `${ratings[index].percentage}%`,
+        width: `${ratings[index]?.percentage ?? 0}%`,
         transition: { duration: 1, ease: "easeOut" },
       });
     });
   }, [controls, ratings]);
 
-  // Helper to render star icons based on rating
   const renderStars = (rating: number): React.ReactElement[] => {
     const stars: React.ReactElement[] = [];
+    const rounded = Math.round(rating);
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        i <= rating ? <YellowStarIcon key={i} /> : <StarIcon key={i} />
+        i <= rounded ? <YellowStarIcon key={i} /> : <StarIcon key={i} />,
       );
     }
     return stars;
   };
 
-  // Define left offsets for mobile and sm screens
   const leftOffsetsMobile = [0, 10, 20, 30];
   const leftOffsetsSm = [0, 12, 28, 40];
 
-  // Debug avatar paths
-  console.log("Reviewer Avatars:", reviewerAvatars);
+  if (isLoading) {
+    return (
+      <div className="relative bg-[#fefefe] flex items-center justify-center w-[95%] mx-auto mb-[2rem] px-6 py-10 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+          <span className="font-montserrat text-[14px] text-[#808080]">
+            Loading reviews...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative bg-[#fefefe] flex items-center justify-center w-[95%] mx-auto mb-[2rem] px-6 py-10 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
+        <span className="font-montserrat text-[14px] text-red-500">
+          {error}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative bg-[#fefefe] flex flex-col items-center w-[95%] mx-auto mb-[2rem] px-6 py-6 gap-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
@@ -201,11 +244,9 @@ const ReviewsPage: React.FC = () => {
                       alt={`Reviewer ${index + 1}`}
                       width={50}
                       height={50}
-                      className={`absolute left-[${leftOffsetsMobile[index]}px] sm:left-[${leftOffsetsSm[index]}px] z-50
-                      }] w-[35px] h-[35px] rounded-full border-2 border-[#fefefe]`}
+                      className={`absolute left-[${leftOffsetsMobile[index]}px] sm:left-[${leftOffsetsSm[index]}px] z-50 w-[35px] h-[35px] rounded-full border-2 border-[#fefefe]`}
                       onError={(e) => {
-                        console.error(`Failed to load image: ${avatar}`);
-                        e.currentTarget.src = "/images/placeholder.png"; // Fallback image
+                        e.currentTarget.src = fallbackAvatar;
                       }}
                     />
                   ))
@@ -223,67 +264,85 @@ const ReviewsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Reviews */}
       <div className="flex flex-col gap-6 w-full">
-        {reviews.map((review) => (
-          <div
-            key={review.id}
-            className="flex flex-col gap-1.5 pt-2 rounded-[5px]"
-          >
-            <div className="flex items-center justify-between gap-1.5 flex-wrap">
-              <div className="relative flex items-center gap-2 flex-wrap">
-                <Image
-                  src={review.user.avatar}
-                  alt="Comment Profile"
-                  width={30}
-                  height={30}
-                />
-                <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
-                  {review.user.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {renderStars(review.rating)}
-              </div>
-            </div>
-            <div className="flex justify-between w-[100%] flex-wrap">
-              <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
-                {review.comment}
-              </p>
-              <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
-                {new Date(review.date).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <div className="flex flex-col gap-4">
-              <Image
-                src={review.image}
-                alt="Ordered Item"
-                width={211}
-                height={77}
-              />
-              <div className="flex items-center gap-[46px] truncate">
-                <div className="flex items-center gap-[6px]">
-                  <ReplyIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.replies} replies
-                  </span>
-                </div>
-                <div className="flex items-center gap-[6px]">
-                  <LikeIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.likes} Likes
-                  </span>
-                </div>
-              </div>
-            </div>
+        {reviews.length === 0 ? (
+          <div className="flex justify-center items-center py-10">
+            <span className="font-montserrat text-[14px] text-[#808080]">
+              No reviews yet
+            </span>
           </div>
-        ))}
+        ) : (
+          reviews.map((review) => {
+            const buyer = resolveBuyer(review.buyer);
+            const avatar = buyer.avatar || buyer.image || fallbackAvatar;
+            const reviewKey = review._id || review.id || buyer._id || Math.random();
+            return (
+              <div
+                key={String(reviewKey)}
+                className="flex flex-col gap-1.5 pt-2 rounded-[5px]"
+              >
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <div className="relative flex items-center gap-2 flex-wrap">
+                    <Image
+                      src={avatar}
+                      alt="Comment Profile"
+                      width={30}
+                      height={30}
+                      className="rounded-full w-[30px] h-[30px] object-cover"
+                    />
+                    <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+                      {buyer.name || "Anonymous"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {renderStars(review.rating)}
+                  </div>
+                </div>
+                <div className="flex justify-between w-[100%] flex-wrap">
+                  <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
+                    {review.comment}
+                  </p>
+                  {review.createdAt && (
+                    <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
+                      {new Date(review.createdAt).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-4">
+                  {review.image && (
+                    <Image
+                      src={review.image}
+                      alt="Ordered Item"
+                      width={211}
+                      height={77}
+                    />
+                  )}
+                  <div className="flex items-center gap-[46px] truncate">
+                    <div className="flex items-center gap-[6px]">
+                      <ReplyIcon />
+                      <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                        {replyCount(review.replies)} replies
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-[6px]">
+                      <LikeIcon />
+                      <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                        {review.likes ?? 0} Likes
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
 };
+
 export default ReviewsPage;

@@ -99,7 +99,103 @@ const getRandomDescription = () => {
 // Response handling is managed by axios interceptor/wrapper where applicable, but we keep basic error handling here if needed.
 // const handleResponse = ... (removed as axios throws on error status by default or we handle it in catch)
 
+export interface CreateTransactionPayload {
+  order: string;
+  amount: number;
+  paymentMethod: string;
+  paymentReference?: string;
+}
+
+export interface CreateTransactionResponse {
+  transaction: {
+    _id: string;
+    [key: string]: unknown;
+  };
+  message?: string;
+}
+
+export type AdminTransactionStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "refunded";
+export type AdminTransactionMethod = "cash" | "bank_transfer" | "card";
+
+export interface AdminTransactionListParams {
+  status?: AdminTransactionStatus;
+  method?: AdminTransactionMethod;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface TransactionListResponse {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages?: number;
+  };
+}
+
 export const transactionService = {
+  async createTransaction(payload: CreateTransactionPayload): Promise<CreateTransactionResponse> {
+    try {
+      const response = await api.post("/api/transactions", payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      throw error;
+    }
+  },
+
+  // GET /api/admin/transactions?status=&method=&fromDate=&toDate=&page=&limit=
+  async getAllTransactions(
+    params: AdminTransactionListParams = {},
+  ): Promise<TransactionListResponse> {
+    try {
+      const response = await api.get("/api/admin/transactions", {
+        params: {
+          ...(params.status ? { status: params.status } : {}),
+          ...(params.method ? { method: params.method } : {}),
+          ...(params.fromDate ? { fromDate: params.fromDate } : {}),
+          ...(params.toDate ? { toDate: params.toDate } : {}),
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+        },
+      });
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const data = payload?.transactions ?? payload ?? [];
+      return {
+        data: Array.isArray(data) ? data : [],
+        pagination: payload?.pagination ?? {
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+          total: Array.isArray(data) ? data.length : 0,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  },
+
+  // GET /api/admin/transactions/{id}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getTransactionById(id: string): Promise<any> {
+    try {
+      const response = await api.get(`/api/admin/transactions/${id}`);
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      throw error;
+    }
+  },
+
   async getTransactions(
     params?: GetTransactionsParams,
   ): Promise<FrontendTransaction[]> {
@@ -164,6 +260,42 @@ export const transactionService = {
       return data.transaction;
     } catch (error) {
       console.error("Error updating transaction status:", error);
+      throw error;
+    }
+  },
+
+  // PATCH /api/admin/transactions/{id}/status — admin alias for approve/reject
+  async adminUpdateTransactionStatus(
+    id: string,
+    status: AdminTransactionStatus,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> {
+    try {
+      const response = await api.patch(
+        `/api/admin/transactions/${id}/status`,
+        { status },
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error("Error updating admin transaction status:", error);
+      throw error;
+    }
+  },
+
+  // POST /api/admin/transactions/refund
+  async refundTransaction(payload: {
+    transactionId: string;
+    reason: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Promise<any> {
+    try {
+      const response = await api.post(
+        `/api/admin/transactions/refund`,
+        payload,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error("Error refunding transaction:", error);
       throw error;
     }
   },

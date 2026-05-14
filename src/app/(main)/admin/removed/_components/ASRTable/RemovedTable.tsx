@@ -9,6 +9,7 @@ import AdminTable, {
 } from "../../../_components/table/AdminTableList";
 import { RemovedActionMenu } from "../ASRActionMenu/RemovedActionMenu";
 import Image from "next/image";
+import { BulkActionButtons } from "../../../_components/BulkActionButtons";
 const months = [
   "Jan",
   "Feb",
@@ -101,6 +102,8 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  bulkActions = [],
+  bulkDisabled,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -435,14 +438,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
               </div>
             </div>
           </div>
-              <div className="flex items-center gap-4 justify-end">
-            <button
-              className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.92] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-              aria-label="onboard"
-            >
-              Onboard
-            </button>
-          </div>
+              <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
         </div>
       </div>
       <div className="mt-6 w-full">

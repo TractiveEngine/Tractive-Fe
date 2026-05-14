@@ -4,12 +4,23 @@ import { StarIcon, WishIcon1, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import { LocationIcon } from "@/icons/Icon1";
 import { TruckItem } from "@/utils/TruckData";
+import { ApiTruck } from "@/services/transporterService";
 
 interface TruckInfoProps {
   item: TruckItem;
+  apiTruck?: ApiTruck;
 }
 
-export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
+export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
+  const capacity = apiTruck?.capacity || item.capacity || item.fullLoad;
+  const estimatedDelivery = apiTruck?.estimatedDeliveryText || "3 days";
+  const priceLabel = apiTruck
+    ? `₦${apiTruck.price.toLocaleString()} ${apiTruck.priceUnitLabel}`
+    : item.amountPerKg;
+  const remainingCapacity = apiTruck?.remainingCapacityDisplay || item.spaceRemaining;
+  const status = apiTruck?.status;
+  const bidSummary = apiTruck?.bidSummary;
+
   return (
     <div className="w-[100%] flex flex-col px-4 pt-2 pb-6 gap-[50px] bg-[#fefefe]">
       <div className="w-[100%] flex flex-col gap-5">
@@ -28,7 +39,7 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
                     <YellowStarIcon />
                     <StarIcon />
                     <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                      {item.rating}.0
+                      {item.rating}
                     </span>
                   </div>
                   <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
@@ -50,23 +61,84 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
               </div>
               <span className="w-[2px] h-[1rem] bg-[#808080]" />
               <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
-                40 fit
+                {capacity}
               </p>
               <span className="w-[2px] h-[1rem] bg-[#808080]" />
               <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
-                Estimated delivery: 3 days
+                Estimated delivery: {estimatedDelivery}
               </p>
             </div>
           </div>
+
+          {/* Price, Remaining Capacity & Status */}
+          <div className="flex items-center flex-wrap gap-2 sm:gap-4">
+            <p className="font-montserrat font-normal text-xs sm:text-sm text-[#808080]">
+              Price: <span className="text-[#2b2b2b] font-medium">{priceLabel}</span>
+            </p>
+            <span className="w-[1.5px] h-3 sm:h-4 bg-[#808080]" />
+            <p className="font-montserrat font-normal text-xs sm:text-sm text-[#808080]">
+              Space Remaining: <span className="text-[#2b2b2b] font-medium">{remainingCapacity}</span>
+            </p>
+            {status && (
+              <>
+                <span className="w-[1.5px] h-3 sm:h-4 bg-[#808080]" />
+                <p className="font-montserrat font-normal text-xs sm:text-sm text-[#808080]">
+                  Status:{" "}
+                  <span
+                    className={`font-bold uppercase text-xs ${
+                      status === "available" ? "text-green-600" : status === "on_transit" ? "text-orange-500" : "text-red-500"
+                    }`}
+                  >
+                    {status.replace(/_/g, " ")}
+                  </span>
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Bid Summary */}
+          {bidSummary && bidSummary.totalBids > 0 && (
+            <div className="flex flex-col gap-2 p-3 bg-[#f9f9f9] rounded-md">
+              <p className="font-montserrat font-medium text-[13px] text-[#2b2b2b]">
+                Bid Summary
+              </p>
+              <div className="flex items-center flex-wrap gap-3">
+                <p className="font-montserrat text-xs text-[#808080]">
+                  Total Bids: <span className="text-[#2b2b2b] font-medium">{bidSummary.totalBids}</span>
+                </p>
+                <span className="w-[1.5px] h-3 bg-[#808080]" />
+                <p className="font-montserrat text-xs text-[#808080]">
+                  Active: <span className="text-[#2b2b2b] font-medium">{bidSummary.activeBidsCount}</span>
+                </p>
+                <span className="w-[1.5px] h-3 bg-[#808080]" />
+                <p className="font-montserrat text-xs text-[#808080]">
+                  Highest Bid: <span className="text-[#2b2b2b] font-medium">₦{bidSummary.highestBidAmount.toLocaleString()}</span>
+                </p>
+              </div>
+              {bidSummary.activeBidders.length > 0 && (
+                <div className="flex flex-col gap-1 mt-1">
+                  <p className="font-montserrat text-xs text-[#808080]">Active Bidders:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {bidSummary.activeBidders.map((bidder) => (
+                      <span
+                        key={bidder.id}
+                        className="font-montserrat text-xs bg-white px-2 py-1 rounded border border-[#e0e0e0] text-[#2b2b2b]"
+                      >
+                        {bidder.name} — {bidder.loadDisplay}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <p className="font-montserrat font-normal text-[13px] text-[#808080]">
               Description
             </p>
             <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-              Indulge in the rich, earthy flavor and nutritional goodness of our
-              Organic Red Kidney Beans. Sourced from trusted organic farms,
-              these kidney beans are a staple in many cuisines worldwide, known
-              for their versatility and health benefits.
+              {item.fleetDescription || "No description available."}
             </p>
           </div>
         </div>
@@ -104,7 +176,9 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
               />
             </div>
             <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-              + 24 others have booked
+              {bidSummary
+                ? `+ ${bidSummary.totalBids} others have booked`
+                : "+ 24 others have booked"}
             </p>
           </div>
         </div>
@@ -135,7 +209,7 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item }) => {
           </div>
         </div>
       </div>
-      
+
       <Link
         href="/report"
         className="font-montserrat font-normal text-[12px] text-[#8b4513]"

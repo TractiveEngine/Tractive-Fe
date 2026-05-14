@@ -34,24 +34,8 @@ export interface ReviewSummary {
   recentReviewers: string[]; // avatar URLs or user IDs
 }
 
-export interface GetReviewsParams {
-  agentId: string; // Required parameter
-  search?: string;
-  rating?: number;
-  dateFrom?: string;
-  dateTo?: string;
-  page?: number;
-  limit?: number;
-}
-
 export interface GetReviewsResponse {
   reviews: Review[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
 }
 
 export interface CreateReviewPayload {
@@ -216,44 +200,20 @@ export class ReviewService {
   }
 
   /**
-   * Get reviews with optional filtering - agentId is required
+   * Get all agent reviews
+   * GET /api/reviews
    */
-  static async getReviews(
-    params: GetReviewsParams,
-  ): Promise<GetReviewsResponse> {
+  static async getReviews(): Promise<GetReviewsResponse> {
     try {
-      const queryParams = new URLSearchParams();
+      const response = await this.get<
+        { reviews?: Review[]; data?: Review[] } | Review[]
+      >("/api/reviews");
 
-      // agentId is required
-      queryParams.append("agentId", params.agentId);
+      const reviews: Review[] = Array.isArray(response)
+        ? response
+        : response?.reviews ?? response?.data ?? [];
 
-      if (params?.search) queryParams.append("search", params.search);
-      if (params?.rating)
-        queryParams.append("rating", params.rating.toString());
-      if (params?.dateFrom) queryParams.append("dateFrom", params.dateFrom);
-      if (params?.dateTo) queryParams.append("dateTo", params.dateTo);
-      if (params?.page) queryParams.append("page", params.page.toString());
-      if (params?.limit) queryParams.append("limit", params.limit.toString());
-
-      const queryString = queryParams.toString();
-      const endpoint = `/api/reviews?${queryString}`;
-
-      console.log("📡 Fetching reviews with agentId:", params.agentId);
-
-      const response = await this.get<{ reviews: Review[] }>(endpoint);
-
-      // Transform response to match GetReviewsResponse interface
-      return {
-        reviews: response.reviews,
-        pagination: {
-          page: params?.page || 1,
-          limit: params?.limit || 20,
-          total: response.reviews.length,
-          totalPages: Math.ceil(
-            response.reviews.length / (params?.limit || 20),
-          ),
-        },
-      };
+      return { reviews };
     } catch (error) {
       console.error("Error fetching reviews:", error);
       throw error;
@@ -263,16 +223,9 @@ export class ReviewService {
   /**
    * Get reviews summary (ratings distribution, overall rating, etc.)
    */
-  static async getReviewsSummary(agentId: string): Promise<ReviewSummary> {
+  static async getReviewsSummary(): Promise<ReviewSummary> {
     try {
-      console.log("📊 Fetching reviews summary for agent:", agentId);
-
-      // Since there's no dedicated summary endpoint, we'll calculate from reviews
-      const reviewsResponse = await this.getReviews({
-        agentId,
-        limit: 1000, // Get all reviews for summary calculation
-      });
-
+      const reviewsResponse = await this.getReviews();
       const reviews = reviewsResponse.reviews;
 
       // Calculate summary data
@@ -394,8 +347,8 @@ export class ReviewService {
   /**
    * Test the API endpoint directly (for debugging)
    */
-  static async testApiEndpoint(agentId: string): Promise<void> {
-    const testURL = `${this.baseURL}/api/reviews?agentId=${agentId}`;
+  static async testApiEndpoint(): Promise<void> {
+    const testURL = `${this.baseURL}/api/reviews`;
     console.log("🧪 Testing API endpoint directly:", testURL);
 
     try {

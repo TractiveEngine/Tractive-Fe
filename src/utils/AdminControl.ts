@@ -10,6 +10,8 @@ export interface AdminControl {
   checked: boolean;
 }
 
+import type { BulkAction } from "@/app/(main)/admin/_components/BulkActionBar";
+
 export interface AdminMethodProps {
   data: AdminControl[];
   handleAdminSuspended?: (id: string) => void;
@@ -19,6 +21,8 @@ export interface AdminMethodProps {
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  bulkActions?: BulkAction[];
+  bulkDisabled?: boolean;
 }
 
 export const ASRDataControl: AdminControl[] = [

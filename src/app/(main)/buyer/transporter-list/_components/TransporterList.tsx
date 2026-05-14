@@ -1,62 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import { TransporterCard } from "./TransporterCard";
 import { useGetTransporters } from "@/hooks/queries/useTransporterQueries";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Loader2 } from "lucide-react";
+import { GetTransportersParams } from "@/services/transporterService";
+
 interface SellerListProps {
+  apiParams: GetTransportersParams;
   selectedRatings: number[];
   selectedLocations: string[];
   selectedYears: string[];
 }
 
 export const TransporterList: React.FC<SellerListProps> = ({
+  apiParams,
   selectedRatings,
   selectedLocations,
   selectedYears,
 }) => {
-  const { data: transportersData, isLoading, isError } = useGetTransporters();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  const queryParams: GetTransportersParams = {
+    ...apiParams,
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+  };
+
+  const { data: transportersData, isLoading, isError } = useGetTransporters(queryParams);
   const rawTransporters = transportersData || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const apiTransporters = rawTransporters.map((transporter: any, index: number) => ({
+  const transporters = rawTransporters.map((transporter: any, index: number) => ({
     id: transporter._id || transporter.id || `transporter-${index}`,
     image: transporter.image || transporter.profilePicture || "/images/GoLogistics.png",
     transporterName: transporter.businessName || transporter.name || transporter.transporterName || "Unknown Transporter",
     rating: transporter.rating || 0,
     rateStatus: transporter.rateStatus || (transporter.rating >= 4 ? "Excellent" : transporter.rating >= 3 ? "Good" : "Fair"),
     transporterYear: transporter.transporterYear || transporter.yearsOfExperience || "1",
-    customerNumber: transporter.customerNumber || transporter.fleetsCount || 0,
+    customerNumber: transporter.customerNumber || transporter.matchingFleetCount || transporter.fleetsCount || 0,
     transporterBio: transporter.transporterBio || transporter.bio || "Connecting you to the best logistics.",
-    locationFrom: transporter.locationFrom || transporter.state || transporter.city || "Various",
+    locationFrom: transporter.locationFrom || transporter.location || transporter.state || transporter.city || "Various",
     locationTo: transporter.locationTo || "Locations",
   }));
-  
-  const transporters = [
-    ...apiTransporters,
-    {
-      id: "TransporterTGO1",
-      image: "/images/GoLogistics.png",
-      transporterName: "GO Logistics (Dummy)",
-      rating: 4.0,
-      rateStatus: "Excellent",
-      transporterYear: "10",
-      customerNumber: 300,
-      transporterBio: "Given you the best ride ever than you can imagine.",
-      locationFrom: "kano",
-      locationTo: "Delta",
-    }
-  ];
 
+  // Client-side filtering for multi-select cases the API can't handle
   const filteredTransporters = transporters.filter((transporter) => {
+    // Only apply client-side rating filter when multiple ratings selected
     const matchesRating =
-      selectedRatings.length === 0 || selectedRatings.includes(transporter.rating);
+      selectedRatings.length <= 1 || selectedRatings.includes(transporter.rating);
+    // Only apply client-side location filter when multiple locations selected
     const matchesLocation =
-      selectedLocations.length === 0 ||
+      selectedLocations.length <= 1 ||
       selectedLocations.includes(transporter.locationFrom);
+    const yearsNum = parseInt(transporter.transporterYear);
+    const yearBucket = yearsNum < 1 ? "Less than a year" : yearsNum <= 5 ? "1-5 Years" : "6-10 Years";
     const matchesYears =
-      selectedYears.length === 0 ||
-      selectedYears.includes(
-        parseInt(transporter.transporterYear) <= 5 ? "1-5 Years" : "6-10 Years"
-      );
+      selectedYears.length <= 1 ||
+      selectedYears.includes(yearBucket);
     return matchesRating && matchesLocation && matchesYears;
   });
 
@@ -84,6 +84,8 @@ export const TransporterList: React.FC<SellerListProps> = ({
         <input
           type="text"
           placeholder="Search for transporters"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full max-w-none sm:max-w-[400px] p-2 border border-[#808080] rounded-md text-[#2b2b2b] placeholder-[#808080] focus:outline-none focus:ring-[1px] focus:ring-[#538e53] focus:border-transparent text-[12px] sm:text-[14px]"
         />
         <p className="mt-2 text-[14px] sm:text-[17px] font-normal font-montserrat text-[#808080]">

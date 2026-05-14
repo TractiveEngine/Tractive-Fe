@@ -57,7 +57,8 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
   const { mutate: updateFleet, isPending: isUpdatePending } = useUpdateFleet();
   const isPending = isAddPending || isUpdatePending;
   const { uploadToCloudinary } = useCloudinaryUpload();
-  const [uploadingIndexes, setUploadingIndexes] = useState<Set<number>>(new Set());
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form with edit data if provided
   useEffect(() => {
@@ -107,7 +108,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
       formData.size.trim() !== "" &&
       formData.description.trim() !== "" &&
       formData.images.filter(Boolean).length > 0 &&
-      uploadingIndexes.size === 0;
+      uploadingCount === 0;
 
   // Handle input changes
   const handleInputChange = (
@@ -138,37 +139,42 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
     setIsFleetStateOpen(false);
   };
 
-  // Handle Image Upload
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle Image Upload (multiple files at once)
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setUploadingIndexes((prev) => new Set(prev).add(index));
-    try {
-      const url = await uploadToCloudinary(file);
-      setFormData((prev) => {
-        const newImages = [...prev.images];
-        newImages[index] = url;
-        return { ...prev, images: newImages };
-      });
-    } catch (error) {
-      console.error("Image upload failed", error);
-      toast.error("Failed to upload image.");
-    } finally {
-      setUploadingIndexes((prev) => {
-        const next = new Set(prev);
-        next.delete(index);
-        return next;
-      });
+    const fileArray = Array.from(files);
+    setUploadingCount((prev) => prev + fileArray.length);
+
+    const uploadPromises = fileArray.map(async (file) => {
+      try {
+        const url = await uploadToCloudinary(file);
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, url],
+        }));
+      } catch (error) {
+        console.error("Image upload failed", error);
+        toast.error(`Failed to upload ${file.name}`);
+      } finally {
+        setUploadingCount((prev) => prev - 1);
+      }
+    });
+
+    await Promise.all(uploadPromises);
+
+    // Reset file input so the same files can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
   const removeImage = (index: number) => {
-    setFormData((prev) => {
-      const newImages = [...prev.images];
-      delete newImages[index];
-      return { ...prev, images: newImages };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   // Handle Form Submission
@@ -517,57 +523,54 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
                 <span className="text-[12px] font-medium text-[#2b2b2b] font-montserrat block mb-2">
                   Add Images
                 </span>
-                <div className="flex gap-[15px] items-center">
-                  {[0, 1, 2].map((index) => {
-                    const isUploading = uploadingIndexes.has(index);
-                    const hasImage = !!formData.images[index];
-
-                    return (
-                      <div
-                        key={index}
-                        className="relative flex items-center justify-center bg-[#f9f9f9] border border-dashed border-[#a0a0a0] rounded-[4px] flex-1 h-[70px] sm:h-[80px] overflow-hidden group hover:bg-[#f1f1f1] transition-colors"
-                      >
-                        {isUploading ? (
-                          <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
-                        ) : hasImage ? (
-                          <>
-                            <Image
-                              src={formData.images[index]}
-                              alt={`Fleet uploaded ${index + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              {editFleetData ? (
-                                <div className="text-white text-xs bg-gray-500 rounded px-2 py-1">Images Locked</div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => removeImage(index)}
-                                  className="text-white text-xs bg-red-500 hover:bg-red-600 rounded px-2 py-1 transition-colors pointer-events-auto cursor-pointer"
-                                >
-                                  Remove
-                                </button>
-                              )}
-                            </div>
-                          </>
+                <div className="flex flex-wrap gap-[10px] items-center">
+                  {formData.images.map((url, index) => (
+                    <div
+                      key={index}
+                      className="relative flex items-center justify-center bg-[#f9f9f9] border border-[#d9d9d9] rounded-[4px] w-[80px] h-[70px] sm:h-[80px] overflow-hidden group"
+                    >
+                      <Image
+                        src={url}
+                        alt={`Fleet uploaded ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {editFleetData ? (
+                          <div className="text-white text-xs bg-gray-500 rounded px-2 py-1">Locked</div>
                         ) : (
-                          <>
-                            <label className="cursor-pointer flex items-center justify-center w-full h-full">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                disabled={!!editFleetData}
-                                onChange={(e) => handleImageChange(e, index)}
-                              />
-                              <GalleryAddIcon opacity={editFleetData ? 0.3 : 1} />
-                            </label>
-                          </>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="text-white text-xs bg-red-500 hover:bg-red-600 rounded px-2 py-1 transition-colors pointer-events-auto cursor-pointer"
+                          >
+                            Remove
+                          </button>
                         )}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
+                  {uploadingCount > 0 && (
+                    <div className="flex items-center justify-center bg-[#f9f9f9] border border-dashed border-[#a0a0a0] rounded-[4px] w-[80px] h-[70px] sm:h-[80px]">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-[10px] text-[#a0a0a0] font-montserrat">{uploadingCount}</span>
+                      </div>
+                    </div>
+                  )}
+                  {!editFleetData && (
+                    <label className="flex items-center justify-center bg-[#f9f9f9] border border-dashed border-[#a0a0a0] rounded-[4px] w-[80px] h-[70px] sm:h-[80px] hover:bg-[#f1f1f1] transition-colors cursor-pointer">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleImageChange}
+                      />
+                      <GalleryAddIcon />
+                    </label>
+                  )}
                 </div>
               </div>
 

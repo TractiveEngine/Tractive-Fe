@@ -311,7 +311,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[#2b2b2b94] flex items-center justify-center z-50 p-2 sm:p-4"
           variants={overlayVariants}
           initial="hidden"
           animate="visible"
@@ -319,7 +319,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           onClick={handleClose}
         >
           <motion.div
-            className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
@@ -353,11 +353,11 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
                   {/* View Mode UI */}
                   {mode === "view" && (
-                    <div className="flex flex-col lg:flex-row gap-8">
-                      {/* Left Column: Media Gallery */}
-                      <div className="w-full lg:w-[45%] flex flex-col gap-4">
+                    <div className="flex flex-col gap-6">
+                      {/* Media Gallery - Full Width on Top */}
+                      <div className="w-full flex flex-col gap-3">
                         {/* Featured Media Viewer */}
-                        <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">
+                        <div className="relative w-full aspect-[16/9] sm:aspect-[2/1] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">
                           {mediaItems.length > 0 ? (
                             mediaItems[selectedMediaIndex]?.type === "video" ? (
                               <video
@@ -428,8 +428,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                         )}
                       </div>
 
-                      {/* Right Column: Product Details */}
-                      <div className="w-full lg:w-[55%] flex flex-col h-full">
+                      {/* Product Details - Below Media */}
+                      <div className="w-full flex flex-col">
                         <div className="flex-1 space-y-5">
                           {/* Header Info */}
                           <div>
@@ -453,9 +453,11 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                                     : "Discontinued"}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-400 font-montserrat">
-                              ID: {product.id}
-                            </p>
+                            {product.subcategory && (
+                              <p className="text-xs text-gray-400 font-montserrat">
+                                {product.category} &bull; {product.subcategory}
+                              </p>
+                            )}
                           </div>
 
                           {/* Price & Stock Card */}
@@ -520,22 +522,84 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                                 )}
                               </div>
                             </div>
-                            <div>
-                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide font-montserrat">
-                                Farmer ID
-                              </label>
-                              <p
-                                className="text-sm text-gray-700 font-montserrat font-medium mt-1 truncate"
-                                title={product.farmerId}
-                              >
-                                {product.farmerId || "N/A"}
-                              </p>
-                            </div>
+                            {product.unitWeightKg != null && (
+                              <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide font-montserrat">
+                                  Unit Weight
+                                </label>
+                                <p className="text-sm text-gray-700 font-montserrat font-medium mt-1">
+                                  {product.unitWeightKg} kg
+                                </p>
+                              </div>
+                            )}
                           </div>
+
+                          {/* Farmer Info */}
+                          {product.farmer && (
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide font-montserrat mb-2 block">
+                                Farmer
+                              </label>
+                              <p className="text-sm font-medium text-[#2b2b2b] font-montserrat">
+                                {product.farmer.name}
+                              </p>
+                              {product.farmer.businessName && (
+                                <p className="text-xs text-gray-500 font-montserrat">
+                                  {product.farmer.businessName}
+                                </p>
+                              )}
+                              {product.farmer.phone && (
+                                <p className="text-xs text-gray-500 font-montserrat">
+                                  {product.farmer.phone}
+                                </p>
+                              )}
+                              {(product.farmer.state || product.farmer.country) && (
+                                <p className="text-xs text-gray-500 font-montserrat">
+                                  {[product.farmer.address, product.farmer.state, product.farmer.country]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Local Transport */}
+                          {product.localTransport?.required && (
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide font-montserrat mb-2 block">
+                                Local Transport
+                              </label>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <p className="text-xs text-gray-500 font-montserrat">From</p>
+                                  <p className="text-sm font-medium text-[#2b2b2b] font-montserrat">
+                                    {product.localTransport.from}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 font-montserrat">To</p>
+                                  <p className="text-sm font-medium text-[#2b2b2b] font-montserrat">
+                                    {product.localTransport.to}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 font-montserrat">Fee</p>
+                                  <p className="text-sm font-medium text-[#2b2b2b] font-montserrat">
+                                    ₦{product.localTransport.fee?.toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                              {product.localTransport.note && (
+                                <p className="text-xs text-gray-500 font-montserrat mt-2 italic">
+                                  {product.localTransport.note}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* Actions Footer */}
-                        <div className="mt-8 pt-5 border-t border-gray-100 flex gap-3">
+                        <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
                           <button
                             onClick={() => setMode("edit")}
                             className="flex-1 py-2.5 bg-[#538e53] text-white rounded-md hover:bg-[#467846] transition-colors font-montserrat font-medium text-sm shadow-sm"

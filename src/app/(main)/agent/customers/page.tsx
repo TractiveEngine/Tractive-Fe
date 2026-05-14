@@ -115,20 +115,9 @@ export default function CustomersListPage() {
     setError(null);
 
     try {
-      console.log("🔄 Fetching customers with parameters (not sent to API):", {
-        search: searchQuery,
-        location: `${selectedMonth} ${selectedYear}`.trim(),
-        page: currentPage,
-        limit: 20,
-      });
-
-      // Parameters are collected for logging but not sent to API for testing
       const params = {
         search: searchQuery || undefined,
-        location:
-          selectedMonth || selectedYear
-            ? `${selectedMonth} ${selectedYear}`.trim()
-            : undefined,
+        year: selectedYear ? parseInt(selectedYear, 10) : undefined,
         page: currentPage,
         limit: 20,
       };

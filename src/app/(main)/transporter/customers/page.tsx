@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
@@ -8,7 +8,10 @@ import { TableList } from "../_components/table/TableList";
 import { CustomerActionMenu } from "./_components/CustomerActionMenu";
 import { CustomerInfoModal } from "./_components/CustomerInfoModal";
 import { SupportModal } from "./_components/SupportModal";
-import { TransporterCustomers, TransporterCustomersData } from "@/utils/TransporterCustomersData";
+import {
+  transporterService,
+  TransporterCustomer,
+} from "@/services/transporterService";
 
 interface ColumnConfig<T> {
   header: string;
@@ -17,7 +20,7 @@ interface ColumnConfig<T> {
   minWidth?: string;
 }
 
-const TransporterCustomerColumns: ColumnConfig<TransporterCustomers>[] = [
+const TransporterCustomerColumns: ColumnConfig<TransporterCustomer>[] = [
   {
     header: "Name",
     key: "name",
@@ -48,6 +51,14 @@ const TransporterCustomerColumns: ColumnConfig<TransporterCustomers>[] = [
     header: "Revenue",
     key: "revenue",
     minWidth: "min-w-[100px]",
+    render: (customer) =>
+      typeof customer.revenue === "number"
+        ? new Intl.NumberFormat("en-NG", {
+            style: "currency",
+            currency: "NGN",
+            minimumFractionDigits: 2,
+          }).format(customer.revenue)
+        : customer.revenue,
   },
   {
     header: "Orders",
@@ -71,12 +82,18 @@ export default function CustomersListPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
-  const customersData = TransporterCustomersData;
+  const [customersData, setCustomersData] = useState<TransporterCustomer[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isCustomerInfoOpen, setIsCustomerInfoOpen] = useState<boolean>(false);
   const [isSupportOpen, setIsSupportOpen] = useState<boolean>(false);
   const [selectedCustomer, setSelectedCustomer] =
-    useState<TransporterCustomers | null>(null);
+    useState<TransporterCustomer | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCustomers, setTotalCustomers] = useState<number>(0);
+
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -95,6 +112,46 @@ export default function CustomersListPage() {
     "Nov",
     "Dec",
   ];
+
+  const fetchCustomers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await transporterService.getCustomers({
+        search: searchQuery || undefined,
+        year: selectedYear ? parseInt(selectedYear, 10) : undefined,
+        month: selectedMonth || undefined,
+        page: currentPage,
+        limit: 20,
+      });
+
+      setCustomersData(response.data);
+      setTotalPages(response.pagination?.totalPages ?? 1);
+      setTotalCustomers(response.pagination?.total ?? response.data.length);
+    } catch (err: unknown) {
+      console.error("Error fetching transporter customers:", err);
+      const message =
+        (err as { message?: string })?.message || "Failed to fetch customers";
+      setError(message);
+      setCustomersData([]);
+      setTotalPages(1);
+      setTotalCustomers(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchQuery, selectedYear, selectedMonth, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchCustomers();
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [fetchCustomers]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -128,33 +185,26 @@ export default function CustomersListPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleCustomerInfo = (id: string) => {
-    console.log(`Customer info requested for ID: ${id}`);
-    const customer = customersData.find((c) => c.id === id);
-    if (customer) {
+  const handleCustomerInfo = async (id: string) => {
+    try {
+      const customer = await transporterService.getCustomerById(id);
       setSelectedCustomer(customer);
       setIsCustomerInfoOpen(true);
+    } catch (err) {
+      console.error("Error fetching customer profile:", err);
+      const fallback = customersData.find((c) => c.id === id);
+      if (fallback) {
+        setSelectedCustomer(fallback);
+        setIsCustomerInfoOpen(true);
+      }
     }
   };
 
   const handleSupport = (id: string) => {
-    console.log(`Support requested for customer ID: ${id}`);
+    const customer = customersData.find((c) => c.id === id);
+    if (customer) setSelectedCustomer(customer);
     setIsSupportOpen(true);
   };
-
-  const filteredCustomers = customersData.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.state.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear =
-      !selectedYear || customer.date.includes(selectedYear.toString());
-    const matchesMonth =
-      !selectedMonth ||
-      customer.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
-      );
-    return matchesSearch && matchesYear && matchesMonth;
-  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -166,6 +216,11 @@ export default function CustomersListPage() {
       <div className="w-[95%] mx-auto mb-5 flex flex-col bg-[#fefefe] rounded-[10px] shadow-md">
         <h2 className="text-[17px] font-montserrat text-[#2b2b2b] px-6 pt-6 mb-4">
           Customers
+          {totalCustomers > 0 && (
+            <span className="ml-2 text-[14px] text-[#808080]">
+              ({totalCustomers} total)
+            </span>
+          )}
         </h2>
         <div className="w-full h-[1px] bg-[#e2e2e2]"></div>
         <div className="w-full bg-[#FAF7F7] mt-4 py-4">
@@ -326,14 +381,72 @@ export default function CustomersListPage() {
           </div>
         </div>
         <div className="my-6 overflow-x-auto">
-          <TableList<TransporterCustomers>
-            dataType="customers"
-            columns={TransporterCustomerColumns}
-            initialData={filteredCustomers}
-            ActionMenuComponent={CustomerActionMenu}
-            handleCustomerInfo={handleCustomerInfo}
-            handleSupport={handleSupport}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-[#538e53] border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-[14px] font-montserrat text-[#808080]">
+                  Loading customers...
+                </div>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="flex flex-col items-center gap-3">
+                <div className="text-[14px] font-montserrat text-red-500">
+                  {error}
+                </div>
+                <button
+                  onClick={fetchCustomers}
+                  className="px-4 py-2 cursor-pointer bg-[#538e53] text-white text-[12px] font-montserrat rounded-[4px] hover:bg-[#467746] transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : customersData.length === 0 ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="text-[14px] font-montserrat text-[#808080]">
+                No customers found
+              </div>
+            </div>
+          ) : (
+            <>
+              <TableList<TransporterCustomer>
+                dataType="customers"
+                columns={TransporterCustomerColumns}
+                initialData={customersData}
+                ActionMenuComponent={CustomerActionMenu}
+                handleCustomerInfo={handleCustomerInfo}
+                handleSupport={handleSupport}
+              />
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-6 mb-2 px-4">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 cursor-pointer text-[12px] sm:text-[13px] font-montserrat bg-[#538e53] text-white rounded-[4px] hover:bg-[#467746] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-[12px] sm:text-[13px] font-montserrat text-[#2b2b2b]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 cursor-pointer text-[12px] sm:text-[13px] font-montserrat bg-[#538e53] text-white rounded-[4px] hover:bg-[#467746] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
           <CustomerInfoModal
             customer={selectedCustomer}
             isOpen={isCustomerInfoOpen}

@@ -9,6 +9,7 @@ import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
 import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
+import { useNotifications } from "@/hooks/queries/useNotificationQueries";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -17,7 +18,10 @@ export const Navbar = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
+
+  const { data: notifications = [] } = useNotifications(isLoggedIn);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const hasUnread = unreadCount > 0;
 
   const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -27,23 +31,6 @@ export const Navbar = () => {
     { href: "/about-us", label: "About Us" },
     { href: "/contact-us", label: "Contact Us" },
   ];
-
-  useEffect(() => {
-    const fetchNotificationsAndBids = async () => {
-      // Mock API call for notifications and bids
-      const mockNotifications = [
-        { id: 1, message: "You have a new message" },
-        { id: 2, message: "Order #456 updated" },
-      ];
-
-      // Update states based on mock data
-      setHasNotifications(mockNotifications.length > 0);
-    };
-
-    if (isLoggedIn) {
-      fetchNotificationsAndBids();
-    }
-  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -119,27 +106,21 @@ export const Navbar = () => {
             <div className="flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
               {/* ===================== Notification icon ========================= */}
               <div
-                className="relative"
+                className="relative cursor-pointer"
                 onClick={handleNotificationClick}
                 ref={notificationRef}
               >
                 <NotificationIcon />
-                {hasNotifications && (
-                  <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
+                {hasUnread && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 flex items-center justify-center text-[9px] font-medium text-white bg-[#d32f2f] rounded-full">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
                 {isNotificationOpen && (
                   <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
-                    <ul className="py-2">
-                      {hasNotifications ? (
-                        <>
-                          <Notifications />
-                        </>
-                      ) : (
-                        <li className="px-4 py-2 text-[0.89rem] text-gray-500">
-                          No new notifications
-                        </li>
-                      )}
-                    </ul>
+                    <div className="py-2">
+                      <Notifications />
+                    </div>
                   </div>
                 )}
               </div>

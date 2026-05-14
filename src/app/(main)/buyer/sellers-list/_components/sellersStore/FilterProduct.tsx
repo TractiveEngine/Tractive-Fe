@@ -31,10 +31,12 @@ export const FilterProduct = ({
 }: FilterProductProps) => {
   const toggleInterest = (interest: string) => {
     setSelectedFilter((prev) => {
-      const updated = prev.includes(interest)
-        ? prev.filter((item) => item !== interest)
-        : [...prev, interest];
-      return updated;
+      // Single-select toggle: clicking the active category deselects it,
+      // clicking a different one switches to it
+      if (prev.includes(interest)) {
+        return [];
+      }
+      return [interest];
     });
   };
 

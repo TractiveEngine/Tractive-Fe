@@ -9,6 +9,7 @@ import AdminTable, {
 } from "../../../_components/table/AdminTableList";
 import { ActiveActionMenu } from "../ASRActionMenu/ActiveActionMenu";
 import Image from "next/image";
+import { BulkActionButtons } from "../../../_components/BulkActionButtons";
 
 const months = [
   "Jan",
@@ -93,7 +94,30 @@ const columns: ColumnConfig<AdminControl>[] = [
   },
   { key: "location", header: "Location", minWidth: "min-w-[120px]" },
   { key: "mobile", header: "Mobile", minWidth: "min-w-[100px]" },
-  { key: "status", header: "Status", minWidth: "min-w-[100px]" },
+  {
+    key: "status",
+    header: "Status",
+    minWidth: "min-w-[100px]",
+    render: (item: AdminControl) => {
+      const s = (item.status || "").toLowerCase();
+      const styles =
+        s === "active"
+          ? "bg-green-50 text-green-600 border-green-100"
+          : s === "suspended"
+          ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+          : s === "removed"
+          ? "bg-red-50 text-red-600 border-red-100"
+          : "bg-gray-50 text-gray-600 border-gray-200";
+      const label = s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
+      return (
+        <span
+          className={`inline-block text-[10px] font-medium font-montserrat px-2 py-0.5 rounded-full border ${styles}`}
+        >
+          {label}
+        </span>
+      );
+    },
+  },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 export const ActiveTable: React.FC<AdminMethodProps> = ({
@@ -103,6 +127,8 @@ export const ActiveTable: React.FC<AdminMethodProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  bulkActions = [],
+  bulkDisabled,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -437,14 +463,7 @@ export const ActiveTable: React.FC<AdminMethodProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 justify-end">
-            <button
-              className="cursor-pointer flex items-center gap-[7px] px-4 sm:px-6 py-2 opacity-[0.92] bg-[#538e53] text-[#f9f9f9] text-[12px] sm:text-[13px] lg:text-[14px] font-normal rounded-[4px] transition-colors hover:bg-[#467a46]"
-              aria-label="Onboard"
-            >
-              Onboard
-            </button>
-          </div>
+          <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
         </div>
       </div>
       <div className="mt-6 w-full">

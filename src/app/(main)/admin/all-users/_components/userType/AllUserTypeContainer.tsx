@@ -5,12 +5,11 @@ import { motion } from "framer-motion";
 import { AllUserType } from "./AllUserType";
 import { AgentType } from "./AgentType";
 import { TransporterTypes } from "./TransporterTypes";
-import { FarmerType } from "./FarmerType";
 import { initialUsers } from "@/utils/userTypes";
 import { BuyerType } from "./BuyerType";
 
 // Define types for slide switching
-type SlideType = "All" | "Agents" | "Transporter" | "Farmer" | "Buyer";
+type SlideType = "All" | "Agents" | "Transporter" | "Buyer";
 
 // Interface for tab indicator styles
 interface IndicatorStyle {
@@ -45,7 +44,6 @@ export default function AllUserTypeContainer() {
       Agents: initialUsers.filter((user) => user.profession === "Agents").length,
       Transporter: initialUsers.filter((user) => user.profession === "Transporter")
         .length,
-      Farmer: initialUsers.filter((user) => user.profession === "Farmer").length,
       Buyer: initialUsers.filter((user) => user.profession === "Buyer").length,
     }),
     []
@@ -77,15 +75,6 @@ export default function AllUserTypeContainer() {
         label: "Transporter",
         displayLabel: "Transporter",
         count: counts.Transporter,
-        colorClass: "bg-[#538e53]",
-        textColor: "text-[#538e53]",
-        colorClassFaded: "text-[#fefefe]",
-      },
-      {
-        id: "farmer-tab",
-        label: "Farmer",
-        displayLabel: "Farmer",
-        count: counts.Farmer,
         colorClass: "bg-[#538e53]",
         textColor: "text-[#538e53]",
         colorClassFaded: "text-[#fefefe]",
@@ -135,7 +124,6 @@ export default function AllUserTypeContainer() {
       All: <AllUserType />,
       Agents: <AgentType />,
       Transporter: <TransporterTypes />,
-      Farmer: <FarmerType />,
       Buyer: <BuyerType />,
     };
     return componentMap[activeTab] || <AllUserType />;
@@ -175,15 +163,6 @@ export default function AllUserTypeContainer() {
               >
                 {tab.displayLabel}
               </button>
-              <span
-                className={` ${
-                  activeTab === tab.label
-                    ? `${tab.colorClass} text-[#fefefe]`
-                    : `${tab.colorClassFaded} bg-[#2b2b2b]`
-                } rounded-[4px] px-1 py-[1px] text-[10px] font-normal font-montserrat`}
-              >
-                {tab.count}
-              </span>
             </div>
           ))}
           <motion.div

@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import api from "@/lib/axios";
 import { userService } from "@/services/UserService";
 import { toast } from "sonner";
@@ -30,14 +31,17 @@ export interface AvailableRolesResponse {
 }
 
 export const useUserProfile = () => {
+    const { status } = useSession();
     return useQuery({
         queryKey: ["userProfile"],
         queryFn: async () => {
             const { data } = await api.get("/api/profile");
             return data.user || data;
         },
-        retry: (failureCount, error: any) => {
-            if (error.response?.status === 401 || error.response?.status === 403) return false;
+        enabled: status === "authenticated",
+        retry: (failureCount, error: unknown) => {
+            const err = error as { response?: { status?: number } };
+            if (err.response?.status === 401 || err.response?.status === 403) return false;
             return failureCount < 2;
         }
     });

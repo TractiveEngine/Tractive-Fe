@@ -4,7 +4,22 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AdminActionMenuProps } from "../AdminActionMenuProps";
 import "../../Table.css";
-import { TickIcon } from "../../../../../app/(main)/agent/_components/Icons/AgentIcons";
+
+const CheckTickIcon = () => (
+  <svg
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
+    viewBox="0 0 16 16"
+    fill="#fefefe"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M6.4 11.2L3.2 8L2 9.2L6.4 13.6L14 6L12.8 4.8L6.4 11.2Z"
+      stroke="#fefefe"
+      strokeWidth="1"
+    />
+  </svg>
+);
 
 interface BaseData {
   id: string;
@@ -42,12 +57,15 @@ interface ListTableProps<T extends BaseData> {
   handleAgentDecline?: (id: string) => void;
   handleFarmerApprove?: (id: string) => void;
   handleFarmerDecline?: (id: string) => void;
+  handleTransporterApprove?: (id: string) => void;
+  handleTransporterDecline?: (id: string) => void;
   handleAdminSuspended?: (id: string) => void;
   handleAdminOnboarding?: (id: string) => void;
   handleTransporterInfo?: (id: string) => void;
   handleCheckboxChange?: (id: string) => void;
   fetchData?: (dataType: string) => Promise<T[]>;
   ActionMenuComponent?: React.ComponentType<AdminActionMenuProps>;
+  onRowClick?: (id: string) => void;
 }
 
 const rowVariants = {
@@ -80,10 +98,13 @@ export const AdminTable = <T extends BaseData>({
   ActionMenuComponent,
   handleFarmerApprove,
   handleFarmerDecline,
+  handleTransporterApprove,
+  handleTransporterDecline,
   handleAdminSuspended,
   handleCheckboxChange,
   handleAdminOnboarding,
   handleTransporterInfo,
+  onRowClick,
 }: ListTableProps<T>): React.ReactElement => {
   const [data, setData] = useState<T[]>(initialData);
   // const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -93,6 +114,7 @@ export const AdminTable = <T extends BaseData>({
     "TransactionalData",
     "AgentsData",
     "FarmersData",
+    "TransportersData",
     "ASRDataControl",
   ].includes(dataType);
 
@@ -146,6 +168,16 @@ export const AdminTable = <T extends BaseData>({
 
   const defaultHandleFarmerDecline = (id: string) => {
     console.log(`Default handleFarmerDecline called for id: ${id}`);
+    alert(`Decline ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleTransporterApprove = (id: string) => {
+    console.log(`Default handleTransporterApprove called for id: ${id}`);
+    alert(`Approve ${dataType} with ID: ${id}`);
+  };
+
+  const defaultHandleTransporterDecline = (id: string) => {
+    console.log(`Default handleTransporterDecline called for id: ${id}`);
     alert(`Decline ${dataType} with ID: ${id}`);
   };
 
@@ -210,7 +242,7 @@ export const AdminTable = <T extends BaseData>({
                     onChange={handleSelectAll}
                     className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53] touch:p-2"
                   />
-                  {allChecked && <TickIcon />}
+                  {allChecked && <CheckTickIcon />}
                 </div>
               </th>
             )}
@@ -231,14 +263,20 @@ export const AdminTable = <T extends BaseData>({
           {data.map((item, index) => (
             <motion.tr
               key={item.id}
-              className="border-gray-200 border-b-[1px] py-1.5 px-4 relative"
+              className={`border-gray-200 border-b-[1px] py-1.5 px-4 relative transition-colors ${
+                onRowClick ? "cursor-pointer hover:bg-[#EFF7EF]" : "hover:bg-[#EFF7EF]"
+              }`}
               variants={rowVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: index * 0.1 }}
+              onClick={onRowClick ? () => onRowClick(item.id) : undefined}
             >
               {isCheckboxTable && (
-                <td className="py-1.5 pl-4 whitespace-nowrap">
+                <td
+                  className="py-1.5 pl-4 whitespace-nowrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="relative w-5 h-5">
                     <input
                       type="checkbox"
@@ -246,7 +284,7 @@ export const AdminTable = <T extends BaseData>({
                       onChange={() => handleCheckboxChange?.(item.id)}
                       className="w-5 h-5 cursor-pointer rounded border-[1px] border-gray-300 text-[#538e53] focus:ring-[#538e53] focus:ring-[1px] appearance-none checked:bg-[#538e53] checked:border-[#538e53]"
                     />
-                    {item.checked && <TickIcon />}
+                    {item.checked && <CheckTickIcon />}
                   </div>
                 </td>
               )}
@@ -260,7 +298,10 @@ export const AdminTable = <T extends BaseData>({
                     : String(item[col.key as keyof T])}
                 </td>
               ))}
-              <td className="py-1.5 px-4 relative">
+              <td
+                className="py-1.5 px-4 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {ActionMenuComponent && (
                   <ActionMenuComponent
                     userTypeId={item.id}
@@ -317,6 +358,18 @@ export const AdminTable = <T extends BaseData>({
                     handleFarmerDecline={
                       dataType === "FarmersData"
                         ? handleFarmerDecline || defaultHandleFarmerDecline
+                        : undefined
+                    }
+                    handleTransporterApprove={
+                      dataType === "TransportersData"
+                        ? handleTransporterApprove ||
+                          defaultHandleTransporterApprove
+                        : undefined
+                    }
+                    handleTransporterDecline={
+                      dataType === "TransportersData"
+                        ? handleTransporterDecline ||
+                          defaultHandleTransporterDecline
                         : undefined
                     }
                     handleAdminSuspended={

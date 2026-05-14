@@ -30,6 +30,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   const [farmerSearchQuery, setFarmerSearchQuery] = useState<string>("");
   const [selectedFarmerId, setSelectedFarmerId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [subcategory, setSubcategory] = useState<string>("");
   const [productName, setProductName] = useState<string>("");
   const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
   const [isFarmerOpen, setIsFarmerOpen] = useState<boolean>(false);
@@ -330,6 +331,17 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
+                {/* Subcategory */}
+                <div className="w-[88%] mx-auto">
+                  <input
+                    type="text"
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                    className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat"
+                    placeholder="Enter subcategory (e.g., Maize)"
+                  />
+                </div>
+
                 {/* Media Upload Section */}
                 <div className="w-[88%] mx-auto">
                   <MediaUpload
@@ -357,6 +369,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                 onBack={handleBack}
                 onClose={onClose}
                 selectedCategory={selectedCategory}
+                subcategory={subcategory}
                 productName={productName}
                 selectedFarmerId={selectedFarmerId}
                 imageFiles={imageFiles}

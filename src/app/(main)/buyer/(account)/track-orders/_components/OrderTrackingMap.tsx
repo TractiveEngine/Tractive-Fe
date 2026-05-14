@@ -1,0 +1,85 @@
+"use client";
+import React from "react";
+import Image from "next/image";
+import { TickIcon } from "@/app/(main)/transporter/_components/Icons/TransporterIcons";
+import type { TrackOrder } from "./trackOrdersData";
+
+interface Props {
+  order: TrackOrder;
+}
+
+const StepDot: React.FC<{ active: boolean }> = ({ active }) => (
+  <div
+    className={`flex items-center justify-center w-4 h-4 rounded-full p-[2px] z-10 ${
+      active
+        ? "bg-[#538e53] text-[#fefefe]"
+        : "bg-[#fefefe] border border-[#808080]"
+    }`}
+  >
+    {active && <TickIcon />}
+  </div>
+);
+
+export const OrderTrackingMap: React.FC<Props> = ({ order }) => {
+  const picked = ["picked", "on_transit", "delivered"].includes(order.status);
+  const onTransit = ["on_transit", "delivered"].includes(order.status);
+  const delivered = order.status === "delivered";
+
+  return (
+    <div className="w-full bg-[#fefefe] rounded-[10px] shadow-md flex flex-col gap-3 overflow-hidden">
+      <div className="relative w-full h-[260px] sm:h-[320px]">
+        <Image
+          src="/images/trackingMap.png"
+          alt="Map"
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover"
+        />
+      </div>
+
+      <div className="relative w-[92%] mx-auto h-[60px]">
+        <div className="absolute top-[7px] left-[10%] right-[55%] h-[2px] border-t border-dashed border-[#808080]" />
+        <div className="absolute top-[7px] left-[45%] right-[10%] h-[2px] border-t border-dashed border-[#808080]" />
+
+        <div className="absolute left-[3%] top-0 flex flex-col items-center gap-1">
+          <StepDot active={picked} />
+          <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            Picked
+          </span>
+          <span className="font-montserrat text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            {order.pickedAt}
+          </span>
+        </div>
+
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 flex flex-col items-center gap-1">
+          <StepDot active={onTransit} />
+          <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            On Transit
+          </span>
+          <span className="font-montserrat text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            {order.onTransitAt}
+          </span>
+        </div>
+
+        <div className="absolute right-[3%] top-0 flex flex-col items-center gap-1">
+          <StepDot active={delivered} />
+          <span className="font-montserrat font-medium text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            Delivered
+          </span>
+          <span className="font-montserrat text-[10px] sm:text-[11px] text-[#2b2b2b]">
+            Est date: {order.estDeliveryDate}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-4 sm:px-6 pb-4 gap-2">
+        <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
+          From: {order.fromLocation}
+        </span>
+        <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
+          To: {order.toLocation}
+        </span>
+      </div>
+    </div>
+  );
+};

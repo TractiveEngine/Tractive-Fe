@@ -99,6 +99,7 @@ export interface GetSellerProductsParams {
   limit?: number;
   search?: string;
   status?: "available" | "out_of_stock" | "discontinued";
+  category?: string;
 }
 
 export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<unknown[]> => {

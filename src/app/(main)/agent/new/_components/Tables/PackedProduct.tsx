@@ -10,7 +10,7 @@ import "../../../Table.css";
 import { TableList } from "../../../_components/table/TableList";
 import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
-import { Order, OrdersApiService } from "@/services/OrderService";
+import { Order, OrdersApiService, mapOrderRecord } from "@/services/OrderService";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface ColumnConfig<T> {
@@ -25,29 +25,33 @@ const productColumns: ColumnConfig<Order>[] = [
     header: "Item",
     key: "name",
     minWidth: "min-w-[150px]",
-    render: (product) => (
-      <div className="flex items-center gap-2">
-        <Image
-          src={product.image}
-          alt={product.name}
-          width={53}
-          height={30}
-          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
-        />
-        <div className="flex flex-col">
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {product.name}
-          </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            <span className="inline sm:hidden">
-              {product.description.split(" ").slice(0, 2).join(" ")}
-              {product.description.split(" ").length > 2 ? "..." : ""}
+    render: (product) => {
+      const description = product.description ?? "";
+      const descriptionWords = description.split(" ");
+      return (
+        <div className="flex items-center gap-2">
+          <Image
+            src={product.image || "/images/noData.png"}
+            alt={product.name || "Product"}
+            width={53}
+            height={30}
+            className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px]"
+          />
+          <div className="flex flex-col">
+            <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+              {product.name || "—"}
             </span>
-            <span className="hidden sm:inline">{product.description}</span>
-          </span>
+            <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+              <span className="inline sm:hidden">
+                {descriptionWords.slice(0, 2).join(" ")}
+                {descriptionWords.length > 2 ? "..." : ""}
+              </span>
+              <span className="hidden sm:inline">{description}</span>
+            </span>
+          </div>
         </div>
-      </div>
-    ),
+      );
+    },
   },
   {
     header: "ID",
@@ -71,7 +75,8 @@ const productColumns: ColumnConfig<Order>[] = [
     header: "Amount",
     key: "amount",
     minWidth: "min-w-[100px]",
-    render: (product) => `$${product.amount.toFixed(2)}`,
+    render: (product) =>
+      typeof product.amount === "number" ? `$${product.amount.toFixed(2)}` : "—",
   },
   {
     header: "Buyer",
@@ -143,7 +148,7 @@ export const PackedProduct: React.FC = () => {
           ? String(months.indexOf(selectedMonth) + 1).padStart(2, "0")
           : undefined,
       });
-      return Array.isArray(response) ? response : [];
+      return Array.isArray(response) ? response.map(mapOrderRecord) : [];
     },
   });
 

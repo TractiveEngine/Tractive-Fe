@@ -29,6 +29,117 @@ export interface FleetResponse extends FleetPayload {
   plateNumber?: string;
 }
 
+export interface GetFleetsParams {
+  search?: string;
+  status?: string;
+  year?: number;
+  month?: number;
+}
+
+export type FleetBookingStatus =
+  | "pending_payment"
+  | "confirmed"
+  | "rejected"
+  | "cancelled"
+  | "completed";
+
+export interface GetFleetBookingsParams {
+  status?: FleetBookingStatus;
+}
+
+export type FleetPaymentStatus = "pending" | "approved" | "rejected";
+
+export interface GetAdminFleetPaymentsParams {
+  status?: FleetPaymentStatus;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface FleetPaymentShipmentItem {
+  orderId?: string;
+  productId?: string;
+  productName?: string;
+  quantity?: number;
+  unit?: string;
+  loadWeightKg?: number;
+  _id?: string;
+}
+
+export interface FleetPaymentParty {
+  _id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
+
+export interface AdminFleetPaymentRecord {
+  _id?: string;
+  id?: string;
+  status?: FleetPaymentStatus | string;
+  amount?: number;
+  paymentMethod?: string;
+  reason?: string;
+  refundReason?: string | null;
+  note?: string;
+  loadWeightKg?: number;
+  wholeTruckOnly?: boolean;
+  shipmentItems?: FleetPaymentShipmentItem[];
+  createdAt?: string;
+  updatedAt?: string;
+  buyer?: string | FleetPaymentParty;
+  transporter?: string | FleetPaymentParty;
+  payer?: string | FleetPaymentParty;
+  approvedBy?: null | string | { _id?: string; name?: string; email?: string };
+  fleetTripId?: string | null;
+  fleetBid?: null | {
+    _id?: string;
+    amount?: number;
+    counterAmount?: number;
+    status?: string;
+  };
+  fleet?:
+    | string
+    | {
+        _id?: string;
+        fleetName?: string;
+        fleetNumber?: string;
+        plateNumber?: string;
+        model?: string;
+        price?: number;
+        status?: string;
+        image?: string;
+        images?: string[];
+        route?: { fromState?: string; toState?: string };
+      };
+  booking?:
+    | string
+    | {
+        _id?: string;
+        amount?: number;
+        status?: string;
+        buyer?: { _id?: string; name?: string };
+        loadWeightKg?: number;
+        wholeTruckOnly?: boolean;
+        note?: string;
+        fleetTripId?: string | null;
+        shipmentItems?: FleetPaymentShipmentItem[];
+      };
+  bookingIds?: string[];
+  [key: string]: unknown;
+}
+
+export interface GetAdminFleetPaymentsResponse {
+  data: AdminFleetPaymentRecord[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const fleetService = {
   // POST /api/transporters/fleets - Add a new fleet
   createFleet: async (data: FleetPayload) => {
@@ -44,9 +155,9 @@ export const fleetService = {
   },
 
   // GET /api/transporters/fleets - Get all fleets for the transporter
-  getFleets: async (): Promise<FleetResponse[]> => {
+  getFleets: async (params?: GetFleetsParams): Promise<FleetResponse[]> => {
     try {
-      const response = await api.get("/api/transporters/fleets");
+      const response = await api.get("/api/transporters/fleets", { params });
       const responseData = response.data;
       if (responseData && Array.isArray(responseData.data)) {
         return responseData.data;
@@ -98,6 +209,163 @@ export const fleetService = {
         throw new Error((error as {response: {data: {message: string}}}).response?.data?.message || "Failed to update fleet status");
       }
       throw new Error("Failed to update fleet status");
+    }
+  },
+
+  // GET /api/transporters/fleet/{id}/bookings - List bookings for a single fleet
+  getFleetBookings: async (
+    fleetId: string,
+    params?: GetFleetBookingsParams
+  ): Promise<unknown> => {
+    try {
+      const response = await api.get(
+        `/api/transporters/fleet/${fleetId}/bookings`,
+        { params }
+      );
+      return response.data.data ?? response.data ?? [];
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to fetch fleet bookings"
+        );
+      }
+      throw new Error("Failed to fetch fleet bookings");
+    }
+  },
+
+  // GET /api/fleet-bookings - Flat list across all fleets for the caller's role
+  getAllFleetBookings: async (
+    params?: GetFleetBookingsParams
+  ): Promise<unknown> => {
+    try {
+      const response = await api.get(`/api/fleet-bookings`, { params });
+      return response.data.data ?? response.data ?? [];
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to fetch fleet bookings"
+        );
+      }
+      throw new Error("Failed to fetch fleet bookings");
+    }
+  },
+
+  // GET /api/transporters/fleet/{id}/payments - List payments for a single fleet
+  getFleetPayments: async (fleetId: string): Promise<unknown> => {
+    try {
+      const response = await api.get(
+        `/api/transporters/fleet/${fleetId}/payments`
+      );
+      return response.data.data ?? response.data ?? [];
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to fetch fleet payments"
+        );
+      }
+      throw new Error("Failed to fetch fleet payments");
+    }
+  },
+
+  // GET /api/admin/fleet-payments - Admin list of all fleet payments with filters.
+  getAdminFleetPayments: async (
+    params?: GetAdminFleetPaymentsParams
+  ): Promise<GetAdminFleetPaymentsResponse> => {
+    try {
+      const response = await api.get(`/api/admin/fleet-payments`, { params });
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const list: AdminFleetPaymentRecord[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.fleetPayments)
+          ? payload.fleetPayments
+          : Array.isArray(payload?.payments)
+            ? payload.payments
+            : Array.isArray(payload?.data)
+              ? payload.data
+              : [];
+      const pagination = body?.pagination ?? payload?.pagination;
+      return { data: list, pagination };
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to fetch fleet payments"
+        );
+      }
+      throw new Error("Failed to fetch fleet payments");
+    }
+  },
+
+  // GET /api/admin/fleet-payments/{id} - Admin: full detail for a single fleet payment
+  getAdminFleetPaymentById: async (
+    id: string
+  ): Promise<AdminFleetPaymentRecord> => {
+    try {
+      const response = await api.get(`/api/admin/fleet-payments/${id}`);
+      const body = response.data;
+      const payload = body?.data ?? body;
+      return (payload?.fleetPayment ??
+        payload?.payment ??
+        payload) as AdminFleetPaymentRecord;
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to load fleet payment"
+        );
+      }
+      throw new Error("Failed to load fleet payment");
+    }
+  },
+
+  // PATCH /api/admin/fleet-payments/{id}/status - Admin approve/reject alias.
+  // Preferred admin route. Body: { status: "approved" | "rejected" }.
+  adminUpdateFleetPaymentStatus: async (
+    id: string,
+    payload: { status: "approved" | "rejected"; reason?: string }
+  ): Promise<unknown> => {
+    try {
+      const response = await api.patch(
+        `/api/admin/fleet-payments/${id}/status`,
+        payload
+      );
+      return response.data.data ?? response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to update fleet payment status"
+        );
+      }
+      throw new Error("Failed to update fleet payment status");
+    }
+  },
+
+  // POST /api/admin/fleet-payments/refund - Admin refunds a fleet payment.
+  // Body: { fleetPaymentId, reason, refundAmount }.
+  adminRefundFleetPayment: async (payload: {
+    fleetPaymentId: string;
+    reason: string;
+    refundAmount: number;
+  }): Promise<unknown> => {
+    try {
+      const response = await api.post(
+        `/api/admin/fleet-payments/refund`,
+        payload
+      );
+      return response.data.data ?? response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        throw new Error(
+          (error as { response: { data: { message: string } } }).response?.data
+            ?.message || "Failed to refund fleet payment"
+        );
+      }
+      throw new Error("Failed to refund fleet payment");
     }
   },
 };

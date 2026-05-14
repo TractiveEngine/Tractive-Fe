@@ -1,10 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './features/auth/authSlice'
+import truckReducer from './features/truck/truckSlice'
+import pendingTransportReducer from './features/pendingTransport/pendingTransportSlice'
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       auth: authReducer,
+      truck: truckReducer,
+      pendingTransport: pendingTransportReducer,
     },
   })
 }

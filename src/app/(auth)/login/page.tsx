@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { LoginSchema, LoginSchemaType } from "../../../schemas/LoginSchema";
 import { Button } from "../../../components/Button";
@@ -17,15 +17,36 @@ const Spinner = () => (
   <div className="w-4 h-4 border-4 border-b-2 border-[#a0dfa0] border-t-[#538e53] rounded-full animate-spin" />
 );
 
-export default function Login() {
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <Login />
+    </Suspense>
+  );
+}
+
+function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (session?.user) {
+        const redirect = searchParams.get("redirect");
+        const isSafeInternalPath =
+          !!redirect &&
+          redirect.startsWith("/") &&
+          !redirect.startsWith("//") &&
+          !redirect.startsWith("/\\");
+
+        if (isSafeInternalPath) {
+             router.replace(redirect);
+             return;
+        }
+
         const { activeRole, role: roles } = session.user;
         if (activeRole) {
              router.replace(`/${activeRole}`);
@@ -35,7 +56,7 @@ export default function Login() {
              router.replace("/register-as");
         }
     }
-  }, [session, router]);
+  }, [session, router, searchParams]);
 
   const {
     register,

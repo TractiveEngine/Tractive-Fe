@@ -11,6 +11,8 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { AgentActionMenu } from "./AgentActionMenu";
 import Image from "next/image";
+import { TableSkeleton } from "../../_components/TableSkeleton";
+import { BulkActionButtons } from "../../_components/BulkActionButtons";
 
 const months = [
   "Jan",
@@ -102,11 +104,15 @@ const columns: ColumnConfig<AgentsProps>[] = [
 
 export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   data,
+  isLoading = false,
   handleAgentApprove,
   handleAgentDecline,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  onRowClick,
+  bulkActions = [],
+  bulkDisabled,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -433,20 +439,33 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
               </div>
             </div>
           </div>
+          <BulkActionButtons actions={bulkActions} disabled={bulkDisabled} />
         </div>
       </div>
       <div className="mt-6 w-full">
-        <AdminTable<AgentsProps>
-          dataType="AgentsData"
-          columns={columns}
-          initialData={filteredAgents}
-          ActionMenuComponent={AgentActionMenu}
-          handleApprove={handleAgentApprove}
-          handleDecline={handleAgentDecline}
-          handleCheckboxChange={handleCheckboxChange}
-          handleSelectAll={handleSelectAll}
-          allChecked={allChecked}
-        />
+        {isLoading ? (
+          <TableSkeleton columns={columns.length} rows={6} />
+        ) : (
+          <>
+            <AdminTable<AgentsProps>
+              dataType="AgentsData"
+              columns={columns}
+              initialData={filteredAgents}
+              ActionMenuComponent={AgentActionMenu}
+              handleAgentApprove={handleAgentApprove}
+              handleAgentDecline={handleAgentDecline}
+              handleCheckboxChange={handleCheckboxChange}
+              handleSelectAll={handleSelectAll}
+              allChecked={allChecked}
+              onRowClick={onRowClick}
+            />
+            {filteredAgents.length === 0 && (
+              <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+                No agents pending approval.
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

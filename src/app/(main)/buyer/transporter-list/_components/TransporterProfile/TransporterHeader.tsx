@@ -104,7 +104,7 @@ export const TransporterHeader = ({ transporterId }: { transporterId: string }) 
   const followersCount = t.followersCount || 0;
   const stateLocation = t.state || t.locationFrom || "Various";
   const deliveriesCount = t.successfulDeliveries || t.customerNumber || 0;
-  const yearsOfSales = t.transporterYear || t.yearsOfExperience || 1;
+  const yearsOfSales = t.transporterYear ?? t.yearsOfExperience ?? 0;
   const reviewCount = t.reviewCount || 0;
 
   return (
@@ -227,7 +227,7 @@ export const TransporterHeader = ({ transporterId }: { transporterId: string }) 
               <AwardIcon />
             </div>
             <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#2b2b2b]">
-              {yearsOfSales} years of sales
+              {yearsOfSales > 0 ? `${yearsOfSales} years of sales` : "Less than a year"}
             </p>
           </div>
 

@@ -136,7 +136,7 @@ export const NewProduct: React.FC = () => {
 
       // FIX: Ensure response is always an array
       const orders = Array.isArray(response) ? response : [];
-      setProducts(orders);
+      setProducts(orders as unknown as Order[]);
     } catch (err) {
       setError("Failed to load orders. Please try again.");
       console.error("Error fetching orders:", err);

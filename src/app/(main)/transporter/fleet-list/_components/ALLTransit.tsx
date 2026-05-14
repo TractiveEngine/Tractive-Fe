@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
@@ -9,6 +9,7 @@ import AddFleet from "../../_components/AddFleet";
 import { ViewFleetModal } from "../../_components/ViewFleetModal";
 import { Fleet } from "@/utils/Fleet";
 import { useGetFleets, useDeleteFleet, useUpdateFleetStatus } from "@/hooks/queries/useFleetQueries";
+import { GetFleetsParams } from "@/services/fleetService";
 import "../../Table.css";
 
 const months = [
@@ -27,40 +28,47 @@ const months = [
 ];
 
 export const AllTransit: React.FC = () => {
-  const { data: fetchedFleets } = useGetFleets();
-
-  const [fleets, setFleets] = useState<Fleet[]>([]);
-
-  useEffect(() => {
-    if (fetchedFleets) {
-      setFleets(
-        fetchedFleets.map((fleet) => ({
-          id: fleet._id,
-          image: fleet.images?.[0] || "/images/truckcontainer.png",
-          name: fleet.fleetName || "Unknown Fleet",
-          IOT: fleet.iot || "N/A",
-          route: `${fleet.route?.fromState || "Unknown"} - ${fleet.route?.toState || "Unknown"}`,
-          status: fleet.status || fleet.fleetStates || "Available",
-          price: fleet.price || 0,
-          date: new Date(fleet.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: '2-digit', day: '2-digit' }),
-          checked: false,
-          
-          // Extra Details
-          fleetNumber: fleet.fleetNumber,
-          model: fleet.model,
-          size: fleet.size || fleet.capacity,
-          priceNegotiation: fleet.priceNegotiation,
-          fleetDescription: fleet.fleetDescription,
-          images: fleet.images,
-        }))
-      );
-    }
-  }, [fetchedFleets]);
-
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Build query params for the API
+  const queryParams: GetFleetsParams = {
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedStatus !== "All" && { status: selectedStatus.toLowerCase().replace(/ /g, "_") }),
+    ...(selectedYear && { year: Number(selectedYear) }),
+    ...(selectedMonth && { month: months.indexOf(selectedMonth) + 1 }),
+  };
+
+  const { data: fetchedFleets } = useGetFleets(queryParams);
+
+  const fleets: Fleet[] = (fetchedFleets || []).map((fleet) => ({
+    id: fleet._id,
+    image: fleet.images?.[0] || "/images/truckcontainer.png",
+    name: fleet.fleetName || "Unknown Fleet",
+    IOT: fleet.iot || "N/A",
+    route: `${fleet.route?.fromState || "Unknown"} - ${fleet.route?.toState || "Unknown"}`,
+    status: fleet.status || fleet.fleetStates || "Available",
+    price: fleet.price || 0,
+    date: new Date(fleet.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: '2-digit', day: '2-digit' }),
+    checked: false,
+    fleetNumber: fleet.fleetNumber,
+    model: fleet.model,
+    size: fleet.size || fleet.capacity,
+    priceNegotiation: fleet.priceNegotiation,
+    fleetDescription: fleet.fleetDescription,
+    images: fleet.images,
+  }));
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
@@ -78,35 +86,6 @@ export const AllTransit: React.FC = () => {
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
   const statuses = ["All", "Available", "Under Maintenance", "On Transit"];
-
-  // Filter fleets based on year, month, and search term
-  const filteredFleets = useMemo(() => {
-    return fleets.filter((fleet) => {
-      const matchesYear = selectedYear
-        ? fleet.date.includes(selectedYear)
-        : true;
-      const matchesMonth = selectedMonth
-        ? fleet.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`
-          )
-        : true;
-      const matchesSearch = searchTerm
-        ? fleet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          fleet.IOT.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-        
-      let matchesStatus = true;
-      if (selectedStatus !== "All") {
-         const normFleetStatus = fleet.status.toLowerCase().replace("_", " ");
-         const normSelected = selectedStatus.toLowerCase();
-         matchesStatus = normFleetStatus === normSelected;
-      }
-        
-      return matchesYear && matchesMonth && matchesSearch && matchesStatus;
-    });
-  }, [fleets, selectedYear, selectedMonth, searchTerm, selectedStatus]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -208,10 +187,10 @@ export const AllTransit: React.FC = () => {
         editFleetData={editingFleet}
       />
       
-      <ViewFleetModal 
-        isOpen={isViewModalOpen} 
-        onClose={() => setIsViewModalOpen(false)} 
-        fleet={selectedFleet} 
+      <ViewFleetModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        fleet={selectedFleet}
       />
 
       <div className="w-full bg-[#FAF7F7] mt-4 py-4">
@@ -456,7 +435,7 @@ export const AllTransit: React.FC = () => {
       {/* Fleet List */}
       <div className="mt-6 w-full">
         <FleetTable
-          fleets={filteredFleets}
+          fleets={fleets}
           copyToClipboard={copyToClipboard}
           handleEdit={handleEdit}
           handleDelete={handleDelete}

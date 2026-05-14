@@ -27,6 +27,7 @@ export interface SingleBid {
   bidderName: string;
   bidderAvatar?: string;
   amount: number;
+  counterOffer?: number;
   quantity: number;
   message: string;
   status: "pending" | "accepted" | "rejected" | "countered";
@@ -75,6 +76,9 @@ export interface BidResponse {
     state: string;
   };
   amount: number;
+  quantity: number;
+  unit: string;
+  unitWeightKg?: number;
   status: "pending" | "approved" | "rejected" | "countered";
   message: string;
   createdAt: string;
@@ -82,10 +86,36 @@ export interface BidResponse {
   __v: number;
 }
 
+export interface WonBidsCheckoutResponse {
+  bids: BidResponse[];
+  productsSubtotal: number;
+  localTransportTotal: number;
+  totalAmount: number;
+}
+
+export interface BidsByStatusPagination {
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface BidsByStatusResponse {
+  bids: BidResponse[];
+  pagination: BidsByStatusPagination;
+}
+
 const handleApiError = (error: unknown, operation: string) => {
   console.error(`❌ Error ${operation}:`, error);
-  if (axios.isAxiosError(error) && error.response?.data?.message) {
-    throw new Error(error.response.data.message);
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+    const apiMessage =
+      data?.message ||
+      data?.error ||
+      (Array.isArray(data?.errors) && data.errors[0]?.message) ||
+      (Array.isArray(data?.errors) && typeof data.errors[0] === "string"
+        ? data.errors[0]
+        : null);
+    if (apiMessage) throw new Error(apiMessage);
   }
   throw new Error(`Failed to ${operation}`);
 };
@@ -165,6 +195,7 @@ export const bidService = {
         bidderName: b?.buyer?.name || b?.bidderName || b?.user?.name || "Unknown Bidder",
         bidderAvatar: b?.buyer?.avatar || b?.bidderAvatar || b?.user?.avatar,
         amount: b?.amount || b?.proposedPrice || 0,
+        counterOffer: b?.counterOffer,
         quantity: b?.quantity || b?.product?.quantity || 0,
         message: b?.message || "",
         status: b?.status || "pending",
@@ -191,19 +222,17 @@ export const bidService = {
       const response = await api.post("/api/bids", data);
       return response.data;
     } catch (error) {
-      // Improved error handling to return the message directly
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+      return handleApiError(error, "create bid");
     }
   },
 
-  // PATCH /api/bids/{id} - Update bid status (Accept/Reject)
+  // PATCH /api/bids/{id} - Update bid status (Accept/Reject/Counter)
   updateBidStatus: async (
     id: string,
     updates: {
-      status: "accepted" | "rejected";
+      status: "accepted" | "rejected" | "countered";
+      counterOffer?: number;
+      message?: string;
     },
   ) => {
     try {
@@ -224,6 +253,38 @@ export const bidService = {
     }
   },
 
+  // GET /api/buyers/biddings?status=<status> - Get my biddings filtered by status (paginated)
+  getBidsByStatus: async (
+    status: "pending" | "countered" | "approved" | "accepted" | "rejected",
+    page = 1,
+    limit = 10,
+  ): Promise<BidsByStatusResponse> => {
+    try {
+      const response = await api.get("/api/buyers/biddings", {
+        params: { status, page, limit },
+      });
+      const payload = response.data?.data ?? response.data;
+
+      let bids: BidResponse[] = [];
+      if (Array.isArray(payload)) bids = payload;
+      else if (Array.isArray(payload?.bids)) bids = payload.bids;
+      else if (Array.isArray(payload?.data)) bids = payload.data;
+      else if (Array.isArray(payload?.items)) bids = payload.items;
+
+      const rawPagination =
+        response.data?.pagination ?? payload?.pagination ?? null;
+      const pagination: BidsByStatusPagination = {
+        page: rawPagination?.page ?? page,
+        limit: rawPagination?.limit ?? limit,
+        total: rawPagination?.total ?? bids.length,
+      };
+
+      return { bids, pagination };
+    } catch (error) {
+      return handleApiError(error, `fetch ${status} bids`);
+    }
+  },
+
   // GET /api/buyers/biddings/won - Get won biddings
   getWonBids: async (): Promise<BidResponse[]> => {
     try {
@@ -239,14 +300,17 @@ export const bidService = {
   },
 
   // GET /api/buyers/biddings/won/checkout - Get won biddings for checkout
-  getWonBidsCheckout: async (): Promise<BidResponse[]> => {
+  getWonBidsCheckout: async (): Promise<WonBidsCheckoutResponse> => {
     try {
       const response = await api.get("/api/buyers/biddings/won/checkout");
       const data = response.data.data;
-      if (data && Array.isArray(data.bids)) {
-        return data.bids;
-      }
-      return Array.isArray(data) ? data : [];
+      const bids = data && Array.isArray(data.bids) ? data.bids : (Array.isArray(data) ? data : []);
+      return {
+        bids,
+        productsSubtotal: data?.productsSubtotal ?? 0,
+        localTransportTotal: data?.localTransportTotal ?? 0,
+        totalAmount: data?.totalAmount ?? 0,
+      };
     } catch (error) {
       return handleApiError(error, "fetch won bids checkout");
     }

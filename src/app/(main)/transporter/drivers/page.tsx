@@ -15,6 +15,7 @@ import {
   DriverService,
   CreateDriverPayload,
   UpdateDriverPayload,
+  GetDriversParams,
 } from "@/services/driverService";
 import { DriverDetailsModal } from "./_components/DriverDetailsModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -117,6 +118,7 @@ const DriversListPage: React.FC = () => {
   const [viewDriver, setViewDriver] = useState<Driver | null>(null);
   
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -136,11 +138,26 @@ const DriversListPage: React.FC = () => {
     "Dec",
   ];
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Build query params
+  const queryParams: GetDriversParams = {
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedYear && { year: Number(selectedYear) }),
+    ...(selectedMonth && { month: months.indexOf(selectedMonth) + 1 }),
+  };
+
   // Fetch Drivers
   const { data: driversData = [], isLoading } = useQuery({
-    queryKey: ["drivers"],
+    queryKey: ["drivers", queryParams],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queryFn: () => DriverService.getDrivers<any[]>(),
+    queryFn: () => DriverService.getDrivers<any[]>(queryParams),
     select: (data) =>
       data.map((item) => {
         const truck = item.assignedTruck;
@@ -313,22 +330,6 @@ const DriversListPage: React.FC = () => {
       assignFleetMutation.mutate({ id: assignDriver.id, truckId });
     }
   };
-
-  const filteredDrivers = driversData?.filter((driver) => {
-    const matchesSearch =
-      driver?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver?.route?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver?.fleet?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      driver?.iot?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear =
-      !selectedYear || driver?.date.includes(selectedYear.toString());
-    const matchesMonth =
-      !selectedMonth ||
-      driver?.date.includes(
-        (months.indexOf(selectedMonth) + 1).toString().padStart(2, "0")
-      );
-    return matchesSearch && matchesYear && matchesMonth;
-  });
 
   const dropdownVariants = {
     open: { opacity: 1, y: 0 },
@@ -545,7 +546,7 @@ const DriversListPage: React.FC = () => {
             <TableList<Driver>
                 dataType="drivers"
                 columns={driverColumns}
-                initialData={filteredDrivers}
+                initialData={driversData}
                 ActionMenuComponent={DriverActionMenu}
                 handleEdit={handleEdit}
                 handleRemove={handleRemove}

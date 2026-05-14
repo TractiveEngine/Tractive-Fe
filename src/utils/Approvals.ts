@@ -9,6 +9,13 @@ export interface AgentsProps {
   NIN: string;
   date: string;
   checked: boolean;
+  businessName?: string;
+  address?: string;
+  state?: string;
+  approvalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
+  status?: string;
+  createdAt?: string;
 }
 
 export interface FarmersProps {
@@ -24,24 +31,66 @@ export interface FarmersProps {
   checked: boolean;
 }
 
+export interface TransportersProps {
+  id: string;
+  fullname: string;
+  email: string;
+  image: string;
+  location: string;
+  profession: string;
+  mobile: string;
+  vehicleType: string;
+  plateNumber: string;
+  date: string;
+  checked: boolean;
+  businessName?: string;
+  address?: string;
+  state?: string;
+  approvalStatus?: "pending" | "approved" | "rejected";
+  approvalNotes?: string;
+  status?: string;
+  createdAt?: string;
+}
+
+
+import type { BulkAction } from "@/app/(main)/admin/_components/BulkActionBar";
 
 export interface ApprovalsAgentsProps {
   data: AgentsProps[];
+  isLoading?: boolean;
   handleAgentApprove: (id: string) => void;
   handleAgentDecline: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  onRowClick?: (id: string) => void;
+  bulkActions?: BulkAction[];
+  bulkDisabled?: boolean;
 }
 
 // Props interface for ApprovalFarmers
 export interface ApprovalsFarmersProps {
   data: FarmersProps[];
+  isLoading?: boolean;
   handleFarmerApprove: (id: string) => void;
   handleFarmerDecline: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+}
+
+// Props interface for ApprovalTransporters
+export interface ApprovalsTransportersProps {
+  data: TransportersProps[];
+  isLoading?: boolean;
+  handleTransporterApprove: (id: string) => void;
+  handleTransporterDecline: (id: string) => void;
+  handleCheckboxChange: (id: string) => void;
+  handleSelectAll: () => void;
+  allChecked: boolean;
+  onRowClick?: (id: string) => void;
+  bulkActions?: BulkAction[];
+  bulkDisabled?: boolean;
 }
 
 

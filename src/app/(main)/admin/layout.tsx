@@ -95,7 +95,7 @@ export default function AdminLayout({
             handleLogout={handleLogout}
             closeDropdown={closeDropdown}
           />
-          <main className="pt-[2rem] lg:pt-[4rem] w-full">{children}</main>
+          <main className="pt-[1rem] lg:pt-[2rem] w-full">{children}</main>
         </div>
       </motion.div>
     </div>

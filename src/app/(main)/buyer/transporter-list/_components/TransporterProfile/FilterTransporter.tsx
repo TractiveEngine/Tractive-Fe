@@ -198,6 +198,32 @@ export const FilterTransporter = ({
                 ariaLabel="State"
                 widthClass="w-[45%] md:w-[120px]"
               />
+              {(fromState || toState) && (
+                <button
+                  onClick={() => {
+                    setFromState("");
+                    setToState("");
+                  }}
+                  className="flex items-center justify-center w-7 h-7 rounded-full bg-[#f1f1f1] hover:bg-[#e0e0e0] transition-colors cursor-pointer flex-shrink-0"
+                  aria-label="Clear route filter"
+                  title="Clear route filter"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5 text-[#808080]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>

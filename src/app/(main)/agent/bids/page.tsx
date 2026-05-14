@@ -48,7 +48,7 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     key: "productPrice",
     minWidth: "min-w-[100px]",
     render: (bid) => (
-      <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+      <span className="text-[14px] font-semibold font-montserrat text-[#2b2b2b]">
         ₦{bid?.productPrice?.toLocaleString() || "0"}
       </span>
     ),
@@ -59,14 +59,14 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     minWidth: "min-w-[120px]",
     render: (bid) => (
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden relative bg-gray-200">
+        {/* <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden relative bg-gray-200">
           <Image
             src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
             alt={bid?.buyer?.name}
             fill
             className="object-cover"
           />
-        </div>
+        </div> */}
         <span className="text-[12px] font-normal font-montserrat text-[#2b2b2b]">
           {bid?.buyer?.name || "Unknown"}
         </span>
@@ -79,15 +79,15 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
     minWidth: "min-w-[120px]",
     render: (bid) => (
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gray-200 border border-white overflow-hidden relative">
+        {/* <div className="w-8 h-8 rounded-full bg-gray-200 border border-white overflow-hidden relative">
           <Image
             src={bid?.buyer?.avatar || "/images/placeholder-avatar.png"}
             alt="Leading"
             fill
             className="object-cover"
           />
-        </div>
-        <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
+        </div> */}
+        <span className="text-[14px] font-bold font-montserrat text-[#2b2b2b]">
           ₦{bid?.proposedPrice?.toLocaleString()}
         </span>
       </div>
@@ -104,6 +104,29 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
           : "Kelvin chikezie")}
       </span>
     ),
+  },
+  {
+    header: "Status",
+    key: "status",
+    minWidth: "min-w-[110px]",
+    render: (bid) => {
+      const status = bid?.status || "pending";
+      const styles =
+        status === "accepted"
+          ? "bg-green-50 text-green-600 border-green-100"
+          : status === "rejected"
+          ? "bg-red-50 text-red-600 border-red-100"
+          : status === "countered"
+          ? "bg-blue-50 text-blue-600 border-blue-100"
+          : "bg-yellow-50 text-yellow-600 border-yellow-100";
+      return (
+        <span
+          className={`inline-block text-[11px] font-medium font-montserrat px-2 py-1 rounded-full border ${styles}`}
+        >
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
+      );
+    },
   },
   {
     header: "Date",
@@ -130,6 +153,12 @@ const BidsListPage: React.FC = () => {
 
   const [bids, setBids] = useState<BidListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
+  const pageSizeOptions = [5, 10, 20, 50];
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
@@ -153,19 +182,24 @@ const BidsListPage: React.FC = () => {
   const fetchBids = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data } = await bidService.getBids();
+      const { data, pagination } = await bidService.getBids(page, limit);
       setBids(data);
+      setTotalItems(pagination?.total ?? data.length);
     } catch (error) {
       console.error("Failed to fetch bids", error);
       toast.error("Failed to fetch bids");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, limit]);
 
   useEffect(() => {
     fetchBids();
   }, [fetchBids]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -320,6 +354,7 @@ const BidsListPage: React.FC = () => {
               initialData={bids}
               ActionMenuComponent={BidActionMenu}
               handleViewBidders={handleViewBidders}
+              handleView={handleViewBidders}
             />
           )}
 
@@ -328,12 +363,63 @@ const BidsListPage: React.FC = () => {
               No active bids found.
             </div>
           )}
+
+          {!isLoading && totalItems > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 mt-2">
+              <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+                <span>Rows per page</span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+                >
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+                <span className="ml-3 text-gray-500">
+                  Showing {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, totalItems)} of {totalItems}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-montserrat text-gray-600 px-2">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={page >= totalPages}
+                  className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {isBiddersModalOpen && selectedListingId && (
           <BiddersModal
             isOpen={isBiddersModalOpen}
-            onClose={() => setIsBiddersModalOpen(false)}
+            onClose={() => {
+              setIsBiddersModalOpen(false);
+              fetchBids();
+            }}
             listingId={selectedListingId}
           />
         )}

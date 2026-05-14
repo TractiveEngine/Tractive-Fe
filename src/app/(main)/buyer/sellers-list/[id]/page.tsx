@@ -26,8 +26,7 @@ export default function SellersID() {
     sellerId,
     {
        search: debouncedSearch || undefined,
-       // Map categories or sort based on your API here
-       // sortOrder: switchSide === "high-to-low" ? "desc" : "asc",
+       category: selectedFilter.length > 0 ? selectedFilter[0] : undefined,
     }
   );
 

@@ -183,7 +183,7 @@ export const FilterTransporterMobile: React.FC<
     "Zamfara",
     "FCT",
   ];
-  const years: string[] = ["1-5 Years", "6-10 Years"];
+  const years: string[] = ["Less than a year", "1-5 Years", "6-10 Years"];
 
   return (
     <>
