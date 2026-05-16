@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "@/components/providers/Providers";
 import AuthGuard from "@/components/guards/AuthGuard";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
+// Self-hosted Montserrat (variable font, latin subset): no build-time fetch
+// from Google Fonts, so the build works offline / behind restricted networks
+// (and on Vercel). The single woff2 is a variable font covering the 400-700
+// weight axis used across the app.
+const montserrat = localFont({
+  src: "./fonts/montserrat-latin-variable.woff2",
+  weight: "400 700",
+  style: "normal",
   variable: "--font-montserrat",
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
