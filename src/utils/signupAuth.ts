@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import axios, { AxiosError } from "axios";
+import { API_BASE_URL } from "@/lib/config";
 
 export type StoredUser = {
   name: string;
@@ -44,18 +45,14 @@ export const registerUserWithOtp = async (
   const toastId = toast.loading("Signing you up...");
 
   try {
-    console.log("🚀 Attempting registration with:", { name, email });
-
     const response = await axios.post<RegisterResponse>(
-      "https://tractive-be.vercel.app/api/auth/register",
+      `${API_BASE_URL}/api/auth/register`,
       {
         name,
         email,
         password,
       },
     );
-
-    console.log("✅ Registration response:", response.data);
 
     // Extract user data from API response
     const { user, message } = response.data;
@@ -126,17 +123,13 @@ export const verifyOtpCode = async (
   const toastId = toast.loading("Verifying code...");
 
   try {
-    console.log("🔍 Verifying OTP for:", email);
-
     const response = await axios.post<VerifyResponse>(
-      "https://tractive-be.vercel.app/api/auth/verify-code",
+      `${API_BASE_URL}/api/auth/verify-code`,
       {
         email,
         code: otp, // or 'otp' depending on your backend expectation
       },
     );
-
-    console.log("✅ Verification response:", response.data);
 
     const { success, message, token, user } = response.data;
 
@@ -204,14 +197,10 @@ export const resendOtpCode = async (
   const toastId = toast.loading("Resending code...");
 
   try {
-    console.log("🔄 Resending OTP for:", email);
-
     const response = await axios.post<ResendResponse>(
-      "https://tractive-be.vercel.app/api/auth/resend-verification",
+      `${API_BASE_URL}/api/auth/resend-verification`,
       { email },
     );
-
-    console.log("✅ Resend response:", response.data);
 
     const { success, message } = response.data;
 

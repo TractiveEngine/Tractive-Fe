@@ -9,6 +9,7 @@ import { CustomerActionMenu } from "./_components/CustomerActionMenu";
 import { CustomerInfoModal } from "./_components/CustomerInfoModal";
 import { SupportModal } from "./_components/SupportModal";
 import { CustomerService, Customer } from "@/services/customerService";
+import { toast } from "sonner";
 
 interface ColumnConfig<T> {
   header: string;
@@ -115,15 +116,16 @@ export default function CustomersListPage() {
     setError(null);
 
     try {
+      const monthIndex = selectedMonth ? months.indexOf(selectedMonth) : -1;
       const params = {
         search: searchQuery || undefined,
         year: selectedYear ? parseInt(selectedYear, 10) : undefined,
+        month: monthIndex >= 0 ? monthIndex + 1 : undefined,
         page: currentPage,
         limit: 20,
       };
 
       const response = await CustomerService.getCustomers(params);
-      console.log("✅ Customers fetched successfully:", response);
 
       setCustomersData(response.data);
       setTotalPages(response.pagination.totalPages);
@@ -133,9 +135,13 @@ export default function CustomersListPage() {
 
       let errorMessage = "Failed to fetch customers";
 
-      if (err.statusCode === 404) {
+      const apiMessage =
+        err?.response?.data?.message || err?.response?.data?.error;
+      if (err?.response?.status === 404) {
         errorMessage = `API endpoint not found. Please check if the backend server is running.`;
-      } else if (err.message) {
+      } else if (apiMessage) {
+        errorMessage = apiMessage;
+      } else if (err?.message) {
         errorMessage = err.message;
       }
 
@@ -148,14 +154,11 @@ export default function CustomersListPage() {
     } finally {
       setIsLoading(false);
     }
+    // `months` has stable contents across renders; safe to omit from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedYear, selectedMonth, currentPage]);
 
-  // Test API endpoint on component mount
-  useEffect(() => {
-    CustomerService.testApiEndpoint();
-  }, []);
-
-  // Debounced search - parameters are tracked but not sent to API for now
+  // Debounced refetch on search/year/month change (all now sent to the API).
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setCurrentPage(1);
@@ -210,14 +213,13 @@ export default function CustomersListPage() {
       setIsCustomerInfoOpen(true);
     } catch (err) {
       console.error("Error fetching customer profile:", err);
-      alert("Failed to load customer information");
+      toast.error("Failed to load customer information");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSupport = (id: string) => {
-    console.log(`Support requested for customer ID: ${id}`);
     const customer = customersData.find((c) => c.id === id);
     if (customer) {
       setSelectedCustomer(customer);

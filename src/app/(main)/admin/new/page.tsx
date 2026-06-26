@@ -55,6 +55,7 @@ export default function ApprovalPage() {
   const [allChecked, setAllChecked] = useState<boolean>(false);
 
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [selectedUser, setSelectedUser] = useState<
@@ -305,13 +306,16 @@ export default function ApprovalPage() {
   const cancelPendingAction = () => {
     if (isSubmitting) return;
     setPendingAction(null);
+    setRejectReason("");
   };
 
   const confirmPendingAction = async () => {
     if (!pendingAction) return;
     const { kind, id, decision } = pendingAction;
     const reason =
-      decision === "approved" ? "Approved by admin" : "Rejected by admin";
+      decision === "approved"
+        ? "Approved by admin"
+        : rejectReason.trim() || "Rejected by admin";
 
     setIsSubmitting(true);
     try {
@@ -337,6 +341,7 @@ export default function ApprovalPage() {
         await fetchTransporters();
       }
       setPendingAction(null);
+      setRejectReason("");
     } catch {
       // Error toast is shown by the service layer.
     } finally {
@@ -482,6 +487,11 @@ export default function ApprovalPage() {
         isSubmitting={isSubmitting}
         onCancel={cancelPendingAction}
         onConfirm={confirmPendingAction}
+        reasonInput={!modalIsApprove}
+        reasonValue={rejectReason}
+        onReasonChange={setRejectReason}
+        reasonLabel="Reason for rejection"
+        reasonPlaceholder="Let the applicant know why (optional)"
       />
 
       <ConfirmActionModal

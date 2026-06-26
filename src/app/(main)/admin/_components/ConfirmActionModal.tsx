@@ -14,6 +14,12 @@ interface ConfirmActionModalProps {
   isSubmitting?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  /** Show a free-text reason field (e.g. for a rejection). */
+  reasonInput?: boolean;
+  reasonValue?: string;
+  onReasonChange?: (value: string) => void;
+  reasonLabel?: string;
+  reasonPlaceholder?: string;
 }
 
 const toneStyles: Record<
@@ -100,6 +106,11 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   isSubmitting,
   onCancel,
   onConfirm,
+  reasonInput,
+  reasonValue,
+  onReasonChange,
+  reasonLabel = "Reason",
+  reasonPlaceholder = "Add a reason (optional)",
 }) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -149,6 +160,22 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
                 )}
               </div>
             </div>
+
+            {reasonInput && (
+              <div className="mt-4">
+                <label className="block font-montserrat text-[12.5px] font-medium text-[#2b2b2b] mb-1">
+                  {reasonLabel}
+                </label>
+                <textarea
+                  value={reasonValue ?? ""}
+                  onChange={(e) => onReasonChange?.(e.target.value)}
+                  disabled={isSubmitting}
+                  rows={3}
+                  placeholder={reasonPlaceholder}
+                  className="w-full resize-none rounded-[6px] border border-gray-300 px-3 py-2 font-montserrat text-[13px] text-[#2b2b2b] focus:outline-none focus:ring-[1px] focus:ring-[#538e53] disabled:opacity-60"
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 mt-6">
               <button

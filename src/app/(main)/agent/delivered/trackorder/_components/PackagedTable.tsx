@@ -1,15 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { PackagedProduct, PackagedProducts } from "@/utils/PackageData";
 import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
-
-interface ColumnConfig<T> {
-  header: string;
-  key: keyof T;
-  render?: (item: T) => React.ReactNode;
-  maxWidth?: string;
-}
+import type { TrackOrderPackage } from "@/app/(main)/buyer/(account)/track-orders/_components/trackOrdersData";
 
 const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
@@ -52,105 +45,85 @@ const IdCell: React.FC<{ id: string }> = ({ id }) => {
   );
 };
 
-const packageColumns: ColumnConfig<PackagedProduct>[] = [
-  {
-    header: "Package",
-    key: "name",
-    maxWidth: "max-w-[60px]",
-    render: (packagedProduct) => (
-      <div className="flex items-center gap-2">
-        <Image
-          src={packagedProduct.image}
-          alt={`Image of ${packagedProduct.name}`}
-          width={40} // Reduced for mobile
-          height={24}
-          className="object-cover sm:w-[53px] sm:h-[30px]"
-        />
-        <div className="flex flex-col">
-          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {packagedProduct.name}
-          </span>
-          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b] hidden sm:block">
-            {packagedProduct.description}
-          </span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    header: "ID",
-    key: "id",
-    maxWidth: "max-w-[50px] sm:max-w-[30px]",
-    render: (packagedProduct) => <IdCell id={packagedProduct.id} />,
-  },
-];
+interface Props {
+  packages: TrackOrderPackage[];
+}
 
-export const PackagedTable: React.FC = () => {
+export const PackagedTable: React.FC<Props> = ({ packages }) => {
   return (
     <div className="w-full xl:w-[63%] bg-[#fefefe] shadow-md rounded-[10px] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-[100%] border-separate border-spacing-y-3 sm:border-spacing-y-0">
           <thead>
             <tr className="bg-[#fefefe] border-b border-[#e0e0e0]">
-              {packageColumns.map((column, index) => (
-                <th
-                  key={column.key.toString()}
-                  className={`
-                    px-3 py-1 sm:px-2 sm:py-2 text-left font-montserrat font-normal text-[11px] sm:text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0]
-                    ${column.maxWidth || ""}
-                    ${index === 0 ? "first:rounded-tl-[10px]" : ""}
-                    ${
-                      index === packageColumns.length - 1
-                        ? "last:rounded-tr-[10px]"
-                        : ""
-                    }
-                  `}
-                  scope="col"
-                >
-                  {column.header}
-                </th>
-              ))}
+              <th
+                className="px-3 py-1 sm:px-2 sm:py-2 text-left font-montserrat font-normal text-[11px] sm:text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0] max-w-[60px] first:rounded-tl-[10px]"
+                scope="col"
+              >
+                Package
+              </th>
+              <th
+                className="px-3 py-1 sm:px-2 sm:py-2 text-left font-montserrat font-normal text-[11px] sm:text-[12px] text-[#2b2b2b] border-b-[1px] border-[#e0e0e0] max-w-[50px] sm:max-w-[30px] last:rounded-tr-[10px]"
+                scope="col"
+              >
+                ID
+              </th>
             </tr>
           </thead>
           <tbody>
-            {PackagedProducts.map((item, index) => (
-              <tr
-                key={item.id}
-                className={`
-                  bg-[#fefefe]
-                  ${
-                    index === PackagedProducts.length - 1
-                      ? "last:border-b-0"
-                      : "border-b border-[#e0e0e0]"
-                  }
-                `}
-              >
-                {packageColumns.map((column, colIndex) => (
-                  <td
-                    key={`${item.id}-${column.key}`}
-                    className={`
-                      px-3 py-1 sm:px-2 sm:py-2 text-[10px] sm:text-[11px] font-montserrat font-normal
-                      ${column.maxWidth || ""}
-                      ${
-                        index === PackagedProducts.length - 1 && colIndex === 0
-                          ? "first:rounded-bl-[10px]"
-                          : ""
-                      }
-                      ${
-                        index === PackagedProducts.length - 1 &&
-                        colIndex === packageColumns.length - 1
-                          ? "last:rounded-br-[10px]"
-                          : ""
-                      }
-                    `}
-                  >
-                    {column.render
-                      ? column.render(item)
-                      : String(item[column.key])}
-                  </td>
-                ))}
+            {packages.length === 0 ? (
+              <tr className="bg-[#fefefe]">
+                <td
+                  colSpan={2}
+                  className="px-3 py-6 text-center text-[11px] font-montserrat font-normal text-[#808080]"
+                >
+                  No packages on this order.
+                </td>
               </tr>
-            ))}
+            ) : (
+              packages.map((item, index) => {
+                const isLast = index === packages.length - 1;
+                return (
+                  <tr
+                    key={item.id}
+                    className={`bg-[#fefefe] ${
+                      isLast ? "last:border-b-0" : "border-b border-[#e0e0e0]"
+                    }`}
+                  >
+                    <td
+                      className={`px-3 py-1 sm:px-2 sm:py-2 text-[10px] sm:text-[11px] font-montserrat font-normal max-w-[60px] ${
+                        isLast ? "first:rounded-bl-[10px]" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={item.image}
+                          alt={`Image of ${item.name}`}
+                          width={40}
+                          height={24}
+                          className="object-cover sm:w-[53px] sm:h-[30px]"
+                        />
+                        <div className="flex flex-col">
+                          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
+                            {item.name}
+                          </span>
+                          <span className="truncate text-[11px] sm:text-[12px] font-normal font-montserrat text-[#2b2b2b] hidden sm:block">
+                            {item.description}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      className={`px-3 py-1 sm:px-2 sm:py-2 text-[10px] sm:text-[11px] font-montserrat font-normal max-w-[50px] sm:max-w-[30px] ${
+                        isLast ? "last:rounded-br-[10px]" : ""
+                      }`}
+                    >
+                      <IdCell id={item.productId} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

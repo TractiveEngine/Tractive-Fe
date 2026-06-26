@@ -6,17 +6,21 @@ import { Skeleton } from "@/components/ui/Skeleton";
 type WishListProps = {
   data?: WishlistItem[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   isFetchingNextPage?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
 };
 
-export const WishList: React.FC<WishListProps> = ({ 
-  data, 
-  isLoading, 
-  isFetchingNextPage, 
-  hasMore, 
-  onLoadMore 
+export const WishList: React.FC<WishListProps> = ({
+  data,
+  isLoading,
+  isError,
+  onRetry,
+  isFetchingNextPage,
+  hasMore,
+  onLoadMore
 }) => {
   if (isLoading) {
     return (
@@ -37,6 +41,27 @@ export const WishList: React.FC<WishListProps> = ({
              </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (isError && (!data || data.length === 0)) {
+    return (
+      <div className="w-[90%] mx-auto py-10 flex flex-col items-center justify-center text-gray-500">
+        <p className="text-lg font-montserrat text-[#c0392b]">
+          We couldn&apos;t load your wishlist.
+        </p>
+        <p className="text-sm font-montserrat mt-1 mb-4">
+          Please check your connection and try again.
+        </p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="px-6 py-2 rounded-full bg-[#538e53] text-white text-sm font-medium cursor-pointer hover:bg-green-700 transition-colors"
+          >
+            Retry
+          </button>
+        )}
       </div>
     );
   }

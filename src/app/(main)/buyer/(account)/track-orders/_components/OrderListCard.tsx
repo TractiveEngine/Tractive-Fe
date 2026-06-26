@@ -54,19 +54,29 @@ export const OrderListCard: React.FC<Props> = ({ order, selected, onSelect }) =>
     <button
       type="button"
       onClick={() => onSelect(order.id)}
-      className={`text-left w-full bg-[#fefefe] rounded-[10px] p-3 sm:p-4 border transition-shadow cursor-pointer ${
+      className={`text-left w-full rounded-[10px] p-3 sm:p-4 border transition-colors cursor-pointer ${
         selected
-          ? "border-[#538e53] shadow-[0_0_0_1px_#538e53]"
-          : "border-[#e2e2e2] hover:shadow-md"
+          ? "border-[#538e53] bg-[#f3f9f3] shadow-[0_0_0_1px_#538e53]"
+          : "border-[#e2e2e2] bg-[#fefefe] hover:bg-[#f3f9f3] hover:shadow-md"
       }`}
     >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="bg-[#e63327] flex items-center justify-center w-[44px] h-[36px] rounded-[4px] flex-shrink-0">
-            <span className="font-montserrat font-bold text-[10px] text-[#fefefe]">
-              GIGM
-            </span>
-          </div>
+          {order.transporter.logo && order.transporter.logo !== "N/A" ? (
+            <Image
+              src={order.transporter.logo}
+              alt={order.transporter.name}
+              width={44}
+              height={36}
+              className="w-[44px] h-[36px] object-cover rounded-[4px] flex-shrink-0"
+            />
+          ) : (
+            <div className="bg-[#e63327] flex items-center justify-center w-[44px] h-[36px] rounded-[4px] flex-shrink-0">
+              <span className="font-montserrat font-bold text-[10px] text-[#fefefe]">
+                GIGM
+              </span>
+            </div>
+          )}
           <div className="flex flex-col min-w-0">
             <span className="font-montserrat font-medium text-[12px] sm:text-[13px] text-[#2b2b2b] truncate">
               {order.transporter.name}

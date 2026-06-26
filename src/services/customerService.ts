@@ -1,5 +1,7 @@
 // services/customerService.ts
 
+import api from "@/lib/axios";
+
 export interface Customer {
   id: string;
   name: string;
@@ -22,6 +24,8 @@ export interface GetCustomersParams {
   name?: string;
   state?: string;
   year?: number;
+  // Backend support pending — see API-FEEDBACK-FOR-BACKEND.md (Item 8).
+  month?: number;
 }
 
 export interface GetCustomersResponse {
@@ -45,153 +49,38 @@ export interface ChatInitiateResponse {
   timestamp: string;
 }
 
-interface ApiError {
-  message: string;
-  statusCode: number;
-  errors?: Record<string, string[]>;
-}
+/**
+ * Map a raw customer record (as it comes off the wire) to the `Customer`
+ * shape the UI expects. The backend may use `_id`, `phone`, `totalSpent`,
+ * `ordersCount`, `avatar`, `createdAt`, etc., so we normalise defensively.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapToCustomer = (raw: any): Customer => {
+  const address = raw?.address ?? raw?.location ?? "";
+  return {
+    id: raw?.id ?? raw?._id ?? "",
+    name: raw?.name ?? raw?.fullName ?? raw?.buyer?.name ?? "Unknown",
+    state: raw?.state ?? raw?.location ?? (typeof address === "string" ? address : ""),
+    revenue: raw?.revenue ?? raw?.totalSpent ?? raw?.totalRevenue ?? 0,
+    orders: raw?.orders ?? raw?.ordersCount ?? raw?.orderCount ?? raw?.totalOrders ?? 0,
+    mobile: raw?.mobile ?? raw?.phone ?? raw?.phoneNumber ?? "—",
+    date: raw?.date ?? raw?.createdAt ?? "",
+    image: raw?.image ?? raw?.avatar ?? raw?.profileImage,
+    email: raw?.email,
+    address: typeof address === "string" ? address : undefined,
+    createdAt: raw?.createdAt,
+    updatedAt: raw?.updatedAt,
+  };
+};
 
+/**
+ * Customer API.
+ *
+ * Uses the shared `@/lib/axios` instance, which injects the NextAuth Bearer
+ * token and handles 401 refresh/logout centrally. (Previously this read a
+ * never-set `localStorage.authToken`, so every request went out unauthenticated.)
+ */
 export class CustomerService {
-  private static baseURL = process.env.NEXT_PUBLIC_API_URL;
-
-  /**
-   * Get authentication token from localStorage
-   */
-  private static getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("authToken");
-    }
-    return null;
-  }
-
-  /**
-   * Build headers with authentication
-   */
-  private static buildHeaders(customHeaders?: HeadersInit): Headers {
-    // Initialize Headers object from any provided HeadersInit
-    const headers = new Headers(customHeaders);
-
-    // Ensure default content type is set when not provided
-    if (!headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json");
-    }
-
-    const token = this.getToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-
-    return headers;
-  }
-
-  /**
-   * Handle API response with detailed debugging
-   */
-  private static async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      console.error("❌ API Response not OK:", {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-      });
-
-      let error: ApiError;
-
-      try {
-        const errorText = await response.text();
-        console.error("📄 Error response body:", errorText);
-
-        error = errorText
-          ? JSON.parse(errorText)
-          : {
-              message: response.statusText || "An error occurred",
-              statusCode: response.status,
-            };
-      } catch (parseError) {
-        console.error("❌ Error parsing error response:", parseError);
-        error = {
-          message: `HTTP ${response.status}: ${response.statusText}`,
-          statusCode: response.status,
-        };
-      }
-
-      // Handle specific status codes
-      if (response.status === 404) {
-        console.error("🚨 404 - Endpoint not found. Please check:");
-        console.error("   - Is the backend server running?");
-        console.error("   - Is the API route correct?");
-        console.error("   - Is the base URL correct?");
-        error.message = `API endpoint not found: ${response.url}`;
-      }
-
-      // Handle authentication errors
-      if (response.status === 401) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("authToken");
-          window.location.href = "/login";
-        }
-      }
-
-      throw error;
-    }
-
-    // If response is OK, parse and return
-    try {
-      const data = await response.json();
-      console.log("✅ API call successful:", data);
-      return data;
-    } catch (parseError) {
-      console.error("❌ Error parsing successful response:", parseError);
-      throw {
-        message: "Failed to parse response",
-        statusCode: 500,
-      };
-    }
-  }
-
-  /**
-   * Make GET request with detailed debugging
-   */
-  private static async get<T>(endpoint: string): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-
-    console.log("🚀 Making API request:");
-    console.log("   URL:", url);
-    console.log("   Base URL:", this.baseURL);
-    console.log("   Endpoint:", endpoint);
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: this.buildHeaders(),
-      });
-
-      console.log("📡 Response received:");
-      console.log("   Status:", response.status);
-      console.log("   Status Text:", response.statusText);
-      console.log("   URL:", response.url);
-      console.log("   OK:", response.ok);
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      console.error("💥 Fetch failed completely:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Make POST request
-   */
-  private static async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: "POST",
-      headers: this.buildHeaders(),
-      body: JSON.stringify(data),
-    });
-
-    return this.handleResponse<T>(response);
-  }
-
   /**
    * Get all customers with optional filtering
    * GET /api/customers?page&limit&search&name&state&year
@@ -211,47 +100,45 @@ export class CustomerService {
       if (params?.state) queryParams.append("state", params.state);
       if (params?.year !== undefined)
         queryParams.append("year", String(params.year));
+      if (params?.month !== undefined)
+        queryParams.append("month", String(params.month));
 
       const queryString = queryParams.toString();
       const endpoint = queryString
         ? `/api/customers?${queryString}`
         : "/api/customers";
 
-      const response = await this.get<GetCustomersResponse>(endpoint);
-      return response;
+      const response = await api.get(endpoint);
+
+      // Be defensive about the response envelope — the API may return
+      // `{ data: [...] }`, `{ data: { customers: [...], pagination } }`,
+      // `{ customers: [...] }`, `{ success, data: [...] }`, or a bare array.
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const list = Array.isArray(payload)
+        ? payload
+        : payload?.customers ?? payload?.data ?? payload?.items ?? [];
+      const rawList = Array.isArray(list) ? list : [];
+
+      const rawPagination =
+        body?.pagination ?? payload?.pagination ?? null;
+      const limit = params?.limit ?? rawPagination?.limit ?? rawList.length;
+      const total = rawPagination?.total ?? rawList.length;
+
+      return {
+        data: rawList.map(mapToCustomer),
+        pagination: {
+          page: rawPagination?.page ?? params?.page ?? 1,
+          limit,
+          total,
+          totalPages:
+            rawPagination?.totalPages ??
+            (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1),
+        },
+      };
     } catch (error) {
       console.error("Error fetching customers:", error);
       throw error;
-    }
-  }
-
-  /**
-   * Test the API endpoint directly (for debugging)
-   */
-  static async testApiEndpoint(): Promise<void> {
-    const testURL = `${this.baseURL}/api/customers`;
-    console.log("🧪 Testing API endpoint directly:", testURL);
-
-    try {
-      const response = await fetch(testURL, {
-        method: "GET",
-        headers: this.buildHeaders(),
-      });
-
-      console.log("🧪 Direct test results:");
-      console.log("   Status:", response.status);
-      console.log("   Status Text:", response.statusText);
-      console.log("   OK:", response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("   Error Body:", errorText);
-      } else {
-        const data = await response.json();
-        console.log("   Success Data:", data);
-      }
-    } catch (error) {
-      console.error("🧪 Direct test failed:", error);
     }
   }
 
@@ -260,8 +147,10 @@ export class CustomerService {
    */
   static async getCustomerProfile(customerId: string): Promise<Customer> {
     try {
-      const response = await this.get<Customer>(`/api/customers/${customerId}`);
-      return response;
+      const response = await api.get(`/api/customers/${customerId}`);
+      const body = response.data;
+      const raw = body?.data ?? body?.customer ?? body;
+      return mapToCustomer(raw);
     } catch (error) {
       console.error(`Error fetching customer ${customerId}:`, error);
       throw error;
@@ -276,35 +165,17 @@ export class CustomerService {
     payload: ChatInitiatePayload,
   ): Promise<ChatInitiateResponse> {
     try {
-      const response = await this.post<ChatInitiateResponse>(
+      const response = await api.post<ChatInitiateResponse>(
         `/api/customers/${customerId}/chat`,
         payload,
       );
-      return response;
+      return response.data;
     } catch (error) {
       console.error(
         `Error initiating chat with customer ${customerId}:`,
         error,
       );
       throw error;
-    }
-  }
-
-  /**
-   * Set authentication token
-   */
-  static setToken(token: string): void {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("authToken", token);
-    }
-  }
-
-  /**
-   * Clear authentication token
-   */
-  static clearToken(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("authToken");
     }
   }
 }

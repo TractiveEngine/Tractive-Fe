@@ -5,21 +5,52 @@ import api from "@/lib/axios";
 // services/transactionService.ts
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL; // Using axios instance instead
 
+// Populated product/order shapes returned by the API (`/api/transactions`
+// populates the order with its products, and the buyer document).
+export interface TransactionProduct {
+  _id?: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  quantity?: number;
+  unit?: string;
+  unitWeightKg?: number | null;
+  category?: string | null;
+  subcategory?: string | null;
+  images?: string[];
+}
+
+export interface TransactionOrderItem {
+  product?: TransactionProduct;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number | null;
+  lineSubtotal?: number | null;
+  _id?: string;
+}
+
+export interface PopulatedOrder {
+  _id: string;
+  status?: string;
+  transportStatus?: string;
+  totalAmount?: number;
+  products?: TransactionOrderItem[];
+  createdAt?: string;
+}
+
+export interface TransactionBuyer {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
 // Frontend Transaction Interface (includes UI-specific fields)
 export interface FrontendTransaction {
   _id: string;
   id: string; // Required for BaseData compatibility
-  order: {
-    _id: string;
-    name?: string;
-    description?: string;
-    image?: string;
-  };
-  buyer: {
-    _id: string;
-    name: string;
-    email: string;
-  };
+  order: PopulatedOrder;
+  buyer: TransactionBuyer;
   amount: number;
   status: "pending" | "approved";
   paymentMethod: string;
@@ -27,14 +58,29 @@ export interface FrontendTransaction {
   createdAt: string;
   updatedAt: string;
 
-  // Frontend-only fields for UI
+  // Frontend-only fields for UI (derived from the first order product)
   name?: string;
   description?: string;
   image?: string;
   sold?: number;
   commission?: number;
   date?: string;
+  productCount?: number;
   checked?: boolean; // For checkbox compatibility
+}
+
+// Raw transaction element as it comes off the wire (order/buyer may be an id
+// string or a populated object).
+interface RawTransaction {
+  _id: string;
+  amount: number;
+  status: "pending" | "approved";
+  paymentMethod: string;
+  approvedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  order?: string | PopulatedOrder;
+  buyer?: string | TransactionBuyer;
 }
 
 // Backend Transaction Interface (what API expects)
@@ -68,32 +114,6 @@ export interface ContactCustomerCareData {
 
 // Create authenticated headers with role validation
 // Auth headers are handled by axios interceptor
-
-// Mock data for images (you can replace this with actual image URLs from your order data)
-const mockProductImages = [
-  "/images/products/product1.jpg",
-  "/images/products/product2.jpg",
-  "/images/products/product3.jpg",
-  "/images/products/product4.jpg",
-  "/images/products/product5.jpg",
-];
-
-const getRandomImage = () => {
-  return mockProductImages[
-    Math.floor(Math.random() * mockProductImages.length)
-  ];
-};
-
-const getRandomDescription = () => {
-  const descriptions = [
-    "Fresh organic vegetables",
-    "Premium quality fruits",
-    "Farm fresh produce",
-    "Organic dairy products",
-    "Local farm harvest",
-  ];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
-};
 
 // Helper function to handle API responses
 // Response handling is managed by axios interceptor/wrapper where applicable, but we keep basic error handling here if needed.
@@ -211,22 +231,59 @@ export const transactionService = {
 
       const response = await api.get(url);
 
-      const data = response.data;
+      // Be defensive about the response envelope — the API may return
+      // `{ transactions: [...] }`, `{ data: { transactions: [...] } }`,
+      // `{ data: [...] }`, or a bare array.
+      const body = response.data;
+      const payload = body?.data ?? body;
+      const list = payload?.transactions ?? payload ?? [];
+      const rawTransactions: RawTransaction[] = Array.isArray(list)
+        ? list
+        : [];
 
       // Transform backend data to frontend format with UI enhancements
-      const transactions: FrontendTransaction[] = data.transactions.map(
-        (transaction: BackendTransaction) => {
+      const transactions: FrontendTransaction[] = rawTransactions.map(
+        (transaction) => {
           // Calculate commission (10% of amount for example)
           const commission = transaction.amount * 0.1;
 
+          // `order` may come back as an id string or a populated object —
+          // keep the populated object so the details modal can read products.
+          const order: PopulatedOrder =
+            typeof transaction.order === "string"
+              ? { _id: transaction.order }
+              : transaction.order ?? { _id: "" };
+          const orderId = order._id ?? "";
+
+          // `buyer` likewise arrives populated (object) or as an id string.
+          const buyer: TransactionBuyer =
+            typeof transaction.buyer === "string"
+              ? { _id: transaction.buyer, name: "", email: "" }
+              : transaction.buyer ?? { _id: "", name: "", email: "" };
+
+          // Derive the Item column from the first real product on the order.
+          const firstProduct = order.products?.[0]?.product;
+          const productName =
+            firstProduct?.name || `Order #${orderId.slice(-8)}`;
+          const productDescription = firstProduct?.description || "";
+          const productImage =
+            firstProduct?.images?.[0] || "/images/placeholder-product.jpg";
+
           return {
-            ...transaction,
-            // Required fields for BaseData compatibility
+            _id: transaction._id,
             id: transaction._id, // Required for BaseData
+            order,
+            buyer,
+            amount: transaction.amount,
+            status: transaction.status,
+            paymentMethod: transaction.paymentMethod,
+            approvedBy: transaction.approvedBy,
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt,
             // Frontend-only fields for UI
-            name: `Order #${transaction.order.slice(-8)}`,
-            description: getRandomDescription(),
-            image: getRandomImage(),
+            name: productName,
+            description: productDescription,
+            image: productImage,
             sold: transaction.amount,
             commission: commission,
             date: new Date(transaction.createdAt).toLocaleDateString("en-US", {
@@ -234,6 +291,7 @@ export const transactionService = {
               month: "short",
               day: "numeric",
             }),
+            productCount: order.products?.length ?? 0,
             checked: false, // Default unchecked for checkboxes
           };
         },

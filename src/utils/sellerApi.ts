@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/config";
 
 export interface Seller {
   sellerId: string;
@@ -51,7 +52,7 @@ export interface GetSellersParams {
 export const getSellers = async (params?: GetSellersParams): Promise<SellersResponse> => {
   try {
     const response = await axios.get<SellersResponse>(
-      "https://tractive-be.vercel.app/api/sellers",
+      `${API_BASE_URL}/api/sellers`,
       { params }
     );
 
@@ -75,7 +76,7 @@ export const getSellerById = async (id: string): Promise<Seller | null> => {
     // based on previous tests, but keeping it for when API is fixed.
     try {
       const response = await axios.get<{ success: boolean; data: Seller }>(
-        `https://tractive-be.vercel.app/api/sellers/${id}`
+        `${API_BASE_URL}/api/sellers/${id}`
       );
       if (response.data.success) {
         return response.data.data;
@@ -105,7 +106,7 @@ export interface GetSellerProductsParams {
 export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<unknown[]> => {
     try {
         const response = await axios.get<{ success: boolean; data: unknown[] }>(
-            `https://tractive-be.vercel.app/api/sellers/${id}/products`,
+            `${API_BASE_URL}/api/sellers/${id}/products`,
             { params }
         );
         if (response.data.success) {
@@ -122,7 +123,7 @@ export const getSellerProducts = async (id: string, params?: GetSellerProductsPa
 export const getSellerReviews = async (id: string): Promise<unknown> => {
     try {
         const response = await axios.get(
-            `https://tractive-be.vercel.app/api/sellers/${id}/reviews`
+            `${API_BASE_URL}/api/sellers/${id}/reviews`
         );
         return response.data;
     } catch (error) {
@@ -135,7 +136,7 @@ export const getSellerReviews = async (id: string): Promise<unknown> => {
 export const likeReview = async (reviewId: string): Promise<unknown> => {
     try {
         const response = await axios.post(
-            `https://tractive-be.vercel.app/api/reviews/${reviewId}/like`
+            `${API_BASE_URL}/api/reviews/${reviewId}/like`
         );
         return response.data;
     } catch (error) {

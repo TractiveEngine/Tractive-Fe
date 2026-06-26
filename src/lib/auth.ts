@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { API_BASE_URL } from "./config";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,9 +17,8 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // 1. Login to get token
-          console.log("[AUTH] Attempting login with email:", credentials.email);
           const loginRes = await fetch(
-            "https://tractive-be.vercel.app/api/auth/login",
+            `${API_BASE_URL}/api/auth/login`,
             {
               method: "POST",
               body: JSON.stringify({
@@ -30,19 +30,16 @@ export const authOptions: NextAuthOptions = {
           );
 
           const loginData = await loginRes.json();
-          console.log("[AUTH] Login response status:", loginRes.status, "Data:", loginData);
 
           if (!loginRes.ok || !loginData.token) {
             const errorMsg = loginData.error || loginData.message || "Login failed";
             console.error("[AUTH] Login failed:", errorMsg, "Status:", loginRes.status);
             throw new Error(errorMsg);
           }
-          console.log("[AUTH] Login successful, token received");
 
           // 2. Fetch User Profile to get roles
-          console.log("[AUTH] Fetching user profile...");
           const profileRes = await fetch(
-            "https://tractive-be.vercel.app/api/profile",
+            `${API_BASE_URL}/api/profile`,
             {
               headers: {
                 Authorization: `Bearer ${loginData.token}`,
@@ -50,8 +47,6 @@ export const authOptions: NextAuthOptions = {
             },
           );
 
-          console.log("[AUTH] Profile response status:", profileRes.status);
-          
           if (!profileRes.ok) {
             const errorText = await profileRes.text();
             console.error("[AUTH] Profile fetch failed:", profileRes.status, errorText);
@@ -60,7 +55,6 @@ export const authOptions: NextAuthOptions = {
 
           const profileData = await profileRes.json();
           const user = profileData.user || profileData;
-          console.log("[AUTH] Profile fetched successfully, user:", user.email);
 
           return {
             id: user._id || "user-id",
@@ -87,7 +81,7 @@ export const authOptions: NextAuthOptions = {
         // Fetch fresh user data from backend to sync session
         try {
           const profileRes = await fetch(
-            "https://tractive-be.vercel.app/api/profile",
+            `${API_BASE_URL}/api/profile`,
             {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
@@ -104,12 +98,6 @@ export const authOptions: NextAuthOptions = {
             token.activeRole = freshUser.activeRole || null;
             token.name = freshUser.name;
             token.email = freshUser.email;
-
-            console.log("✓ Session synced with backend:", {
-              roles: token.role,
-              activeRole: token.activeRole,
-              name: token.name,
-            });
           } else {
             console.error("Failed to fetch profile during session update");
           }
@@ -149,5 +137,5 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET || "development-secret-key",
+  secret: process.env.NEXTAUTH_SECRET,
 };

@@ -3,21 +3,24 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThreeDotIcon } from "@/app/(main)/transporter/fleet-list/_components/table/ActionMenu";
 import { LiveChatModal } from "./LiveChatModal";
+import { ReceiptModal } from "./ReceiptModal";
+import type { BuyerTransactionRow } from "./transactionsData";
 
 interface Props {
-  rowId: string;
+  row: BuyerTransactionRow;
   activeMenu: string | null;
   setActiveMenu: (id: string | null) => void;
 }
 
 export const TransactionRowMenu: React.FC<Props> = ({
-  rowId,
+  row,
   activeMenu,
   setActiveMenu,
 }) => {
-  const isActive = activeMenu === rowId;
+  const isActive = activeMenu === row.id;
   const menuRef = useRef<HTMLDivElement>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
@@ -37,7 +40,7 @@ export const TransactionRowMenu: React.FC<Props> = ({
         aria-label="Open action menu"
         onClick={(e) => {
           e.stopPropagation();
-          setActiveMenu(isActive ? null : rowId);
+          setActiveMenu(isActive ? null : row.id);
         }}
         className="bg-[#f1f1f1] rounded-full cursor-pointer p-1.5 w-[28px] h-[28px] flex items-center justify-center hover:bg-[#e0e0e0]"
       >
@@ -57,6 +60,7 @@ export const TransactionRowMenu: React.FC<Props> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveMenu(null);
+                setIsReceiptOpen(true);
               }}
               className="w-full text-left px-3 py-1.5 text-[11.5px] font-montserrat text-[#2b2b2b] hover:bg-gray-100 cursor-pointer"
             >
@@ -73,16 +77,6 @@ export const TransactionRowMenu: React.FC<Props> = ({
             >
               Contact seller
             </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveMenu(null);
-              }}
-              className="w-full text-left px-3 py-1.5 text-[11.5px] font-montserrat text-[#c0392b] hover:bg-gray-100 cursor-pointer"
-            >
-              Report issue
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -90,6 +84,12 @@ export const TransactionRowMenu: React.FC<Props> = ({
       <LiveChatModal
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+      />
+
+      <ReceiptModal
+        open={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        transaction={row}
       />
     </div>
   );

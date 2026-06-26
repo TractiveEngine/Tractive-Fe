@@ -1,7 +1,8 @@
 import api from "@/lib/axios";
 
 export type FleetTripStatus =
-  | "pending"
+  | "planned"
+  | "pending" // legacy alias for older trips — normalised to "planned" in the UI
   | "picked"
   | "on_transit"
   | "delivered"
@@ -11,10 +12,13 @@ export interface FleetTripBuyer {
   _id?: string;
   id?: string;
   name?: string;
+  businessName?: string | null;
   email?: string;
   phone?: string;
   avatar?: string;
+  image?: string | null;
   address?: string;
+  state?: string;
 }
 
 export interface FleetTripPackage {
@@ -26,38 +30,97 @@ export interface FleetTripPackage {
   description?: string;
   quantity?: number;
   unit?: string;
+  unitWeightKg?: number;
+  loadWeightKg?: number;
+}
+
+export interface FleetTripRoute {
+  fromState?: string;
+  toState?: string;
 }
 
 export interface FleetTripFleet {
   _id?: string;
   id?: string;
   fleetName?: string;
+  fleetNumber?: string;
   plateNumber?: string;
+  model?: string;
   iot?: string;
   image?: string;
   images?: string[];
   capacity?: string;
   capacityKg?: number;
+  route?: FleetTripRoute;
+}
+
+export interface FleetTripTransporter {
+  _id?: string;
+  id?: string;
+  name?: string;
+  businessName?: string | null;
+  phone?: string;
+  email?: string;
+  address?: string;
+  state?: string;
+  image?: string | null;
+  avatar?: string;
+  company?: string;
+}
+
+export interface FleetTripDriver {
+  _id?: string;
+  id?: string;
+  name?: string;
+  phone?: string;
+  licenseNumber?: string;
+  image?: string | null;
+}
+
+export interface FleetTripCoords {
+  lat?: number;
+  lng?: number;
+  label?: string;
 }
 
 export interface FleetTripSummary {
   _id?: string;
   id?: string;
+  /** `/tracking` exposes the trip id under `tripId` instead of `_id`. */
+  tripId?: string;
   status?: FleetTripStatus;
   fleet?: FleetTripFleet | string;
   fleetId?: string;
+  transporter?: FleetTripTransporter;
+  driver?: FleetTripDriver | null;
   buyers?: FleetTripBuyer[];
   packages?: FleetTripPackage[];
-  bookingIds?: string[];
-  orderIds?: string[];
+  bookingIds?: unknown[];
+  orderIds?: unknown[];
+  paymentIds?: unknown[];
+  trackingCode?: string;
   fromLocation?: string;
   toLocation?: string;
-  pickedAt?: string;
-  onTransitAt?: string;
-  deliveredAt?: string;
+  origin?: string | null;
+  destination?: string | null;
+  currentLocation?: FleetTripCoords | string | null;
+  currentLatitude?: number | null;
+  currentLongitude?: number | null;
+  pickedAt?: string | null;
+  onTransitAt?: string | null;
+  deliveredAt?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
   estDeliveryDate?: string;
+  loadWeightKg?: number;
+  loadWeightTonnes?: number;
   totalLoadKg?: number;
   capacityKg?: number;
+  wholeTruckOnly?: boolean;
+  packageCount?: number;
+  buyerCount?: number;
+  orderCount?: number;
   createdAt?: string;
   updatedAt?: string;
   [key: string]: unknown;
@@ -65,33 +128,21 @@ export interface FleetTripSummary {
 
 export interface FleetTripTimelineEvent {
   status: FleetTripStatus | string;
+  /** Newer responses use `timestamp`; older ones use `at`. Read both. */
   at?: string;
+  timestamp?: string;
   note?: string;
   location?: string;
 }
 
-export interface FleetTripTracking {
+/**
+ * Detailed tracking payload from GET /fleet-trips/{id}/tracking.
+ * It carries every summary field plus a status timeline; some backends
+ * also nest the trip under `trip`, so consumers should merge defensively.
+ */
+export interface FleetTripTracking extends FleetTripSummary {
   trip?: FleetTripSummary;
-  status?: FleetTripStatus;
-  currentLocation?: { lat?: number; lng?: number; label?: string };
   timeline?: FleetTripTimelineEvent[];
-  buyers?: FleetTripBuyer[];
-  transporter?: {
-    _id?: string;
-    name?: string;
-    phone?: string;
-    avatar?: string;
-    company?: string;
-  };
-  fleet?: FleetTripFleet;
-  packages?: FleetTripPackage[];
-  fromLocation?: string;
-  toLocation?: string;
-  pickedAt?: string;
-  onTransitAt?: string;
-  deliveredAt?: string;
-  estDeliveryDate?: string;
-  [key: string]: unknown;
 }
 
 export interface GetFleetTripsParams {
@@ -107,10 +158,13 @@ export interface CreateFleetTripPayload {
   bookingIds: string[];
 }
 
+/** PATCH /fleet-trips/{id}/status — supports status, location label and lat/lng. */
 export interface UpdateFleetTripStatusPayload {
   status: FleetTripStatus;
   note?: string;
   location?: string;
+  lat?: number;
+  lng?: number;
 }
 
 const unwrap = <T>(body: unknown): T => {

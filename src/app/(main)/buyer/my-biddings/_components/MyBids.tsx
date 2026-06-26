@@ -2,7 +2,6 @@
 import Image from "next/image";
 import React from "react";
 import { YellowStarIcon } from "@/icons/Icons";
-import { TrashIcon } from "@/icons/Icon1";
 
 interface BidItem {
   id: string;
@@ -171,15 +170,6 @@ export const MyBids: React.FC<MyBidsProps> = ({
                   <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">
                     ₦{item.price.toLocaleString()}
                   </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-end sm:justify-center w-full sm:w-auto">
-                <div className="hidden sm:block w-[0.7px] h-20 sm:h-24 md:h-[10rem] bg-[#808080]"></div>
-                <div className="flex flex-col items-center justify-center cursor-pointer px-2 sm:px-3 md:px-3.5">
-                  <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-                  <span className="font-montserrat font-normal text-[11px] sm:text-[12px] md:text-[13px] text-[#2b2b2b]">
-                    Delete
-                  </span>
                 </div>
               </div>
             </div>

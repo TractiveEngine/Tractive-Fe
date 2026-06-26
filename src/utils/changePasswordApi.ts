@@ -1,5 +1,6 @@
 import { z } from "zod";
 import axios from "axios";
+import { API_BASE_URL } from "@/lib/config";
 
 const apiResponseSchema = z.object({
   success: z.boolean().optional(),
@@ -19,21 +20,8 @@ export const changePassword = async (
   token: string
 ): Promise<z.infer<typeof apiResponseSchema>> => {
   try {
-    const API_URL =
-      process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
-    console.log("Submitting to:", `${API_URL}/api/auth/change-password`);
-    console.log(
-      "Payload:",
-      JSON.stringify(
-        { currentPassword: "[HIDDEN]", newPassword: "[HIDDEN]" },
-        null,
-        2
-      )
-    );
-    console.log("Token:", token ? "Present" : "Missing");
-
     const response = await axios.post(
-      `${API_URL}/api/auth/change-password`,
+      `${API_BASE_URL}/api/auth/change-password`,
       data,
       {
         headers: {
@@ -43,7 +31,6 @@ export const changePassword = async (
       }
     );
 
-    console.log("API Response:", JSON.stringify(response.data, null, 2));
     const validatedResponse = apiResponseSchema.parse(response.data);
     return validatedResponse;
   } catch (error) {

@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { NewProduct } from "./_components/Tables/NewProduct";
-import { DeliveredProduct } from "./_components/Tables/DeliveredProduct";
-import { PackedProduct } from "./_components/Tables/PackedProduct";
-import { OrdersApiService } from "@/services/OrderService";
+import { AgentOrderTable } from "../_components/table/AgentOrderTable";
+import { NewProductActionMenu } from "../_components/ActionMenu/NewProductActionMenu";
+import { PackedProductActionMenu } from "../_components/ActionMenu/PackedProductActionMenu";
+import { DeliveredProductActionMenu } from "../_components/ActionMenu/DeliveredProductActionMenu";
+import { useOrders } from "@/hooks/queries/useOrderQueries";
 
 interface SideProps {
   switchSides: "New" | "Packed" | "Delivered";
@@ -16,12 +17,18 @@ interface SideProps {
 export default function ProduceListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Delivered");
-  const [orderCounts, setOrderCounts] = useState({
-    new: 0,
-    packed: 0,
-    delivered: 0,
-  });
-  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
+
+  // React Query — each status is cached individually and shared with the table.
+  const { data: newOrders } = useOrders({ status: "pending" });
+  const { data: packedOrders } = useOrders({ status: "parked" });
+  const { data: deliveredOrders } = useOrders({ status: "delivered" });
+
+  const newCount = Array.isArray(newOrders) ? newOrders.length : 0;
+  const packedCount = Array.isArray(packedOrders) ? packedOrders.length : 0;
+  const deliveredCount = Array.isArray(deliveredOrders)
+    ? deliveredOrders.length
+    : 0;
+
   const newContainerRef = useRef<HTMLDivElement>(null);
   const parkedContainerRef = useRef<HTMLDivElement>(null);
   const deliveredContainerRef = useRef<HTMLDivElement>(null);
@@ -37,58 +44,6 @@ export default function ProduceListPage() {
   const handleSwitchSides = (side: SideProps["switchSides"]) => {
     setSwitchSides(side);
   };
-
-  // Fetch order counts
-  useEffect(() => {
-    const fetchCounts = async () => {
-      setIsLoadingCounts(true);
-      console.log("Fetching order counts...", isLoadingCounts);
-      try {
-        const [
-          newOrdersResponse,
-          packedOrdersResponse,
-          deliveredOrdersResponse,
-        ] = await Promise.all([
-          OrdersApiService.getOrders({ status: "pending" }),
-          OrdersApiService.getOrders({ status: "parked" }),
-          OrdersApiService.getOrders({ status: "delivered" }),
-        ]);
-
-        // FIX: Ensure all responses are arrays before getting length
-        const newOrders = Array.isArray(newOrdersResponse)
-          ? newOrdersResponse
-          : [];
-        const packedOrders = Array.isArray(packedOrdersResponse)
-          ? packedOrdersResponse
-          : [];
-        const deliveredOrders = Array.isArray(deliveredOrdersResponse)
-          ? deliveredOrdersResponse
-          : [];
-
-        setOrderCounts({
-          new: newOrders.length,
-          packed: packedOrders.length,
-          delivered: deliveredOrders.length,
-        });
-      } catch (error) {
-        console.error("Failed to fetch order counts:", error);
-        // FIX: Set counts to 0 on error instead of keeping previous values
-        setOrderCounts({
-          new: 0,
-          packed: 0,
-          delivered: 0,
-        });
-      } finally {
-        setIsLoadingCounts(false);
-      }
-    };
-
-    fetchCounts();
-
-    // Refresh counts every 30 seconds
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  });
 
   // Update indicator position and width when switchSides changes
   useEffect(() => {
@@ -146,7 +101,7 @@ export default function ProduceListPage() {
               New
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
-              {orderCounts.new}
+              {newCount}
             </span>
           </div>
           <div
@@ -166,7 +121,7 @@ export default function ProduceListPage() {
               Packed
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
-              {orderCounts.packed}
+              {packedCount}
             </span>
           </div>
           <div
@@ -188,7 +143,7 @@ export default function ProduceListPage() {
               Delivered
             </button>
             <span className="bg-[#538e53] text-[#fefefe] text-[10px] font-montserrat font-normal rounded-[4px] px-[6px] py-[2px] min-w-[20px] text-center">
-              {orderCounts.delivered}
+              {deliveredCount}
             </span>
           </div>
           <motion.div
@@ -207,23 +162,46 @@ export default function ProduceListPage() {
           switchSides === "New"
             ? "new-panel"
             : switchSides === "Packed"
-            ? "parked-panel"
-            : "delivered-panel"
+              ? "parked-panel"
+              : "delivered-panel"
         }
         aria-labelledby={
           switchSides === "New"
             ? "new-tab"
             : switchSides === "Packed"
-            ? "parked-tab"
-            : "delivered-tab"
+              ? "parked-tab"
+              : "delivered-tab"
         }
       >
         {switchSides === "New" ? (
-          <NewProduct />
+          <AgentOrderTable
+            status="pending"
+            dataType="new"
+            nextStatus="parked"
+            ActionMenuComponent={NewProductActionMenu}
+            emptyTitle="No new orders found"
+            emptyHint="No pending orders at the moment"
+            searchAriaLabel="Search products"
+          />
         ) : switchSides === "Packed" ? (
-          <PackedProduct />
+          <AgentOrderTable
+            status="parked"
+            dataType="parked"
+            nextStatus="delivered"
+            ActionMenuComponent={PackedProductActionMenu}
+            emptyTitle="No packed orders found"
+            emptyHint="No packed orders at the moment"
+            searchAriaLabel="Search parked products"
+          />
         ) : (
-          <DeliveredProduct />
+          <AgentOrderTable
+            status="delivered"
+            dataType="delivered"
+            ActionMenuComponent={DeliveredProductActionMenu}
+            emptyTitle="No delivered orders found"
+            emptyHint="No delivered orders at the moment"
+            searchAriaLabel="Search delivered products"
+          />
         )}
       </div>
     </div>

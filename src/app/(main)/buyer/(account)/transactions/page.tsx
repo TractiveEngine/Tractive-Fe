@@ -88,7 +88,7 @@ const orderToRow = (raw: OrderRecord): BuyerTransactionRow | null => {
 };
 
 export default function BuyerTransactionsPage() {
-  const { data: ordersRaw, isLoading } = useOrders();
+  const { data: ordersRaw, isLoading, isError, refetch } = useOrders();
   const [activeTab, setActiveTab] = useState<TabKey>("pending");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -224,6 +224,21 @@ export default function BuyerTransactionsPage() {
             showAvatar
             showActionMenu
           />
+        ) : isError ? (
+          <div className="py-12 flex flex-col items-center justify-center text-gray-500">
+            <p className="text-base font-montserrat text-[#c0392b]">
+              We couldn&apos;t load your transactions.
+            </p>
+            <p className="text-sm font-montserrat mt-1 mb-4">
+              Please check your connection and try again.
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2 rounded-full bg-[#538e53] text-white text-sm font-medium cursor-pointer hover:bg-green-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         ) : (
           <TransactionsTable rows={filteredRows} />
         )}

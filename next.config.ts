@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // In dev, serve remote images directly from their source instead of
+    // proxying them through the dev server's optimizer — slow/dead upstream
+    // URLs were hanging requests for up to 53s. Production stays optimized.
+    unoptimized: process.env.NODE_ENV === "development",
     remotePatterns: [
       {
         protocol: "https",

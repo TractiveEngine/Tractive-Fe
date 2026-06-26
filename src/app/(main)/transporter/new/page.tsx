@@ -4,5 +4,5 @@ import "./TrackOrder.css";
 import { BookingTripsView } from "../_components/BookingTripsView";
 
 export default function TrackOrderPage() {
-  return <BookingTripsView defaultTab="new" showDummyReference />;
+  return <BookingTripsView defaultTab="new" />;
 }

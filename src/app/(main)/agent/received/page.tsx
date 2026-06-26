@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { transactionService } from "../../../../services/transactionService";
 import { PendingTableList } from "./_components/TransactionTables/PendingTableList";
 import { ApprovedTableList } from "./_components/TransactionTables/ReceivedTableList";
+import { useAgentTransactions } from "@/hooks/queries/useTransactionQueries";
 
 interface SideProps {
   switchSides: "Pending" | "Approved";
@@ -13,9 +13,20 @@ interface SideProps {
 export default function ApprovedTransactionListPage() {
   const [switchSides, setSwitchSides] =
     useState<SideProps["switchSides"]>("Approved");
-  const [pendingCount, setPendingCount] = useState<number>(0);
-  const [approvedCount, setApprovedCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+
+  // Counts come straight from React Query. These two queries also warm the
+  // cache for both tabs (same query keys the table components use), so
+  // switching tabs mounts the table from cache instead of refetching. After an
+  // approve, the mutation invalidates the "agentTransactions" key family and
+  // both counts resync automatically.
+  const { data: pendingData, isLoading: pendingLoading } =
+    useAgentTransactions({ status: "pending" });
+  const { data: approvedData, isLoading: approvedLoading } =
+    useAgentTransactions({ status: "approved" });
+  const pendingCount = pendingData?.length ?? 0;
+  const approvedCount = approvedData?.length ?? 0;
+  const loading = pendingLoading || approvedLoading;
+
   const PendingContainerRef = useRef<HTMLDivElement>(null);
   const ApprovedContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,33 +37,6 @@ export default function ApprovedTransactionListPage() {
     left: 0,
     width: 0,
   });
-
-  // Fetch transaction counts
-  const fetchTransactionCounts = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch both pending and approved transactions to get counts
-      const [pendingTransactions, approvedTransactions] = await Promise.all([
-        transactionService.getTransactions({ status: "pending" }),
-        transactionService.getTransactions({ status: "approved" }),
-      ]);
-
-      setPendingCount(pendingTransactions.length);
-      setApprovedCount(approvedTransactions.length);
-    } catch (error) {
-      console.error("Error fetching transaction counts:", error);
-      // Set default counts to 0 if there's an error
-      setPendingCount(0);
-      setApprovedCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransactionCounts();
-  }, []);
 
   const handleSwitchSides = (side: SideProps["switchSides"]) => {
     setSwitchSides(side);
@@ -78,27 +62,6 @@ export default function ApprovedTransactionListPage() {
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
-  }, [switchSides]);
-
-  // Refresh counts when switching tabs (optional - for real-time updates)
-  useEffect(() => {
-    if (switchSides === "Pending") {
-      // Refresh pending count when switching to pending tab
-      transactionService
-        .getTransactions({ status: "pending" })
-        .then((transactions) => setPendingCount(transactions.length))
-        .catch((error) =>
-          console.error("Error refreshing pending count:", error)
-        );
-    } else {
-      // Refresh approved count when switching to approved tab
-      transactionService
-        .getTransactions({ status: "approved" })
-        .then((transactions) => setApprovedCount(transactions.length))
-        .catch((error) =>
-          console.error("Error refreshing approved count:", error)
-        );
-    }
   }, [switchSides]);
 
   return (
@@ -170,9 +133,9 @@ export default function ApprovedTransactionListPage() {
         id={switchSides === "Pending" ? "Pending-panel" : "Approved-panel"}
       >
         {switchSides === "Pending" ? (
-          <PendingTableList onCountChange={setPendingCount} />
+          <PendingTableList />
         ) : (
-          <ApprovedTableList onCountChange={setApprovedCount} />
+          <ApprovedTableList />
         )}
       </div>
     </div>

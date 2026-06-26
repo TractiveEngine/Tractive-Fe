@@ -20,7 +20,8 @@ const Page: React.FC = () => {
   const [accumulatedWishlist, setAccumulatedWishlist] = useState<WishlistItem[]>([]);
 
   // Fetch WishList using new API endpoint
-  const { data: wishlistResponse, isLoading, isFetching } = useGetWishlist(page, 20);
+  const { data: wishlistResponse, isLoading, isFetching, isError, refetch } =
+    useGetWishlist(page, 20);
   
   // Extract data array and pagination metadata
   const currentWishlistBatch: WishlistItem[] = useMemo(
@@ -111,9 +112,11 @@ const Page: React.FC = () => {
         </div>
         <div className="mt-4">
           {activeTab === "wish-list" ? (
-            <WishList 
-               data={wishListData} 
-               isLoading={isLoading && page === 1} 
+            <WishList
+               data={wishListData}
+               isLoading={isLoading && page === 1}
+               isError={isError}
+               onRetry={() => refetch()}
                isFetchingNextPage={isFetching && page > 1}
                hasMore={hasMore}
                onLoadMore={handleLoadMore}

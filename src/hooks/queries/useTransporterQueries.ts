@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { transporterService, GetTransportersParams, ApiTruck } from "@/services/transporterService";
 import {
   NegotiationService,
@@ -267,6 +272,9 @@ export const useFleetTrips = (
     enabled: options?.enabled !== false,
     refetchInterval: options?.refetchInterval,
     staleTime: 1000 * 60 * 2,
+    // Hold the current list while a new search/status query loads, so typing in
+    // the search box doesn't flash a full-screen spinner on every keystroke.
+    placeholderData: keepPreviousData,
   });
 };
 

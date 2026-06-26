@@ -24,7 +24,6 @@ export const TrackTransporterActionMenu: React.FC<
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        console.log("Clicked outside, closing menu");
         setIsActive(false);
       }
     };
@@ -37,22 +36,12 @@ export const TrackTransporterActionMenu: React.FC<
     visible: { opacity: 1, y: 0 },
   };
 
-  console.log("ActionMenu Props:", {
-    userTypeId,
-    handleTBuyerInfo,
-    handleTransporterInfo,
-    handleTrackOrder,
-  });
-
   return (
     <div className="relative" ref={menuRef}>
       <button
         title="Open action menu"
         aria-label="Open action menu"
-        onClick={() => {
-          console.log("Toggling menu, isActive:", !isActive);
-          setIsActive(!isActive);
-        }}
+        onClick={() => setIsActive(!isActive)}
         className="bg-[#f1f1f1] rounded-full cursor-pointer p-1.5 w-[30px] h-[30px] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors duration-200"
       >
         <ThreeDotIcon />
@@ -70,7 +59,6 @@ export const TrackTransporterActionMenu: React.FC<
             {handleTBuyerInfo && (
               <button
                 onClick={() => {
-                  console.log("Buyer Info clicked for ID:", userTypeId);
                   handleTBuyerInfo(userTypeId);
                   setIsActive(false);
                 }}
@@ -82,7 +70,6 @@ export const TrackTransporterActionMenu: React.FC<
             {handleTransporterInfo && (
               <button
                 onClick={() => {
-                  console.log("Transporter Info clicked for ID:", userTypeId);
                   handleTransporterInfo(userTypeId);
                   setIsActive(false);
                 }}
@@ -94,7 +81,6 @@ export const TrackTransporterActionMenu: React.FC<
             {handleTrackOrder && (
               <button
                 onClick={() => {
-                  console.log("Track Order clicked for ID:", userTypeId);
                   handleTrackOrder(userTypeId);
                   setIsActive(false);
                 }}

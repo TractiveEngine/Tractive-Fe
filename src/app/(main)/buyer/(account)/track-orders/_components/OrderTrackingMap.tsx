@@ -1,8 +1,18 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { TickIcon } from "@/app/(main)/transporter/_components/Icons/TransporterIcons";
+import { useOrderTracking } from "@/hooks/queries/useOrderQueries";
 import type { TrackOrder } from "./trackOrdersData";
+
+// Leaflet touches `window` at import time, so it must skip SSR.
+const LiveTrackingMap = dynamic(() => import("./LiveTrackingMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-[#f1f1f1] animate-pulse rounded-[10px]" />
+  ),
+});
 
 interface Props {
   order: TrackOrder;
@@ -25,16 +35,38 @@ export const OrderTrackingMap: React.FC<Props> = ({ order }) => {
   const onTransit = ["on_transit", "delivered"].includes(order.status);
   const delivered = order.status === "delivered";
 
+  // Live GPS only matters once the package is moving; poll while in motion.
+  const trackingActive = picked && !delivered;
+  const { data: tracking } = useOrderTracking(order.id, {
+    enabled: picked,
+    refetchInterval: trackingActive ? 30_000 : false,
+  });
+  // Prefer the fresh /tracking poll; fall back to the GPS embedded in the
+  // order list so the map renders as soon as the backend sets any position.
+  const position = tracking?.currentLocation ?? order.liveLocation;
+  const locationLabel = tracking?.locationLabel || order.liveLocationLabel || null;
+  const lastUpdatedAt = tracking?.lastUpdatedAt ?? order.liveUpdatedAt;
+
   return (
     <div className="w-full bg-[#fefefe] rounded-[10px] shadow-md flex flex-col gap-3 overflow-hidden">
       <div className="relative w-full h-[260px] sm:h-[320px]">
-        <Image
-          src="/images/trackingMap.png"
-          alt="Map"
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover"
-        />
+        {position ? (
+          <LiveTrackingMap
+            lat={position.lat}
+            lng={position.lng}
+            label={order.product.name}
+            locationLabel={locationLabel}
+            lastUpdatedAt={lastUpdatedAt}
+          />
+        ) : (
+          <Image
+            src="/images/trackingMap.png"
+            alt="Map"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+          />
+        )}
       </div>
 
       <div className="relative w-[92%] mx-auto h-[60px]">

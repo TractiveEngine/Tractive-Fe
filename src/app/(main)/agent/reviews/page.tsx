@@ -4,7 +4,12 @@ import { ReviewIcon } from "@/icons/Icon1";
 import { LikeIcon, ReplyIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
-import { ReviewService, Review, ReviewSummary } from "@/services/reviewService";
+import {
+  useReviews,
+  useReviewsSummary,
+  useLikeReview,
+  useReplyToReview,
+} from "@/hooks/queries/useReviewQueries";
 
 // Sample fallback data
 const fallbackReviewData = {
@@ -27,10 +32,49 @@ const fallbackReviewData = {
 };
 
 const ReviewsPage: React.FC = () => {
-  const [reviewData, setReviewData] = useState<ReviewSummary | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Reviews + summary now flow through TanStack Query (shared cache, no manual
+  // useState/useEffect fetching). Mutations invalidate the list so likes and
+  // replies resync from the server.
+  const {
+    data: reviewsResponse,
+    isLoading: reviewsLoading,
+    error: reviewsError,
+    refetch: refetchReviews,
+  } = useReviews();
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    refetch: refetchSummary,
+  } = useReviewsSummary();
+
+  const likeReview = useLikeReview();
+  const replyToReview = useReplyToReview();
+
+  const reviews = reviewsResponse?.reviews ?? [];
+  const isLoading = reviewsLoading || summaryLoading;
+  const error = reviewsError
+    ? (reviewsError as { message?: string })?.message || "Failed to load reviews"
+    : null;
+
+  // Summary view-model, falling back to empty distribution when unavailable.
+  const reviewData = useMemo(
+    () =>
+      summary ?? {
+        overallRating: fallbackReviewData.overallRating,
+        totalReviews: fallbackReviewData.totalReviewers,
+        ratingDistribution: fallbackReviewData.ratings.map((rating, index) => ({
+          rating: 5 - index,
+          count: rating.count,
+          percentage: rating.percentage,
+        })),
+        recentReviewers: fallbackReviewData.reviewerAvatars,
+      },
+    [summary],
+  );
+
+  // Reply UI: which review's composer is open + its draft text.
+  const [openReplyId, setOpenReplyId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState("");
 
   // Initialize individual animation controls for each rating
   const control1 = useAnimation();
@@ -44,42 +88,6 @@ const ReviewsPage: React.FC = () => {
     () => [control1, control2, control3, control4, control5],
     [control1, control2, control3, control4, control5]
   );
-
-  // Fetch reviews and summary data
-  const fetchReviewData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const [summary, reviewsResponse] = await Promise.all([
-        ReviewService.getReviewsSummary(),
-        ReviewService.getReviews(),
-      ]);
-
-      setReviewData(summary);
-      setReviews(reviewsResponse.reviews);
-    } catch (err: unknown) {
-      console.error("Error fetching review data:", err);
-      setError((err as { message?: string })?.message || "Failed to load reviews");
-
-      setReviewData({
-        overallRating: fallbackReviewData.overallRating,
-        totalReviews: fallbackReviewData.totalReviewers,
-        ratingDistribution: fallbackReviewData.ratings.map((rating, index) => ({
-          rating: 5 - index,
-          count: rating.count,
-          percentage: rating.percentage,
-        })),
-        recentReviewers: fallbackReviewData.reviewerAvatars,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReviewData();
-  }, []);
 
   // Animate progress bars when data changes
   useEffect(() => {
@@ -106,22 +114,30 @@ const ReviewsPage: React.FC = () => {
     return stars;
   };
 
-  // Handle like review
-  const handleLikeReview = async (reviewId: string) => {
-    try {
-      await ReviewService.likeReview(reviewId);
-      // Update local state to reflect the like
-      setReviews((prevReviews) =>
-        prevReviews.map((review) =>
-          review._id === reviewId
-            ? { ...review, likes: (review.likes || 0) + 1 }
-            : review
-        )
-      );
-    } catch (err) {
-      console.error("Error liking review:", err);
-      alert("Failed to like review");
-    }
+  // Handle like review — mutation invalidates the list to resync the count.
+  const handleLikeReview = (reviewId: string) => {
+    likeReview.mutate(reviewId);
+  };
+
+  // Toggle the reply composer for a review.
+  const toggleReply = (reviewId: string) => {
+    setOpenReplyId((prev) => (prev === reviewId ? null : reviewId));
+    setReplyDraft("");
+  };
+
+  // Submit a reply — on success the list invalidates and the composer closes.
+  const handleSubmitReply = (reviewId: string) => {
+    const message = replyDraft.trim();
+    if (!message) return;
+    replyToReview.mutate(
+      { reviewId, payload: { message } },
+      {
+        onSuccess: () => {
+          setOpenReplyId(null);
+          setReplyDraft("");
+        },
+      },
+    );
   };
 
   // Format date
@@ -158,7 +174,10 @@ const ReviewsPage: React.FC = () => {
         <div className="w-full p-3 mb-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 font-montserrat text-sm">{error}</p>
           <button
-            onClick={() => fetchReviewData()}
+            onClick={() => {
+              refetchReviews();
+              refetchSummary();
+            }}
             className="mt-2 px-4 py-2 cursor-pointer bg-[#538e53] text-white text-xs font-montserrat rounded hover:bg-[#467746]"
           >
             Retry
@@ -263,53 +282,110 @@ const ReviewsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          reviews.map((review) => (
-            <div
-              key={review._id}
-              className="flex flex-col gap-1.5 pt-2 rounded-[5px] border-b border-gray-100 pb-4"
-            >
-              <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <div className="relative flex items-center gap-2 flex-wrap">
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="font-montserrat text-sm font-bold text-gray-600">
-                      {review.buyer.name.charAt(0).toUpperCase()}
-                    </span>
+          reviews.map((review) => {
+            const isReplyOpen = openReplyId === review._id;
+            const isReplying =
+              replyToReview.isPending &&
+              replyToReview.variables?.reviewId === review._id;
+            return (
+              <div
+                key={review._id}
+                className="flex flex-col gap-1.5 pt-2 rounded-[5px] border-b border-gray-100 pb-4"
+              >
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <div className="relative flex items-center gap-2 flex-wrap">
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="font-montserrat text-sm font-bold text-gray-600">
+                        {review.buyer.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+                      {review.buyer.name}
+                    </p>
                   </div>
-                  <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
-                    {review.buyer.name}
+                  <div className="flex items-center gap-1.5">
+                    {renderStars(review.rating)}
+                  </div>
+                </div>
+                <div className="flex justify-between w-[100%] flex-wrap">
+                  <p className="font-montserrat w-full md:w-[80%] font-normal text-[11px] text-[#2b2b2b]">
+                    {review.comment}
                   </p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {renderStars(review.rating)}
-                </div>
-              </div>
-              <div className="flex justify-between w-[100%] flex-wrap">
-                <p className="font-montserrat w-full md:w-[80%] font-normal text-[11px] text-[#2b2b2b]">
-                  {review.comment}
-                </p>
-                <span className="font-montserrat w-full md:w-[20%] flex justify-start md:justify-end font-normal text-[11px] text-[#808080] mt-2 md:mt-0">
-                  {formatDate(review.createdAt)}
-                </span>
-              </div>
-              <div className="flex items-center gap-[46px] truncate mt-2">
-                <button
-                  className="flex items-center gap-[6px] hover:opacity-70 transition-opacity"
-                  onClick={() => handleLikeReview(review._id)}
-                >
-                  <LikeIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.likes || 0} Likes
-                  </span>
-                </button>
-                <div className="flex items-center gap-[6px]">
-                  <ReplyIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.replies?.length || 0} replies
+                  <span className="font-montserrat w-full md:w-[20%] flex justify-start md:justify-end font-normal text-[11px] text-[#808080] mt-2 md:mt-0">
+                    {formatDate(review.createdAt)}
                   </span>
                 </div>
+                <div className="flex items-center gap-[46px] truncate mt-2">
+                  <button
+                    className="flex items-center gap-[6px] cursor-pointer hover:opacity-70 transition-opacity disabled:opacity-50"
+                    onClick={() => handleLikeReview(review._id)}
+                    disabled={
+                      likeReview.isPending &&
+                      likeReview.variables === review._id
+                    }
+                  >
+                    <LikeIcon />
+                    <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                      {review.likes || 0} Likes
+                    </span>
+                  </button>
+                  <button
+                    className="flex items-center gap-[6px] cursor-pointer hover:opacity-70 transition-opacity"
+                    onClick={() => toggleReply(review._id)}
+                  >
+                    <ReplyIcon />
+                    <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                      {review.replies?.length || 0} replies
+                    </span>
+                  </button>
+                </div>
+
+                {/* Existing replies */}
+                {review.replies && review.replies.length > 0 && (
+                  <div className="flex flex-col gap-2 mt-2 pl-4 border-l-2 border-gray-100">
+                    {review.replies.map((reply) => (
+                      <div key={reply._id} className="flex flex-col gap-0.5">
+                        <p className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                          {reply.message}
+                        </p>
+                        <span className="font-montserrat font-normal text-[10px] text-[#808080]">
+                          Agent reply · {formatDate(reply.createdAt)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reply composer */}
+                {isReplyOpen && (
+                  <div className="flex flex-col gap-2 mt-3">
+                    <textarea
+                      value={replyDraft}
+                      onChange={(e) => setReplyDraft(e.target.value)}
+                      placeholder="Write a reply…"
+                      rows={2}
+                      className="w-full resize-none rounded-md border border-gray-200 p-2 font-montserrat text-[12px] text-[#2b2b2b] focus:border-[#538e53] focus:outline-none"
+                    />
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => toggleReply(review._id)}
+                        className="px-3 py-1.5 cursor-pointer rounded border border-gray-200 text-[#808080] text-[11px] font-montserrat hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSubmitReply(review._id)}
+                        disabled={isReplying || !replyDraft.trim()}
+                        className="px-4 py-1.5 cursor-pointer rounded bg-[#538e53] text-white text-[11px] font-montserrat hover:bg-[#467746] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isReplying ? "Posting…" : "Post reply"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

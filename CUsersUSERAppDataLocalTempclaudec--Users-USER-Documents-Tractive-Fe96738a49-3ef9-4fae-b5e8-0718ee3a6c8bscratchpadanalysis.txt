@@ -1,0 +1,64 @@
+TRANSPORTER PAGE ANALYSIS
+========================
+
+SUMMARY OF FINDINGS:
+
+1. RECEIVED PAGE (/transporter/received)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\received
+   - Status: ROUTED & LINKED - actively referenced in sidebar nav
+   - Data Type: MOCK DATA (hardcoded arrays)
+   - Uses: TransporterPendingData, TransporterApprovedData from utils
+   - Not using React Query hooks - uses hardcoded mock data
+   - Files: page.tsx, ReceivedTableList.tsx, PendingTableList.tsx, CustomerCareModal.tsx, TransactionActionMenu.tsx
+   - Found in: TransporterAsideNav.tsx, TransporterAsideNavMobile.tsx
+
+2. PENDING PAGE (/transporter/pending)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\pending
+   - Status: ROUTED but DUPLICATE/CONFLICTING with received
+   - Data Type: REAL DATA (React Query hooks)
+   - Uses: useQuery hook to fetch from transporterService.getTransactions()
+   - Has same structure as received but with REAL API calls
+   - Files: page.tsx, ReceivedTableList.tsx, PendingTableList.tsx, CustomerCareModal.tsx, TransactionActionMenu.tsx
+   
+3. NEW PAGE (/transporter/new)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\new
+   - Status: ROUTED & LINKED - actively referenced in sidebar nav
+   - Data Type: REAL DATA (React Query hooks)
+   - Uses: useFleetTrips hook from BookingTripsView component
+   - BookingTripsView is the main component that handles this page
+   - Orphaned _components: All orderTracking components are UNUSED
+     - NewOrderTracking.tsx - NOT IMPORTED anywhere
+     - PickedOrderTracking.tsx - NOT IMPORTED anywhere
+     - OnTransitOrderTracking.tsx - NOT IMPORTED anywhere
+     - DeliveredOrderTracking.tsx - NOT IMPORTED anywhere
+     - MapTrackingTimeline.tsx - NOT IMPORTED anywhere
+     - TabTitles.tsx - NOT IMPORTED anywhere
+     - TransportCallDetails.tsx - NOT IMPORTED anywhere
+     - TransportInfoAndPackageProduct.tsx - NOT IMPORTED anywhere
+     - PackagedTable.tsx - NOT IMPORTED anywhere
+
+4. PICKED PAGE (/transporter/picked)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\picked
+   - Status: ROUTED & LINKED - actively referenced in sidebar nav
+   - Data Type: REAL DATA (uses BookingTripsView with defaultTab="picked")
+   - Same orphaned _components as new/ folder (duplicate structure)
+
+5. ON-TRANSIT PAGE (/transporter/on-transit)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\on-transit
+   - Status: ROUTED & LINKED - actively referenced in sidebar nav
+   - Data Type: REAL DATA (uses BookingTripsView with defaultTab="on_transit")
+   - Same orphaned _components as new/ folder (duplicate structure)
+
+6. DELIVERED PAGE (/transporter/delivered)
+   - Location: C:\Users\USER\Documents\Tractive-Fe\src\app\(main)\transporter\delivered
+   - Status: ROUTED & LINKED - actively referenced in sidebar nav
+   - Data Type: REAL DATA (uses BookingTripsView with defaultTab="delivered")
+   - Same orphaned _components as new/ folder (duplicate structure)
+
+7. ORPHANED COMPONENTS (ALL in new/, picked/, on-transit/, delivered/_components/)
+   - These are demo/tracking files that are DEFINED but NEVER IMPORTED
+   - They appear to be from an older implementation strategy
+   - Used to be part of a route-based tracking UI (one component per route)
+   - Current implementation uses BookingTripsView with tab-based filtering instead
+   - Safe to delete entirely
+

@@ -2,9 +2,10 @@ import axios from "axios";
 import { getSession, signOut } from "next-auth/react";
 import { tokenManager } from "./tokenManager";
 import { toast } from "sonner";
+import { API_BASE_URL } from "./config";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -55,7 +56,7 @@ api.interceptors.response.use(
       try {
         const newToken = await tokenManager.getRefreshTokenHelper(async () => {
           const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+            `${API_BASE_URL}/api/auth/refresh`,
             {},
             {
               withCredentials: true,

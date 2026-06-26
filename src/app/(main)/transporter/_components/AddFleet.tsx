@@ -7,7 +7,7 @@ import { useAddFleet, useUpdateFleet } from "@/hooks/queries/useFleetQueries";
 import { FleetPayload } from "@/services/fleetService";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import { toast } from "sonner";
-import { Fleet } from "@/utils/Fleet";
+import { Fleet, fleetStatusToApi, fleetStatusToLabel } from "@/utils/Fleet";
 
 // Nigerian states
 const nigerianStates = [
@@ -18,8 +18,9 @@ const nigerianStates = [
   "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
 ];
 
-// Fleet States Options
-const fleetStatesOptions = ["Active", "Inactive", "Under Maintenance"];
+// Fleet States Options — labels match the API enum (available/under_maintenance
+// via fleetStatusToApi). "On Transit" is trip-driven, so it isn't offered here.
+const fleetStatesOptions = ["Available", "Under Maintenance"];
 
 // Props for AddFleet
 interface AddFleetProps {
@@ -49,7 +50,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
     description: "",
     fromState: "",
     toState: "",
-    fleetStates: "Active", // default
+    fleetStates: "Available", // default
     images: [] as string[],
   });
 
@@ -75,7 +76,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
         description: editFleetData.fleetDescription || "",
         fromState: fromState || "",
         toState: toState || "",
-        fleetStates: editFleetData.status,
+        fleetStates: fleetStatusToLabel(editFleetData.status),
         images: editFleetData.images || [],
       });
     } else {
@@ -91,7 +92,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
         description: "",
         fromState: "",
         toState: "",
-        fleetStates: "Active",
+        fleetStates: "Available",
         images: [],
       });
     }
@@ -203,7 +204,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
             priceNegotiation: formData.isNegotiable,
             images: formData.images.filter(Boolean), // remove undefined/null slots
             fleetDescription: formData.description,
-            fleetStates: formData.fleetStates,
+            fleetStates: fleetStatusToApi(formData.fleetStates),
             route: {
               fromState: formData.fromState || "Kaduna",
               toState: formData.toState || "Lagos",

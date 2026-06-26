@@ -19,6 +19,46 @@ export interface Fleet {
   images?: string[];
 }
 
+// ---------------------------------------------------------------------------
+// Fleet status: UI label <-> API enum.
+// The API accepts `available | under_maintenance | on_transit`; the UI shows
+// human labels. Canonical labels match the fleet status toggle menu
+// (ActionMenu). Legacy "Active"/"Inactive" labels still map for older data.
+// ---------------------------------------------------------------------------
+
+export const FLEET_STATUS_API_TO_LABEL: Record<string, string> = {
+  available: "Available",
+  under_maintenance: "Under Maintenance",
+  on_transit: "On Transit",
+};
+
+const FLEET_STATUS_LABEL_TO_API: Record<string, string> = {
+  Available: "available",
+  "Under Maintenance": "under_maintenance",
+  "On Transit": "on_transit",
+  // Legacy labels kept for backwards compatibility with older saved values.
+  Active: "available",
+  Inactive: "under_maintenance",
+};
+
+/** Form label (or legacy value) -> API enum. Defaults to `available`. */
+export const fleetStatusToApi = (value?: string): string => {
+  if (!value) return "available";
+  if (FLEET_STATUS_LABEL_TO_API[value]) return FLEET_STATUS_LABEL_TO_API[value];
+  const norm = value.toLowerCase().replace(/\s+/g, "_");
+  return FLEET_STATUS_API_TO_LABEL[norm] ? norm : "available";
+};
+
+/** API enum (or label) -> form label. Defaults to `Available`. */
+export const fleetStatusToLabel = (value?: string): string => {
+  if (!value) return "Available";
+  if (FLEET_STATUS_API_TO_LABEL[value]) return FLEET_STATUS_API_TO_LABEL[value];
+  const norm = value.toLowerCase().replace(/\s+/g, "_");
+  if (FLEET_STATUS_API_TO_LABEL[norm]) return FLEET_STATUS_API_TO_LABEL[norm];
+  if (FLEET_STATUS_LABEL_TO_API[value]) return value; // already a known label
+  return "Available";
+};
+
 // Sample data with unique IDs and varied fleet information
 export const initialFleets: Fleet[] = [
   {

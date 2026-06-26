@@ -1,8 +1,6 @@
 "use client";
-import { useParams, notFound, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion, Variants } from "framer-motion";
-import { DeliveredProductData, Product } from "@/utils/ProductData";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import {
   ArrowLeftIcon,
@@ -15,62 +13,55 @@ import {
   PhoneCall,
   TickIcon,
 } from "../../../_components/Icons/AgentIcons";
-import "../TrackOrder.css"; // Ensure this CSS file is imported for styles
+import type { TrackOrder } from "@/app/(main)/buyer/(account)/track-orders/_components/trackOrdersData";
+import "../TrackOrder.css";
 
-const loaderVariants: Variants = {
-  initial: { opacity: 0, scale: 0.8 },
-  animate: {
-    opacity: 1,
-    scale: 1,
-    rotate: 360,
-    transition: {
-      opacity: { duration: 0.3 },
-      scale: { duration: 0.3 },
-      rotate: { repeat: Infinity, duration: 1, ease: "linear" },
-    },
-  },
-  exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
-};
+const NA = "N/A";
 
-export const OrderTrackingAndTransportInfo = () => {
-  const { productId } = useParams();
+const Stars = ({ rating }: { rating: number }) => (
+  <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, i) =>
+        i < Math.round(rating) ? (
+          <YellowStarIcon key={i} />
+        ) : (
+          <StarIcon key={i} />
+        ),
+      )}
+    </div>
+    <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
+      {rating.toFixed(1)}
+    </span>
+  </div>
+);
+
+const StepDot = ({ active }: { active: boolean }) => (
+  <div
+    className={`flex items-center p-[3px] justify-center rounded-full w-4 h-4 z-10 ${
+      active
+        ? "bg-[#538e53] text-[#fefefe]"
+        : "bg-[#fefefe] border-[1px] border-[#808080]"
+    }`}
+  >
+    {active && <TickIcon />}
+  </div>
+);
+
+interface Props {
+  order: TrackOrder;
+}
+
+export const OrderTrackingAndTransportInfo = ({ order }: Props) => {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  useEffect(() => {
-    if (typeof productId === "string") {
-      const foundProduct = DeliveredProductData.find((p) => p.id === productId);
-      if (!foundProduct) {
-        notFound();
-      }
-      setTimeout(() => {
-        setProduct(foundProduct || null);
-        setLoading(false);
-      }, 5000);
-    }
-  }, [productId]);
+  const t = order.transporter;
+  const picked = ["picked", "on_transit", "delivered"].includes(order.status);
+  const onTransit = ["on_transit", "delivered"].includes(order.status);
+  const delivered = order.status === "delivered";
 
-  if (loading) {
-    return (
-      <div className="w-full flex items-center justify-center mx-auto p-4 sm:p-6 ">
-        <motion.div
-          className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-t-[#538e53] border-gray-200 rounded-full"
-          variants={loaderVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          role="status"
-          aria-label="Loading product details"
-        />
-      </div>
-    );
-  }
-
-  if (!product) {
-    return notFound();
-  }
+  const companyName = t.name !== NA ? t.name : "Transporter not assigned";
+  const logoSrc = t.logo !== NA ? t.logo : t.avatar;
 
   return (
     <div className="w-full flex flex-col gap-4 bg-[#fefefe] p-3 sm:p-4 rounded-[10px] shadow-md h-fit">
@@ -78,7 +69,7 @@ export const OrderTrackingAndTransportInfo = () => {
       <div className="flex items-center justify-between relative">
         <button
           className="flex items-center gap-1 cursor-pointer"
-          onClick={() => router.push("/agents/delivered")}
+          onClick={() => router.push("/agent/delivered")}
           aria-label="Go back to produce list"
         >
           <ArrowLeftIcon stroke="#538e53" className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -109,35 +100,24 @@ export const OrderTrackingAndTransportInfo = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <Image
-                  src="/images/GIGM.png"
-                  alt="GIGM Logo"
+                  src={logoSrc}
+                  alt={`${companyName} logo`}
                   width={50}
                   height={35}
-                  className="object-cover w-10 h-7 sm:w-12 sm:h-8"
+                  className="object-cover w-10 h-7 sm:w-12 sm:h-8 rounded-[4px]"
                 />
                 <div className="flex flex-col">
                   <span className="font-montserrat font-medium text-[11px] sm:text-[12px] text-[#2b2b2b]">
-                    GIGM Transport Company
+                    {companyName}
                   </span>
-                  <div className="flex items-center gap-1">
-                    <div className="flex items-center gap-1">
-                      <YellowStarIcon />
-                      <YellowStarIcon />
-                      <YellowStarIcon />
-                      <YellowStarIcon />
-                      <StarIcon />
-                    </div>
-                    <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
-                      4.0
-                    </span>
-                  </div>
+                  <Stars rating={t.rating} />
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full">
+                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full cursor-pointer">
                   <PhoneCall />
                 </div>
-                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full">
+                <div className="flex items-center justify-center w-8 h-8 p-2 border-[#808080] border-[1px] rounded-full cursor-pointer">
                   <MessageOutline />
                 </div>
               </div>
@@ -148,23 +128,19 @@ export const OrderTrackingAndTransportInfo = () => {
             <div className="absolute top-[0.5rem] left-[10%] right-[55%] h-[2px] timeline_dashed_line_1 border-dashed border-[1px] border-[#808080]"></div>
             <div className="absolute top-[0.5rem] left-[45%] right-[10%] h-[2px] timeline_dashed_line_2 border-dashed border-[1px] border-[#808080]"></div>
             <div className="absolute left-[5%] top-0 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-4 h-4 z-10">
-                <TickIcon />
-              </div>
+              <StepDot active={picked} />
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
                 Picked
               </span>
             </div>
             <div className="absolute left-1/2 top-0 transform -translate-x-1/2 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#538e53] text-[#fefefe] w-4 h-4 z-10">
-                <TickIcon />
-              </div>
+              <StepDot active={onTransit} />
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
                 On Transit
               </span>
             </div>
             <div className="absolute right-[5%] top-0 flex flex-col gap-1 justify-center items-center">
-              <div className="flex items-center p-[3px] justify-center rounded-full bg-[#fefefe] border-[1px] border-[#808080] text-[#fefefe] w-4 h-4 z-10"></div>
+              <StepDot active={delivered} />
               <span className="font-montserrat font-medium text-[10px] sm:text-[12px] text-[#2b2b2b]">
                 Delivered
               </span>
@@ -175,8 +151,8 @@ export const OrderTrackingAndTransportInfo = () => {
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
-                    src="/images/Trucker.png"
-                    alt="Trucker Image"
+                    src={order.fleet.image}
+                    alt="Fleet vehicle"
                     width={40}
                     height={40}
                     className="object-cover w-8 h-8 sm:w-10 sm:h-10"
@@ -184,18 +160,18 @@ export const OrderTrackingAndTransportInfo = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-montserrat font-medium text-[12px] text-[#2b2b2b]">
-                    Mack4567
+                    {order.fleet.name}
                   </span>
                   <p className="font-montserrat font-medium text-[12px] text-[#2b2b2b]">
-                    IOT: 5677666655
+                    IOT: {order.fleet.iot}
                   </p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
                 <div className="flex items-center justify-center w-12 h-8 sm:w-16 sm:h-10 p-2 bg-[#CCE5CC] rounded-[4px]">
                   <Image
-                    src={product.image}
-                    alt="product Image"
+                    src={order.product.image}
+                    alt={order.product.name}
                     width={50}
                     height={30}
                     className="object-cover w-10 h-6 sm:w-12 sm:h-8"
@@ -203,10 +179,10 @@ export const OrderTrackingAndTransportInfo = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-montserrat font-medium text-[12px] text-[#2b2b2b]">
-                    {product.name}
+                    {order.product.name}
                   </span>
                   <p className="font-montserrat font-medium text-[12px] text-[#2b2b2b]">
-                    ID: {product.id}
+                    ID: {order.product.id}
                   </p>
                 </div>
               </div>

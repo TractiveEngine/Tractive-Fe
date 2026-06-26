@@ -1,18 +1,21 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
 import { TableList } from "../../../_components/table/TableList";
-import { copyToClipboard } from "@/utils/Clipboard";
-import { IdCopyIcon } from "../../../produce-list/_components/table/ProductRow";
 import { CustomerCareModal } from "../CustomerCareModal";
+import { TransactionDetailsModal } from "../../../_components/TransactionDetailsModal";
 import { TransactionActionMenu } from "../TransactionAction/TransactionActionMenu";
 import {
   transactionService,
   FrontendTransaction,
 } from "@/services/transactionService";
+import {
+  useAgentTransactions,
+  useUpdateTransactionStatus,
+} from "@/hooks/queries/useTransactionQueries";
 
 interface ColumnConfig<T> {
   header: string;
@@ -38,53 +41,24 @@ const transactionColumns: ColumnConfig<FrontendTransaction>[] = [
   {
     header: "Item",
     key: "name",
-    minWidth: "min-w-[150px]",
+    minWidth: "min-w-[200px]",
     render: (transaction) => (
       <div className="flex items-center gap-2">
         <Image
           src={transaction.image || "/images/placeholder-product.jpg"}
           alt={transaction.name || "Product"}
-          width={53}
-          height={30}
-          className="object-cover w-[55px] h-[31px] sm:w-[73px] sm:h-[40px] rounded"
+          width={40}
+          height={40}
+          className="object-cover w-[40px] h-[40px] rounded flex-shrink-0"
         />
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0 max-w-[160px]">
           <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
             {transaction.name}
           </span>
-          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#2b2b2b]">
-            {/* Show first two words on mobile, full description on larger screens */}
-            <span className="inline sm:hidden">
-              {transaction.description?.split(" ").slice(0, 2).join(" ") ||
-                "Product description"}
-              {transaction.description &&
-              transaction.description.split(" ").length > 2
-                ? "..."
-                : ""}
-            </span>
-            <span className="hidden sm:inline">
-              {transaction.description || "Product description"}
-            </span>
+          <span className="truncate text-[10px] sm:text-[11px] md:text-[12px] font-normal font-montserrat text-[#808080]">
+            {transaction.description || "Product description"}
           </span>
         </div>
-      </div>
-    ),
-  },
-  {
-    header: "ID",
-    key: "id",
-    minWidth: "min-w-[100px]",
-    render: (transaction) => (
-      <div className="flex items-center gap-2">
-        <span>{transaction.id.slice(-8)}</span>
-        <button
-          onClick={() => copyToClipboard(transaction.id)}
-          title="Copy Transaction ID"
-          aria-label="Copy Transaction ID"
-          className="cursor-pointer"
-        >
-          <IdCopyIcon />
-        </button>
       </div>
     ),
   },
@@ -92,13 +66,14 @@ const transactionColumns: ColumnConfig<FrontendTransaction>[] = [
     header: "Sold",
     key: "sold",
     minWidth: "min-w-[100px]",
-    render: () => `₦0`,
+    render: (transaction) => `₦${(transaction.sold ?? 0).toLocaleString()}`,
   },
   {
     header: "Commission",
     key: "commission",
     minWidth: "min-w-[100px]",
-    render: () => `₦0`,
+    render: (transaction) =>
+      `₦${Math.round(transaction.commission ?? 0).toLocaleString()}`,
   },
   {
     header: "Buyer",
@@ -122,9 +97,6 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
   const [isCustomerCareModalOpen, setIsCustomerCareModalOpen] =
     useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [transactions, setTransactions] = useState<FrontendTransaction[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -144,51 +116,43 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
     "Dec",
   ];
 
-  // Fetch transactions - wrapped in useCallback
-  const fetchTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  // Read pending transactions via React Query (cached + auto-refetch on
+  // invalidation after an approve mutation).
+  const {
+    data: transactions = [],
+    isLoading: loading,
+    isError,
+    error: queryError,
+  } = useAgentTransactions({
+    status: "pending",
+    search: searchQuery || undefined,
+    year: selectedYear || undefined,
+    month: selectedMonth || undefined,
+  });
 
-      if (!transactionService.isAuthenticated()) {
-        setError("Authentication required. Please log in.");
-        setLoading(false);
-        return;
-      }
+  const error = isError
+    ? (queryError as Error)?.message || "Failed to load transactions"
+    : "";
 
-      const params = {
-        status: "pending" as const,
-        search: searchQuery || undefined,
-        year: selectedYear || undefined,
-        month: selectedMonth || undefined,
-      };
+  const { mutate: approveTransaction, isPending: isApproving } =
+    useUpdateTransactionStatus();
 
-      const data = await transactionService.getTransactions(params);
-      setTransactions(data);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<FrontendTransaction | null>(null);
 
-      // Update the count in parent component
-      if (onCountChange) {
-        onCountChange(data.length);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to load transactions";
-      setError(errorMessage);
-      console.error("Error fetching transactions:", err);
+  const handleApprove = (transactionId: string) => {
+    approveTransaction({ id: transactionId, status: "approved" });
+  };
 
-      // Update count to 0 on error
-      if (onCountChange) {
-        onCountChange(0);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, selectedYear, selectedMonth, onCountChange]);
+  const handleViewDetails = (transactionId: string) => {
+    const tx = transactions.find((t) => t.id === transactionId);
+    if (tx) setSelectedTransaction(tx);
+  };
 
-  // Fetch transactions when filters change
+  // Keep the parent tab badge in sync with the fetched list
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    onCountChange?.(transactions.length);
+  }, [transactions.length, onCountChange]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -444,7 +408,10 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
               columns={transactionColumns}
               initialData={transactions}
               ActionMenuComponent={TransactionActionMenu}
+              handleView={handleViewDetails}
               handleCustomerCare={handleCustomerCare}
+              handleApprove={handleApprove}
+              isApproving={isApproving}
             />
           )}
         </div>
@@ -454,6 +421,11 @@ export const PendingTableList = ({ onCountChange }: PendingTableListProps) => {
           onClose={() => {
             setIsCustomerCareModalOpen(false);
           }}
+        />
+
+        <TransactionDetailsModal
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
         />
       </div>
     </div>

@@ -145,13 +145,21 @@ const mapToBidListing = (item: any): BidListing => {
 
 export const bidService = {
   // GET /api/bids - Get all bids (listings)
+  // `filters` (search/year/month) are forwarded as query params. Backend
+  // support for these is pending — see API-FEEDBACK-FOR-BACKEND.md (Item 8).
   getBids: async (
     page = 1,
     limit = 10,
+    filters?: { search?: string; year?: number; month?: number },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{ data: BidListing[]; pagination: any }> => {
     try {
-      const response = await api.get("/api/bids", { params: { page, limit } });
+      const params: Record<string, string | number> = { page, limit };
+      if (filters?.search) params.search = filters.search;
+      if (filters?.year !== undefined) params.year = filters.year;
+      if (filters?.month !== undefined) params.month = filters.month;
+
+      const response = await api.get("/api/bids", { params });
       const rawData = response.data.data || [];
       const data = rawData.map(mapToBidListing);
       return {
