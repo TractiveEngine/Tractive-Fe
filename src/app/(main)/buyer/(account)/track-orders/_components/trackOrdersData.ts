@@ -1,3 +1,5 @@
+import type { OrderRecord } from "@/services/OrderService";
+
 export type TrackOrderStatus = "pending" | "picked" | "on_transit" | "delivered";
 
 export interface TrackOrderPackage {
@@ -20,6 +22,7 @@ export interface TrackOrder {
     yearsOfService: number;
     followers: number;
     ratingLabel: string;
+    phone: string;
   };
   fleet: {
     name: string;
@@ -38,184 +41,197 @@ export interface TrackOrder {
   estDeliveryDate: string;
   fromLocation: string;
   toLocation: string;
+  // Receipt confirmation (Item 4): true once the buyer has confirmed delivery.
+  // Persisted by the backend so the confirm button stays hidden after a refresh.
+  receiptConfirmed: boolean;
+  receiptConfirmedAt: string | null;
+  // Live GPS embedded in the order list response (null until the backend sets
+  // a position). The dedicated /tracking poll overrides this when available.
+  liveLocation: { lat: number; lng: number } | null;
+  liveLocationLabel: string;
+  liveUpdatedAt: string | null;
   packages: TrackOrderPackage[];
 }
 
-export const TRACK_ORDERS_DUMMY: TrackOrder[] = [
-  {
-    id: "ORD-1001",
+// ---------------------------------------------------------------------------
+// OrderRecord → TrackOrder mapper (shared by the buyer track-orders page and
+// the agent Track Order page). Tolerant of partially-populated backend shapes:
+// missing transporter/fleet/timeline fields degrade to "N/A" rather than throw.
+// ---------------------------------------------------------------------------
+
+export type ApiObject = Record<string, unknown>;
+
+export const asObject = (v: unknown): ApiObject =>
+  v && typeof v === "object" ? (v as ApiObject) : {};
+
+export const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+
+const NA = "N/A";
+
+export const asString = (v: unknown, fallback: string = NA): string =>
+  typeof v === "string" && v ? v : fallback;
+
+/** First non-empty string among the candidates, else N/A. */
+export const firstString = (...vals: unknown[]): string => {
+  for (const v of vals) if (typeof v === "string" && v) return v;
+  return NA;
+};
+
+export const asNumber = (v: unknown, fallback = 0): number =>
+  typeof v === "number" ? v : fallback;
+
+export const formatDateShort = (iso?: unknown): string => {
+  if (typeof iso !== "string" || !iso) return NA;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return NA;
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const TRANSPORT_STATUS_TO_TRACK: Record<string, TrackOrderStatus> = {
+  pending: "pending",
+  picked: "picked",
+  on_transit: "on_transit",
+  in_transit: "on_transit",
+  delivered: "delivered",
+};
+
+export const mapTransportStatus = (s: unknown): TrackOrderStatus => {
+  const v = (typeof s === "string" ? s : "").toLowerCase();
+  return TRANSPORT_STATUS_TO_TRACK[v] ?? "pending";
+};
+
+export const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
+  const o = raw as ApiObject;
+  const id = asString(o._id ?? o.id, "");
+  const transporter = asObject(o.transporter);
+  const fleet = asObject(o.fleet ?? o.truck);
+  const products = asArray(o.products);
+  const firstLine = asObject(products[0]);
+  const firstProduct = asObject(firstLine.product ?? firstLine);
+  // Seller of the first product — used as a display fallback while no
+  // transporter has been assigned to the order yet.
+  const owner = asObject(firstProduct.owner);
+  const productImages = asArray(firstProduct.images);
+  const status = mapTransportStatus(o.transportStatus);
+
+  // Live GPS embedded in the order list response. Only a real numeric pair
+  // counts as a position; { lat: null, lng: null } stays null so the map
+  // shows its placeholder instead of jumping to 0,0.
+  const cl = asObject(o.currentLocation);
+  const clLat = typeof cl.lat === "number" ? cl.lat : null;
+  const clLng = typeof cl.lng === "number" ? cl.lng : null;
+  const liveLocation =
+    clLat !== null && clLng !== null ? { lat: clLat, lng: clLng } : null;
+  const liveLocationLabel =
+    asString(cl.label, "") || asString(o.currentLocationLabel, "");
+  const liveUpdatedAt =
+    typeof o.lastUpdatedAt === "string" ? o.lastUpdatedAt : null;
+
+  const updatedAt = formatDateShort(o.updatedAt);
+  const pickedAt =
+    formatDateShort(o.pickedAt) !== NA
+      ? formatDateShort(o.pickedAt)
+      : status !== "pending"
+        ? updatedAt
+        : NA;
+  const onTransitAt =
+    formatDateShort(o.onTransitAt) !== NA
+      ? formatDateShort(o.onTransitAt)
+      : status === "on_transit" || status === "delivered"
+        ? updatedAt
+        : NA;
+  const deliveredAt =
+    formatDateShort(o.deliveredAt) !== NA
+      ? formatDateShort(o.deliveredAt)
+      : status === "delivered"
+        ? updatedAt
+        : NA;
+
+  return {
+    id,
     transporter: {
-      name: "GIGM Transport Company",
-      logo: "/images/truckcontainer.png",
-      rating: 4,
-      avatar: "/images/profileSettingImage.png",
-      company: "Goddess corporation",
-      location: "Abia state",
-      yearsOfService: 5,
-      followers: 700,
-      ratingLabel: "Excellent",
+      name: firstString(
+        transporter.name,
+        transporter.businessName,
+        owner.businessName,
+        owner.name,
+      ),
+      // No placeholder here: the card falls back to its branded box when
+      // the transporter has no logo (firstString yields "N/A").
+      logo: firstString(transporter.logo, transporter.image, owner.image),
+      rating: asNumber(transporter.rating, 0),
+      avatar: firstString(
+        transporter.avatar,
+        transporter.image,
+        owner.image,
+        "/images/profileSettingImage.png",
+      ),
+      // Strictly the business name — no fallback to the personal name, so the
+      // line stays empty until a real businessName exists, then shows on its own.
+      company: firstString(
+        transporter.businessName,
+        transporter.company,
+        owner.businessName,
+      ),
+      location: asString(
+        transporter.location,
+        asString(firstLine.localTransportFrom),
+      ),
+      yearsOfService: asNumber(transporter.yearsOfService, 0),
+      followers: asNumber(transporter.followers, 0),
+      ratingLabel: asString(transporter.ratingLabel),
+      phone: asString(transporter.phone, ""),
     },
     fleet: {
-      name: "Mack4567",
-      iot: "5677666655",
-      image: "/images/truckcontainer.png",
+      name: firstString(
+        fleet.model,
+        fleet.fleetName,
+        fleet.name,
+        fleet.plateNumber,
+      ),
+      iot: firstString(fleet.iotId, fleet.iot, fleet.plateNumber),
+      image: asString(
+        fleet.image ?? asArray(fleet.images)[0],
+        "/images/truckcontainer.png",
+      ),
     },
     product: {
-      name: "Tomatoes",
-      id: "5677666655",
-      image: "/images/tomatoes.png",
+      name: asString(firstProduct.name),
+      id: asString(firstProduct._id ?? firstProduct.id),
+      image: asString(productImages[0], "/images/foodTracked.png"),
     },
-    status: "on_transit",
-    pickedAt: "20/04/2023",
-    onTransitAt: "20/04/2023",
-    deliveredAt: "—",
-    estDeliveryDate: "26/04/2023",
-    fromLocation: "Umuahia, Abia state",
-    toLocation: "Ikorodu, Lagos state",
-    packages: [
-      {
-        id: "PKG-001",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-002",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-003",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-004",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-005",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-006",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-    ],
-  },
-  {
-    id: "ORD-1002",
-    transporter: {
-      name: "GIGM Transport Company",
-      logo: "/images/truckcontainer.png",
-      rating: 4,
-      avatar: "/images/profileSettingImage.png",
-      company: "Swift Logistics",
-      location: "Lagos state",
-      yearsOfService: 3,
-      followers: 420,
-      ratingLabel: "Good",
-    },
-    fleet: {
-      name: "Mack4567",
-      iot: "5677666655",
-      image: "/images/truckcontainer.png",
-    },
-    product: {
-      name: "Tomatoes",
-      id: "5677666655",
-      image: "/images/tomatoes.png",
-    },
-    status: "on_transit",
-    pickedAt: "21/04/2023",
-    onTransitAt: "22/04/2023",
-    deliveredAt: "—",
-    estDeliveryDate: "27/04/2023",
-    fromLocation: "Aba, Abia state",
-    toLocation: "Ikeja, Lagos state",
-    packages: [
-      {
-        id: "PKG-101",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-102",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-    ],
-  },
-  {
-    id: "ORD-1003",
-    transporter: {
-      name: "GIGM Transport Company",
-      logo: "/images/truckcontainer.png",
-      rating: 4,
-      avatar: "/images/profileSettingImage.png",
-      company: "Trans Nigeria",
-      location: "Kano state",
-      yearsOfService: 7,
-      followers: 1200,
-      ratingLabel: "Excellent",
-    },
-    fleet: {
-      name: "Mack4567",
-      iot: "5677666655",
-      image: "/images/truckcontainer.png",
-    },
-    product: {
-      name: "Tomatoes",
-      id: "5677666655",
-      image: "/images/tomatoes.png",
-    },
-    status: "picked",
-    pickedAt: "23/04/2023",
-    onTransitAt: "—",
-    deliveredAt: "—",
-    estDeliveryDate: "29/04/2023",
-    fromLocation: "Kano, Kano state",
-    toLocation: "Port Harcourt, Rivers state",
-    packages: [
-      {
-        id: "PKG-201",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-202",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-      {
-        id: "PKG-203",
-        productId: "345678779",
-        name: "Coco-yam",
-        image: "/images/corn1.png",
-        description: "Best of all the...",
-      },
-    ],
-  },
-];
+    status,
+    pickedAt,
+    onTransitAt,
+    deliveredAt,
+    estDeliveryDate: formatDateShort(o.estDeliveryDate),
+    fromLocation: asString(o.fromLocation ?? firstLine.localTransportFrom),
+    toLocation: asString(
+      o.toLocation ?? firstLine.localTransportTo ?? o.address,
+    ),
+    // A timestamp implies confirmation even if the boolean flag is absent.
+    receiptConfirmed:
+      o.receiptConfirmed === true || typeof o.receiptConfirmedAt === "string",
+    receiptConfirmedAt:
+      typeof o.receiptConfirmedAt === "string" ? o.receiptConfirmedAt : null,
+    liveLocation,
+    liveLocationLabel,
+    liveUpdatedAt,
+    packages: products.map((p, i): TrackOrderPackage => {
+      const line = asObject(p);
+      const prod = asObject(line.product ?? line);
+      const imgs = asArray(prod.images);
+      return {
+        id: asString(line._id ?? prod._id ?? `pkg-${i}`, `pkg-${i}`),
+        productId: asString(prod._id ?? prod.id),
+        name: asString(prod.name),
+        image: asString(imgs[0], "/images/foodTracked.png"),
+        description: asString(prod.description, ""),
+      };
+    }),
+  };
+};

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   OrdersApiService,
   OrdersQueryParams,
@@ -19,6 +24,8 @@ export const orderKeys = {
     [...orderKeys.all, "transporter", orderId, "product"] as const,
   transporterTracking: (orderId: string) =>
     [...orderKeys.all, "transporter", orderId, "tracking"] as const,
+  tracking: (orderId: string) =>
+    [...orderKeys.all, orderId, "tracking"] as const,
 };
 
 /**
@@ -42,9 +49,33 @@ export const useOrders = (params?: OrdersQueryParams) => {
     queryKey: orderKeys.list(params),
     queryFn: () => OrdersApiService.getOrders(params),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    // When filter/status params change, keep showing the previous list
+    // while the new one loads instead of flashing a loading state.
+    placeholderData: keepPreviousData,
     retry: (failureCount, error: { response?: { status?: number } }) => {
       if (error?.response?.status === 401 || error?.response?.status === 403)
         return false;
+      return failureCount < 2;
+    },
+  });
+};
+
+/**
+ * Single order detail — full populated `OrderRecord`.
+ * Used by the agent Track Order page (keyed by order id).
+ */
+export const useOrderDetail = (
+  orderId: string,
+  options?: { enabled?: boolean },
+) => {
+  return useQuery({
+    queryKey: orderKeys.detail(orderId),
+    queryFn: () => OrdersApiService.getOrderById(orderId),
+    enabled: !!orderId && options?.enabled !== false,
+    staleTime: 1000 * 60 * 3,
+    retry: (failureCount, error: { response?: { status?: number } }) => {
+      const status = error?.response?.status;
+      if (status === 401 || status === 403 || status === 404) return false;
       return failureCount < 2;
     },
   });
@@ -104,6 +135,59 @@ export const useTransporterOrderTracking = (
     enabled: !!orderId && options?.enabled !== false,
     refetchInterval: options?.refetchInterval,
     staleTime: 1000 * 30,
+  });
+};
+
+/**
+ * Buyer-facing live GPS tracking for an order.
+ * GET /api/orders/{orderId}/tracking
+ */
+export const useOrderTracking = (
+  orderId: string,
+  options?: { enabled?: boolean; refetchInterval?: number | false },
+) => {
+  return useQuery({
+    queryKey: orderKeys.tracking(orderId),
+    queryFn: () => OrdersApiService.getOrderTracking(orderId),
+    enabled: !!orderId && options?.enabled !== false,
+    refetchInterval: options?.refetchInterval,
+    staleTime: 1000 * 30,
+    retry: (failureCount, error: { response?: { status?: number } }) => {
+      const status = error?.response?.status;
+      if (status === 401 || status === 403 || status === 404) return false;
+      return failureCount < 2;
+    },
+  });
+};
+
+/**
+ * Buyer confirms receipt of a delivered order.
+ * POST /api/orders/{orderId}/confirm-receipt
+ */
+export const useConfirmOrderReceipt = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) =>
+      OrdersApiService.confirmOrderReceipt(orderId),
+    onSuccess: (_data, orderId) => {
+      toast.success("Receipt confirmed. Thanks for shopping with us!", {
+        duration: 4000,
+        position: "top-center",
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+    },
+    onError: (error: {
+      response?: { data?: { message?: string } };
+      message?: string;
+    }) => {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to confirm receipt. Please try again.",
+        { duration: 4000, position: "top-center" },
+      );
+    },
   });
 };
 

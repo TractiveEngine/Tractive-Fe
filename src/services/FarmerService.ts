@@ -78,7 +78,7 @@ export const mapBackendToFrontendFarmer = (
     accountNumber: "-",
     accountName: "-",
     revenue: backendFarmer.revenue
-      ? `₦₦{backendFarmer.revenue.toLocaleString()}`
+      ? `₦${backendFarmer.revenue.toLocaleString()}`
       : "₦0",
     orders: backendFarmer.ordersCount?.toString() || "0",
     date: backendFarmer.createdAt

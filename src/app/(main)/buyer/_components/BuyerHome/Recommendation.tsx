@@ -30,8 +30,8 @@ export const Recommendation = () => {
               title={product.name}
               time="24h" // Fallback since actual API might not have this for non-bidding
               description={`${product.quantity} ${product.unit || 'units'} available from ${product.owner?.name || product.farmer?.name || 'Seller'}`}
-              timeImage="/images/clock.png" // Placeholder or remove from BidingCard eventually
-              crownImage="/images/crown.png"
+              timeImage="/images/redclock.png" // Placeholder or remove from BidingCard eventually
+              crownImage="/images/leadingcrown.png"
               leadingProfileImage={product.owner?.image || "/images/sellersProfiles.png"}
               quantity={`${product.quantity} ${product.unit || 'units'}`}
               amount={product.price.toString()}

@@ -59,6 +59,14 @@ export default function BidingCard({
   // State to manage hover for tooltip
   const [isHovered, setIsHovered] = useState(false);
 
+  // Fall back to a local placeholder when the product image URL is broken
+  // (e.g. seeded example.com URLs that don't resolve to a real image).
+  const [imgSrc, setImgSrc] = useState(image);
+
+  useEffect(() => {
+    setImgSrc(image);
+  }, [image]);
+
   // Wishlist state and logic
   const [localWishlisted, setLocalWishlisted] = useState(isWishlisted);
   const addMutation = useAddToWishlist();
@@ -107,11 +115,12 @@ export default function BidingCard({
       {/* Image with Icon */}
       <div className="relative">
         <Image
-          src={image}
+          src={imgSrc}
           alt={title}
           width={381}
           height={200}
           className={`w-[100%] h-[200px] object-cover rounded-md ${imageClass}`}
+          onError={() => setImgSrc("/images/tomatoes.png")}
         />
         <div
           className={`absolute top-2 right-2 bg-[#ffffff80] rounded-full p-1 cursor-pointer hover:scale-110 transition-transform ${addMutation.isPending || removeMutation.isPending ? "opacity-50 pointer-events-none" : ""}`}

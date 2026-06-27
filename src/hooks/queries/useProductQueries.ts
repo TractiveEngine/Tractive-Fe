@@ -75,6 +75,7 @@ export const useGetTopSellingProducts = () => {
   return useQuery({
     queryKey: [...productKeys.all, "topSelling"],
     queryFn: () => productService.getTopSellingProducts(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -85,6 +86,7 @@ export const useGetRecommendations = () => {
   return useQuery({
     queryKey: [...productKeys.all, "recommendations"],
     queryFn: () => productService.getRecommendations(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -96,6 +98,7 @@ export const useGetSellerRecommendations = (sellerId: string) => {
     queryKey: [...productKeys.all, "sellerRecommendations", sellerId],
     queryFn: () => productService.getSellerRecommendations(sellerId),
     enabled: !!sellerId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 

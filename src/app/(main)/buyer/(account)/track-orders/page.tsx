@@ -5,139 +5,20 @@ import { SearchIcon } from "@/icons/Icons";
 import { XIcon } from "@/icons/Icon1";
 import { OrderListCard } from "./_components/OrderListCard";
 import { OrderTrackingMap } from "./_components/OrderTrackingMap";
+import { ConfirmReceiptButton } from "./_components/ConfirmReceiptButton";
 import { TransporterInfoPanel } from "./_components/TransporterInfoPanel";
 import { PackagesPanel } from "./_components/PackagesPanel";
 import {
   OrderListSkeleton,
   TrackingDetailSkeleton,
 } from "./_components/OrderListSkeleton";
-import type {
-  TrackOrder,
-  TrackOrderPackage,
-  TrackOrderStatus,
+import {
+  orderToTrackOrder,
+  type ApiObject,
+  type TrackOrder,
+  type TrackOrderStatus,
 } from "./_components/trackOrdersData";
 import { useOrders } from "@/hooks/queries/useOrderQueries";
-import type { OrderRecord } from "@/services/OrderService";
-
-type ApiObject = Record<string, unknown>;
-
-const asObject = (v: unknown): ApiObject =>
-  v && typeof v === "object" ? (v as ApiObject) : {};
-
-const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
-
-const NA = "N/A";
-
-const asString = (v: unknown, fallback: string = NA): string =>
-  typeof v === "string" && v ? v : fallback;
-
-const asNumber = (v: unknown, fallback = 0): number =>
-  typeof v === "number" ? v : fallback;
-
-const formatDateShort = (iso?: unknown): string => {
-  if (typeof iso !== "string" || !iso) return NA;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return NA;
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-const TRANSPORT_STATUS_TO_TRACK: Record<string, TrackOrderStatus> = {
-  pending: "pending",
-  picked: "picked",
-  on_transit: "on_transit",
-  in_transit: "on_transit",
-  delivered: "delivered",
-};
-
-const mapTransportStatus = (s: unknown): TrackOrderStatus => {
-  const v = (typeof s === "string" ? s : "").toLowerCase();
-  return TRANSPORT_STATUS_TO_TRACK[v] ?? "pending";
-};
-
-const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
-  const o = raw as ApiObject;
-  const id = asString(o._id ?? o.id, "");
-  const transporter = asObject(o.transporter);
-  const fleet = asObject(o.fleet ?? o.truck);
-  const products = asArray(o.products);
-  const firstLine = asObject(products[0]);
-  const firstProduct = asObject(firstLine.product ?? firstLine);
-  const productImages = asArray(firstProduct.images);
-  const status = mapTransportStatus(o.transportStatus);
-
-  const updatedAt = formatDateShort(o.updatedAt);
-  const pickedAt =
-    formatDateShort(o.pickedAt) !== NA
-      ? formatDateShort(o.pickedAt)
-      : status !== "pending"
-        ? updatedAt
-        : NA;
-  const onTransitAt =
-    formatDateShort(o.onTransitAt) !== NA
-      ? formatDateShort(o.onTransitAt)
-      : status === "on_transit" || status === "delivered"
-        ? updatedAt
-        : NA;
-  const deliveredAt =
-    formatDateShort(o.deliveredAt) !== NA
-      ? formatDateShort(o.deliveredAt)
-      : status === "delivered"
-        ? updatedAt
-        : NA;
-
-  return {
-    id,
-    transporter: {
-      name: asString(transporter.name ?? transporter.businessName),
-      logo: asString(transporter.logo ?? transporter.image, "/images/truckcontainer.png"),
-      rating: asNumber(transporter.rating, 0),
-      avatar: asString(transporter.avatar ?? transporter.image, "/images/profileSettingImage.png"),
-      company: asString(transporter.company ?? transporter.businessName ?? transporter.name),
-      location: asString(transporter.location, asString(firstLine.localTransportFrom)),
-      yearsOfService: asNumber(transporter.yearsOfService, 0),
-      followers: asNumber(transporter.followers, 0),
-      ratingLabel: asString(transporter.ratingLabel),
-    },
-    fleet: {
-      name: asString(fleet.fleetName ?? fleet.name ?? fleet.plateNumber),
-      iot: asString(fleet.iot ?? fleet.plateNumber),
-      image: asString(
-        fleet.image ?? asArray(fleet.images)[0],
-        "/images/truckcontainer.png",
-      ),
-    },
-    product: {
-      name: asString(firstProduct.name),
-      id: asString(firstProduct._id ?? firstProduct.id),
-      image: asString(productImages[0], "/images/foodTracked.png"),
-    },
-    status,
-    pickedAt,
-    onTransitAt,
-    deliveredAt,
-    estDeliveryDate: formatDateShort(o.estDeliveryDate),
-    fromLocation: asString(o.fromLocation ?? firstLine.localTransportFrom),
-    toLocation: asString(
-      o.toLocation ?? firstLine.localTransportTo ?? o.address,
-    ),
-    packages: products.map((p, i): TrackOrderPackage => {
-      const line = asObject(p);
-      const prod = asObject(line.product ?? line);
-      const imgs = asArray(prod.images);
-      return {
-        id: asString(line._id ?? prod._id ?? `pkg-${i}`, `pkg-${i}`),
-        productId: asString(prod._id ?? prod.id),
-        name: asString(prod.name),
-        image: asString(imgs[0], "/images/foodTracked.png"),
-        description: asString(prod.description, ""),
-      };
-    }),
-  };
-};
 
 type TabKey = "new" | "picked" | "on_transit" | "delivered";
 
@@ -358,6 +239,12 @@ export default function BuyerTrackOrdersPage() {
         ) : selectedOrder ? (
           <>
             <OrderTrackingMap order={selectedOrder} />
+            {selectedOrder.status === "delivered" && (
+              <ConfirmReceiptButton
+                orderId={selectedOrder.id}
+                alreadyConfirmed={selectedOrder.receiptConfirmed}
+              />
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TransporterInfoPanel order={selectedOrder} />
               <PackagesPanel order={selectedOrder} />
@@ -411,6 +298,12 @@ export default function BuyerTrackOrdersPage() {
                 </button>
               </div>
               <OrderTrackingMap order={selectedOrder} />
+              {selectedOrder.status === "delivered" && (
+                <ConfirmReceiptButton
+                  orderId={selectedOrder.id}
+                  alreadyConfirmed={selectedOrder.receiptConfirmed}
+                />
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <TransporterInfoPanel order={selectedOrder} />
                 <PackagesPanel order={selectedOrder} />

@@ -33,6 +33,8 @@ interface TableListProps<T extends BaseData> {
   handleParked?: (id: string) => void;
   handleDelivered?: (id: string) => void;
   handleCustomerCare?: (id: string) => void;
+  handleApprove?: (id: string) => void;
+  isApproving?: boolean;
   handleCheckboxChange?: (id: string) => void;
   handleSelectAll?: () => void;
   allChecked?: boolean;
@@ -58,6 +60,8 @@ export const TableList = <T extends BaseData>({
   handleParked,
   handleDelivered,
   handleCustomerCare,
+  handleApprove,
+  isApproving,
   handleCustomerInfo,
   handleSupport,
   handleCheckboxChange,
@@ -177,7 +181,7 @@ export const TableList = <T extends BaseData>({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
+          {(Array.isArray(data) ? data : []).map((item, index) => (
             <motion.tr
               key={item.id}
               className="border-gray-200 border-b-[1px] py-1.5 px-4 relative cursor-pointer hover:bg-gray-50 transition-colors"
@@ -206,7 +210,7 @@ export const TableList = <T extends BaseData>({
               {columns.map((col) => (
                 <td
                   key={col.key as string}
-                  className="py-1.5 px-2.5 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]"
+                  className="py-1.5 px-4 text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b]"
                 >
                   {col.render ? col.render(item) : String(item[col.key])}
                 </td>
@@ -267,6 +271,10 @@ export const TableList = <T extends BaseData>({
                         ? handleCustomerCare || defaultHandleCustomerCare
                         : undefined
                     }
+                    handleApprove={
+                      dataType === "pending" ? handleApprove : undefined
+                    }
+                    isApproving={isApproving}
                     handleCustomerInfo={
                       dataType === "customers"
                         ? handleCustomerInfo || defaultHandleCustomerInfo

@@ -13,6 +13,11 @@ import {
   FleetTripSummary,
 } from "@/services/fleetTripService";
 import { TableSkeleton } from "../../_components/TableSkeleton";
+import { TripDetailsModal } from "@/app/(main)/transporter/_components/TripDetailsModal";
+import {
+  TrackTransporterInfoModal,
+  TripInfoMode,
+} from "./_components/TrackTransporterInfoModal";
 
 // Define types for slide switching
 type SlideType = "Picked" | "OnTransit" | "Delivered";
@@ -106,6 +111,25 @@ export default function TrackTransporterPage() {
     setTransporterData(list.map(tripToTransporterData));
   }, [tripsRaw]);
 
+  // Lookup from trip id → raw trip summary, so the action-menu handlers can
+  // resolve the full buyer/transporter/fleet data behind a row.
+  const tripById = useMemo(() => {
+    const map = new Map<string, FleetTripSummary>();
+    (Array.isArray(tripsRaw) ? tripsRaw : []).forEach((trip) => {
+      const id = (trip._id || trip.id || "") as string;
+      if (id) map.set(id, trip);
+    });
+    return map;
+  }, [tripsRaw]);
+
+  // Track Order opens the full tracking dialog; Buyer/Transporter Info open a
+  // focused read-only dialog rendered from the loaded summary.
+  const [trackTripId, setTrackTripId] = useState<string | null>(null);
+  const [infoModal, setInfoModal] = useState<{
+    mode: TripInfoMode;
+    trip: FleetTripSummary;
+  } | null>(null);
+
   // State to track if all items in the active tab are checked
   const [allChecked, setAllChecked] = useState<boolean>(false);
 
@@ -196,19 +220,18 @@ export default function TrackTransporterPage() {
 
   // Handle buyer info click
   const handleTBuyerInfo = (id: string) => {
-    console.log(`Viewing buyer info for order ID: ${id}`);
-    // Add logic to display buyer info
+    const trip = tripById.get(id);
+    if (trip) setInfoModal({ mode: "buyer", trip });
   };
 
-  // Handle seller info click
+  // Open the full trip-tracking dialog (map, timeline, packages, status).
   const handleTrackOrder = (id: string) => {
-    console.log(`Viewing track info for order ID: ${id}`);
-    // Add logic to display track info
+    if (tripById.has(id)) setTrackTripId(id);
   };
 
   const handleTransporterInfo = (id: string) => {
-    console.log(`Viewing transporter info for order ID: ${id}`);
-    // Add logic to display transporter info
+    const trip = tripById.get(id);
+    if (trip) setInfoModal({ mode: "transporter", trip });
   };
 
   // Update the indicator position and width when activeTab changes
@@ -338,6 +361,22 @@ export default function TrackTransporterPage() {
       >
         {renderContent()}
       </div>
+
+      {trackTripId && (
+        <TripDetailsModal
+          tripId={trackTripId}
+          summary={tripById.get(trackTripId)}
+          onClose={() => setTrackTripId(null)}
+        />
+      )}
+
+      {infoModal && (
+        <TrackTransporterInfoModal
+          trip={infoModal.trip}
+          mode={infoModal.mode}
+          onClose={() => setInfoModal(null)}
+        />
+      )}
     </div>
   );
 }

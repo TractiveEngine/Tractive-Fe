@@ -76,7 +76,12 @@ export const TransportCallDetails = ({
               </span>
             </div>
           </div>
-          <div className="flex items-start gap-8 w-full">
+          <div className="flex items-start justify-center gap-8 w-full">
+            {phoneNumbers.length === 0 && (
+              <span className="font-montserrat font-normal text-[12px] text-[#808080]">
+                No contact number available
+              </span>
+            )}
             {phoneNumbers.map((number) => (
               <div
                 key={number}

@@ -1,7 +1,5 @@
 import { ForgetPasswordSchemaType } from "@/schemas/forgetPasswordSchema";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tractive-be.vercel.app";
+import { API_BASE_URL as API_URL } from "@/lib/config";
 
 interface ApiResponse {
   message?: string;

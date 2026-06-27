@@ -10,6 +10,8 @@ export const TransactionActionMenu: React.FC<ActionMenuProps> = ({
   activeMenu,
   setActiveMenu,
   handleCustomerCare,
+  handleApprove,
+  isApproving,
 }) => {
   const isActive = activeMenu === productId;
   const menuRef = useRef<HTMLDivElement>(null);
@@ -49,6 +51,18 @@ export const TransactionActionMenu: React.FC<ActionMenuProps> = ({
             exit="hidden"
             transition={{ duration: 0.2 }}
           >
+            {handleApprove && (
+              <button
+                onClick={() => {
+                  handleApprove(productId);
+                  setActiveMenu(null);
+                }}
+                disabled={isApproving}
+                className="w-full flex items-center gap-2 cursor-pointer text-left px-2 py-1 text-[11.5px] font-montserrat text-[#538e53] hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isApproving ? "Approving…" : "Approve"}
+              </button>
+            )}
             <button
               onClick={() => {
                 handleCustomerCare?.(productId);

@@ -63,12 +63,46 @@ export interface OrderProductLine {
   localTransportNote?: string;
 }
 
+export interface OrderTransporterInfo {
+  _id?: string;
+  name?: string | null;
+  logo?: string | null;
+  avatar?: string | null;
+  image?: string | null;
+  company?: string | null;
+  businessName?: string | null;
+  location?: string | null;
+  rating?: number | null;
+  ratingLabel?: string | null;
+  followers?: number | null;
+  yearsOfService?: number | null;
+  phone?: string | null;
+}
+
+export interface OrderFleetInfo {
+  _id?: string;
+  fleetName?: string | null;
+  plateNumber?: string | null;
+  iotId?: string | null;
+  model?: string | null;
+  image?: string | null;
+  route?: string | null;
+}
+
+export interface OrderStatusHistoryEntry {
+  status?: string;
+  timestamp?: string;
+  note?: string;
+  location?: string;
+}
+
 export interface OrderRecord {
   _id?: string;
   id?: string;
   buyer?: string | { _id?: string; name?: string };
   products?: OrderProductLine[];
   bidIds?: string[];
+  fleetTripId?: string | null;
   totalAmount?: number;
   status?: string;
   transportStatus?: string;
@@ -76,16 +110,26 @@ export interface OrderRecord {
   paidForTransport?: boolean;
   address?: string;
   phone?: string;
-  transporter?:
-    | string
-    | {
-        _id?: string;
-        name?: string;
-        phone?: string;
-      };
+  paymentMethod?: string;
+  transporter?: string | OrderTransporterInfo | null;
+  fleet?: OrderFleetInfo | null;
+  trackingCode?: string | null;
+  fromLocation?: string | null;
+  toLocation?: string | null;
+  currentLocation?: { lat?: number | null; lng?: number | null; label?: string } | null;
+  currentLocationLabel?: string | null;
+  statusHistory?: OrderStatusHistoryEntry[];
+  // Transport timeline timestamps (null until each stage is reached).
+  pickedAt?: string | null;
+  onTransitAt?: string | null;
+  deliveredAt?: string | null;
+  lastUpdatedAt?: string | null;
+  estDeliveryDate?: string | null;
+  // Receipt confirmation (Item 4): flag + timestamp set once the buyer confirms.
+  receiptConfirmed?: boolean;
+  receiptConfirmedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  deliveredAt?: string;
 }
 
 export interface CreateOrderPayload {
@@ -138,6 +182,80 @@ export interface CreateOrderResponse {
   };
   message?: string;
 }
+
+export interface OrderTrackingInfo {
+  currentLocation: { lat: number; lng: number } | null;
+  /** Human-readable place name, e.g. currentLocation.label. */
+  locationLabel: string | null;
+  lastUpdatedAt: string | null;
+  /** Untouched response body, kept until the backend shape is confirmed. */
+  raw: unknown;
+}
+
+const toFiniteNumber = (v: unknown): number | null => {
+  const n = typeof v === "string" ? Number(v) : v;
+  return typeof n === "number" && Number.isFinite(n) ? n : null;
+};
+
+/**
+ * Normalize GET /api/orders/{orderId}/tracking into OrderTrackingInfo.
+ * The backend shape is not confirmed yet, so this tolerates the common
+ * variants: { currentLocation: { lat, lng } }, { location }, { position },
+ * flat { lat, lng }, { latitude, longitude }, and GeoJSON
+ * { coordinates: [lng, lat] }.
+ */
+export const normalizeOrderTracking = (body: unknown): OrderTrackingInfo => {
+  const root =
+    body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const data =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>)
+      : root;
+
+  const candidate = [data.currentLocation, data.location, data.position, data]
+    .find((c) => c && typeof c === "object") as
+    | Record<string, unknown>
+    | undefined;
+
+  let lat: number | null = null;
+  let lng: number | null = null;
+
+  if (candidate) {
+    lat = toFiniteNumber(candidate.lat) ?? toFiniteNumber(candidate.latitude);
+    lng =
+      toFiniteNumber(candidate.lng) ??
+      toFiniteNumber(candidate.lon) ??
+      toFiniteNumber(candidate.longitude);
+
+    if ((lat === null || lng === null) && Array.isArray(candidate.coordinates)) {
+      // GeoJSON order is [lng, lat]
+      lng = toFiniteNumber(candidate.coordinates[0]);
+      lat = toFiniteNumber(candidate.coordinates[1]);
+    }
+  }
+
+  const lastUpdatedAt =
+    typeof data.lastUpdatedAt === "string"
+      ? data.lastUpdatedAt
+      : typeof data.updatedAt === "string"
+        ? data.updatedAt
+        : typeof data.timestamp === "string"
+          ? data.timestamp
+          : null;
+
+  const locationLabel =
+    (candidate && typeof candidate.label === "string" && candidate.label) ||
+    (typeof data.currentLocationLabel === "string" &&
+      data.currentLocationLabel) ||
+    null;
+
+  return {
+    currentLocation: lat !== null && lng !== null ? { lat, lng } : null,
+    locationLabel,
+    lastUpdatedAt,
+    raw: body,
+  };
+};
 
 const formatOrderDate = (raw?: string): string => {
   if (!raw) return "—";
@@ -236,12 +354,18 @@ export class OrdersApiService {
   }
 
   /**
-   * Get single order details
+   * Get single order details.
+   * Returns the full populated `OrderRecord` (transporter/fleet/products/
+   * timeline), unwrapping the `{ success, data }` envelope when present.
    */
-  static async getOrderById(id: string): Promise<Order> {
+  static async getOrderById(id: string): Promise<OrderRecord> {
     try {
       const response = await api.get(`/api/orders/${id}`);
-      return response.data;
+      const body = response.data;
+      if (body && typeof body === "object" && !Array.isArray(body) && body.data) {
+        return body.data as OrderRecord;
+      }
+      return body as OrderRecord;
     } catch (error) {
       console.error(`Error fetching order ${id}:`, error);
       if (
@@ -252,6 +376,34 @@ export class OrdersApiService {
       ) {
         toast.error("Failed to load order details. Please try again.");
       }
+      throw error;
+    }
+  }
+
+  /**
+   * Buyer-facing live tracking (GPS position) for an order.
+   * GET /api/orders/{orderId}/tracking
+   */
+  static async getOrderTracking(orderId: string): Promise<OrderTrackingInfo> {
+    try {
+      const response = await api.get(`/api/orders/${orderId}/tracking`);
+      return normalizeOrderTracking(response.data);
+    } catch (error) {
+      console.error(`Error fetching tracking for order ${orderId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buyer confirms they received a delivered order.
+   * POST /api/orders/{orderId}/confirm-receipt
+   */
+  static async confirmOrderReceipt(orderId: string): Promise<unknown> {
+    try {
+      const response = await api.post(`/api/orders/${orderId}/confirm-receipt`);
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(`Error confirming receipt for order ${orderId}:`, error);
       throw error;
     }
   }

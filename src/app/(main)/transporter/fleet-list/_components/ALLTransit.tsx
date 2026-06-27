@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { AddToStoreIcon, CalenderIcon } from "@/icons/DashboardIcons";
@@ -28,6 +29,7 @@ const months = [
 ];
 
 export const AllTransit: React.FC = () => {
+  const router = useRouter();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
@@ -152,10 +154,19 @@ export const AllTransit: React.FC = () => {
     updateFleetStatus({ id, status: newStatusStr });
   };
 
-  // Handle tracking (placeholder)
+  // Route into the trip tracking view, pre-searched by this fleet's IOT (or
+  // name) so the transporter immediately sees its trips. BookingTripsView seeds
+  // its search from `?search=` and keeps it across the New/Picked/On transit/
+  // Delivered tabs, so the fleet's trip surfaces whatever its current stage.
   const handleTracking = (id: string) => {
-    alert(`Track fleet with ID: ${id}`);
-    // TODO: Implement tracking functionality
+    const fleet = fleets.find((f) => f.id === id);
+    const term =
+      fleet?.IOT && fleet.IOT !== "N/A" ? fleet.IOT : fleet?.name ?? "";
+    router.push(
+      `/transporter/on-transit${
+        term ? `?search=${encodeURIComponent(term)}` : ""
+      }`,
+    );
   };
 
   // Handle copy to clipboard

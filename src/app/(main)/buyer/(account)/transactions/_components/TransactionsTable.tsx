@@ -87,7 +87,7 @@ export const TransactionsTable: React.FC<Props> = ({ rows }) => {
               </td>
               <td className="py-3 px-4 border-y border-r border-[#eeeeee] rounded-r-[6px] relative">
                 <TransactionRowMenu
-                  rowId={row.id}
+                  row={row}
                   activeMenu={activeMenu}
                   setActiveMenu={setActiveMenu}
                 />

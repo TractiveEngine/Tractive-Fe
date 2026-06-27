@@ -17,6 +17,12 @@ interface CreateFleetTripModalProps {
   initialFleetId?: string;
 }
 
+interface BookingShipmentItem {
+  productName?: string;
+  quantity?: number;
+  unit?: string;
+}
+
 interface BookingRow {
   _id?: string;
   id?: string;
@@ -24,6 +30,10 @@ interface BookingRow {
   buyerName?: string;
   loadWeightKg?: number;
   weightKg?: number;
+  shipmentItems?: BookingShipmentItem[];
+  // Set once the booking is bundled into a trip — such bookings must not be
+  // selectable again, or the transporter would double-dispatch them.
+  fleetTripId?: string | null;
   status?: string;
   createdAt?: string;
 }
@@ -31,13 +41,21 @@ interface BookingRow {
 const getBookingId = (b: BookingRow): string =>
   (b._id as string) || (b.id as string) || "";
 
+const isBookingAssigned = (b: BookingRow): boolean => !!b.fleetTripId;
+
 const getBookingLabel = (b: BookingRow): string => {
   const buyer =
     typeof b.buyer === "string"
       ? b.buyer
       : b.buyer?.name || b.buyerName || "Unknown buyer";
+  const products = (Array.isArray(b.shipmentItems) ? b.shipmentItems : [])
+    .map((i) => i.productName)
+    .filter(Boolean)
+    .join(", ");
   const weight = b.loadWeightKg ?? b.weightKg;
-  return weight ? `${buyer} • ${weight}kg` : buyer;
+  return [buyer, products || null, weight ? `${weight}kg` : null]
+    .filter(Boolean)
+    .join(" • ");
 };
 
 export const CreateFleetTripModal: React.FC<CreateFleetTripModalProps> = ({
@@ -200,24 +218,36 @@ export const CreateFleetTripModal: React.FC<CreateFleetTripModalProps> = ({
                   <div className="flex flex-col gap-2 max-h-[260px] overflow-y-auto pr-1">
                     {bookings.map((b) => {
                       const id = getBookingId(b);
-                      const checked = selectedBookings.has(id);
+                      const assigned = isBookingAssigned(b);
+                      const checked = selectedBookings.has(id) && !assigned;
                       return (
                         <label
                           key={id}
-                          className={`cursor-pointer flex items-center gap-3 px-3 py-2 rounded-md border ${
-                            checked
-                              ? "border-[#538e53] bg-[#f3f9f3]"
-                              : "border-gray-200 bg-white hover:bg-gray-50"
+                          className={`flex items-center gap-3 px-3 py-2 rounded-md border ${
+                            assigned
+                              ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+                              : checked
+                                ? "border-[#538e53] bg-[#f3f9f3] cursor-pointer"
+                                : "border-gray-200 bg-white hover:bg-gray-50 cursor-pointer"
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={checked}
-                            onChange={() => toggleBooking(id)}
-                            className="cursor-pointer accent-[#538e53]"
+                            disabled={assigned}
+                            onChange={() => !assigned && toggleBooking(id)}
+                            className={`accent-[#538e53] ${
+                              assigned ? "cursor-not-allowed" : "cursor-pointer"
+                            }`}
                           />
                           <span className="text-[12px] font-montserrat text-[#2b2b2b]">
                             {getBookingLabel(b)}
+                            {assigned && (
+                              <span className="text-[#808080]">
+                                {" "}
+                                • already on a trip
+                              </span>
+                            )}
                           </span>
                         </label>
                       );
@@ -238,7 +268,11 @@ export const CreateFleetTripModal: React.FC<CreateFleetTripModalProps> = ({
                   disabled={isPending || selectedBookings.size === 0}
                   className="cursor-pointer px-4 py-2 text-sm font-montserrat text-[#fefefe] bg-[#538e53] rounded-md hover:bg-[#467a46] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isPending ? "Creating…" : "Create trip"}
+                  {isPending
+                    ? "Creating…"
+                    : selectedBookings.size > 0
+                      ? `Create trip (${selectedBookings.size})`
+                      : "Create trip"}
                 </button>
               </div>
             </div>

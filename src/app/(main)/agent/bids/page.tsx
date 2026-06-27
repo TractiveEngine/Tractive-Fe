@@ -151,6 +151,8 @@ const BidsListPage: React.FC = () => {
     null,
   );
 
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [bids, setBids] = useState<BidListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
@@ -182,7 +184,12 @@ const BidsListPage: React.FC = () => {
   const fetchBids = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, pagination } = await bidService.getBids(page, limit);
+      const monthIndex = selectedMonth ? months.indexOf(selectedMonth) : -1;
+      const { data, pagination } = await bidService.getBids(page, limit, {
+        search: debouncedSearch || undefined,
+        year: selectedYear ? parseInt(selectedYear, 10) : undefined,
+        month: monthIndex >= 0 ? monthIndex + 1 : undefined,
+      });
       setBids(data);
       setTotalItems(pagination?.total ?? data.length);
     } catch (error) {
@@ -191,11 +198,27 @@ const BidsListPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit]);
+    // `months` has stable contents across renders; safe to omit from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, debouncedSearch, selectedYear, selectedMonth]);
 
   useEffect(() => {
     fetchBids();
   }, [fetchBids]);
+
+  // Debounce the search box and reset to page 1 when the query changes.
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Reset to page 1 whenever a year/month filter changes.
+  useEffect(() => {
+    setPage(1);
+  }, [selectedYear, selectedMonth]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -245,6 +268,8 @@ const BidsListPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080]"
                   aria-label="Search bids"
                 />

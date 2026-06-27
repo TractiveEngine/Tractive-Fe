@@ -18,18 +18,12 @@ export const usePermission = () => {
 
   const getActiveRole = () => user?.activeRole || null;
 
+  // Mirror the strict activeRole model used by the route guards
+  // (`useRoleGuard`): a permission depends on the role the user is *currently
+  // acting as*, not merely on roles they happen to possess.
   const canCreateProducts = () => {
-    if (!user) return false;
-    const roles = getRoles();
-    const activeResult = user.activeRole;
-    
-    // Admin always can
-    if (roles.includes("admin") || activeResult === 'admin') return true;
-
-    // Agent can if active role is agent (logic matching strict checks)
-    if (roles.includes("agent") || activeResult === 'agent') return true;
-
-    return false;
+    const activeRole = getActiveRole();
+    return activeRole === "admin" || activeRole === "agent";
   };
 
   return {

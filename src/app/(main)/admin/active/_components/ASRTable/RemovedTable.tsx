@@ -173,6 +173,33 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
     });
   }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
+  // Client-side pagination over the filtered rows.
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredASRControl.length / PAGE_SIZE),
+  );
+
+  // Reset to the first page whenever the filters change.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedYear, selectedMonth, selectedState, searchTerm]);
+
+  // Keep the page in range if the result set shrinks (e.g. after removal).
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const paginatedASRControl = useMemo(
+    () =>
+      filteredASRControl.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      ),
+    [filteredASRControl, currentPage],
+  );
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -468,7 +495,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
         <AdminTable<AdminControl>
           dataType="ASRDataControl"
           columns={columns}
-          initialData={filteredASRControl}
+          initialData={paginatedASRControl}
           ActionMenuComponent={RemovedActionMenu}
           handleAdminOnboarding={handleAdminOnboarding}
           handleCheckboxChange={handleCheckboxChange}
@@ -476,6 +503,45 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
           allChecked={allChecked}
         />
       </div>
+
+      {filteredASRControl.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between gap-4 px-6 py-4 flex-wrap">
+          <span className="text-[12px] font-montserrat text-[#666666]">
+            Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, filteredASRControl.length)} of{" "}
+            {filteredASRControl.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-[12px] font-montserrat rounded-[4px] border border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCurrentPage(p)}
+                className={`px-3 py-1 text-[12px] font-montserrat rounded-[4px] border cursor-pointer ${
+                  p === currentPage
+                    ? "bg-[#538e53] text-white border-[#538e53]"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-[12px] font-montserrat rounded-[4px] border border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
