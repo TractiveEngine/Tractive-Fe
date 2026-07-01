@@ -13,6 +13,7 @@ import {
 } from "@/utils/TrackTransporterData";
 import Image from "next/image";
 import { TrackTransporterActionMenu } from "./TrackTransporterActionMenu";
+import { StatusBadge } from "./TrackTransporterDetailModal";
 
 const months = [
   "Jan",
@@ -59,7 +60,12 @@ const columns: ColumnConfig<TransporterData>[] = [
   { key: "IOT", header: "IOT", minWidth: "min-w-[120px]" },
   { key: "buyerName", header: "Buyer", minWidth: "min-w-[100px]" },
   { key: "transporterName", header: "Transporter", minWidth: "min-w-[100px]" },
-  { key: "amount", header: "Amount", minWidth: "min-w-[100px]" },
+  {
+    key: "status",
+    header: "Status",
+    render: (item: TransporterData) => <StatusBadge status={item.status} />,
+    minWidth: "min-w-[110px]",
+  },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 
@@ -71,6 +77,7 @@ export const TrackPicked: React.FC<transporterDataProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  onRowClick,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -336,7 +343,13 @@ export const TrackPicked: React.FC<transporterDataProps> = ({
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={onRowClick}
         />
+        {filteredTrackedData.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No orders found.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -467,7 +467,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                                 Price
                               </label>
                               <p className="text-xl font-bold text-[#2b2b2b] font-montserrat">
-                                ${product.price?.toLocaleString()}
+                                ₦{product.price?.toLocaleString()}
                               </p>
                               {product.discount > 0 && (
                                 <span className="text-xs text-red-500 font-medium">

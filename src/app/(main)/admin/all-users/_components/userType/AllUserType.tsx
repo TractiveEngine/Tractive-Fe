@@ -109,7 +109,7 @@ const mapToUiUser = (u: AdminUser, displayProfession?: string): User => {
   return {
     id,
     userID: id,
-    image: (u.avatar as string) || "/images/placeholder-avatar.png",
+    image: (u.image as string) || (u.avatar as string) || "",
     fullname: (u.name as string) || "Unknown",
     email: (u.email as string) || "",
     location: (u.state as string) || (u.address as string) || "—",
@@ -123,6 +123,45 @@ const mapToUiUser = (u: AdminUser, displayProfession?: string): User => {
   };
 };
 
+// Deterministic background colour for an initials avatar, derived from the name.
+const avatarColors = [
+  "#538e53",
+  "#D77F40",
+  "#9747FF",
+  "#2b7de9",
+  "#D6B611",
+  "#c0392b",
+];
+const initialsFor = (name: string) =>
+  (name || "?").trim().charAt(0).toUpperCase() || "?";
+const colorFor = (name: string) => {
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return avatarColors[sum % avatarColors.length];
+};
+
+const UserAvatar: React.FC<{ image?: string; name: string }> = ({
+  image,
+  name,
+}) =>
+  image ? (
+    <Image
+      src={image}
+      alt={name}
+      width={32}
+      height={32}
+      className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex-shrink-0 object-cover"
+    />
+  ) : (
+    <span
+      aria-hidden="true"
+      className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[12px] sm:text-[13px] font-montserrat font-semibold"
+      style={{ backgroundColor: colorFor(name) }}
+    >
+      {initialsFor(name)}
+    </span>
+  );
+
 // Define table columns with improved responsive min-widths
 const columns: ColumnConfig<User>[] = [
   {
@@ -130,13 +169,7 @@ const columns: ColumnConfig<User>[] = [
     header: "Full Name",
     render: (item: User) => (
       <div className="flex items-center gap-2 sm:gap-3">
-        <Image
-          src={item.image}
-          alt={item.fullname}
-          width={32}
-          height={32}
-          className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex-shrink-0"
-        />
+        <UserAvatar image={item.image} name={item.fullname} />
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-[10px] sm:text-[11px] md:text-[12px] font-montserrat font-normal text-[#2b2b2b] truncate">
             {item.fullname}
@@ -148,11 +181,6 @@ const columns: ColumnConfig<User>[] = [
       </div>
     ),
     minWidth: "min-w-[160px] sm:min-w-[180px] md:min-w-[200px]",
-  },
-  {
-    key: "location",
-    header: "Location",
-    minWidth: "min-w-[90px] sm:min-w-[110px] md:min-w-[120px]",
   },
   {
     key: "profession",
@@ -241,15 +269,27 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
   // Reset to first page whenever filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedStatus, debouncedSearch]);
+  }, [
+    selectedStatus,
+    debouncedSearch,
+    selectedState,
+    selectedMonth,
+    selectedYear,
+  ]);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
+      const monthNumber = selectedMonth
+        ? months.indexOf(selectedMonth) + 1
+        : undefined;
       const { data, pagination } = await adminUserService.getUsers({
         profession: lockedProfession,
         status: statusToApi(selectedStatus),
         search: debouncedSearch || undefined,
+        state: selectedState || undefined,
+        month: monthNumber,
+        year: selectedYear || undefined,
         page,
         limit,
       });
@@ -274,6 +314,9 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
     lockedProfession,
     selectedStatus,
     debouncedSearch,
+    selectedState,
+    selectedMonth,
+    selectedYear,
     page,
     limit,
   ]);
@@ -285,22 +328,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
-
-  // Client-side-only filters (year, month, state) — backend doesn't accept these yet
-  const filteredAdmin = admins.filter((admin) => {
-    const matchesYear = selectedYear ? admin.date.includes(selectedYear) : true;
-    const matchesMonth = selectedMonth
-      ? admin.date.startsWith(
-          `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-            months.indexOf(selectedMonth) + 1
-          }`,
-        )
-      : true;
-    const matchesState = selectedState
-      ? admin.location.toLowerCase() === selectedState.toLowerCase()
-      : true;
-    return matchesYear && matchesMonth && matchesState;
-  });
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -769,12 +796,12 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
       {/* Table Container with improved responsive handling */}
       <div className="mt-6 w-full">
         {isLoading ? (
-          <TableSkeleton columns={6} rows={limit > 6 ? 6 : limit} />
+          <TableSkeleton columns={5} rows={limit > 6 ? 6 : limit} />
         ) : (
           <AdminTable<User>
             dataType="initialUsers"
             columns={columns}
-            initialData={filteredAdmin}
+            initialData={admins}
             ActionMenuComponent={UserActionMenu}
             handleViewProfile={handleViewProfile}
             handleSuspended={handleSuspended}

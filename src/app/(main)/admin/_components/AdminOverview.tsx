@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { RedSmallChart, SmallChart } from "./SmallChart";
 import {
@@ -6,107 +7,138 @@ import {
   Bag2Icon,
   EyeIcon,
 } from "../../admin/_components/icons/AdminIcons";
+import { useAdminOverview } from "@/hooks/queries/useAdminDashboardQueries";
+import { OverviewBlock } from "@/services/adminDashboardService";
+import { formatNumber, formatDelta } from "@/lib/format";
+
+type CardConfig = {
+  key: "users" | "payments" | "orders" | "visitors";
+  label: string;
+  icon: React.ReactNode;
+  iconWrap: string;
+  deltaWrap: string;
+  chart: React.ReactNode;
+};
+
+const CARDS: CardConfig[] = [
+  {
+    key: "users",
+    label: "User",
+    icon: <Profile2User stroke="#D77F40" />,
+    iconWrap: "bg-[#F2D8C599]",
+    deltaWrap: "bg-[#cce5cc]",
+    chart: <SmallChart />,
+  },
+  {
+    key: "payments",
+    label: "Received Payment",
+    icon: <MoneyReceived stroke="#538e53" />,
+    iconWrap: "bg-[#CCE5CC80]",
+    deltaWrap: "bg-[#cce5cc]",
+    chart: <SmallChart />,
+  },
+  {
+    key: "orders",
+    label: "Orders",
+    icon: <Bag2Icon stroke="#7912FF" />,
+    iconWrap: "bg-[#7912FF33]",
+    deltaWrap: "bg-[#EEDEDE]",
+    chart: <RedSmallChart />,
+  },
+  {
+    key: "visitors",
+    label: "Visitors",
+    icon: <EyeIcon />,
+    iconWrap: "bg-[#F8EBE1]",
+    deltaWrap: "bg-[#cce5cc]",
+    chart: <SmallChart />,
+  },
+];
+
+const CardShell = ({
+  card,
+  children,
+}: {
+  card: CardConfig;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
+    <div className="flex items-center gap-1">
+      <div className={`${card.iconWrap} p-1 rounded-[100px]`}>{card.icon}</div>
+      <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
+        {card.label}
+      </p>
+    </div>
+    {children}
+  </div>
+);
+
+// Colour the delta by its sign so a drop never looks like growth:
+// green = up, red = down, neutral grey = flat.
+const deltaClasses = (delta: number): string => {
+  if (delta > 0) return "bg-[#cce5cc] text-[#2b6b2b]";
+  if (delta < 0) return "bg-[#f6dada] text-[#b23b3b]";
+  return "bg-[#ededed] text-[#2b2b2b]";
+};
+
+const StatCard = ({
+  card,
+  block,
+}: {
+  card: CardConfig;
+  block: OverviewBlock;
+}) => (
+  <CardShell card={card}>
+    <div className="flex items-center gap-1.5">
+      <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
+        {formatNumber(block.value)}
+      </span>
+      <span
+        className={`${deltaClasses(block.deltaPercent)} rounded-full px-1.5 py-0.5 text-[10px] font-montserrat`}
+      >
+        {formatDelta(block.deltaPercent)}
+      </span>
+    </div>
+    <div className="flex items-center">
+      <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
+        In contrast to last week
+      </span>
+      {card.chart}
+    </div>
+  </CardShell>
+);
+
+const CardSkeleton = ({ card }: { card: CardConfig }) => (
+  <CardShell card={card}>
+    <div className="flex items-center gap-1.5">
+      <span className="h-3 w-16 rounded bg-[#ececec] animate-pulse" />
+      <span className="h-3 w-9 rounded-full bg-[#ececec] animate-pulse" />
+    </div>
+    <div className="flex items-center">
+      <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
+        In contrast to last week
+      </span>
+      {card.chart}
+    </div>
+  </CardShell>
+);
 
 export const AdminOverview = () => {
+  const { data, isLoading, isError } = useAdminOverview();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 w-full items-center">
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
-        <div className="flex items-center gap-1">
-          <div className="bg-[#F2D8C599] p-1 rounded-[100px]">
-            <Profile2User stroke="#D77F40" />
-          </div>
-          <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            User
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
-            $25,550,000
-          </span>
-          <span className="bg-[#cce5cc] text-[#2b2b2b] rounded-full px-1.5 py-0.5 text-[10px] font-montserrat">
-            +25%
-          </span>
-        </div>
-        <div className="flex items-center">
-          <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
-            In contrast to last week
-          </span>
-          <SmallChart />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
-        <div className="flex items-center gap-1">
-          <div className="bg-[#CCE5CC80] p-1 rounded-[100px]">
-            <MoneyReceived stroke="#538e53" />
-          </div>
-          <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Received Payment
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
-            250
-          </span>
-          <span className="bg-[#cce5cc] text-[#2b2b2b] rounded-full px-1.5 py-0.5 text-[10px] font-montserrat">
-            +25%
-          </span>
-        </div>
-        <div className="flex items-center">
-          <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
-            In contrast to last week
-          </span>
-          <SmallChart />
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
-        <div className="flex items-center gap-1">
-          <div className="bg-[#7912FF33] p-1 rounded-[100px]">
-            <Bag2Icon stroke="#7912FF" />
-          </div>
-          <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Orders
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
-            35
-          </span>
-          <span className="bg-[#EEDEDE] text-[#2b2b2b] rounded-full px-1.5 py-0.5 text-[10px] font-montserrat">
-            +25%
-          </span>
-        </div>
-        <div className="flex items-center">
-          <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
-            In contrast to last week
-          </span>
-          <RedSmallChart />
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 w-full bg-[#fefefe] px-1.5 py-1.5 rounded-[4px] shadow-md">
-        <div className="flex items-center gap-1">
-          <div className="bg-[#F8EBE1] p-1 rounded-[100px]">
-            <EyeIcon />
-          </div>
-          <p className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-            Visitors
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium">
-            550
-          </span>
-          <span className="bg-[#cce5cc] text-[#2b2b2b] rounded-full px-1.5 py-0.5 text-[10px] font-montserrat">
-            +25%
-          </span>
-        </div>
-        <div className="flex items-center">
-          <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
-            In contrast to last week
-          </span>
-          <SmallChart />
-        </div>
-      </div>
+      {CARDS.map((card) =>
+        isLoading || (!data && !isError) ? (
+          <CardSkeleton key={card.key} card={card} />
+        ) : (
+          <StatCard
+            key={card.key}
+            card={card}
+            block={data?.[card.key] ?? { value: 0, deltaPercent: 0 }}
+          />
+        ),
+      )}
     </div>
   );
 };

@@ -51,7 +51,6 @@ const columns: ColumnConfig<OrderData>[] = [
     ),
     minWidth: "min-w-[200px]",
   },
-  { key: "id", header: "ID", minWidth: "min-w-[120px]" },
   { key: "buyerName", header: "Buyer", minWidth: "min-w-[100px]" },
   { key: "sellerName", header: "Seller", minWidth: "min-w-[100px]" },
   { key: "amount", header: "Amount", minWidth: "min-w-[100px]" },
@@ -326,6 +325,11 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
         />
+        {filteredTrackedData.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No delivered orders found.
+          </div>
+        )}
       </div>
     </div>
   );

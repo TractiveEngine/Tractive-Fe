@@ -68,6 +68,9 @@ export default function ActivePage() {
   const [data, setData] = useState<AdminControl[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allChecked, setAllChecked] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
   const [counts, setCounts] = useState<Record<SlideType, number>>({
     Active: 0,
     Suspended: 0,
@@ -84,30 +87,43 @@ export default function ActivePage() {
   const [pendingBulk, setPendingBulk] = useState<PendingBulk | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const fetchForTab = useCallback(async (tab: SlideType) => {
-    setIsLoading(true);
-    try {
-      if (tab === "Removed") {
-        const res = await adminUserService.getRemovedUsers({ limit: 100 });
+  const fetchForTab = useCallback(
+    async (tab: SlideType) => {
+      setIsLoading(true);
+      try {
+        const res =
+          tab === "Removed"
+            ? await adminUserService.getRemovedUsers({ page, limit })
+            : await adminUserService.getUsers({
+                status: tab === "Active" ? "active" : "suspended",
+                page,
+                limit,
+              });
+        const total = res.pagination?.total ?? res.data.length;
         setData(res.data.map(mapToAdminControl));
-        setCounts((c) => ({ ...c, Removed: res.pagination?.total ?? res.data.length }));
-      } else {
-        const status = tab === "Active" ? "active" : "suspended";
-        const res = await adminUserService.getUsers({ status, limit: 100 });
-        setData(res.data.map(mapToAdminControl));
-        setCounts((c) => ({ ...c, [tab]: res.pagination?.total ?? res.data.length }));
+        setTotalItems(total);
+        setCounts((c) => ({ ...c, [tab]: total }));
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to load users");
+        setData([]);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to load users");
-      setData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [page, limit],
+  );
 
   useEffect(() => {
     fetchForTab(activeTab);
   }, [activeTab, fetchForTab]);
+
+  const pageSizeOptions = [5, 10, 20, 50];
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
   // Fetch counts for the inactive tabs too (so badges are accurate) — fire-and-forget
   useEffect(() => {
@@ -165,6 +181,7 @@ export default function ActivePage() {
   const handleSwitchTab = (tab: SlideType) => {
     setActiveTab(tab);
     setAllChecked(false);
+    setPage(1);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -465,6 +482,52 @@ export default function ActivePage() {
         aria-labelledby={tabs.find((tab) => tab.label === activeTab)?.id}
       >
         {renderContent()}
+
+        {!isLoading && totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 sm:px-6 py-4 border-t border-gray-100 bg-gray-50 mt-2">
+            <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+              <span>Rows per page</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="ml-3 text-gray-500">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, totalItems)} of {totalItems}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-montserrat text-gray-600 px-2">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmActionModal

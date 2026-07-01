@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminUserSummary } from "@/services/adminUserService";
 
@@ -108,6 +108,21 @@ export const UserProfileDrawer: React.FC<UserProfileDrawerProps> = ({
                 <Row label="Updated" value={formatDate(user.updatedAt as string)} />
               </Section>
 
+              <Section title="Approval">
+                <Row
+                  label="Agent Status"
+                  value={(user.agentApprovalStatus as string) || "—"}
+                />
+                <Row
+                  label="Transporter Status"
+                  value={(user.transporterApprovalStatus as string) || "—"}
+                />
+                <Row
+                  label="Approval Notes"
+                  value={(user.approvalNotes as string) || "—"}
+                />
+              </Section>
+
               <Section title="Address">
                 <Row label="Address" value={(user.address as string) || "—"} />
                 <Row label="State" value={(user.state as string) || "—"} />
@@ -186,60 +201,25 @@ const Row: React.FC<{ label: string; value: string; mono?: boolean }> = ({
   </div>
 );
 
-const InterestsBlock: React.FC<{ interests: string[] }> = ({ interests }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <section>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 cursor-pointer group"
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-2">
-          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-400 font-montserrat font-semibold">
-            Interests
-          </p>
-          <span className="text-[10px] font-montserrat text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
-            {interests.length}
-          </span>
-        </div>
-        <motion.svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 text-gray-400 group-hover:text-[#538e53] transition-colors"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+const InterestsBlock: React.FC<{ interests: string[] }> = ({ interests }) => (
+  <section>
+    <div className="flex items-center gap-2 mb-3">
+      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-400 font-montserrat font-semibold">
+        Interests
+      </p>
+      <span className="text-[10px] font-montserrat text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+        {interests.length}
+      </span>
+    </div>
+    <div className="flex flex-wrap gap-1.5">
+      {interests.map((interest, i) => (
+        <span
+          key={i}
+          className="text-xs font-montserrat bg-[#538e53]/10 text-[#538e53] rounded-full px-3 py-1"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </motion.svg>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="content"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="pt-3 flex flex-wrap gap-1.5">
-              {interests.map((interest, i) => (
-                <span
-                  key={i}
-                  className="text-xs font-montserrat bg-[#538e53]/10 text-[#538e53] rounded-full px-3 py-1"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-};
+          {interest}
+        </span>
+      ))}
+    </div>
+  </section>
+);

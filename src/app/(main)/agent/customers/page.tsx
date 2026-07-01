@@ -44,6 +44,7 @@ const customerColumns: ColumnConfig<Customer>[] = [
     header: "State",
     key: "state",
     minWidth: "min-w-[100px]",
+    render: (customer) => customer.state || "—",
   },
   {
     header: "Revenue",
@@ -70,6 +71,14 @@ const customerColumns: ColumnConfig<Customer>[] = [
     header: "Date",
     key: "date",
     minWidth: "min-w-[100px]",
+    render: (customer) =>
+      customer.date
+        ? new Date(customer.date).toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "—",
   },
 ];
 

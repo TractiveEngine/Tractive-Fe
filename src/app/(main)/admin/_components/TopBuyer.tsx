@@ -1,53 +1,29 @@
+"use client";
 import Image from "next/image";
 import React from "react";
+import { useTopBuyers } from "@/hooks/queries/useAdminDashboardQueries";
+import { formatCurrency } from "@/lib/format";
 
-// Define the product data type
-interface OutOfStockProduct {
-  id: number;
-  name: string;
-  image: string;
-}
-
-// Sample data for 7 out-of-stock products
-const outOfStockProducts: OutOfStockProduct[] = [
-  {
-    id: 1,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 2,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 3,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 4,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 5,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 6,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-  {
-    id: 7,
-    name: "Joseph Oyin",
-    image: "/images/TopBuyer.png",
-  },
-];
+const SkeletonRows = () => (
+  <>
+    {Array.from({ length: 7 }).map((_, i) => (
+      <div
+        key={i}
+        className="w-full flex items-center justify-between px-4"
+      >
+        <div className="flex items-center gap-[5px]">
+          <span className="h-[40px] w-[40px] rounded-full bg-[#ececec] animate-pulse" />
+          <span className="h-3 w-24 rounded bg-[#ececec] animate-pulse" />
+        </div>
+        <span className="h-3 w-16 rounded bg-[#ececec] animate-pulse" />
+      </div>
+    ))}
+  </>
+);
 
 export const TopBuyer: React.FC = () => {
+  const { data: buyers, isLoading, isError } = useTopBuyers(7);
+
   return (
     <div className="w-full lg:w-[39%] bg-[#fefefe] shadow-md rounded-[4px]">
       <div className="flex justify-between items-center mb-4 pr-4">
@@ -59,29 +35,37 @@ export const TopBuyer: React.FC = () => {
         </span>
       </div>
 
-      <div className="flex flex-col gap-2.5">
-        {outOfStockProducts.map((product) => (
-          <div
-            key={product.id}
-            className="w-full flex items-center justify-between px-4"
-          >
-            <div className="flex items-center gap-[5px]">
-              <Image
-                src={product.image}
-                alt={product.name}
-                width={40}
-                height={40}
-                className=""
-              />
+      <div className="flex flex-col gap-2.5 pb-3">
+        {isLoading ? (
+          <SkeletonRows />
+        ) : isError || !buyers?.length ? (
+          <p className="px-4 py-6 text-center text-[11px] font-montserrat text-[#808080]">
+            {isError ? "Couldn't load top buyers." : "No buyers yet."}
+          </p>
+        ) : (
+          buyers.map((buyer) => (
+            <div
+              key={buyer.id}
+              className="w-full flex items-center justify-between px-4"
+            >
+              <div className="flex items-center gap-[5px]">
+                <Image
+                  src={buyer.image || "/images/TopBuyer.png"}
+                  alt={buyer.name}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover h-[40px] w-[40px]"
+                />
                 <span className="font-montserrat text-[#2b2b2b] text-[11px] font-normal">
-                  {product.name}
+                  {buyer.name}
                 </span>
+              </div>
+              <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium cursor-pointer">
+                {formatCurrency(buyer.totalSpent)}
+              </span>
             </div>
-            <span className="font-montserrat text-[#2b2b2b] text-[12px] font-medium cursor-pointer">
-              $40,000
-            </span>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

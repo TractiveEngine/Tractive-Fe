@@ -1,3 +1,15 @@
+/** Buyer or seller contact details, shown in the Buyer/Seller Info popups (A9). */
+export interface OrderPartyInfo {
+    id: string;
+    name: string;
+    businessName: string;
+    email: string;
+    phone: string;
+    state: string;
+    address: string;
+    image: string;
+}
+
 export interface OrderData {
     id: string;
     image: string;
@@ -8,6 +20,10 @@ export interface OrderData {
     amount: string;
     date: string;
     checked: boolean;
+    // Party details carried from the list response so the info popups render
+    // without a second request. Optional: absent on the legacy fixture rows.
+    buyerInfo?: OrderPartyInfo;
+    sellerInfos?: OrderPartyInfo[];
 }
 
 export interface orderDataProps {

@@ -1,60 +1,9 @@
+"use client";
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-// Define the transporter data type
-interface Transporters {
-  id: number;
-  name: string;
-  image: string;
-  location: string;
-  Revenue: string;
-  Bookings: number;
-}
-
-// Sample transporter data with Nigerian states
-const transporters: Transporters[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    image: "/images/TopTransporter.png",
-    location: "Lagos",
-    Revenue: "$50,000",
-    Bookings: 120,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    image: "/images/TopTransporter.png",
-    location: "Abuja",
-    Revenue: "$50,000",
-    Bookings: 120,
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    image: "/images/TopTransporter.png",
-    location: "Rivers",
-    Revenue: "$50,000",
-    Bookings: 120,
-  },
-  {
-    id: 4,
-    name: "Bob Wilson",
-    image: "/images/TopTransporter.png",
-    location: "Kano",
-    Revenue: "$50,000",
-    Bookings: 120,
-  },
-  {
-    id: 5,
-    name: "Emma Brown",
-    image: "/images/TopTransporter.png",
-    location: "Oyo",
-    Revenue: "$50,000",
-    Bookings: 120,
-  },
-];
+import { useTopTransporters } from "@/hooks/queries/useAdminDashboardQueries";
+import { formatCurrency } from "@/lib/format";
 
 // Framer Motion variants for table animation
 const tableVariants = {
@@ -75,7 +24,36 @@ const rowVariants = {
   visible: { opacity: 1, x: 0 },
 };
 
+const thClass =
+  "px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider";
+
+const SkeletonRows = () => (
+  <>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <tr key={i}>
+        <td className="px-4 py-1.5 whitespace-nowrap">
+          <div className="flex items-center gap-2">
+            <span className="h-[25px] w-[25px] rounded-full bg-[#ececec] animate-pulse" />
+            <span className="h-3 w-24 rounded bg-[#ececec] animate-pulse" />
+          </div>
+        </td>
+        <td className="px-4 py-1.5">
+          <span className="block h-3 w-16 rounded bg-[#ececec] animate-pulse" />
+        </td>
+        <td className="px-4 py-1.5">
+          <span className="block h-3 w-8 rounded bg-[#ececec] animate-pulse" />
+        </td>
+        <td className="px-4 py-1.5">
+          <span className="block h-3 w-16 rounded bg-[#ececec] animate-pulse" />
+        </td>
+      </tr>
+    ))}
+  </>
+);
+
 export const TopTransporter: React.FC = () => {
+  const { data: transporters, isLoading, isError } = useTopTransporters(5);
+
   return (
     <div className="w-full bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
       <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium mb-4 bg-[#EFCEB780] flex items-center justify-center w-[40%]">
@@ -90,52 +68,61 @@ export const TopTransporter: React.FC = () => {
         <table className="min-w-full shadow-md rounded-lg overflow-hidden">
           <thead className="border-b border-[#e2e2e2]">
             <tr>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Name
-              </th>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Location
-              </th>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Bookings
-              </th>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Revenue
-              </th>
+              <th className={thClass}>Name</th>
+              <th className={thClass}>Location</th>
+              <th className={thClass}>Bookings</th>
+              <th className={thClass}>Revenue</th>
             </tr>
           </thead>
           <tbody>
-            {transporters.map((transporter) => (
-              <motion.tr
-                key={transporter.id}
-                variants={rowVariants}
-                className="hover:bg-gray-50 transition-colors duration-200"
-              >
-                <td className="px-4 py-1 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={transporter.image}
-                      alt={transporter.name}
-                      width={30}
-                      height={30}
-                      className="h-[25px] w-[25px] rounded-full object-cover"
-                    />
-                    <span className="text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                      {transporter.name}
-                    </span>
-                  </div>
+            {isLoading ? (
+              <SkeletonRows />
+            ) : isError || !transporters?.length ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-4 py-6 text-center text-[11px] font-montserrat text-[#808080]"
+                >
+                  {isError
+                    ? "Couldn't load top transporters."
+                    : "No transporters yet."}
                 </td>
-                <td className="px-4 py-1 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                  {transporter.location}
-                </td>
-                <td className="px-4 py-1 rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                  {transporter.Bookings}
-                </td>
-                <td className="px-4 py-1 bg-[#f1f1f1] flex items-center justify-center rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                  {transporter.Revenue}
-                </td>
-              </motion.tr>
-            ))}
+              </tr>
+            ) : (
+              transporters.map((transporter) => (
+                <motion.tr
+                  key={transporter.id}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <td className="px-4 py-1 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={transporter.image || "/images/TopTransporter.png"}
+                        alt={transporter.name}
+                        width={30}
+                        height={30}
+                        className="h-[25px] w-[25px] rounded-full object-cover"
+                      />
+                      <span className="text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                        {transporter.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-1 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                    {transporter.location}
+                  </td>
+                  <td className="px-4 py-1 rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                    {transporter.bookings}
+                  </td>
+                  <td className="px-4 py-1 bg-[#f1f1f1] flex items-center justify-center rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                    {formatCurrency(transporter.revenue)}
+                  </td>
+                </motion.tr>
+              ))
+            )}
           </tbody>
         </table>
       </motion.div>

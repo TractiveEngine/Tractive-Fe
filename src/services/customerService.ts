@@ -15,6 +15,7 @@ export interface Customer {
   address?: string;
   createdAt?: string;
   updatedAt?: string;
+  lastOrderAt?: string;
 }
 
 export interface GetCustomersParams {
@@ -70,6 +71,7 @@ const mapToCustomer = (raw: any): Customer => {
     address: typeof address === "string" ? address : undefined,
     createdAt: raw?.createdAt,
     updatedAt: raw?.updatedAt,
+    lastOrderAt: raw?.lastOrderAt,
   };
 };
 
