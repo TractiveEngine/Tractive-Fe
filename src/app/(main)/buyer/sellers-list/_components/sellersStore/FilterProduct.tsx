@@ -2,15 +2,7 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@/icons/Icons";
 import React from "react";
 import { IoIosCheckmark } from "react-icons/io";
-
-const interests = [
-  "fish",
-  "Tubers",
-  "Grains",
-  "Edible",
-  "Livestock",
-  "Vegetable",
-];
+import { useCategories } from "@/hooks/queries/useCategoryQueries";
 
 export interface FilterProductProps {
   searchQuery: string;
@@ -29,6 +21,10 @@ export const FilterProduct = ({
   switchSide,
   setSwitchSide,
 }: FilterProductProps) => {
+  // Interest chips come from the shared category reference data (§7.2)
+  const { data: apiCategories = [] } = useCategories();
+  const interests: string[] = apiCategories.map((c) => c.name);
+
   const toggleInterest = (interest: string) => {
     setSelectedFilter((prev) => {
       // Single-select toggle: clicking the active category deselects it,

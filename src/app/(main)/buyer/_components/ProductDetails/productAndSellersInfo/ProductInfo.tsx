@@ -46,6 +46,13 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
     currency: "NGN",
   }).format(item.price);
 
+  // Real rating (0–5): prefer the review summary, fall back to the product's
+  // own rating field.
+  const ratingValue = item.reviewSummary?.averageRating
+    ? Number(item.reviewSummary.averageRating)
+    : Number(item.rating) || 0;
+  const filledStars = Math.round(ratingValue);
+
   return (
     <div className="w-full flex flex-col px-4 sm:px-6 md:px-8 pt-2 pb-6 gap-6 sm:gap-8 bg-[#fefefe]">
       <div className="w-full flex flex-col gap-4">
@@ -57,15 +64,15 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <YellowStarIcon />
-                  <StarIcon />
+                  {[0, 1, 2, 3, 4].map((i) =>
+                    i < filledStars ? (
+                      <YellowStarIcon key={i} />
+                    ) : (
+                      <StarIcon key={i} />
+                    )
+                  )}
                   <span className="font-montserrat font-normal text-xs sm:text-sm text-[#2b2b2b]">
-                    {item.reviewSummary?.averageRating
-                      ? Number(item.reviewSummary.averageRating).toFixed(1)
-                      : item.rating || "0.0"}
+                    {ratingValue.toFixed(1)}
                   </span>
                 </div>
                 <p className="font-montserrat font-normal text-xs sm:text-sm text-[#2b2b2b]">

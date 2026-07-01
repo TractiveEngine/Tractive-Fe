@@ -1,17 +1,31 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { nigerianStates, lgaData } from "@/utils/state&LGA";
 import { ArrowDownIcon } from "@/icons/Icons";
+import { useProfile, useUpdateProfile } from "@/hooks/queries/useUserQueries";
 
 const DeliveryLocation = () => {
+  const { data: profile, isLoading: fetchingProfile } = useProfile();
+  const updateProfile = useUpdateProfile();
+
   const [formData, setFormData] = useState({
     state: "",
     lga: "",
     street: "",
   });
 
+  // Populate the form once profile data arrives
+  useEffect(() => {
+    if (!profile) return;
+    setFormData({
+      state: profile.state || "",
+      lga: profile.lga || "",
+      street: profile.address || "",
+    });
+  }, [profile]);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -21,11 +35,27 @@ const DeliveryLocation = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Delivery location submitted:", formData);
-    localStorage.setItem("delivery-location", JSON.stringify(formData));
+    await updateProfile.mutateAsync({
+      state: formData.state,
+      lga: formData.lga,
+      address: formData.street,
+    });
   };
+
+  if (fetchingProfile) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <div className="animate-spin w-6 h-6 border-2 border-[#a0dfa0] border-t-[#538e53] rounded-full" />
+          <span className="text-[#538e53] font-montserrat text-[14px]">
+            Loading location...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[100%] bg-[#fefefe] h-screen flex flex-col items-center shadow-md rounded-[4px] pt-[4rem]">
@@ -33,14 +63,13 @@ const DeliveryLocation = () => {
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4 py-6 w-[90%] max-w-[500px]"
       >
-
         {/* State */}
         <div className="w-full">
           <label
             htmlFor="state"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            State
+            State <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
@@ -72,7 +101,7 @@ const DeliveryLocation = () => {
             htmlFor="lga"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Local Government Area
+            Local Government Area <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
@@ -106,7 +135,7 @@ const DeliveryLocation = () => {
             htmlFor="street"
             className="font-montserrat font-normal text-[13px] text-[#2b2b2b] mb-1 block"
           >
-            Street/Area
+            Street/Area <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -123,9 +152,17 @@ const DeliveryLocation = () => {
         {/* Done Button */}
         <button
           type="submit"
-          className="bg-[#538E53] text-[#FEFEFE] p-2 rounded-[4px] w-full font-montserrat font-medium text-[13px] hover:bg-[#214821] transition"
+          disabled={updateProfile.isPending}
+          className="bg-[#538E53] text-[#FEFEFE] p-2 rounded-[4px] w-full font-montserrat font-medium text-[13px] hover:bg-[#214821] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          Done
+          {updateProfile.isPending ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin w-4 h-4 border-2 border-[#fefefe] border-t-transparent rounded-full" />
+              <span>Saving...</span>
+            </div>
+          ) : (
+            "Done"
+          )}
         </button>
       </form>
     </div>

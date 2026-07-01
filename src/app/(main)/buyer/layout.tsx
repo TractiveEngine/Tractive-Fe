@@ -7,13 +7,6 @@ import { WishlistProvider } from "@/hooks/wishlistContext";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
 import React from "react";
 
-const topSellers = [
-  "Kelvin Chikezie",
-  "Aisha Bello",
-  "Emeka Okonkwo",
-  "Fatima Musa",
-];
-
 export default function BuyerLayout({
   children,
 }: {
@@ -40,7 +33,7 @@ export default function BuyerLayout({
   }
 
   return (
-    <FollowingProvider initialSellers={topSellers}>
+    <FollowingProvider>
       <WishlistProvider>
         <div className="flex flex-col min-h-screen">
           <nav className="bg-[#fefefe] w-full">

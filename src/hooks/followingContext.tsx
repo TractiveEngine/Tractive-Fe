@@ -1,14 +1,23 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { toast } from "sonner";
+import { userService } from "@/services/UserService";
+import { useGetTopSellers } from "@/hooks/queries/useUserQueries";
 
-// Define the shape of the following context
+// Define the shape of the following context. Keyed by sellerId (not name) so
+// the state maps 1:1 onto the real follow endpoints.
 interface FollowingContextType {
   followStates: Record<string, boolean>;
   loadingStates: Record<string, boolean>;
-  toggleFollow: (sellerName: string) => Promise<void>;
-  isFollowing: (sellerName: string) => boolean;
+  toggleFollow: (sellerId: string, sellerName?: string) => Promise<void>;
+  isFollowing: (sellerId: string) => boolean;
 }
 
 // Create the context with a default value
@@ -26,57 +35,57 @@ export const useFollowing = () => {
 };
 
 // Provider component to wrap the app
-export const FollowingProvider = ({
-  children,
-  initialSellers,
-}: {
-  children: ReactNode;
-  initialSellers: string[];
-}) => {
-  const [followStates, setFollowStates] = useState<Record<string, boolean>>(
-    () => {
-      const initialStates: Record<string, boolean> = {};
-      initialSellers.forEach((seller) => {
-        initialStates[seller] = false; // Default to not following
-      });
-      return initialStates;
-    }
-  );
-
+export const FollowingProvider = ({ children }: { children: ReactNode }) => {
+  const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
-    () => {
-      const initialStates: Record<string, boolean> = {};
-      initialSellers.forEach((seller) => {
-        initialStates[seller] = false;
-      });
-      return initialStates;
-    }
+    {}
   );
 
-  const toggleFollow = async (sellerName: string) => {
-    setLoadingStates((prev) => ({ ...prev, [sellerName]: true }));
+  // Seed initial follow states from the top-sellers list (replaces the old
+  // hardcoded seller names). Each seller may carry an `isFollowing` flag.
+  const { data: topSellersResponse } = useGetTopSellers();
+
+  useEffect(() => {
+    const sellers = topSellersResponse?.data;
+    if (!Array.isArray(sellers)) return;
+    setFollowStates((prev) => {
+      const next = { ...prev };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sellers.forEach((s: any) => {
+        const id = s?.sellerId ?? s?._id ?? s?.id;
+        if (id && next[id] === undefined) next[id] = !!s?.isFollowing;
+      });
+      return next;
+    });
+  }, [topSellersResponse]);
+
+  const toggleFollow = async (sellerId: string, sellerName?: string) => {
+    if (!sellerId) return;
+    setLoadingStates((prev) => ({ ...prev, [sellerId]: true }));
+    const currentlyFollowing = !!followStates[sellerId];
+    const label = sellerName ?? "seller";
     try {
-      // Simulate an async operation (e.g., API call) with a 500ms delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const newFollowState = !followStates[sellerName];
-      setFollowStates((prev) => ({
-        ...prev,
-        [sellerName]: newFollowState,
-      }));
-      if (newFollowState) {
-        toast.success(`Started following ${sellerName}!`);
+      if (currentlyFollowing) {
+        await userService.unfollowFarmer(sellerId);
       } else {
-        toast.success(`Unfollowed ${sellerName}!`);
+        await userService.followFarmer(sellerId);
       }
+      const newFollowState = !currentlyFollowing;
+      setFollowStates((prev) => ({ ...prev, [sellerId]: newFollowState }));
+      toast.success(
+        newFollowState
+          ? `Started following ${label}!`
+          : `Unfollowed ${label}!`
+      );
     } catch (error) {
       console.error("Error toggling follow:", error);
       toast.error("Failed to update follow status.");
     } finally {
-      setLoadingStates((prev) => ({ ...prev, [sellerName]: false }));
+      setLoadingStates((prev) => ({ ...prev, [sellerId]: false }));
     }
   };
 
-  const isFollowing = (sellerName: string) => !!followStates[sellerName];
+  const isFollowing = (sellerId: string) => !!followStates[sellerId];
 
   return (
     <FollowingContext.Provider

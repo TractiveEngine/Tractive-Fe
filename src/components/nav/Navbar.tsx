@@ -19,8 +19,8 @@ export const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const { data: notifications = [] } = useNotifications(isLoggedIn);
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const { data: notificationsData } = useNotifications(isLoggedIn);
+  const unreadCount = notificationsData?.unreadCount ?? 0;
   const hasUnread = unreadCount > 0;
 
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -117,10 +117,8 @@ export const Navbar = () => {
                   </span>
                 )}
                 {isNotificationOpen && (
-                  <div className="absolute top-20 -left-35 w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
-                    <div className="py-2">
-                      <Notifications />
-                    </div>
+                  <div className="absolute top-9 right-0 z-20 w-[92vw] max-w-[420px] overflow-hidden rounded-[8px] border border-[#e2e2e2] bg-[#fefefe] shadow-lg">
+                    <Notifications />
                   </div>
                 )}
               </div>

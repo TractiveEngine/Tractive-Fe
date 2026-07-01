@@ -12,8 +12,13 @@ import { ArrowRightIcon, YellowStarIcon } from "@/icons/Icons";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
+import { toast } from "sonner";
 import { Reviews } from "@/components/Reviews";
 import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  useFollowFarmer,
+  useUnfollowFarmer,
+} from "@/hooks/queries/useUserQueries";
 
 export const StoreHeader = ({
   seller,
@@ -27,17 +32,57 @@ export const StoreHeader = ({
   const [showReviews, setShowReviews] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
 
-  // Memoize ratings to prevent re-creation on every render
-  const ratings = useMemo(
-    () => [
-      { stars: "5 star", count: 8, percentage: 100 },
-      { stars: "4 star", count: 6, percentage: 75 },
-      { stars: "3 star", count: 4, percentage: 50 },
-      { stars: "2 star", count: 2, percentage: 25 },
-      { stars: "1 star", count: 1, percentage: 10 },
-    ],
-    []
+  // ── Follow / Unfollow ──────────────────────────────────────────────────
+  const sellerId = seller?.sellerId || seller?._id || seller?.id;
+  const followMutation = useFollowFarmer();
+  const unfollowMutation = useUnfollowFarmer();
+  const [isFollowing, setIsFollowing] = useState<boolean>(
+    !!seller?.isFollowing,
   );
+  const isFollowPending =
+    followMutation.isPending || unfollowMutation.isPending;
+
+  useEffect(() => {
+    if (seller?.isFollowing !== undefined) {
+      setIsFollowing(!!seller.isFollowing);
+    }
+  }, [seller?.isFollowing]);
+
+  const handleFollowToggle = async () => {
+    if (!sellerId || isFollowPending) return;
+    const previous = isFollowing;
+    setIsFollowing(!previous); // optimistic
+    try {
+      if (previous) {
+        await unfollowMutation.mutateAsync(sellerId);
+      } else {
+        await followMutation.mutateAsync(sellerId);
+      }
+    } catch {
+      setIsFollowing(previous); // revert on failure
+      toast.error("Failed to update follow status. Please try again.");
+    }
+  };
+
+  // Build the 5→1 star breakdown from the seller's real rating distribution.
+  // When the backend provides `ratingDistribution` we use it directly; otherwise
+  // we derive percentages from `totalReviews`, defaulting to an empty (all-zero)
+  // breakdown so nothing is faked.
+  const ratings = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dist: any[] = Array.isArray(seller?.ratingDistribution)
+      ? seller.ratingDistribution
+      : [];
+    const total = Number(seller?.totalReviews) || 0;
+    return [5, 4, 3, 2, 1].map((star) => {
+      const entry = dist.find((d) => Number(d?.rating) === star);
+      const count = Number(entry?.count ?? 0);
+      const percentage = Number(
+        entry?.percentage ?? (total ? (count / total) * 100 : 0)
+      );
+      return { stars: `${star} star`, count, percentage };
+    });
+  }, [seller?.ratingDistribution, seller?.totalReviews]);
 
   // Phone number data
   const phoneNumbers = seller?.phoneNumbers?.length ? seller.phoneNumbers : ["09034145971", "09034145972"];
@@ -132,9 +177,20 @@ export const StoreHeader = ({
                     />
                   </div>
                   <span className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
-                  <span className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#538e53]">
-                    Follow
-                  </span>
+                  <button
+                    type="button"
+                    onClick={handleFollowToggle}
+                    disabled={!sellerId || isFollowPending}
+                    className={`cursor-pointer font-montserrat font-normal text-[12px] sm:text-[14px] transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                      isFollowing ? "text-[#808080]" : "text-[#538e53]"
+                    }`}
+                  >
+                    {isFollowPending
+                      ? "..."
+                      : isFollowing
+                        ? "Following"
+                        : "Follow"}
+                  </button>
                 </div>
                 <div className="flex gap-2 items-center flex-wrap mt-[2px]">
                   <div className="flex gap-1 items-center">

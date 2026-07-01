@@ -38,6 +38,11 @@ export const TransporterList: React.FC<SellerListProps> = ({
     rateStatus: transporter.rateStatus || (transporter.rating >= 4 ? "Excellent" : transporter.rating >= 3 ? "Good" : "Fair"),
     transporterYear: transporter.transporterYear || transporter.yearsOfExperience || "1",
     customerNumber: transporter.customerNumber || transporter.matchingFleetCount || transporter.fleetsCount || 0,
+    coverageStates: Array.isArray(transporter.coverageStates)
+      ? (transporter.coverageStates as string[])
+      : [],
+    customersCount:
+      transporter.customersCount ?? transporter.customerCount ?? undefined,
     transporterBio: transporter.transporterBio || transporter.bio || "Connecting you to the best logistics.",
     locationFrom: transporter.locationFrom || transporter.location || transporter.state || transporter.city || "Various",
     locationTo: transporter.locationTo || "Locations",
@@ -104,6 +109,8 @@ export const TransporterList: React.FC<SellerListProps> = ({
               rateStatus={transporter.rateStatus}
               transporterYear={transporter.transporterYear}
               customerNumber={transporter.customerNumber}
+              coverageStates={transporter.coverageStates}
+              customersCount={transporter.customersCount}
               transporterBio={transporter.transporterBio}
             />
           ))

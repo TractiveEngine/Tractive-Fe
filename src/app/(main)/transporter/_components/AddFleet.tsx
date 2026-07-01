@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { GalleryAddIcon, XModalIcon } from "./Icons/TransporterIcons";
@@ -8,19 +8,15 @@ import { FleetPayload } from "@/services/fleetService";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import { toast } from "sonner";
 import { Fleet, fleetStatusToApi, fleetStatusToLabel } from "@/utils/Fleet";
+import { nigerianStates as FALLBACK_STATES } from "@/utils/state&LGA";
+import {
+  useStates,
+  useFleetStatuses,
+} from "@/hooks/queries/useReferenceQueries";
 
-// Nigerian states
-const nigerianStates = [
-  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
-  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT",
-  "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi",
-  "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
-  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
-];
-
-// Fleet States Options — labels match the API enum (available/under_maintenance
+// Fallback fleet-status labels — match the API enum (available/under_maintenance
 // via fleetStatusToApi). "On Transit" is trip-driven, so it isn't offered here.
-const fleetStatesOptions = ["Available", "Under Maintenance"];
+const FALLBACK_FLEET_STATUS_LABELS = ["Available", "Under Maintenance"];
 
 // Props for AddFleet
 interface AddFleetProps {
@@ -38,6 +34,34 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
   const [isFromOpen, setIsFromOpen] = useState(false);
   const [isToOpen, setIsToOpen] = useState(false);
   const [isFleetStateOpen, setIsFleetStateOpen] = useState(false);
+
+  // Reference data (T11): states + fleet statuses. Both degrade to a local
+  // fallback list when the endpoint is missing/errors, so the form still works.
+  const { data: statesData } = useStates();
+  const { data: fleetStatusData } = useFleetStatuses();
+
+  const nigerianStates = useMemo(
+    () =>
+      statesData && statesData.length
+        ? statesData.map((s) => s.name)
+        : FALLBACK_STATES,
+    [statesData],
+  );
+
+  // "On Transit" is trip-driven, not a user-selectable upload state — filter it
+  // out of the API list to keep the form's existing behaviour.
+  const fleetStatesOptions = useMemo(
+    () =>
+      fleetStatusData && fleetStatusData.length
+        ? fleetStatusData
+            .filter((s) => s.value !== "on_transit")
+            // Map the raw enum (e.g. "available") to its canonical display
+            // label (e.g. "Available") — the API returns lowercase values, and
+            // this keeps the submit round-trip via fleetStatusToApi correct.
+            .map((s) => fleetStatusToLabel(s.value))
+        : FALLBACK_FLEET_STATUS_LABELS,
+    [fleetStatusData],
+  );
 
   const [formData, setFormData] = useState({
     fleetName: "",

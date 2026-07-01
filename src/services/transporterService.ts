@@ -11,6 +11,8 @@ export interface Transporter {
   rateStatus?: string;
   transporterYear?: string | number;
   customerNumber?: number;
+  coverageStates?: string[];
+  customersCount?: number;
   transporterBio?: string;
   locationFrom?: string;
   locationTo?: string;
