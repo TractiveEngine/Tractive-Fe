@@ -7,11 +7,54 @@ import {
   YellowStarIcon,
 } from "@/icons/Icons";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import {
+  useFollowFarmer,
+  useUnfollowFarmer,
+} from "@/hooks/queries/useUserQueries";
 
-export const OwnersInfo = () => {
+export interface OwnerInfo {
+  id?: string;
+  name?: string;
+  image?: string;
+  rating?: number;
+  followersCount?: number;
+  state?: string;
+  isFollowing?: boolean;
+}
+
+export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
   const [seeMore, setSeeMore] = useState(false);
+
+  // ── Follow / Unfollow the transporter (fleet owner) ────────────────────
+  const ownerId = owner?.id;
+  const followMutation = useFollowFarmer();
+  const unfollowMutation = useUnfollowFarmer();
+  const [isFollowing, setIsFollowing] = useState<boolean>(!!owner?.isFollowing);
+  const isFollowPending =
+    followMutation.isPending || unfollowMutation.isPending;
+
+  useEffect(() => {
+    if (owner?.isFollowing !== undefined) setIsFollowing(!!owner.isFollowing);
+  }, [owner?.isFollowing]);
+
+  const handleFollowToggle = async () => {
+    if (!ownerId || isFollowPending) return;
+    const previous = isFollowing;
+    setIsFollowing(!previous); // optimistic
+    try {
+      if (previous) {
+        await unfollowMutation.mutateAsync(ownerId);
+      } else {
+        await followMutation.mutateAsync(ownerId);
+      }
+    } catch {
+      setIsFollowing(previous); // revert on failure
+      toast.error("Failed to update follow status. Please try again.");
+    }
+  };
 
   const handleSeeMore = () => {
     setSeeMore(!seeMore); // See More Reviews visibility
@@ -36,31 +79,46 @@ export const OwnersInfo = () => {
             <div>
               <div className="flex items-center gap-3">
                 <span className="font-montserrat font-normal text-[14px] text-[#2b2b2b] truncate">
-                  Goddess Transport
+                  {owner?.name || "Goddess Transport"}
                 </span>
                 <span className="w-[10px] h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
-                <span className="font-montserrat font-normal text-[14px] text-[#538e53]">
-                  Follow
-                </span>
+                <button
+                  type="button"
+                  onClick={handleFollowToggle}
+                  disabled={!ownerId || isFollowPending}
+                  className={`cursor-pointer font-montserrat font-normal text-[14px] transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    isFollowing ? "text-[#808080]" : "text-[#538e53]"
+                  }`}
+                >
+                  {isFollowPending
+                    ? "..."
+                    : isFollowing
+                      ? "Following"
+                      : "Follow"}
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-1.5">
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <StarIcon />
+                {[0, 1, 2, 3, 4].map((i) =>
+                  i < Math.round(owner?.rating ?? 4) ? (
+                    <YellowStarIcon key={i} />
+                  ) : (
+                    <StarIcon key={i} />
+                  )
+                )}
                 <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                  4.0
+                  {(owner?.rating ?? 4).toFixed(1)}
                 </span>
               </div>
               <small className="font-montserrat font-normal text-[11px] text-[#2b2b2b] truncate">
-                700 followers
+                {owner?.followersCount ?? 700} followers
               </small>
-              <small className="font-montserrat font-normal text-[11px] text-[#2b2b2b] truncate">
-                Aba State
-              </small>
+              {owner?.state && (
+                <small className="font-montserrat font-normal text-[11px] text-[#2b2b2b] truncate">
+                  {owner.state}
+                </small>
+              )}
             </div>
           </div>
         </div>

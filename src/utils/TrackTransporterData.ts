@@ -9,6 +9,8 @@ export interface TransporterData {
   amount: string;
   date: string;
   checked: boolean;
+  /** Live trip status (loaded/picked/on_transit/delivered…), shown as a badge. */
+  status?: string;
 }
 
 export interface transporterDataProps {
@@ -19,6 +21,8 @@ export interface transporterDataProps {
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  /** Row click opens the full trip-detail dialog. */
+  onRowClick?: (id: string) => void;
 }
 
 export const TrackTransporterData: TransporterData[] = [

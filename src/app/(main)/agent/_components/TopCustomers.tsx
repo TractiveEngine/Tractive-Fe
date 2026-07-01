@@ -1,54 +1,8 @@
+"use client";
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-// Define the customer data type
-interface Customer {
-  id: number;
-  name: string;
-  image: string;
-  location: string;
-  orders: number;
-}
-
-// Sample customer data with Nigerian states
-const customers: Customer[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    image: "/images/bidder1.png",
-    location: "Lagos",
-    orders: 42,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    image: "/images/bidder1.png",
-    location: "Abuja",
-    orders: 38,
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    image: "/images/bidder1.png",
-    location: "Rivers",
-    orders: 35,
-  },
-  {
-    id: 4,
-    name: "Bob Wilson",
-    image: "/images/bidder1.png",
-    location: "Kano",
-    orders: 29,
-  },
-  {
-    id: 5,
-    name: "Emma Brown",
-    image: "/images/bidder1.png",
-    location: "Oyo",
-    orders: 25,
-  },
-];
+import { useAgentTopCustomers } from "@/hooks/queries/useAgentDashboardQueries";
 
 // Framer Motion variants for table animation
 const tableVariants = {
@@ -69,7 +23,33 @@ const rowVariants = {
   visible: { opacity: 1, x: 0 },
 };
 
+const thClass =
+  "px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider";
+
+const SkeletonRows = () => (
+  <>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <tr key={i}>
+        <td className="px-4 py-1.5 whitespace-nowrap">
+          <div className="flex items-center gap-2">
+            <span className="h-[25px] w-[25px] rounded-full bg-[#ececec] animate-pulse" />
+            <span className="h-3 w-24 rounded bg-[#ececec] animate-pulse" />
+          </div>
+        </td>
+        <td className="px-4 py-1.5">
+          <span className="block h-3 w-16 rounded bg-[#ececec] animate-pulse" />
+        </td>
+        <td className="px-4 py-1.5">
+          <span className="block h-3 w-8 rounded bg-[#ececec] animate-pulse" />
+        </td>
+      </tr>
+    ))}
+  </>
+);
+
 export const TopCustomers: React.FC = () => {
+  const { data: customers, isLoading, isError } = useAgentTopCustomers(5);
+
   return (
     <div className="w-full bg-[#fefefe] shadow-md rounded-[6px] overflow-hidden">
       <h2 className="font-montserrat text-[#2b2b2b] text-[12px] p-2 rounded-tl-[6px] rounded-br-[6px] font-medium mb-4 bg-[#EFCEB780] flex items-center justify-center w-[40%]">
@@ -84,46 +64,55 @@ export const TopCustomers: React.FC = () => {
         <table className="min-w-full shadow-md rounded-lg overflow-hidden">
           <thead className="border-b border-[#e2e2e2]">
             <tr>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Name
-              </th>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Location
-              </th>
-              <th className="px-4 py-1 text-left text-[11px] font-normal font-montserrat text-[#808080] capitalize tracking-wider">
-                Orders
-              </th>
+              <th className={thClass}>Name</th>
+              <th className={thClass}>Location</th>
+              <th className={thClass}>Orders</th>
             </tr>
           </thead>
           <tbody>
-            {customers.map((customer) => (
-              <motion.tr
-                key={customer.id}
-                variants={rowVariants}
-                className="hover:bg-gray-50 transition-colors duration-200"
-              >
-                <td className="px-4 py-1 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={customer.image}
-                      alt={customer.name}
-                      width={30}
-                      height={30}
-                      className="h-[25px] w-[25px] rounded-full object-cover"
-                    />
-                    <span className="text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                      {customer.name}
-                    </span>
-                  </div>
+            {isLoading ? (
+              <SkeletonRows />
+            ) : isError || !customers?.length ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 py-6 text-center text-[11px] font-montserrat text-[#808080]"
+                >
+                  {isError ? "Couldn't load top customers." : "No customers yet."}
                 </td>
-                <td className="px-4 py-1 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                  {customer.location}
-                </td>
-                <td className="px-4 py-1 bg-[#f1f1f1] flex items-center justify-center rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
-                  {customer.orders}
-                </td>
-              </motion.tr>
-            ))}
+              </tr>
+            ) : (
+              customers.map((customer) => (
+                <motion.tr
+                  key={customer.id}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <td className="px-4 py-1 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={customer.image || "/images/bidder1.png"}
+                        alt={customer.name}
+                        width={30}
+                        height={30}
+                        className="h-[25px] w-[25px] rounded-full object-cover"
+                      />
+                      <span className="text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                        {customer.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-1 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                    {customer.location}
+                  </td>
+                  <td className="px-4 py-1 bg-[#f1f1f1] flex items-center justify-center rounded-[4px] mt-1.5 mr-1.5 whitespace-nowrap text-[10.5px] font-montserrat font-normal text-[#2b2b2b]">
+                    {customer.ordersCount}
+                  </td>
+                </motion.tr>
+              ))
+            )}
           </tbody>
         </table>
       </motion.div>

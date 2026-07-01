@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { LoaderIcon } from "@/icons/Icons";
 
 interface Seller {
+  id: string;
   name: string;
   image: string;
   rating: number;
@@ -16,8 +17,8 @@ interface Seller {
 interface TopSellersProps {
   topSellers: Seller[];
   loadingStates: Record<string, boolean>;
-  isFollowing: (sellerName: string) => boolean;
-  toggleFollow: (sellerName: string) => Promise<void>;
+  isFollowing: (sellerId: string) => boolean;
+  toggleFollow: (sellerId: string, sellerName?: string) => Promise<void>;
   renderStars: (rating: number) => React.ReactNode[];
 }
 
@@ -64,28 +65,28 @@ export const TopSellers: React.FC<TopSellersProps> = ({
             
             <button
               onClick={() => {
-                if (isFollowing(seller.name)) {
-                  toggleFollow(seller.name);
+                if (isFollowing(seller.id)) {
+                  toggleFollow(seller.id, seller.name);
                 } else {
                   router.push(`/buyer/sellers-list/${seller.storeLink.split('/').pop()}`);
                 }
               }}
-              disabled={loadingStates[seller.name]}
+              disabled={loadingStates[seller.id]}
               className={`
                 relative overflow-hidden rounded-[4px] px-3 py-2 text-[0.8rem] font-normal
                 border-[2px] border-[#538E53] transition-all duration-300 ease-in-out
                 flex items-center justify-center min-w-[5.5rem]
-                ${loadingStates[seller.name]
+                ${loadingStates[seller.id]
                   ? "bg-gray-200 border-gray-300 cursor-not-allowed text-gray-400"
-                  : isFollowing(seller.name)
+                  : isFollowing(seller.id)
                     ? "bg-[#538E53] text-white hover:bg-[#3b753b] hover:border-[#3b753b] hover:shadow-md hover:scale-[1.03]"
                     : "bg-transparent text-[#538E53] hover:bg-[#538E53] hover:text-white hover:shadow-md hover:scale-[1.03]"
                 }
               `}
             >
-              {loadingStates[seller.name] ? (
+              {loadingStates[seller.id] ? (
                 <Loader />
-              ) : isFollowing(seller.name) ? (
+              ) : isFollowing(seller.id) ? (
                 "Following"
               ) : (
                 "Visit Store"

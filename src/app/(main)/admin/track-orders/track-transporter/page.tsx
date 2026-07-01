@@ -18,6 +18,15 @@ import {
   TrackTransporterInfoModal,
   TripInfoMode,
 } from "./_components/TrackTransporterInfoModal";
+import { TrackTransporterDetailModal } from "./_components/TrackTransporterDetailModal";
+import {
+  tripFleetIot,
+  tripFleetImage,
+  tripFleetName,
+  tripPrimaryBuyerName,
+  tripRoute,
+  tripTransporterName,
+} from "@/app/(main)/transporter/_components/tripHelpers";
 
 // Define types for slide switching
 type SlideType = "Picked" | "OnTransit" | "Delivered";
@@ -28,50 +37,28 @@ const TAB_TO_STATUS: Record<SlideType, FleetTripStatus> = {
   Delivered: "delivered",
 };
 
-const tripFleetName = (trip: FleetTripSummary): string => {
-  if (trip.fleet && typeof trip.fleet === "object") {
-    return trip.fleet.fleetName || trip.fleet.plateNumber || "Fleet";
-  }
-  return (trip.fleet as string) || "Fleet";
-};
-
-const tripFleetIot = (trip: FleetTripSummary): string => {
-  if (trip.fleet && typeof trip.fleet === "object") {
-    return trip.fleet.iot || trip.fleet.plateNumber || "—";
-  }
-  return "—";
-};
-
-const tripFleetImage = (trip: FleetTripSummary): string => {
-  if (trip.fleet && typeof trip.fleet === "object") {
-    return (
-      trip.fleet.image ||
-      (trip.fleet.images && trip.fleet.images[0]) ||
-      "/images/truckcontainer.png"
-    );
-  }
-  return "/images/truckcontainer.png";
-};
-
 const formatDate = (iso?: string) => {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-CA");
 };
 
+// Flatten a fleet-trip into the row shape the tracking table renders. The full
+// trip stays available via `tripById` for the detail/info dialogs.
 const tripToTransporterData = (trip: FleetTripSummary): TransporterData => {
   const id = (trip._id || trip.id || "") as string;
-  const buyer = trip.buyers?.[0];
+  const { from, to } = tripRoute(trip);
   return {
     id,
     IOT: tripFleetIot(trip),
     image: tripFleetImage(trip),
     title: tripFleetName(trip),
-    description: (trip.fromLocation || "") + " → " + (trip.toLocation || ""),
-    buyerName: buyer?.name || "—",
-    transporterName: tripFleetName(trip),
+    description: `${from} → ${to}`,
+    buyerName: tripPrimaryBuyerName(trip),
+    transporterName: tripTransporterName(trip),
     amount: "—",
     date: formatDate(trip.createdAt),
     checked: false,
+    status: trip.status,
   };
 };
 
@@ -129,6 +116,8 @@ export default function TrackTransporterPage() {
     mode: TripInfoMode;
     trip: FleetTripSummary;
   } | null>(null);
+  // Clicking a row opens the full trip-detail dialog (every field on the trip).
+  const [detailTrip, setDetailTrip] = useState<FleetTripSummary | null>(null);
 
   // State to track if all items in the active tab are checked
   const [allChecked, setAllChecked] = useState<boolean>(false);
@@ -234,6 +223,13 @@ export default function TrackTransporterPage() {
     if (trip) setInfoModal({ mode: "transporter", trip });
   };
 
+  // Row click → full trip detail (fleet, transporter, driver, buyers, packages,
+  // per-order status). The action menu's focused popups still work alongside it.
+  const handleRowDetail = (id: string) => {
+    const trip = tripById.get(id);
+    if (trip) setDetailTrip(trip);
+  };
+
   // Update the indicator position and width when activeTab changes
   useEffect(() => {
     const updateIndicator = () => {
@@ -270,6 +266,7 @@ export default function TrackTransporterPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleRowDetail}
         />
       ),
       OnTransit: (
@@ -281,6 +278,7 @@ export default function TrackTransporterPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleRowDetail}
         />
       ),
       Delivered: (
@@ -292,6 +290,7 @@ export default function TrackTransporterPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          onRowClick={handleRowDetail}
         />
       ),
     };
@@ -375,6 +374,13 @@ export default function TrackTransporterPage() {
           trip={infoModal.trip}
           mode={infoModal.mode}
           onClose={() => setInfoModal(null)}
+        />
+      )}
+
+      {detailTrip && (
+        <TrackTransporterDetailModal
+          trip={detailTrip}
+          onClose={() => setDetailTrip(null)}
         />
       )}
     </div>

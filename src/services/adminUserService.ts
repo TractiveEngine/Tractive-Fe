@@ -102,6 +102,11 @@ export interface AdminUserListParams {
   limit?: number;
   agentApprovalStatus?: AdminApprovalStatus;
   transporterApprovalStatus?: AdminApprovalStatus;
+  // Server-side filters (A10). `month` is 1–12, `year` is a 4-digit year,
+  // `state` is the Nigerian state name.
+  state?: string;
+  month?: number;
+  year?: string;
 }
 
 export interface AdminUserListResponse {
@@ -154,6 +159,9 @@ export const adminUserService = {
           ...(params.transporterApprovalStatus
             ? { transporterApprovalStatus: params.transporterApprovalStatus }
             : {}),
+          ...(params.state ? { state: params.state } : {}),
+          ...(params.month ? { month: params.month } : {}),
+          ...(params.year ? { year: params.year } : {}),
           page: params.page ?? 1,
           limit: params.limit ?? 10,
         },

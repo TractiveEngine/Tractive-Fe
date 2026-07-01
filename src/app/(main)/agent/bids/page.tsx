@@ -101,7 +101,7 @@ const bidsColumns: ColumnConfig<BidListing>[] = [
       <span className="text-[13px] font-normal font-montserrat text-[#2b2b2b]">
         {bid?.farmerName || (bid?.farmerId
           ? `Farmer ${bid?.farmerId?.substring(0, 6)}...`
-          : "Kelvin chikezie")}
+          : "—")}
       </span>
     ),
   },

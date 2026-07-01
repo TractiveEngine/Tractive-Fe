@@ -1,81 +1,21 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-
-// Define the product data type
-interface MostHiredDriversProps {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-}
-
-// Sample data for 7 out-of-stock products
-const MostHiredDrivers: MostHiredDriversProps[] = [
-  {
-    id: 1,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 2,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 3,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 4,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 5,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 6,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-  {
-    id: 7,
-    name: "Heavy container",
-    description: "40 fit container",
-    image: "/images/truckcontainer.png",
-  },
-];
+import { useTransporterMostHired } from "@/hooks/queries/useTransporterDashboardQueries";
 
 export const MostHired: React.FC = () => {
-  const [displayedDrivers, setDisplayedDrivers] = useState(MostHiredDrivers);
+  const { data, isLoading, isError } = useTransporterMostHired(7);
+  // On lg screens the column is short, so cap at 4 rows; show all otherwise.
+  const [limit, setLimit] = useState(7);
 
   useEffect(() => {
-    const updateDisplayedDrivers = () => {
-      // Tailwind's lg breakpoint is 1024px
-      if (window.innerWidth <= 1024) {
-        setDisplayedDrivers(MostHiredDrivers.slice(0, 4)); // Show only 4 items on lg screens
-      } else {
-        setDisplayedDrivers(MostHiredDrivers); // Show all items on smaller screens
-      }
-    };
-
-    // Run on mount and on window resize
-    updateDisplayedDrivers();
-    window.addEventListener("resize", updateDisplayedDrivers);
-
-    // Cleanup listener on unmount
-    return () => window.removeEventListener("resize", updateDisplayedDrivers);
+    const update = () => setLimit(window.innerWidth <= 1024 ? 4 : 7);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
+
+  const drivers = (data ?? []).slice(0, limit);
 
   return (
     <div className="w-full rounded-[4px]">
@@ -84,32 +24,51 @@ export const MostHired: React.FC = () => {
       </h2>
 
       <div className="flex flex-col gap-2.5">
-        {displayedDrivers.map((driver) => (
-          <div
-            key={driver.id}
-            className="w-full flex items-center justify-between px-4 pb-5 lg:pb-1"
-          >
-            <div className="flex items-center gap-[5px]">
-              <div className="bg-[#f1f1f1] flex items-center w-[60px] h-[44px] px-[8px] justify-center rounded-[4px] gap-[5px]">
-                <Image
-                  src={driver.image}
-                  alt={driver.name}
-                  width={43}
-                  height={27}
-                  className=""
-                />
-              </div>
-              <div className="flex flex-col gap-[8px]">
-                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-                  {driver.name}
-                </span>
-                <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
-                  {driver.description}
-                </span>
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-full flex items-center gap-[5px] px-4 pb-5 lg:pb-1"
+            >
+              <span className="w-[60px] h-[44px] rounded-[4px] bg-[#ececec] animate-pulse" />
+              <div className="flex flex-col gap-2">
+                <span className="block h-2.5 w-24 rounded bg-[#ececec] animate-pulse" />
+                <span className="block h-2.5 w-32 rounded bg-[#ececec] animate-pulse" />
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : isError || !drivers.length ? (
+          <p className="px-4 py-8 text-center text-[11px] font-montserrat text-[#808080]">
+            {isError ? "Couldn't load most hired." : "No hires yet."}
+          </p>
+        ) : (
+          drivers.map((driver) => (
+            <div
+              key={driver.id}
+              className="w-full flex items-center justify-between px-4 pb-5 lg:pb-1"
+            >
+              <div className="flex items-center gap-[5px]">
+                <div className="bg-[#f1f1f1] flex items-center w-[60px] h-[44px] px-[8px] justify-center rounded-[4px] gap-[5px]">
+                  <Image
+                    src={driver.image || "/images/truckcontainer.png"}
+                    alt={driver.name}
+                    width={43}
+                    height={27}
+                    className=""
+                  />
+                </div>
+                <div className="flex flex-col gap-[8px]">
+                  <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
+                    {driver.name}
+                  </span>
+                  <span className="font-montserrat text-[#2b2b2b] text-[12px] font-normal">
+                    {driver.description}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

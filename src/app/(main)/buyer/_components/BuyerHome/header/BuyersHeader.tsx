@@ -3,12 +3,15 @@ import React, { useState } from "react";
 import { StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useFollowing } from "@/hooks/followingContext";
 import { useGetTopSellers } from "@/hooks/queries/useUserQueries";
+import { useCategories } from "@/hooks/queries/useCategoryQueries";
+import { useBanners } from "@/hooks/queries/useBannerQueries";
 import { Categories } from "./categories";
 import { ImageSlider } from "./ImagesSlider";
 import { TopSellers } from "./TopSellers";
 
-// Placeholder images (replace with actual image paths)
-const sliderImages = [
+// Fallback images used only when the banners endpoint returns nothing, so the
+// slider is never empty.
+const fallbackSliderImages = [
   "/images/buyer1.png",
   "/images/buyer2.png",
   "/images/buyer3.png",
@@ -38,6 +41,12 @@ export const BuyersHeader: React.FC = () => {
   // Use the FollowingContext
   const { loadingStates, isFollowing, toggleFollow } = useFollowing();
 
+  // Homepage banners (B3) — fall back to local images if none returned.
+  const { data: banners = [] } = useBanners();
+  const sliderImages = banners.length
+    ? banners.map((b) => b.imageUrl)
+    : fallbackSliderImages;
+
   // Fetch top sellers
   const { data: topSellersResponse } = useGetTopSellers();
   const rawTopSellers = topSellersResponse?.data || [];
@@ -45,30 +54,23 @@ export const BuyersHeader: React.FC = () => {
   // Map API response to expected Seller format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const topSellers = rawTopSellers.map((seller: any) => ({
+    id: seller.sellerId || seller._id || seller.id,
     name: seller.name,
     image: seller.image || "/images/sellersProfiles.png",
     rating: seller.rating || 0,
     storeLink: `/store/${seller.sellerId || seller._id}`,
   }));
 
-  // Categories and their subcategories
-  const categories = [
-    "Grains",
-    "Fish",
-    "Tubers",
-    "legumes",
-    "livestocks",
-    "Vegetables",
-  ] as const;
+  // Categories and their subcategories (shared reference data — §7.2)
+  const { data: apiCategories = [] } = useCategories();
 
-  const subCategories: Record<(typeof categories)[number], string[]> = {
-    Grains: ["Rice", "Maize", "Wheat", "Barley"],
-    Fish: ["Rice", "Maize", "Wheat", "Barley"],
-    Tubers: ["Rice", "Maize", "Wheat", "Barley"],
-    legumes: ["Rice", "Maize", "Wheat", "Barley"],
-    livestocks: ["Rice", "Maize", "Wheat", "Barley"],
-    Vegetables: ["Rice", "Maize", "Wheat", "Barley"],
-  };
+  const categories: string[] = apiCategories.map((c) => c.name);
+
+  // Keyed by category name so `subCategories[name]` always resolves to an
+  // array (the Categories child reads `.length` directly).
+  const subCategories: Record<string, string[]> = Object.fromEntries(
+    apiCategories.map((c) => [c.name, c.subcategories.map((s) => s.name)]),
+  );
 
   // Render star rating
   const renderStars = (rating: number) => {

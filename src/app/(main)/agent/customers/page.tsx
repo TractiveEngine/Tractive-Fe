@@ -44,6 +44,7 @@ const customerColumns: ColumnConfig<Customer>[] = [
     header: "State",
     key: "state",
     minWidth: "min-w-[100px]",
+    render: (customer) => customer.state || "—",
   },
   {
     header: "Revenue",
@@ -70,6 +71,14 @@ const customerColumns: ColumnConfig<Customer>[] = [
     header: "Date",
     key: "date",
     minWidth: "min-w-[100px]",
+    render: (customer) =>
+      customer.date
+        ? new Date(customer.date).toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "—",
   },
 ];
 
@@ -205,17 +214,16 @@ export default function CustomersListPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleCustomerInfo = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const customer = await CustomerService.getCustomerProfile(id);
+  // Open the details modal straight from the row the user clicked. The list
+  // response already carries every customer field, so there's no need to hit
+  // `/api/customers/{id}` (which currently errors) just to re-fetch the same data.
+  const handleCustomerInfo = (id: string) => {
+    const customer = customersData.find((c) => c.id === id);
+    if (customer) {
       setSelectedCustomer(customer);
       setIsCustomerInfoOpen(true);
-    } catch (err) {
-      console.error("Error fetching customer profile:", err);
-      toast.error("Failed to load customer information");
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast.error("Customer details are not available");
     }
   };
 
@@ -442,6 +450,7 @@ export default function CustomersListPage() {
                 columns={customerColumns}
                 initialData={customersData}
                 ActionMenuComponent={CustomerActionMenu}
+                handleView={handleCustomerInfo}
                 handleCustomerInfo={handleCustomerInfo}
                 handleSupport={handleSupport}
               />

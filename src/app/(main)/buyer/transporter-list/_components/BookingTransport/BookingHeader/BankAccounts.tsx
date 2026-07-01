@@ -1,36 +1,37 @@
 "use client";
-import Image from "next/image";
 import React, { useState } from "react";
 import { MdCheck } from "react-icons/md";
 import { AnimatePresence, motion } from "framer-motion";
 import { CopyIcon } from "@/icons/Icon1";
+import { useBankAccounts } from "@/hooks/queries/usePaymentQueries";
+import type { BankAccount } from "@/services/paymentService";
 
-const accounts = [
-  {
-    bank: "Access Bank",
-    image: "/images/Access.png",
-    number: "1218509781",
-  },
-  {
-    bank: "Zenith Bank",
-    image: "/images/Zenith.png",
-    number: "1218509781",
-  },
-  {
-    bank: "UBA Bank",
-    image: "/images/UBA.png",
-    number: "1218509781",
-  },
-  {
-    bank: "Zenith Bank",
-    image: "/images/Zenith.png",
-    number: "1218509781",
-  },
-];
+// Plain <img> (not next/image) so admin-supplied logo URLs from any host — and
+// SVGs — render without a remotePatterns whitelist. Falls back to the bank's
+// initials if the URL is missing or fails to load.
+const BankLogo = ({ account }: { account: BankAccount }) => {
+  const [errored, setErrored] = useState(false);
+  const showImage = !!account.logoUrl && !errored;
+  return showImage ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={account.logoUrl as string}
+      alt={account.bank}
+      onError={() => setErrored(true)}
+      className="w-9 h-9 rounded-full object-contain shrink-0 bg-white"
+    />
+  ) : (
+    <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-full bg-[#CCE5CC80] text-[#2b2b2b] font-montserrat font-semibold text-[12px]">
+      {(account.bank || "?").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
 
 export const BankAccounts = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  const { data: accounts = [], isLoading, isError } = useBankAccounts();
 
   const handleCopy = async (number: string, index: number) => {
     try {
@@ -47,35 +48,48 @@ export const BankAccounts = () => {
       <div className="">
         <div className="w-full flex flex-col gap-[0.1rem] justify-center">
 
-          <div className="flex flex-col gap-3 items-center w-[100%]">
+          <div className="flex flex-col gap-2 items-center w-full">
+            {isLoading && (
+              <p className="text-[#808080] font-montserrat text-[12px] py-2">
+                Loading bank accounts…
+              </p>
+            )}
+            {!isLoading && isError && (
+              <p className="text-[#c0392b] font-montserrat text-[12px] py-2">
+                Couldn&apos;t load bank accounts. Please try again.
+              </p>
+            )}
+            {!isLoading && !isError && accounts.length === 0 && (
+              <p className="text-[#808080] font-montserrat text-[12px] py-2">
+                No bank accounts available.
+              </p>
+            )}
             {accounts.map((account, index) => (
               <div
-                key={account.bank}
-                className="relative flex items-center w-[100%] p-3 border-[1px] border-[#2b2b2b] rounded-[4px] gap-[10px]"
+                key={account.id}
+                className="relative flex items-center w-full p-2.5 border border-[#e2e2e2] rounded-md gap-2.5"
               >
-                <div>
-                  <Image
-                    src={account.image}
-                    alt={account.bank}
-                    width={50}
-                    height={40}
-                  />
-                </div>
+                <BankLogo account={account} />
 
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[#2b2b2b] font-montserrat text-[12px] font-normal text-left">
-                    Agrictech.com.ng
-                  </p>
+                <div className="flex justify-between items-center w-full min-w-0 gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-[#2b2b2b] font-montserrat text-[12px] font-medium truncate">
+                      {account.bank}
+                    </p>
+                    <p className="text-[#808080] font-montserrat text-[11px] font-normal truncate">
+                      {account.accountName}
+                    </p>
+                  </div>
 
-                  <div className="relative flex items-center gap-[10px]">
-                    <p className="text-[#2b2b2b] font-montserrat text-[12px]">
-                      {account.number}
+                  <div className="relative flex items-center gap-2 shrink-0">
+                    <p className="text-[#2b2b2b] font-montserrat text-[12px] font-medium">
+                      {account.accountNumber}
                     </p>
 
                     <motion.div
                       onMouseEnter={() => setHoverIndex(index)}
                       onMouseLeave={() => setHoverIndex(null)}
-                      onClick={() => handleCopy(account.number, index)}
+                      onClick={() => handleCopy(account.accountNumber, index)}
                       whileTap={{ scale: 1.2 }}
                       className="cursor-pointer text-[#2b2b2b] relative"
                     >

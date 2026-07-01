@@ -10,12 +10,18 @@ import { TableList } from "./TableList";
 import { ActionMenuProps } from "../ActionMenuProps";
 import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../produce-list/_components/table/ProductRow";
-import { Order, OrdersApiService, mapOrderRecord } from "@/services/OrderService";
+import {
+  Order,
+  OrderRecord,
+  OrdersApiService,
+  mapOrderRecord,
+} from "@/services/OrderService";
 import {
   useOrders,
   orderKeys,
 } from "@/hooks/queries/useOrderQueries";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { OrderDetailsModal } from "../OrderDetailsModal";
 
 interface ColumnConfig<T> {
   header: string;
@@ -80,7 +86,7 @@ const productColumns: ColumnConfig<Order>[] = [
     key: "amount",
     minWidth: "min-w-[100px]",
     render: (product) =>
-      typeof product.amount === "number" ? `$${product.amount.toFixed(2)}` : "—",
+      typeof product.amount === "number" ? `₦${product.amount.toFixed(2)}` : "—",
   },
   {
     header: "Buyer",
@@ -154,6 +160,9 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
   const [products, setProducts] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  // Full order-details modal — opened from the row action menu. Reuses the raw
+  // record already cached by the list query (no extra fetch).
+  const [detailsOrder, setDetailsOrder] = useState<OrderRecord | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -218,8 +227,13 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Open the full order-details modal for the clicked row, sourcing the raw
+  // record from the cached list so every backend field is available.
   const handleBuyerInfo = (id: string) => {
-    alert(`View buyer info for product ID: ${id}`);
+    const record = Array.isArray(queryData)
+      ? queryData.find((o) => (o._id ?? o.id) === id)
+      : undefined;
+    if (record) setDetailsOrder(record);
   };
 
   // Advance the order to its next status, then refresh every order list
@@ -453,6 +467,12 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
           />
         </div>
       )}
+
+      <OrderDetailsModal
+        order={detailsOrder}
+        isOpen={detailsOrder !== null}
+        onClose={() => setDetailsOrder(null)}
+      />
     </div>
   );
 };

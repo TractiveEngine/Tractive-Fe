@@ -76,6 +76,34 @@ const BookingTransport: React.FC = () => {
 
   const selectedImage = allImages[selectedImageIndex] || allImages[0];
 
+  // Resolve the fleet owner (transporter) for the Follow button. The truck
+  // detail may carry it as `transporter`/`owner`/`user` — an object or a bare id
+  // — so we read it defensively.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawTruck = apiTruck as any;
+  const ownerSource =
+    rawTruck?.transporter ?? rawTruck?.owner ?? rawTruck?.user ?? null;
+  const ownerObj =
+    ownerSource && typeof ownerSource === "object" ? ownerSource : null;
+  const ownerId =
+    (typeof ownerSource === "string" ? ownerSource : ownerObj?._id ?? ownerObj?.id) ??
+    rawTruck?.transporterId ??
+    rawTruck?.ownerId ??
+    rawTruck?.userId;
+  const owner = ownerId
+    ? {
+        id: ownerId as string,
+        name: ownerObj?.businessName ?? ownerObj?.name,
+        image: ownerObj?.image,
+        rating:
+          ownerObj?.rating ??
+          (rawTruck?.rating ? Number(rawTruck.rating) : undefined),
+        followersCount: ownerObj?.followersCount,
+        state: ownerObj?.state ?? ownerObj?.location,
+        isFollowing: ownerObj?.isFollowing,
+      }
+    : undefined;
+
   return (
     <div className="w-[90%] mx-auto py-6 flex flex-col gap-3.5">
       {pendingOrderIds.length > 0 && (
@@ -123,7 +151,7 @@ const BookingTransport: React.FC = () => {
       />
       <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
         <TruckInfo item={effectiveTruckItem} apiTruck={apiTruck} />
-        <OwnersInfo />
+        <OwnersInfo owner={owner} />
       </div>
       <SimilarFleet />
     </div>

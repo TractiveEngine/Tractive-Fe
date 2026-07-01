@@ -5,6 +5,7 @@ import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   useMarkAllNotificationsRead,
+  useMarkNotificationRead,
   useNotifications,
 } from "@/hooks/queries/useNotificationQueries";
 import type { AppNotification } from "@/services/notificationService";
@@ -33,133 +34,122 @@ const formatTime = (iso: string) => {
 };
 
 export const Notifications = () => {
-  const { data: notifications = [], isLoading, isError } = useNotifications();
+  const { data, isLoading, isError } = useNotifications();
+  const notifications = data?.notifications ?? [];
   const { mutate: markAllRead, isPending: isMarking } =
     useMarkAllNotificationsRead();
+  const { mutate: markRead } = useMarkNotificationRead();
 
-  const hasUnread = notifications.some((n) => !n.isRead);
+  const unreadCount = data?.unreadCount ?? 0;
+  const hasUnread = unreadCount > 0;
 
   return (
-    <div className="w-full flex flex-col gap-4 max-h-[500px] overflow-y-auto">
-      <style jsx>{`
-        .custom-AllRadio {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border: 1px solid #538e53;
-          border-radius: 50%;
-          position: relative;
-          cursor: pointer;
-        }
-        .custom-AllRadio:checked::before {
-          content: "";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 12px;
-          height: 12px;
-          background-color: #538e53;
-          border-radius: 50%;
-        }
-        .custom-AllRadio:checked {
-          border-color: #538e53;
-        }
-      `}</style>
-
-      <div className="flex items-center justify-between px-5 pt-1">
-        <p className="font-montserrat font-medium text-[14px] text-[#2b2b2b]">
-          Notifications
-        </p>
+    <div className="flex flex-col max-h-[70vh] sm:max-h-[500px]">
+      {/* Header — sticky so "Mark all as read" stays reachable while scrolling */}
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-[#e2e2e2] bg-[#fefefe] px-4 sm:px-5 py-3">
+        <div className="flex items-center gap-2">
+          <p className="font-montserrat font-semibold text-[14px] text-[#2b2b2b]">
+            Notifications
+          </p>
+          {hasUnread && (
+            <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#538e53] px-1 text-[10px] font-medium text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => markAllRead()}
           disabled={!hasUnread || isMarking}
-          className="flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer whitespace-nowrap font-montserrat text-[12px] font-medium text-[#538e53] hover:underline disabled:cursor-not-allowed disabled:text-[#a0a0a0] disabled:no-underline"
         >
-          <input
-            type="checkbox"
-            className="custom-AllRadio pointer-events-none"
-            checked={!hasUnread}
-            readOnly
-          />
-          <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            Mark all as read
-          </span>
+          Mark all as read
         </button>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="w-5 h-5 border-2 border-[#538e53] border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : isError ? (
-        <div className="px-5 py-6 text-center text-[#808080] font-montserrat text-[13px]">
-          Couldn&apos;t load notifications. Try again later.
-        </div>
-      ) : notifications.length === 0 ? (
-        <div className="px-5 py-6 text-center text-[#808080] font-montserrat text-[13px]">
-          You&apos;re all caught up.
-        </div>
-      ) : (
-        notifications.map((n: AppNotification, index) => {
-          const title = n.title || n.type || "Notification";
-          const time = formatTime(n.createdAt);
-          const category = n.type || "";
-          const body = (
-            <div className="flex flex-col px-5 pt-5">
-              <div className="flex flex-col sm:flex-row gap-[19px]">
-                <div className="flex flex-col gap-6 min-w-0 flex-1">
-                  <div className="flex flex-col gap-2">
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#538e53] border-t-transparent" />
+          </div>
+        ) : isError ? (
+          <div className="px-5 py-10 text-center font-montserrat text-[13px] text-[#808080]">
+            Couldn&apos;t load notifications. Try again later.
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="px-5 py-10 text-center font-montserrat text-[13px] text-[#808080]">
+            You&apos;re all caught up.
+          </div>
+        ) : (
+          <ul className="divide-y divide-[#f0f0f0]">
+            {notifications.map((n: AppNotification) => {
+              const title = n.title || n.type || "Notification";
+              const time = formatTime(n.createdAt);
+              const category = n.type || "";
+              const content = (
+                <div className="flex gap-3 px-4 sm:px-5 py-4">
+                  {/* Unread accent dot — keeps a stable width so text aligns */}
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      n.isRead ? "bg-transparent" : "bg-[#538e53]"
+                    }`}
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <p
-                      className={`font-montserrat font-medium text-[13.6px] ${toneForTitle(title)}`}
+                      className={`font-montserrat text-[13px] font-medium ${toneForTitle(
+                        title,
+                      )}`}
                     >
                       {title}
                     </p>
-                    <p className="font-montserrat font-normal text-[12px] sm:text-[13.6px] text-[#2b2b2b]">
-                      {n.message}
-                    </p>
+                    {n.message && (
+                      <p className="font-montserrat text-[12.5px] font-normal text-[#4b4b4b]">
+                        {n.message}
+                      </p>
+                    )}
+                    <span className="font-montserrat text-[11.5px] font-normal text-[#909090]">
+                      {time}
+                      {category ? ` · ${category}` : ""}
+                    </span>
                   </div>
-                  <span className="font-montserrat font-normal text-[12.5px] sm:text-[13px] text-[#808080]">
-                    {time}
-                    {category ? ` · ${category}` : ""}
-                  </span>
+                  {n.image && (
+                    <Image
+                      src={n.image}
+                      alt={title}
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 shrink-0 rounded-[6px] object-cover"
+                    />
+                  )}
                 </div>
-                {n.image && (
-                  <Image
-                    src={n.image}
-                    alt={title}
-                    width={135}
-                    height={144}
-                    className="w-full h-auto max-w-[135px] max-h-[144px] object-cover"
-                  />
-                )}
-              </div>
-            </div>
-          );
+              );
 
-          return (
-            <React.Fragment key={n._id}>
-              <div
-                className={`w-full min-w-0 ${
-                  n.isRead ? "bg-[#f1f1f1]" : "bg-[#fefefe]"
-                }`}
-              >
-                {n.link ? (
-                  <Link href={n.link} className="block hover:bg-[#f6f6f6]">
-                    {body}
-                  </Link>
-                ) : (
-                  body
-                )}
-              </div>
-              {index < notifications.length - 1 && (
-                <div className="w-full h-[1px] border-t-[1px] border-[#e2e2e2]"></div>
-              )}
-            </React.Fragment>
-          );
-        })
-      )}
+              return (
+                <li
+                  key={n._id}
+                  className={n.isRead ? "bg-[#fafafa]" : "bg-[#fefefe]"}
+                >
+                  <div
+                    onClick={() => {
+                      if (!n.isRead) markRead(n._id);
+                    }}
+                    className="cursor-pointer transition-colors hover:bg-[#f5f7f5]"
+                  >
+                    {n.link ? (
+                      <Link href={n.link} className="block">
+                        {content}
+                      </Link>
+                    ) : (
+                      content
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 import { TransporterMobileNavbar } from "./TransporterMobileNavbar";
 import ProfileDropDown from "../../../components/Profile_dropdowns/ProfileDropDown/ProfileDropDown";
+import { useNotifications } from "@/hooks/queries/useNotificationQueries";
 
 export const TransporterNavbar = () => {
   const pathname = usePathname();
@@ -16,7 +17,10 @@ export const TransporterNavbar = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
+
+  const { data: notificationsData } = useNotifications(isLoggedIn);
+  const unreadCount = notificationsData?.unreadCount ?? 0;
+  const hasUnread = unreadCount > 0;
 
   const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -26,23 +30,6 @@ export const TransporterNavbar = () => {
     { href: "/about-us", label: "About Us" },
     { href: "/contact-us", label: "Contact Us" },
   ];
-
-  useEffect(() => {
-    const fetchNotificationsAndBids = async () => {
-      // Mock API call for notifications and bids
-      const mockNotifications = [
-        { id: 1, message: "You have a new message" },
-        { id: 2, message: "Order #456 updated" },
-      ];
-
-      // Update states based on mock data
-      setHasNotifications(mockNotifications.length > 0);
-    };
-
-    if (isLoggedIn) {
-      fetchNotificationsAndBids();
-    }
-  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -131,25 +118,19 @@ export const TransporterNavbar = () => {
                 <div className="relative flex items-center gap-[0.5rem] md:gap-[3rem] lg:gap-[5rem]">
                   {/* ===================== Notification icon ========================= */}
                   <div
-                    className="relative"
+                    className="relative cursor-pointer"
                     onClick={handleNotificationClick}
                     ref={notificationRef}
                   >
                     <NotificationIcon />
-                    {hasNotifications && (
-                      <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
+                    {hasUnread && (
+                      <span className="absolute -top-1 -right-1 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-[#d32f2f] px-1 text-[9px] font-medium text-white">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
                     )}
                     {isNotificationOpen && (
-                      <div className="absolute top-10 left-0 sm:-left-[2rem] md:-left-[5rem] lg:-left-[10rem] w-[90vw] max-w-[400px] sm:max-w-[450px] md:max-w-[500px] min-w-[300px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
-                        <ul className="py-2">
-                          {hasNotifications ? (
-                            <Notifications />
-                          ) : (
-                            <li className="px-4 py-2 text-[0.89rem] text-gray-500">
-                              No new notifications
-                            </li>
-                          )}
-                        </ul>
+                      <div className="absolute top-9 right-0 z-20 w-[92vw] max-w-[420px] overflow-hidden rounded-[8px] border border-[#e2e2e2] bg-[#fefefe] shadow-lg">
+                        <Notifications />
                       </div>
                     )}
                   </div>

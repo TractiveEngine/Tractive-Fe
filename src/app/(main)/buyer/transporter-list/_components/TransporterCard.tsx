@@ -13,8 +13,13 @@ interface TransporterCardProps {
   rateStatus: string;
   transporterYear: string;
   customerNumber: number;
+  coverageStates?: string[];
+  customersCount?: number;
   transporterBio: string;
 }
+
+// Nigeria has 36 states + FCT; treat full coverage as "All States".
+const NIGERIA_STATE_COUNT = 37;
 
 export const TransporterCard: React.FC<TransporterCardProps> = ({
   id,
@@ -24,8 +29,19 @@ export const TransporterCard: React.FC<TransporterCardProps> = ({
   rateStatus,
   transporterYear,
   customerNumber,
+  coverageStates,
+  customersCount,
   transporterBio,
 }) => {
+  const coverageLabel =
+    !coverageStates || coverageStates.length === 0
+      ? "All States"
+      : coverageStates.length >= NIGERIA_STATE_COUNT
+        ? "All States"
+        : coverageStates.length === 1
+          ? coverageStates[0]
+          : `${coverageStates.length} States`;
+
   return (
     <div className="border-[1px] border-[#808080] w-full rounded-lg h-fit">
       <div className="flex flex-col justify-center w-full p-3 rounded-lg">
@@ -61,10 +77,10 @@ export const TransporterCard: React.FC<TransporterCardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-[5px]">
+          <div className="flex items-center gap-[5px] flex-wrap">
             <div className="flex items-center bg-[#CCE5CC80] w-fit py-[2px] px-2 rounded-[100px] justify-center gap-1">
               <p className="font-montserrat font-normal text-[10px] text-[#2b2b2b]">
-                All States
+                {coverageLabel}
               </p>
             </div>
             <div className="flex items-center bg-[#F7DFFF80] w-fit py-[2px] px-2 rounded-[100px] justify-center gap-1">
@@ -72,6 +88,13 @@ export const TransporterCard: React.FC<TransporterCardProps> = ({
                 {customerNumber} fleets
               </p>
             </div>
+            {typeof customersCount === "number" && (
+              <div className="flex items-center bg-[#FFF3D6] w-fit py-[2px] px-2 rounded-[100px] justify-center gap-1">
+                <p className="font-montserrat font-normal text-[10px] text-[#2b2b2b]">
+                  {customersCount} {customersCount === 1 ? "customer" : "customers"}
+                </p>
+              </div>
+            )}
           </div>
           <p className="font-montserrat mt-2 font-normal text-[11px] text-[#2b2b2b]">
             {transporterBio}

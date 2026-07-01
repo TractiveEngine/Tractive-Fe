@@ -264,10 +264,23 @@ const formatOrderDate = (raw?: string): string => {
   return d.toISOString().split("T")[0];
 };
 
+/**
+ * The agent UI labels the packed / ready-for-transport tab "parked", but the
+ * backend order `status` enum calls that state "paid". Translate the FE label
+ * to the API value when sending it, and back when reading it, so the UI keeps
+ * its own vocabulary without the backend ever seeing an unknown status.
+ */
+const FE_TO_API_STATUS: Record<string, string> = { parked: "paid" };
+
+export const toApiOrderStatus = (status?: string): string | undefined =>
+  status ? FE_TO_API_STATUS[status] ?? status : undefined;
+
 const normalizeOrderStatus = (
   status?: string,
 ): "pending" | "parked" | "delivered" => {
-  if (status === "parked" || status === "delivered") return status;
+  if (status === "delivered") return "delivered";
+  // Backend "paid" == UI "parked".
+  if (status === "parked" || status === "paid") return "parked";
   return "pending";
 };
 
@@ -278,9 +291,14 @@ export const mapOrderRecord = (record: OrderRecord): Order => {
     productRef && typeof productRef === "object" ? productRef : undefined;
 
   const buyer = record.buyer;
+  // The list endpoint returns `buyer` as an unpopulated ObjectId string; don't
+  // render a raw 24-hex id as a name — fall back to "—" until it's populated.
+  const isObjectId = (s: string) => /^[a-f\d]{24}$/i.test(s);
   const buyerName =
     typeof buyer === "string"
-      ? buyer
+      ? isObjectId(buyer)
+        ? ""
+        : buyer
       : buyer?.name ?? "";
 
   return {
@@ -321,7 +339,8 @@ export class OrdersApiService {
       const queryParams = new URLSearchParams();
 
       if (params?.search) queryParams.append("search", params.search);
-      if (params?.status) queryParams.append("status", params.status);
+      if (params?.status)
+        queryParams.append("status", toApiOrderStatus(params.status)!);
       if (params?.transportStatus)
         queryParams.append("transportStatus", params.transportStatus);
       if (params?.year) queryParams.append("year", params.year);
@@ -499,7 +518,7 @@ export class OrdersApiService {
   ): Promise<Order> {
     try {
       const response = await api.patch(`/api/orders/${id}/status`, {
-        status,
+        status: toApiOrderStatus(status),
         id,
       });
 
