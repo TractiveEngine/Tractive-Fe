@@ -153,7 +153,7 @@ export const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({
                 State/Location
               </span>
               <span className="text-[13px] font-montserrat text-[#2b2b2b]">
-                {customer.state}
+                {customer.state || "—"}
               </span>
             </div>
 
@@ -204,6 +204,18 @@ export const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({
                 {formatDate(customer.date)}
               </span>
             </div>
+
+            {/* Last Order */}
+            {customer.lastOrderAt && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-montserrat font-medium text-[#808080] uppercase">
+                  Last Order
+                </span>
+                <span className="text-[13px] font-montserrat text-[#2b2b2b]">
+                  {formatDate(customer.lastOrderAt)}
+                </span>
+              </div>
+            )}
 
             {/* Timestamps */}
             {(customer.createdAt || customer.updatedAt) && (

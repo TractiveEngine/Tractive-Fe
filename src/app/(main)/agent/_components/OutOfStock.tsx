@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -107,6 +108,7 @@ const RestockModal = ({
 };
 
 export const OutOfStock: React.FC = () => {
+  const router = useRouter();
   const { data: products, isLoading, isError } = useAgentOutOfStock(7);
   const [active, setActive] = useState<OutOfStockProduct | null>(null);
 
@@ -170,7 +172,10 @@ export const OutOfStock: React.FC = () => {
           ))
         )}
       </div>
-      <button className="cursor-pointer flex items-center justify-end ml-auto mr-4 text-[12px] font-montserrat mt-[1rem] text-[#538e53]">
+      <button
+        onClick={() => router.push("/agent/produce-list")}
+        className="cursor-pointer flex items-center justify-end ml-auto mr-4 text-[12px] font-montserrat mt-[1rem] text-[#538e53]"
+      >
         See all
       </button>
 

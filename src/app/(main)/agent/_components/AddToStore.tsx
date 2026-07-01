@@ -9,6 +9,7 @@ import {
 import { ItemDetailsForm } from "./ItemDetailsForm";
 import { MediaUpload } from "./MediaUpload";
 import { useFarmers } from "@/hooks/queries/useFarmerQueries";
+import { useCategories } from "@/hooks/queries/useCategoryQueries";
 import { toast } from "sonner";
 
 interface AddToStoreProps {
@@ -27,11 +28,24 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   const { data: farmersData, isLoading: isLoadingFarmers } = useFarmers();
   const farmers = farmersData?.farmers || [];
 
+  // Category reference data (shared endpoint). While the backend endpoint is
+  // still being wired we fall back to the previous hardcoded names so the
+  // modal keeps working; once it returns data, the picker and dependent
+  // subcategory dropdown are driven entirely by the API.
+  const { data: categoriesData } = useCategories();
+
   const [farmerSearchQuery, setFarmerSearchQuery] = useState<string>("");
   const [selectedFarmerId, setSelectedFarmerId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [subcategory, setSubcategory] = useState<string>("");
   const [productName, setProductName] = useState<string>("");
+  // Inline required-field validation: an entry here turns the field's border
+  // red and renders a message below it (cleared as soon as the field changes).
+  const [errors, setErrors] = useState<{
+    farmer?: string;
+    productName?: string;
+    category?: string;
+  }>({});
   const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
   const [isFarmerOpen, setIsFarmerOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
@@ -48,7 +62,7 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const categories: string[] = [
+  const FALLBACK_CATEGORIES = [
     "Grains",
     "Fish",
     "Tubers",
@@ -57,6 +71,19 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     "Vegetables",
   ];
 
+  // Prefer API categories; fall back to the static names until the endpoint
+  // returns data.
+  const apiCategories = categoriesData ?? [];
+  const categories: string[] =
+    apiCategories.length > 0
+      ? apiCategories.map((c) => c.name)
+      : FALLBACK_CATEGORIES;
+
+  // Subcategories for the currently selected category (empty ⇒ show the
+  // free-text input instead of a dropdown).
+  const selectedCategorySubcategories =
+    apiCategories.find((c) => c.name === selectedCategory)?.subcategories ?? [];
+
   const handleFarmerSelect = (farmerId: string): void => {
     const farmer = farmers.find((f) => f.id === farmerId);
     if (farmer) {
@@ -64,11 +91,15 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
     }
     setSelectedFarmerId(farmerId);
     setIsFarmerOpen(false);
+    setErrors((prev) => ({ ...prev, farmer: undefined }));
   };
 
   const handleCategorySelect = (category: string): void => {
     setSelectedCategory(category);
+    // Reset the subcategory — it's scoped to the previously selected category.
+    setSubcategory("");
     setIsCategoryOpen(false);
+    setErrors((prev) => ({ ...prev, category: undefined }));
   };
 
   const handleImagesSelect = (files: File[]): void => {
@@ -142,18 +173,15 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
   };
 
   const handleNext = (): void => {
-    if (!productName.trim()) {
-      alert("Please enter a product name");
-      return;
-    }
-    if (!selectedCategory) {
-      alert("Please select a category");
-      return;
-    }
-    if (!selectedFarmerId) {
-      alert("Please select a farmer");
-      return;
-    }
+    const nextErrors: typeof errors = {};
+    if (!selectedFarmerId) nextErrors.farmer = "Please select a farmer";
+    if (!productName.trim())
+      nextErrors.productName = "Please enter a product name";
+    if (!selectedCategory) nextErrors.category = "Please select a category";
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setCurrentStep(2);
   };
 
@@ -246,7 +274,12 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                         }}
                         onClick={() => setIsFarmerOpen(true)}
                         placeholder="Search farmer by name..."
-                        className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat bg-white focus:outline-none focus:border-[#538e53] pr-8"
+                        aria-invalid={!!errors.farmer}
+                        className={`w-full border rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat bg-white focus:outline-none pr-8 ${
+                          errors.farmer
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-[#2b2b2b] focus:border-[#538e53]"
+                        }`}
                       />
                       <div
                         className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
@@ -284,18 +317,40 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                       </div>
                     )}
                   </div>
+                  {errors.farmer && (
+                    <p className="text-red-500 text-[12px] font-montserrat mt-1">
+                      {errors.farmer}
+                    </p>
+                  )}
                 </div>
 
                 {/* Product section */}
-                <div className="flex flex-col sm:flex-row w-[88%] mx-auto items-center justify-center gap-4">
+                <div className="flex flex-col sm:flex-row w-[88%] mx-auto items-start justify-center gap-4">
                   <div className="w-full md:w-1/2">
                     <input
                       type="text"
                       value={productName}
-                      onChange={(e) => setProductName(e.target.value)}
-                      className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat"
+                      onChange={(e) => {
+                        setProductName(e.target.value);
+                        if (errors.productName)
+                          setErrors((prev) => ({
+                            ...prev,
+                            productName: undefined,
+                          }));
+                      }}
+                      aria-invalid={!!errors.productName}
+                      className={`w-full border rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat focus:outline-none ${
+                        errors.productName
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-[#2b2b2b] focus:border-[#538e53]"
+                      }`}
                       placeholder="Enter product name"
                     />
+                    {errors.productName && (
+                      <p className="text-red-500 text-[12px] font-montserrat mt-1">
+                        {errors.productName}
+                      </p>
+                    )}
                   </div>
 
                   <div
@@ -304,7 +359,9 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                   >
                     <div
                       onClick={() => setIsCategoryOpen((prev) => !prev)}
-                      className="flex items-center justify-between w-full border border-[#2b2b2b] rounded px-3 py-2 cursor-pointer bg-white"
+                      className={`flex items-center justify-between w-full border rounded px-3 py-2 cursor-pointer bg-white ${
+                        errors.category ? "border-red-500" : "border-[#2b2b2b]"
+                      }`}
                     >
                       <span className="text-sm font-normal text-[#2b2b2b] font-montserrat">
                         {selectedCategory || "Select Category"}
@@ -328,18 +385,39 @@ export const AddToStore: React.FC<AddToStoreProps> = ({ isOpen, onClose }) => {
                         ))}
                       </div>
                     )}
+                    {errors.category && (
+                      <p className="text-red-500 text-[12px] font-montserrat mt-1">
+                        {errors.category}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Subcategory */}
+                {/* Subcategory — dependent dropdown when the selected category
+                    has subcategories from the API, otherwise free text. */}
                 <div className="w-[88%] mx-auto">
-                  <input
-                    type="text"
-                    value={subcategory}
-                    onChange={(e) => setSubcategory(e.target.value)}
-                    className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat"
-                    placeholder="Enter subcategory (e.g., Maize)"
-                  />
+                  {selectedCategorySubcategories.length > 0 ? (
+                    <select
+                      value={subcategory}
+                      onChange={(e) => setSubcategory(e.target.value)}
+                      className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat bg-white cursor-pointer"
+                    >
+                      <option value="">Select subcategory</option>
+                      {selectedCategorySubcategories.map((sub) => (
+                        <option key={sub.id} value={sub.name}>
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={subcategory}
+                      onChange={(e) => setSubcategory(e.target.value)}
+                      className="w-full border border-[#2b2b2b] rounded px-3 py-2 text-sm font-normal text-[#2b2b2b] font-montserrat"
+                      placeholder="Enter subcategory (e.g., Maize)"
+                    />
+                  )}
                 </div>
 
                 {/* Media Upload Section */}

@@ -42,6 +42,14 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
   const [localTransportNote, setLocalTransportNote] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  // Inline required-field validation: an entry turns the field's border red and
+  // renders a message below it (cleared as soon as the field changes).
+  const [errors, setErrors] = useState<{
+    quantity?: string;
+    unit?: string;
+    description?: string;
+    price?: string;
+  }>({});
 
   const { uploadToCloudinary } = useCloudinaryUpload();
 
@@ -59,43 +67,28 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
     try {
       console.log("🚀 Step 1: Starting product upload...");
 
-      // Validate required fields
-      if (!selectedFarmerId) {
-        toast.error("Farmer is required");
+      // Guard: farmer / product name / category are chosen in step 1, so if
+      // they're missing the user needs to go back rather than fix a field here.
+      if (!selectedFarmerId || !productName.trim() || !selectedCategory) {
+        toast.error(
+          "Missing product details. Please go back and complete the previous step.",
+        );
         setIsLoading(false);
         return;
       }
-      if (!productName.trim()) {
-        toast.error("Product name is required");
-        setIsLoading(false);
-        return;
-      }
-      if (!selectedCategory) {
-        toast.error("Category is required");
-        setIsLoading(false);
-        return;
-      }
-      if (!description.trim()) {
-        toast.error("Description is required");
-        setIsLoading(false);
-        return;
-      }
-      if (!unit.trim()) {
-        toast.error("Unit is required");
-        setIsLoading(false);
-        return;
-      }
-      if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) {
-        toast.error("Valid price is required");
-        setIsLoading(false);
-        return;
-      }
-      if (
-        !quantity.trim() ||
-        isNaN(Number(quantity)) ||
-        Number(quantity) <= 0
-      ) {
-        toast.error("Valid quantity is required");
+
+      // Inline validation for the fields on this step.
+      const nextErrors: typeof errors = {};
+      if (!description.trim())
+        nextErrors.description = "Description is required";
+      if (!unit.trim()) nextErrors.unit = "Please select a unit";
+      if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0)
+        nextErrors.price = "Enter a valid price";
+      if (!quantity.trim() || isNaN(Number(quantity)) || Number(quantity) <= 0)
+        nextErrors.quantity = "Enter a valid quantity";
+
+      setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) {
         setIsLoading(false);
         return;
       }
@@ -287,15 +280,26 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
             type="number"
             id="quantity"
             value={quantity}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setQuantity(e.target.value)
-            }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setQuantity(e.target.value);
+              if (errors.quantity)
+                setErrors((prev) => ({ ...prev, quantity: undefined }));
+            }}
+            aria-invalid={!!errors.quantity}
+            className={`w-full border-[1px] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] ${
+              errors.quantity
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-[#2b2b2b] focus:ring-[#538e53] focus:border-[#538e53]"
+            }`}
             placeholder="Enter quantity available"
             min="1"
-            required
             disabled={isLoading}
           />
+          {errors.quantity && (
+            <p className="text-red-500 text-[12px] font-montserrat">
+              {errors.quantity}
+            </p>
+          )}
         </div>
 
         {/* Unit */}
@@ -309,17 +313,28 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
           <select
             id="unit"
             value={unit}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setUnit(e.target.value)
-            }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53] cursor-pointer"
-            required
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              setUnit(e.target.value);
+              if (errors.unit)
+                setErrors((prev) => ({ ...prev, unit: undefined }));
+            }}
+            aria-invalid={!!errors.unit}
+            className={`w-full border-[1px] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] cursor-pointer ${
+              errors.unit
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-[#2b2b2b] focus:ring-[#538e53] focus:border-[#538e53]"
+            }`}
             disabled={isLoading}
           >
             <option value="">Select unit</option>
             <option value="kg">Kilogram (kg)</option>
             <option value="tonne">Tonne</option>
           </select>
+          {errors.unit && (
+            <p className="text-red-500 text-[12px] font-montserrat">
+              {errors.unit}
+            </p>
+          )}
         </div>
 
         {/* Description */}
@@ -333,14 +348,25 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
           <textarea
             id="description"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setDescription(e.target.value)
-            }
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat h-[100px] resize-none focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              setDescription(e.target.value);
+              if (errors.description)
+                setErrors((prev) => ({ ...prev, description: undefined }));
+            }}
+            aria-invalid={!!errors.description}
+            className={`w-full border-[1px] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat h-[100px] resize-none focus:outline-none focus:ring-[0.1px] ${
+              errors.description
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-[#2b2b2b] focus:ring-[#538e53] focus:border-[#538e53]"
+            }`}
             placeholder="Enter product description"
-            required
             disabled={isLoading}
           />
+          {errors.description && (
+            <p className="text-red-500 text-[12px] font-montserrat">
+              {errors.description}
+            </p>
+          )}
         </div>
 
         {/* Price */}
@@ -360,12 +386,23 @@ export const ItemDetailsForm: React.FC<ItemDetailsFormProps> = ({
               // Only allow digits
               const val = e.target.value.replace(/[^0-9]/g, "");
               setPrice(val);
+              if (errors.price)
+                setErrors((prev) => ({ ...prev, price: undefined }));
             }}
-            className="w-full border-[1px] border-[#2b2b2b] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] focus:ring-[#538e53] focus:border-[#538e53]"
+            aria-invalid={!!errors.price}
+            className={`w-full border-[1px] rounded-[4px] px-3 py-2 text-[14px] font-normal text-[#2b2b2b] font-montserrat focus:outline-none focus:ring-[0.1px] ${
+              errors.price
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-[#2b2b2b] focus:ring-[#538e53] focus:border-[#538e53]"
+            }`}
             placeholder="Enter price in Naira"
-            required
             disabled={isLoading}
           />
+          {errors.price && (
+            <p className="text-red-500 text-[12px] font-montserrat">
+              {errors.price}
+            </p>
+          )}
         </div>
 
         {/* Discount */}
