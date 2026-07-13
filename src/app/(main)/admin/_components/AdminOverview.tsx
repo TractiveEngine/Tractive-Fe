@@ -1,6 +1,10 @@
 "use client";
 import React from "react";
-import { RedSmallChart, SmallChart } from "./SmallChart";
+// Sparklines hidden until the backend returns a real per-metric trend series.
+// The SVG paths in SmallChart are hardcoded and identical on every tile, and the
+// green/red variant ignores the sign of deltaPercent — so the Orders tile drew a
+// downward line even while orders grew. See BACKEND_API_REQUIREMENTS.md §2.
+// import { RedSmallChart, SmallChart } from "./SmallChart";
 import {
   MoneyReceived,
   Profile2User,
@@ -17,7 +21,7 @@ type CardConfig = {
   icon: React.ReactNode;
   iconWrap: string;
   deltaWrap: string;
-  chart: React.ReactNode;
+  // chart: React.ReactNode; // re-enable with the sparkline (§2)
 };
 
 const CARDS: CardConfig[] = [
@@ -27,7 +31,7 @@ const CARDS: CardConfig[] = [
     icon: <Profile2User stroke="#D77F40" />,
     iconWrap: "bg-[#F2D8C599]",
     deltaWrap: "bg-[#cce5cc]",
-    chart: <SmallChart />,
+    // chart: <SmallChart />,
   },
   {
     key: "payments",
@@ -35,7 +39,7 @@ const CARDS: CardConfig[] = [
     icon: <MoneyReceived stroke="#538e53" />,
     iconWrap: "bg-[#CCE5CC80]",
     deltaWrap: "bg-[#cce5cc]",
-    chart: <SmallChart />,
+    // chart: <SmallChart />,
   },
   {
     key: "orders",
@@ -43,7 +47,7 @@ const CARDS: CardConfig[] = [
     icon: <Bag2Icon stroke="#7912FF" />,
     iconWrap: "bg-[#7912FF33]",
     deltaWrap: "bg-[#EEDEDE]",
-    chart: <RedSmallChart />,
+    // chart: <RedSmallChart />,
   },
   {
     key: "visitors",
@@ -51,7 +55,7 @@ const CARDS: CardConfig[] = [
     icon: <EyeIcon />,
     iconWrap: "bg-[#F8EBE1]",
     deltaWrap: "bg-[#cce5cc]",
-    chart: <SmallChart />,
+    // chart: <SmallChart />,
   },
 ];
 
@@ -103,7 +107,7 @@ const StatCard = ({
       <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
         In contrast to last week
       </span>
-      {card.chart}
+      {/* {card.chart} */}
     </div>
   </CardShell>
 );
@@ -118,7 +122,7 @@ const CardSkeleton = ({ card }: { card: CardConfig }) => (
       <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
         In contrast to last week
       </span>
-      {card.chart}
+      {/* {card.chart} */}
     </div>
   </CardShell>
 );

@@ -18,6 +18,10 @@ import {
 } from "@/services/adminUserService";
 import { toast } from "sonner";
 import { TableSkeleton } from "../../../_components/TableSkeleton";
+import {
+  ConfirmActionModal,
+  ConfirmActionTone,
+} from "../../../_components/ConfirmActionModal";
 
 // List of months in a Year
 const months = [
@@ -227,6 +231,54 @@ interface AllUserTypeProps {
   lockedProfession?: AdminProfession;
 }
 
+type PendingActionKind = "remove" | "suspend" | "activate" | "reactivate";
+
+interface PendingAction {
+  id: string;
+  name: string;
+  kind: PendingActionKind;
+}
+
+// Copy + tone for the confirmation modal, per action. `{name}` is substituted
+// with the user's name so the admin can see exactly who they're about to hit.
+const ACTION_COPY: Record<
+  PendingActionKind,
+  {
+    title: string;
+    description: (name: string) => string;
+    confirmLabel: string;
+    tone: ConfirmActionTone;
+  }
+> = {
+  remove: {
+    title: "Remove this user?",
+    description: (name) =>
+      `${name} will be removed and will lose access to the platform. You can reactivate them later from the Removed tab.`,
+    confirmLabel: "Yes, remove",
+    tone: "danger",
+  },
+  suspend: {
+    title: "Suspend this user?",
+    description: (name) =>
+      `${name} will be suspended and will not be able to sign in until you reactivate them.`,
+    confirmLabel: "Yes, suspend",
+    tone: "danger",
+  },
+  activate: {
+    title: "Activate this user?",
+    description: (name) => `${name} will regain full access to the platform.`,
+    confirmLabel: "Yes, activate",
+    tone: "success",
+  },
+  reactivate: {
+    title: "Reactivate this user?",
+    description: (name) =>
+      `${name} will be restored and will regain full access to the platform.`,
+    confirmLabel: "Yes, reactivate",
+    tone: "success",
+  },
+};
+
 export const AllUserType: React.FC<AllUserTypeProps> = ({
   lockedProfession,
 }) => {
@@ -249,6 +301,10 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
   const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
   const [allChecked, setAllChecked] = useState<boolean>(false);
+
+  // The action staged by the ⋮ menu, awaiting confirmation in the modal.
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const monthDropdownRef = useRef<HTMLDivElement>(null);
   const stateDropdownRef = useRef<HTMLDivElement>(null);
@@ -406,47 +462,78 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
     return undefined;
   };
 
-  // Remove (soft-delete) via PATCH
-  const handleSuspended = async (id: string) => {
+  // Remove and Suspend are destructive, so neither fires straight from the menu.
+  // Both handlers only stage a pending action; the mutation runs in
+  // `runPendingAction` once the admin confirms in the modal.
+  const handleSuspended = (id: string) => {
+    const user = admins.find((a) => a.userID === id);
+    if (!user) return;
+    setPendingAction({ id, name: user.fullname, kind: "remove" });
+  };
+
+  const handleToggleStatus = (id: string) => {
+    const user = admins.find((a) => a.userID === id);
+    if (!user) return;
+    const current = user.status.toLowerCase();
+    const kind: PendingActionKind =
+      current === "removed"
+        ? "reactivate"
+        : current === "active"
+          ? "suspend"
+          : "activate";
+    setPendingAction({ id, name: user.fullname, kind });
+  };
+
+  // Runs the real mutation for whichever action the admin confirmed.
+  const runPendingAction = async () => {
+    if (!pendingAction) return;
+    const { id, kind } = pendingAction;
+
+    // Reactivate has its own endpoint and needs no profession.
+    if (kind === "reactivate") {
+      setIsActionSubmitting(true);
+      try {
+        await adminUserService.reactivateUser(id);
+        toast.success("User reactivated");
+        setPendingAction(null);
+        fetchUsers();
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Failed to reactivate user",
+        );
+      } finally {
+        setIsActionSubmitting(false);
+      }
+      return;
+    }
+
     const profession = professionForId(id);
     if (!profession) {
       toast.error("Cannot determine user profession for this action");
+      setPendingAction(null);
       return;
     }
+
+    const nextStatus: AdminUserStatus =
+      kind === "remove"
+        ? "removed"
+        : kind === "suspend"
+          ? "suspended"
+          : "active";
+
+    setIsActionSubmitting(true);
     try {
       await adminUserService.updateUser(id, {
-        status: "removed",
+        status: nextStatus,
         profession,
       });
-      toast.success("User removed");
-      fetchUsers();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to remove user");
-    }
-  };
-
-  // Toggle Active <-> Suspended, or reactivate if Removed
-  const handleToggleStatus = async (id: string) => {
-    const current = admins.find((a) => a.userID === id);
-    if (!current) return;
-    const profession = professionForId(id);
-    try {
-      if (current.status.toLowerCase() === "removed") {
-        await adminUserService.reactivateUser(id);
-        toast.success("User reactivated");
-      } else {
-        if (!profession) {
-          toast.error("Cannot determine user profession for this action");
-          return;
-        }
-        const next: AdminUserStatus =
-          current.status.toLowerCase() === "active" ? "suspended" : "active";
-        await adminUserService.updateUser(id, { status: next, profession });
-        toast.success(`User ${next}`);
-      }
+      toast.success(`User ${nextStatus}`);
+      setPendingAction(null);
       fetchUsers();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update user");
+    } finally {
+      setIsActionSubmitting(false);
     }
   };
 
@@ -865,6 +952,25 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
           </div>
         )}
       </div>
+
+      <ConfirmActionModal
+        isOpen={pendingAction !== null}
+        title={pendingAction ? ACTION_COPY[pendingAction.kind].title : ""}
+        description={
+          pendingAction
+            ? ACTION_COPY[pendingAction.kind].description(pendingAction.name)
+            : undefined
+        }
+        confirmLabel={
+          pendingAction ? ACTION_COPY[pendingAction.kind].confirmLabel : ""
+        }
+        tone={pendingAction ? ACTION_COPY[pendingAction.kind].tone : "danger"}
+        isSubmitting={isActionSubmitting}
+        onCancel={() => {
+          if (!isActionSubmitting) setPendingAction(null);
+        }}
+        onConfirm={runPendingAction}
+      />
     </div>
   );
 };

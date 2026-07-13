@@ -42,107 +42,99 @@ interface ReviewsProps {
   onClose: () => void;
 }
 
-// ... existing reviewData mock ...
-const reviewDataMock: ReviewData = {
-  overallRating: 4.0,
-  totalReviewers: 25000,
-  ratings: [
-    { stars: "5 star", count: 8000, percentage: 80 },
-    { stars: "4 star", count: 6000, percentage: 60 },
-    { stars: "3 star", count: 4000, percentage: 40 },
-    { stars: "2 star", count: 2000, percentage: 20 },
-    { stars: "1 star", count: 1000, percentage: 10 },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: {
-        name: "Kelvin Chikezie",
-        avatar: "/images/bidder4.png",
-      },
-      rating: 4,
-      comment:
-        "Thank you Mr. Kelvin, the corn I ordered has arrived and they are in good condition.",
-      date: "2022-06-13",
-      image: "/images/orderedImage.png",
-      replies: 12,
-      likes: 12,
-    },
-    {
-      id: 2,
-      user: {
-        name: "Amara Okoye",
-        avatar: "/images/bidder3.png",
-      },
-      rating: 5,
-      comment:
-        "Amazing service! The delivery was fast, and the grains were fresh.",
-      date: "2022-07-01",
-      image: "/images/orderedImage.png",
-      replies: 8,
-      likes: 15,
-    },
-    {
-      id: 3,
-      user: {
-        name: "Chidi Nwosu",
-        avatar: "/images/bidder2.png",
-      },
-      rating: 3,
-      comment: "The order was okay, but the packaging could be improved.",
-      date: "2022-08-15",
-      image: "/images/orderedImage.png",
-      replies: 5,
-      likes: 7,
-    },
-  ],
-  reviewerAvatars: [
-    "/images/bidder1.png",
-    "/images/bidder2.png",
-    "/images/bidder3.png",
-    "/images/bidder4.png",
-  ],
-};
-
 import { useGetSellerReviews, useLikeReview } from "@/hooks/queries/useSellerQueries";
 import { useGetTransporterReviews } from "@/hooks/queries/useTransporterQueries";
 
+const EMPTY_RATINGS: Rating[] = [5, 4, 3, 2, 1].map((s) => ({
+  stars: `${s} star`,
+  count: 0,
+  percentage: 0,
+}));
+
+const EMPTY_DATA: ReviewData = {
+  overallRating: 0,
+  totalReviewers: 0,
+  ratings: EMPTY_RATINGS,
+  reviews: [],
+  reviewerAvatars: [],
+};
+
 export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClose }) => {
-  // useGetSellerReviews might only accept 1 argument, so we pass just sellerId. 
   const sellerQuery = useGetSellerReviews(sellerId as string);
   const transporterQuery = useGetTransporterReviews(transporterId as string, { enabled: !!transporterId });
 
   const apiReviewData = sellerId ? sellerQuery.data : transporterQuery.data;
+  const isLoading = sellerId ? sellerQuery.isLoading : transporterQuery.isLoading;
 
   const likeMutation = useLikeReview();
 
-  // Map API data if available, otherwise use mock
+  // Render only what the API returns. A seller with no reviews gets a genuine
+  // empty state — never invented reviewers, ratings or counts.
   const mappedData: ReviewData = React.useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rd = apiReviewData as any;
-    if (rd && rd.reviews && rd.reviews.length > 0) {
+    if (!rd) return EMPTY_DATA;
+
+    const rawReviews: unknown[] = Array.isArray(rd.reviews) ? rd.reviews : [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const reviews: Review[] = rawReviews.map((raw: any, index: number) => {
+      const buyer = raw?.user ?? raw?.buyer ?? {};
+      const replies = raw?.replies;
       return {
-        overallRating: rd.overallRating || 0,
-        totalReviewers: rd.totalReviewers || 0,
-        ratings: rd.ratings || reviewDataMock.ratings,
-        reviewerAvatars: rd.reviewerAvatars || [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        reviews: rd.reviews.map((r: any) => ({
-          id: r._id || r.id,
-          user: {
-            name: r.user?.name || "Anonymous",
-            avatar: r.user?.avatar || "/images/placeholder.png",
-          },
-          rating: r.rating || 0,
-          comment: r.comment || "",
-          date: r.createdAt || r.date || new Date().toISOString(),
-          image: r.image || "",
-          replies: r.repliesCount || r.replies || 0,
-          likes: r.likesCount || r.likes || 0,
-        })),
+        id: raw?.id ?? raw?._id ?? index,
+        user: {
+          name: buyer?.name ?? buyer?.fullName ?? "Anonymous",
+          avatar: buyer?.avatar ?? buyer?.image ?? "",
+        },
+        rating: Number(raw?.rating) || 0,
+        comment: raw?.comment ?? "",
+        date: raw?.date ?? raw?.createdAt ?? "",
+        image: raw?.image ?? "",
+        replies: Array.isArray(replies)
+          ? replies.length
+          : Number(raw?.repliesCount ?? replies) || 0,
+        likes: Number(raw?.likesCount ?? raw?.likes) || 0,
       };
-    }
-    return reviewDataMock;
+    });
+
+    const totalReviewers =
+      Number(rd.totalReviewers ?? rd.totalReviews) || reviews.length;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dist: any[] = Array.isArray(rd.ratings)
+      ? rd.ratings
+      : Array.isArray(rd.ratingDistribution)
+        ? rd.ratingDistribution
+        : [];
+
+    const ratings: Rating[] = dist.length
+      ? [5, 4, 3, 2, 1].map((star) => {
+          const entry = dist.find(
+            (d) => Number(d?.rating ?? String(d?.stars).charAt(0)) === star,
+          );
+          return {
+            stars: `${star} star`,
+            count: Number(entry?.count) || 0,
+            percentage: Number(entry?.percentage) || 0,
+          };
+        })
+      : EMPTY_RATINGS;
+
+    return {
+      overallRating: Number(rd.overallRating ?? rd.averageRating) || 0,
+      totalReviewers,
+      ratings,
+      reviews,
+      reviewerAvatars: (Array.isArray(rd.reviewerAvatars)
+        ? rd.reviewerAvatars
+        : Array.isArray(rd.recentReviewers)
+          ? rd.recentReviewers
+          : []
+      ).filter(
+        (a: unknown): a is string =>
+          typeof a === "string" && /^(https?:\/\/|\/)/.test(a),
+      ),
+    };
   }, [apiReviewData]);
 
   const { overallRating, totalReviewers, ratings, reviews, reviewerAvatars } = mappedData;
@@ -184,9 +176,6 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
   // Define left offsets for mobile and sm screens
   const leftOffsetsMobile = [0, 10, 20, 30];
   const leftOffsetsSm = [0, 12, 28, 40];
-
-  // Debug avatar paths
-  console.log("Reviewer Avatars:", reviewerAvatars);
 
   return (
     <div className="relative bg-[#fefefe] flex flex-col items-center w-full max-w-[600px] md:max-w-[721px] overflow-y-auto max-h-[90vh] hide-scrollbar px-6 py-6 gap-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)]">
@@ -274,66 +263,81 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
 
       {/* Reviews */}
       <div className="flex flex-col gap-6 w-full">
-        {reviews.map((review) => (
-          <div
-            key={review.id}
-            className="flex flex-col gap-1.5 pt-2 rounded-[5px]"
-          >
-            <div className="flex items-center justify-between gap-1.5 flex-wrap">
-              <div className="relative flex items-center gap-2 flex-wrap">
-                <Image
-                  src={review.user.avatar}
-                  alt="Comment Profile"
-                  width={30}
-                  height={30}
-                />
-                <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
-                  {review.user.name}
+        {isLoading ? (
+          <p className="font-montserrat text-[12px] text-[#808080] py-6 text-center">
+            Loading reviews…
+          </p>
+        ) : reviews.length === 0 ? (
+          <p className="font-montserrat text-[12px] text-[#808080] py-6 text-center">
+            No reviews yet.
+          </p>
+        ) : (
+          reviews.map((review) => (
+            <div
+              key={review.id}
+              className="flex flex-col gap-1.5 pt-2 rounded-[5px]"
+            >
+              <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                <div className="relative flex items-center gap-2 flex-wrap">
+                  <Image
+                    src={review.user.avatar || "/images/sellerprofile.png"}
+                    alt={`${review.user.name} profile`}
+                    width={30}
+                    height={30}
+                    className="w-[30px] h-[30px] rounded-full object-cover"
+                  />
+                  <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+                    {review.user.name}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {renderStars(review.rating)}
+                </div>
+              </div>
+              <div className="flex justify-between w-[100%] flex-wrap">
+                <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
+                  {review.comment}
                 </p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {renderStars(review.rating)}
-              </div>
-            </div>
-            <div className="flex justify-between w-[100%] flex-wrap">
-              <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
-                {review.comment}
-              </p>
-              <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
-                {new Date(review.date).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <div className="flex flex-col gap-4">
-              <Image
-                src={review.image}
-                alt="Ordered Item"
-                width={211}
-                height={77}
-              />
-              <div className="flex items-center gap-[46px] truncate">
-                <div className="flex items-center gap-[6px]">
-                  <ReplyIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.replies} replies
+                {review.date && (
+                  <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
+                    {new Date(review.date).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </span>
-                </div>
-                <div 
-                  className={`flex items-center gap-[6px] cursor-pointer hover:opacity-80 transition-opacity ${likeMutation.isPending && likeMutation.variables === String(review.id) ? "opacity-50 pointer-events-none" : ""}`}
-                  onClick={() => likeMutation.mutate(String(review.id))}
-                >
-                  <LikeIcon />
-                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                    {review.likes} Likes
-                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-4">
+                {review.image && (
+                  <Image
+                    src={review.image}
+                    alt="Ordered Item"
+                    width={211}
+                    height={77}
+                  />
+                )}
+                <div className="flex items-center gap-[46px] truncate">
+                  <div className="flex items-center gap-[6px]">
+                    <ReplyIcon />
+                    <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                      {review.replies} replies
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-center gap-[6px] cursor-pointer hover:opacity-80 transition-opacity ${likeMutation.isPending && likeMutation.variables === String(review.id) ? "opacity-50 pointer-events-none" : ""}`}
+                    onClick={() => likeMutation.mutate(String(review.id))}
+                  >
+                    <LikeIcon />
+                    <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                      {review.likes} Likes
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

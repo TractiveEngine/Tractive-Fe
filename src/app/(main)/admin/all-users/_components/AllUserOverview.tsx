@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { EyeIcon, Profile2User } from "../../_components/icons/AdminIcons";
-import { RedSmallChart, SmallChart } from "../../_components/SmallChart";
+// Sparklines hidden until the backend returns a real per-metric trend series.
+// The SVG paths in SmallChart are hardcoded and identical on every tile.
+// See BACKEND_API_REQUIREMENTS.md §2.
+// import { RedSmallChart, SmallChart } from "../../_components/SmallChart";
 import { adminUserService, AdminUserStats } from "@/services/adminUserService";
 
 // Safely read a numeric value from any of the given dotted paths on an unknown object.
@@ -31,26 +34,17 @@ const formatCount = (n: number | null) =>
 
 export const AllUserOverview = () => {
   const [stats, setStats] = useState<AdminUserStats | null>(null);
-  const [removedCount, setRemovedCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.allSettled([
-      adminUserService.getUserStats(),
-      adminUserService.getRemovedUsers({ limit: 1 }),
-    ])
-      .then(([statsRes, removedRes]) => {
-        if (cancelled) return;
-        if (statsRes.status === "fulfilled") {
-          console.log("🔎 /api/admin/users/stats response:", statsRes.value);
-          setStats(statsRes.value);
-        }
-        if (removedRes.status === "fulfilled") {
-          setRemovedCount(
-            removedRes.value.pagination?.total ?? removedRes.value.data.length,
-          );
-        }
+    adminUserService
+      .getUserStats()
+      .then((value) => {
+        if (!cancelled) setStats(value);
+      })
+      .catch(() => {
+        /* leave stats null — the cards render "—" */
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -74,9 +68,13 @@ export const AllUserOverview = () => {
     "suspendedUsers",
     "byStatus.suspended",
   ]);
-  const removed =
-    removedCount ??
-    readNumber(source, ["removed", "removedUsers", "byStatus.removed"]);
+  // Served directly by /api/admin/users/stats — no longer needs a second
+  // request to /api/admin/users/removed just to count these.
+  const removed = readNumber(source, [
+    "removedUsers",
+    "removed",
+    "byStatus.removed",
+  ]);
   const agents = readNumber(source, ["agents", "byProfession.agent"]);
 
   return (
@@ -158,7 +156,7 @@ const StatCard: React.FC<StatCardProps> = ({
   iconBg,
   iconStroke,
   iconKind,
-  chart,
+  // chart, // re-enable with the sparkline (BACKEND_API_REQUIREMENTS.md §2)
   cardBg,
   border,
   valueColor,
@@ -194,7 +192,7 @@ const StatCard: React.FC<StatCardProps> = ({
       <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
         In contrast to last week
       </span>
-      {chart === "green" ? <SmallChart /> : <RedSmallChart />}
+      {/* {chart === "green" ? <SmallChart /> : <RedSmallChart />} */}
     </div>
   </div>
 );

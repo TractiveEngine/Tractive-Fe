@@ -14,6 +14,7 @@ import {
   useFollowFarmer,
   useUnfollowFarmer,
 } from "@/hooks/queries/useUserQueries";
+import { useGetSellerReviews } from "@/hooks/queries/useSellerQueries";
 
 export interface OwnerInfo {
   id?: string;
@@ -30,6 +31,13 @@ export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
 
   // ── Follow / Unfollow the transporter (fleet owner) ────────────────────
   const ownerId = owner?.id;
+
+  // The transporter is a seller record, so its reviews come from the seller
+  // reviews endpoint. Show the most recent one; the modal shows the rest.
+  const { data: reviewData, isLoading: isReviewsLoading } = useGetSellerReviews(
+    ownerId as string,
+  );
+  const latestReview = reviewData?.reviews?.[0];
   const followMutation = useFollowFarmer();
   const unfollowMutation = useUnfollowFarmer();
   const [isFollowing, setIsFollowing] = useState<boolean>(!!owner?.isFollowing);
@@ -69,17 +77,18 @@ export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
         <div className="flex items-center gap-2 flex-wrap">
           <div>
             <Image
-              src="/images/bidder2.png"
-              alt="Sellers profile"
+              src={owner?.image || "/images/sellerprofile.png"}
+              alt={owner?.name ? `${owner.name} profile` : "Transporter profile"}
               width={45}
               height={45}
+              className="w-[45px] h-[45px] rounded-full object-cover"
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <div>
               <div className="flex items-center gap-3">
                 <span className="font-montserrat font-normal text-[14px] text-[#2b2b2b] truncate">
-                  {owner?.name || "Goddess Transport"}
+                  {owner?.name || "Transporter"}
                 </span>
                 <span className="w-[10px] h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
                 <button
@@ -101,18 +110,18 @@ export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-1.5">
                 {[0, 1, 2, 3, 4].map((i) =>
-                  i < Math.round(owner?.rating ?? 4) ? (
+                  i < Math.round(owner?.rating ?? 0) ? (
                     <YellowStarIcon key={i} />
                   ) : (
                     <StarIcon key={i} />
                   )
                 )}
                 <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                  {(owner?.rating ?? 4).toFixed(1)}
+                  {(owner?.rating ?? 0).toFixed(1)}
                 </span>
               </div>
               <small className="font-montserrat font-normal text-[11px] text-[#2b2b2b] truncate">
-                {owner?.followersCount ?? 700} followers
+                {owner?.followersCount ?? 0} followers
               </small>
               {owner?.state && (
                 <small className="font-montserrat font-normal text-[11px] text-[#2b2b2b] truncate">
@@ -124,66 +133,88 @@ export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
         </div>
       </div>
       <div className="relative flex flex-col gap-1.5 bg-[#fefefe] px-4 pt-2 pb-6 rounded-[5px] shadow-[0px_0px_10px_rgba(0,0,0,0.1)]">
-        <div className="flex items-center justify-between gap-1.5 flex-wrap">
-          <div className="relative flex items-center gap-2 flex-wrap">
-            <Image
-              src="/images/bidder4.png"
-              alt="comment Profile"
-              width={30}
-              height={30}
-            />
-            <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
-              Kelvin Chikezie
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <YellowStarIcon />
-            <YellowStarIcon />
-            <YellowStarIcon />
-            <YellowStarIcon />
-            <StarIcon />
-          </div>
-        </div>
-        <div className="flex justify-between w-[100%] flex-wrap">
-          <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
-            Thank you mr kelvin, the corn i ordered has arrived and the are in
-            good condition.
+        {isReviewsLoading ? (
+          <p className="font-montserrat font-normal text-[12px] text-[#808080] py-4">
+            Loading reviews…
           </p>
-          <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
-            13 june, 2022
-          </span>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Image
-            src="/images/orderedImage.png"
-            alt="Ordered Item"
-            width={211}
-            height={77}
-          />
-          <div className="flex items-center gap-[46px] truncate">
-            <div className="flex items-center gap-[6px]">
-              <ReplyIcon />
-              <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                12 replies
-              </span>
+        ) : !latestReview ? (
+          <p className="font-montserrat font-normal text-[12px] text-[#808080] py-4">
+            No reviews yet for this transporter.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-1.5 flex-wrap">
+              <div className="relative flex items-center gap-2 flex-wrap">
+                <Image
+                  src={latestReview.user.avatar || "/images/sellerprofile.png"}
+                  alt={`${latestReview.user.name} profile`}
+                  width={30}
+                  height={30}
+                  className="w-[30px] h-[30px] rounded-full object-cover"
+                />
+                <p className="font-montserrat font-normal text-[14px] text-[#2b2b2b]">
+                  {latestReview.user.name}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2, 3, 4].map((i) =>
+                  i < Math.round(latestReview.rating) ? (
+                    <YellowStarIcon key={i} />
+                  ) : (
+                    <StarIcon key={i} />
+                  )
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-[6px]">
-              <LikeIcon />
-              <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
-                12 Likes
-              </span>
+            <div className="flex justify-between w-[100%] flex-wrap">
+              <p className="font-montserrat w-[80%] font-normal text-[11px] text-[#2b2b2b]">
+                {latestReview.comment}
+              </p>
+              {latestReview.date && (
+                <span className="font-montserrat w-[20%] flex justify-end font-normal text-[11px] text-[#808080]">
+                  {new Date(latestReview.date).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              )}
             </div>
-          </div>
-        </div>
-        <div
-          className="cursor-pointer flex text-[#538e53] items-center justify-end gap-[4px]"
-          onClick={handleSeeMore}
-        >
-          <span className="font-montserrat font-normal text-[12px] text-[#538e53]">
-            See more
-          </span>
-          <ArrowRightIcon stroke="#538e53" className="w-4 h-4" />
-        </div>
+            <div className="flex flex-col gap-4">
+              {latestReview.image && (
+                <Image
+                  src={latestReview.image}
+                  alt="Ordered Item"
+                  width={211}
+                  height={77}
+                />
+              )}
+              <div className="flex items-center gap-[46px] truncate">
+                <div className="flex items-center gap-[6px]">
+                  <ReplyIcon />
+                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                    {latestReview.replies} replies
+                  </span>
+                </div>
+                <div className="flex items-center gap-[6px]">
+                  <LikeIcon />
+                  <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
+                    {latestReview.likes} Likes
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="cursor-pointer flex text-[#538e53] items-center justify-end gap-[4px]"
+              onClick={handleSeeMore}
+            >
+              <span className="font-montserrat font-normal text-[12px] text-[#538e53]">
+                See more
+              </span>
+              <ArrowRightIcon stroke="#538e53" className="w-4 h-4" />
+            </div>
+          </>
+        )}
         {/* Conditionally render Reviews component with animation */}
         {seeMore && (
           <motion.div
@@ -193,7 +224,7 @@ export const OwnersInfo = ({ owner }: { owner?: OwnerInfo }) => {
             transition={{ duration: 0.3 }}
             className="absolute right-0 top-[15.7rem] z-60"
           >
-            <Reviews onClose={handleSeeMore} />
+            <Reviews sellerId={ownerId} onClose={handleSeeMore} />
           </motion.div>
         )}
       </div>

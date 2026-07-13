@@ -33,39 +33,60 @@ export interface ApiTruckBidSummary {
   totalBids: number;
   activeBidsCount: number;
   successfulBidsCount: number;
-  highestBidAmount: number;
-  latestBidAmount: number;
+  highestBidAmount: number | null;
+  latestBidAmount: number | null;
   activeBidders: ApiTruckBidder[];
   successfulBidders: ApiTruckBidder[];
+}
+
+/** The truck's lane. This is where From/To live — there is no flat
+ * `locationFrom`/`locationTo` on the wire. */
+export interface ApiTruckRoute {
+  fromState?: string;
+  toState?: string;
 }
 
 export interface ApiTruck {
   _id: string;
   plateNumber: string;
   fleetName: string;
+  fleetNumber?: string;
+  iot?: string;
   model: string;
-  size: string;
   capacity: string;
   capacityKg: number;
+  capacityTonnes?: number;
   currentLoadKg: number;
+  currentLoadTonnes?: number;
   remainingCapacityKg: number;
+  remainingCapacityTonnes?: number;
   remainingCapacityDisplay: string;
   price: number;
   pricingModel: string;
   wholeTruckOnly: boolean;
-  estimatedDeliveryValue: number;
-  estimatedDeliveryUnit: string;
-  estimatedDeliveryText: string;
+  priceNegotiation?: boolean;
+  estimatedDeliveryValue: number | null;
+  estimatedDeliveryUnit: string | null;
+  estimatedDeliveryText: string | null;
   bidSummary: ApiTruckBidSummary;
   priceUnitLabel: string;
   pricePerKgEquivalent: number;
   status: string;
+  route?: ApiTruckRoute;
+  fleetStates?: string;
+  fleetDescription?: string;
   images?: string[];
+  /** Owner. Comes back as a bare id string; may be populated on other routes. */
+  transporter?: string | { _id?: string; id?: string; [key: string]: unknown };
+  assignedDriver?: string | { _id?: string; [key: string]: unknown };
+  createdAt?: string;
+  updatedAt?: string;
+  // Not sent by GET /trucks/{id} — kept optional for the list/redux shapes.
+  size?: string;
   image?: string;
   locationFrom?: string;
   locationTo?: string;
   rating?: string;
-  fleetDescription?: string;
 }
 
 export interface GetTransportersParams {
@@ -106,6 +127,17 @@ export interface GetTransporterCustomersResponse {
     total: number;
     totalPages: number;
   };
+}
+
+export interface CustomerChatPayload {
+  subject: string;
+  message: string;
+}
+
+export interface CustomerChatResponse {
+  chatId: string;
+  message: string;
+  timestamp: string;
 }
 
 export interface TransporterReviewBuyer {
@@ -327,6 +359,29 @@ export const transporterService = {
       return response.data?.data ?? response.data;
     } catch (error) {
       console.error(`[TransporterService] getCustomerById ${id} error:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Start a support chat with one of the transporter's customers
+   * POST /api/transporters/customers/{id}/chat
+   */
+  initiateCustomerChat: async (
+    id: string,
+    payload: CustomerChatPayload,
+  ): Promise<CustomerChatResponse> => {
+    try {
+      const response = await api.post(
+        `/api/transporters/customers/${id}/chat`,
+        payload,
+      );
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error(
+        `[TransporterService] initiateCustomerChat ${id} error:`,
+        error,
+      );
       throw error;
     }
   },

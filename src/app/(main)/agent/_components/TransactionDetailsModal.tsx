@@ -12,6 +12,12 @@ interface TransactionDetailsModalProps {
 const formatNaira = (value?: number | null) =>
   `₦${Math.round(value ?? 0).toLocaleString()}`;
 
+// `commissionRate` is a fraction (0.1 → "10%").
+const formatRate = (rate?: number | null) =>
+  typeof rate === "number" && Number.isFinite(rate)
+    ? ` (${Number((rate * 100).toFixed(2))}%)`
+    : "";
+
 const formatDate = (dateString?: string) =>
   dateString
     ? new Date(dateString).toLocaleDateString("en-US", {
@@ -153,8 +159,10 @@ export const TransactionDetailsModal: React.FC<
                 </div>
                 <InfoRow label="Amount" value={formatNaira(transaction.amount)} />
                 <InfoRow
-                  label="Commission (10%)"
-                  value={formatNaira(transaction.commission)}
+                  label={`Commission${formatRate(transaction.commissionRate)}`}
+                  value={formatNaira(
+                    transaction.commissionAmount ?? transaction.commission,
+                  )}
                 />
                 <InfoRow
                   label="Payment method"

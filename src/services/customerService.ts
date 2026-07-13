@@ -161,17 +161,21 @@ export class CustomerService {
 
   /**
    * Initiate a chat with a customer
+   *
+   * NOTE: only the transporter-scoped route (`/api/transporters/customers/{id}/chat`,
+   * see `transporterService.initiateCustomerChat`) is confirmed by the backend.
+   * This agent-scoped route is not in Swagger yet and may 404.
    */
   static async initiateChat(
     customerId: string,
     payload: ChatInitiatePayload,
   ): Promise<ChatInitiateResponse> {
     try {
-      const response = await api.post<ChatInitiateResponse>(
+      const response = await api.post(
         `/api/customers/${customerId}/chat`,
         payload,
       );
-      return response.data;
+      return response.data?.data ?? response.data;
     } catch (error) {
       console.error(
         `Error initiating chat with customer ${customerId}:`,

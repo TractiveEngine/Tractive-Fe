@@ -1,4 +1,7 @@
+import { getSession } from "next-auth/react";
 import api from "@/lib/axios";
+import { API_BASE_URL } from "@/lib/config";
+import { tokenManager } from "@/lib/tokenManager";
 
 export interface AppNotification {
   _id: string;
@@ -48,7 +51,32 @@ const extractList = (payload: any): AppNotification[] => {
   return [];
 };
 
+/**
+ * Same memory-first, session-fallback lookup the axios request interceptor
+ * does. Needed separately because EventSource cannot send an Authorization
+ * header, so the stream carries the token as a query param instead.
+ */
+const resolveAccessToken = async (): Promise<string | null> => {
+  let token = tokenManager.getToken();
+  if (!token) {
+    const session = await getSession();
+    token = session?.accessToken || session?.user?.token || null;
+    if (token) tokenManager.setToken(token);
+  }
+  return token;
+};
+
 export const notificationService = {
+  /**
+   * URL for the live SSE feed: GET /api/notifications/stream?token=<jwt>
+   * Returns null when there is no token — the caller stays on polling.
+   */
+  async getStreamUrl(): Promise<string | null> {
+    const token = await resolveAccessToken();
+    if (!token) return null;
+    return `${API_BASE_URL}/api/notifications/stream?token=${encodeURIComponent(token)}`;
+  },
+
   /**
    * GET /api/notifications?unread&page&limit
    * Returns the list plus the server-side unread count and pagination.

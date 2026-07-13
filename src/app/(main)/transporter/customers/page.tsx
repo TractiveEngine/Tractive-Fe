@@ -453,6 +453,7 @@ export default function CustomersListPage() {
             onClose={() => setIsCustomerInfoOpen(false)}
           />
           <SupportModal
+            customer={selectedCustomer}
             isOpen={isSupportOpen}
             onClose={() => setIsSupportOpen(false)}
           />

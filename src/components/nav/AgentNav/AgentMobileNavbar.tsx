@@ -111,7 +111,7 @@ export const ATMobileNavbar = () => {
                       </div>
                     </div>
                     {isNotificationOpen && (
-                      <div className="absolute !top-[4rem] !-left-[27rem] md:!top-10 md:!-left-[27rem] w-[470px] md:w-[500px] bg-white border border-gray-200 rounded-[4px] shadow-lg z-99">
+                      <div className="absolute top-10 right-0 z-50 w-[92vw] max-w-[420px] overflow-hidden rounded-[8px] border border-[#e2e2e2] bg-[#fefefe] shadow-lg">
                         <ul className="py-2">
                           {hasNotifications ? (
                             <>

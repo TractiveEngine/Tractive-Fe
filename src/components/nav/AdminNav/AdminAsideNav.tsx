@@ -20,6 +20,7 @@ import {
   userRemoveIcon,
   UserTickIcons,
   userMinusIcon,
+  SettingIcon,
 } from "@/app/(main)/admin/_components/icons/AdminIcons";
 
 interface NavSection {
@@ -257,6 +258,26 @@ export const AdminAsideNav = () => {
         </div>
 
         <ul className="mb-[2rem]">
+          <li>
+            <Link
+              href="/admin/settings"
+              className={`flex items-center gap-3 py-2 px-4 rounded-md transition-colors duration-200 lg:flex-row flex-col ${
+                pathname.startsWith("/admin/settings")
+                  ? "bg-[#cce5cc80]"
+                  : "hover:bg-[#f1f1f1]"
+              }`}
+              aria-current={
+                pathname.startsWith("/admin/settings") ? "page" : undefined
+              }
+            >
+              <SettingIcon />
+              <div className="flex items-center gap-3">
+                <span className="font-montserrat text-[#2b2b2b] text-[10px] lg:text-[11.8px] font-normal">
+                  Settings
+                </span>
+              </div>
+            </Link>
+          </li>
           <li>
             <div
               onClick={handleLogout}

@@ -9,17 +9,33 @@ import { ApiTruck } from "@/services/transporterService";
 interface TruckInfoProps {
   item: TruckItem;
   apiTruck?: ApiTruck;
+  /** The truck carries no rating of its own — these come from its owner. */
+  rating?: number;
+  reviewCount?: number;
 }
 
-export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
+export const TruckInfo: React.FC<TruckInfoProps> = ({
+  item,
+  apiTruck,
+  rating,
+  reviewCount,
+}) => {
   const capacity = apiTruck?.capacity || item.capacity || item.fullLoad;
-  const estimatedDelivery = apiTruck?.estimatedDeliveryText || "3 days";
+  // Null for whole-truck fleets — show nothing rather than inventing "3 days".
+  const estimatedDelivery = apiTruck?.estimatedDeliveryText;
   const priceLabel = apiTruck
     ? `₦${apiTruck.price.toLocaleString()} ${apiTruck.priceUnitLabel}`
     : item.amountPerKg;
   const remainingCapacity = apiTruck?.remainingCapacityDisplay || item.spaceRemaining;
   const status = apiTruck?.status;
   const bidSummary = apiTruck?.bidSummary;
+
+  const ratingValue = Number(rating ?? item.rating) || 0;
+  const filledStars = Math.round(ratingValue);
+  const reviews = reviewCount ?? 0;
+
+  const bidders = bidSummary?.activeBidders ?? [];
+  const bookedCount = bidSummary?.totalBids ?? 0;
 
   return (
     <div className="w-[100%] flex flex-col px-4 pt-2 pb-6 gap-[50px] bg-[#fefefe]">
@@ -33,17 +49,19 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
               <div className="flex items-center gap-[40px]">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
-                    <YellowStarIcon />
-                    <YellowStarIcon />
-                    <YellowStarIcon />
-                    <YellowStarIcon />
-                    <StarIcon />
+                    {[0, 1, 2, 3, 4].map((i) =>
+                      i < filledStars ? (
+                        <YellowStarIcon key={i} />
+                      ) : (
+                        <StarIcon key={i} />
+                      )
+                    )}
                     <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                      {item.rating}
+                      {ratingValue.toFixed(1)}
                     </span>
                   </div>
                   <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                    (120 Reviews)
+                    ({reviews} {reviews === 1 ? "Review" : "Reviews"})
                   </p>
                 </div>
                 <div className="bg-[#f1f1f1] cursor-pointer flex items-center justify-center w-[30px] h-[30px] rounded-full">
@@ -63,10 +81,14 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
               <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
                 {capacity}
               </p>
-              <span className="w-[2px] h-[1rem] bg-[#808080]" />
-              <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
-                Estimated delivery: {estimatedDelivery}
-              </p>
+              {estimatedDelivery && (
+                <>
+                  <span className="w-[2px] h-[1rem] bg-[#808080]" />
+                  <p className="font-montserrat text-[10px] sm:text-[11px] md:text-[12px] text-[#2b2b2b] font-normal">
+                    Estimated delivery: {estimatedDelivery}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -110,10 +132,14 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
                 <p className="font-montserrat text-xs text-[#808080]">
                   Active: <span className="text-[#2b2b2b] font-medium">{bidSummary.activeBidsCount}</span>
                 </p>
-                <span className="w-[1.5px] h-3 bg-[#808080]" />
-                <p className="font-montserrat text-xs text-[#808080]">
-                  Highest Bid: <span className="text-[#2b2b2b] font-medium">₦{bidSummary.highestBidAmount.toLocaleString()}</span>
-                </p>
+                {bidSummary.highestBidAmount != null && (
+                  <>
+                    <span className="w-[1.5px] h-3 bg-[#808080]" />
+                    <p className="font-montserrat text-xs text-[#808080]">
+                      Highest Bid: <span className="text-[#2b2b2b] font-medium">₦{bidSummary.highestBidAmount.toLocaleString()}</span>
+                    </p>
+                  </>
+                )}
               </div>
               {bidSummary.activeBidders.length > 0 && (
                 <div className="flex flex-col gap-1 mt-1">
@@ -143,45 +169,29 @@ export const TruckInfo: React.FC<TruckInfoProps> = ({ item, apiTruck }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-12">
-            <div className="relative w-[30px] h-[30px]">
-              <Image
-                src="/images/bidder1.png"
-                alt="Bidder 1"
-                width={30}
-                height={30}
-                className="absolute left-0 z-10"
-              />
-              <Image
-                src="/images/bidder2.png"
-                alt="Bidder 2"
-                width={30}
-                height={30}
-                className="absolute left-[12px] z-20"
-              />
-              <Image
-                src="/images/bidder3.png"
-                alt="Bidder 3"
-                width={30}
-                height={30}
-                className="absolute left-[28px] z-30"
-              />
-              <Image
-                src="/images/bidder4.png"
-                alt="Bidder 4"
-                width={30}
-                height={30}
-                className="absolute left-[40px] z-40"
-              />
+        {bookedCount > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6">
+              {/* The API gives bidder names but no avatars — show initials. */}
+              <div className="flex items-center">
+                {bidders.slice(0, 4).map((bidder, index) => (
+                  <span
+                    key={bidder.id}
+                    title={bidder.name}
+                    className="flex items-center justify-center w-[30px] h-[30px] -ml-2 first:ml-0 rounded-full bg-[#cce5cc] border-2 border-[#fefefe] font-montserrat font-medium text-[11px] text-[#2b6b2b] uppercase"
+                    style={{ zIndex: index + 1 }}
+                  >
+                    {bidder.name?.trim().charAt(0) || "?"}
+                  </span>
+                ))}
+              </div>
+              <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
+                {bookedCount} {bookedCount === 1 ? "buyer has" : "others have"}{" "}
+                booked
+              </p>
             </div>
-            <p className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-              {bidSummary
-                ? `+ ${bidSummary.totalBids} others have booked`
-                : "+ 24 others have booked"}
-            </p>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-col gap-2">
           <p className="font-montserrat font-normal text-[13px] text-[#808080]">

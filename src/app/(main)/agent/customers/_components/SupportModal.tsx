@@ -255,48 +255,14 @@ export const SupportModal: React.FC<SupportModalProps> = ({
               </div>
             </div>
           ) : (
-            // Fallback: General support information when no customer is selected
             <div className="flex flex-col gap-4">
-              <p className="text-[13px] font-montserrat text-[#2b2b2b] mb-2">
-                For general support, please contact us through any of the
-                following channels:
+              <p className="text-[13px] font-montserrat text-[#2b2b2b]">
+                Select a customer to start a chat.
               </p>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-[#f9f9f9] rounded-[6px]">
-                  <span className="text-[20px]">📞</span>
-                  <div>
-                    <p className="text-[11px] font-montserrat font-medium text-[#808080]">
-                      Phone
-                    </p>
-                    <a
-                      href="tel:+2341234567890"
-                      className="text-[13px] font-montserrat text-[#538e53] hover:underline"
-                    >
-                      +234 123 456 7890
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-[#f9f9f9] rounded-[6px]">
-                  <span className="text-[20px]">📧</span>
-                  <div>
-                    <p className="text-[11px] font-montserrat font-medium text-[#808080]">
-                      Email
-                    </p>
-                    <a
-                      href="mailto:support@example.com"
-                      className="text-[13px] font-montserrat text-[#538e53] hover:underline"
-                    >
-                      support@example.com
-                    </a>
-                  </div>
-                </div>
-              </div>
 
               <button
                 onClick={handleClose}
-                className="mt-2 w-full bg-[#538e53] text-[#fefefe] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-[#467746] transition-colors"
+                className="cursor-pointer mt-2 w-full bg-[#538e53] text-[#fefefe] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-[#467746] transition-colors"
               >
                 Close
               </button>

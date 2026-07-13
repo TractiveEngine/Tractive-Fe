@@ -259,10 +259,22 @@ const PackagesTable: React.FC<{ packages: FleetTripPackage[] }> = ({
 
 /* --- Status update form (PATCH /status) --------------------------------- */
 
+/** ISO timestamp → the `YYYY-MM-DDTHH:mm` shape `datetime-local` requires. */
+const toLocalInputValue = (iso?: string): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
+};
+
 const StatusUpdateForm: React.FC<{
   tripId: string;
   status?: FleetTripStatus;
-}> = ({ tripId, status }) => {
+  trip?: FleetTripSummary;
+}> = ({ tripId, status, trip }) => {
   const current = normalizeTripStatus(status);
   const done = current === "delivered" || current === "cancelled";
 
@@ -274,14 +286,32 @@ const StatusUpdateForm: React.FC<{
 
   const [target, setTarget] = useState<FleetTripStatus>(targetOptions[0]);
   const [location, setLocation] = useState("");
+  const [note, setNote] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null,
   );
   const [locating, setLocating] = useState(false);
 
+  // Origin/destination and ETA are trip-level, so seed them from the trip and
+  // let the transporter correct a wrong route or slipping ETA in the same PATCH.
+  const tripOrigin = (trip?.origin || trip?.fromLocation || "") as string;
+  const tripDestination = (trip?.destination || trip?.toLocation || "") as string;
+
+  const [origin, setOrigin] = useState(tripOrigin);
+  const [destination, setDestination] = useState(tripDestination);
+  const [estDeliveryDate, setEstDeliveryDate] = useState(
+    toLocalInputValue(trip?.estDeliveryDate),
+  );
+
   useEffect(() => {
     setTarget(targetOptions[0]);
   }, [targetOptions]);
+
+  useEffect(() => {
+    setOrigin(tripOrigin);
+    setDestination(tripDestination);
+    setEstDeliveryDate(toLocalInputValue(trip?.estDeliveryDate));
+  }, [tripOrigin, tripDestination, trip?.estDeliveryDate]);
 
   const { mutate: updateStatus, isPending } = useUpdateFleetTripStatus();
 
@@ -309,9 +339,16 @@ const StatusUpdateForm: React.FC<{
     if (!target) return;
     const payload: UpdateFleetTripStatusPayload = { status: target };
     if (location.trim()) payload.location = location.trim();
+    if (note.trim()) payload.note = note.trim();
+    if (origin.trim()) payload.origin = origin.trim();
+    if (destination.trim()) payload.destination = destination.trim();
     if (coords) {
       payload.lat = coords.lat;
       payload.lng = coords.lng;
+    }
+    if (estDeliveryDate) {
+      const d = new Date(estDeliveryDate);
+      if (!Number.isNaN(d.getTime())) payload.estDeliveryDate = d.toISOString();
     }
     updateStatus({ tripId, payload });
   };
@@ -364,6 +401,59 @@ const StatusUpdateForm: React.FC<{
           onChange={(e) => setLocation(e.target.value)}
           placeholder="e.g. Ibadan toll gate"
           className="border border-gray-300 rounded-md px-3 py-2 text-[13px] font-montserrat focus:outline-none focus:border-[#538e53]"
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-1 flex-1">
+          <label className="font-montserrat text-[11px] text-[#808080]">
+            Origin <span className="text-[#a0a0a0]">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+            placeholder="e.g. Kaduna"
+            className="border border-gray-300 rounded-md px-3 py-2 text-[13px] font-montserrat focus:outline-none focus:border-[#538e53]"
+          />
+        </div>
+        <div className="flex flex-col gap-1 flex-1">
+          <label className="font-montserrat text-[11px] text-[#808080]">
+            Destination <span className="text-[#a0a0a0]">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            placeholder="e.g. Lagos"
+            className="border border-gray-300 rounded-md px-3 py-2 text-[13px] font-montserrat focus:outline-none focus:border-[#538e53]"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="font-montserrat text-[11px] text-[#808080]">
+          Estimated delivery date{" "}
+          <span className="text-[#a0a0a0]">(optional)</span>
+        </label>
+        <input
+          type="datetime-local"
+          value={estDeliveryDate}
+          onChange={(e) => setEstDeliveryDate(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 text-[13px] font-montserrat focus:outline-none focus:border-[#538e53] cursor-pointer"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="font-montserrat text-[11px] text-[#808080]">
+          Note <span className="text-[#a0a0a0]">(optional)</span>
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          placeholder="e.g. Vehicle departed and is on schedule"
+          className="border border-gray-300 rounded-md px-3 py-2 text-[13px] font-montserrat resize-none focus:outline-none focus:border-[#538e53]"
         />
       </div>
 
@@ -468,7 +558,7 @@ export const TripTrackingDetails: React.FC<TripTrackingDetailsProps> = ({
         </div>
       </div>
 
-      <StatusUpdateForm tripId={tripId} status={data.status} />
+      <StatusUpdateForm tripId={tripId} status={data.status} trip={data} />
     </>
   );
 };

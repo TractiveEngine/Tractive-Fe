@@ -2,6 +2,14 @@ import axios from "axios";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/config";
 
+/** One bar of the 5★→1★ breakdown. `percentage` is sent by the API but the UI
+ * recomputes it from `count`/`totalReviews` when absent. */
+export interface SellerRatingBucket {
+  rating: number;
+  count: number;
+  percentage?: number;
+}
+
 export interface Seller {
   sellerId: string;
   name: string;
@@ -16,15 +24,16 @@ export interface Seller {
   bio?: string;
   averageRating?: number;
   totalReviews?: number;
+  ratingDistribution?: SellerRatingBucket[];
   amountOfSales?: number;
   recommendations?: unknown[];
-  // UI fields not in API - optional or with defaults
-  image?: string;
+  products?: unknown[];
+  image?: string | null;
   rating?: number;
   rateStatus?: string;
-  sellerYear?: string;
+  sellerYear?: string | number;
   customerNumber?: number;
-  sellerBio?: string;
+  sellerBio?: string | null;
   location?: string;
   isFollowing?: boolean;
   isVerified?: boolean;
@@ -69,26 +78,28 @@ export const getSellers = async (params?: GetSellersParams): Promise<SellersResp
   }
 };
 
+/**
+ * GET /api/sellers/{id} — the authoritative seller payload. Only this route
+ * carries `ratingDistribution` and `isFollowing`; the /api/sellers list does
+ * not, so the list fallback below is a degraded last resort (empty rating bars)
+ * and must not be treated as equivalent.
+ */
 export const getSellerById = async (id: string): Promise<Seller | null> => {
   try {
-    // Try hitting the specific endpoint first
-    // Note: This endpoint is currently returning 400, so this block might be skipped to catch directly
-    // based on previous tests, but keeping it for when API is fixed.
-    try {
-      const response = await axios.get<{ success: boolean; data: Seller }>(
-        `${API_BASE_URL}/api/sellers/${id}`
-      );
-      if (response.data.success) {
-        return response.data.data;
-      }
-    } catch (specificError) {
-      console.warn("Direct seller fetch failed, trying fallback...", specificError);
+    const response = await axios.get<{ success: boolean; data: Seller }>(
+      `${API_BASE_URL}/api/sellers/${id}`
+    );
+    if (response.data.success) {
+      return response.data.data;
     }
+    console.warn(`Seller ${id} returned success=false; falling back to list.`);
+  } catch (error) {
+    console.warn(`Direct seller fetch failed for ${id}; falling back to list.`, error);
+  }
 
-    // Fallback: Fetch all sellers and find by ID
+  try {
     const sellersResponse = await getSellers();
-    const seller = sellersResponse.data.find((s) => s.sellerId === id);
-    return seller || null;
+    return sellersResponse.data.find((s) => s.sellerId === id) ?? null;
   } catch (error) {
     console.error("Error fetching seller details:", error);
     return null;
@@ -119,18 +130,117 @@ export const getSellerProducts = async (id: string, params?: GetSellerProductsPa
     }
 }
 
-// Get seller reviews
-export const getSellerReviews = async (id: string): Promise<unknown> => {
-    try {
-        const response = await axios.get(
-            `${API_BASE_URL}/api/sellers/${id}/reviews`
-        );
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching seller reviews:", error);
-        return null;
-    }
+export interface SellerReview {
+  id: string;
+  user: { name: string; avatar: string };
+  rating: number;
+  comment: string;
+  date: string;
+  image: string;
+  replies: number;
+  likes: number;
 }
+
+export interface SellerReviewsResult {
+  overallRating: number;
+  totalReviewers: number;
+  ratings: { stars: string; count: number; percentage: number }[];
+  reviews: SellerReview[];
+  reviewerAvatars: string[];
+}
+
+const EMPTY_REVIEWS: SellerReviewsResult = {
+  overallRating: 0,
+  totalReviewers: 0,
+  ratings: [5, 4, 3, 2, 1].map((s) => ({
+    stars: `${s} star`,
+    count: 0,
+    percentage: 0,
+  })),
+  reviews: [],
+  reviewerAvatars: [],
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const mapSellerReview = (raw: any): SellerReview => {
+  const buyer = raw?.buyer ?? raw?.user ?? {};
+  const replies = raw?.replies;
+  return {
+    id: String(raw?._id ?? raw?.id ?? ""),
+    user: {
+      name: buyer?.name ?? buyer?.fullName ?? "Anonymous",
+      avatar: buyer?.image ?? buyer?.avatar ?? "",
+    },
+    rating: Number(raw?.rating) || 0,
+    comment: raw?.comment ?? raw?.message ?? "",
+    date: raw?.createdAt ?? raw?.date ?? "",
+    image: raw?.image ?? (Array.isArray(raw?.images) ? raw.images[0] : "") ?? "",
+    replies: Array.isArray(replies)
+      ? replies.length
+      : Number(raw?.repliesCount ?? replies) || 0,
+    likes: Number(raw?.likesCount ?? raw?.likes) || 0,
+  };
+};
+
+/**
+ * GET /api/sellers/{id}/reviews — normalised into the shape the Reviews UI
+ * renders. Returns an all-zero result (never mock data) when the seller has no
+ * reviews, so an unrated seller shows a genuine empty state.
+ */
+export const getSellerReviews = async (
+  id: string
+): Promise<SellerReviewsResult> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/sellers/${id}/reviews`);
+    const body: any = response.data;
+    const data = body?.data ?? body;
+
+    const rawReviews: any[] = Array.isArray(data)
+      ? data
+      : data?.reviews ?? data?.items ?? [];
+    const reviews = rawReviews.map(mapSellerReview);
+
+    const totalReviewers =
+      Number(data?.totalReviews ?? data?.totalReviewers ?? data?.total) ||
+      reviews.length;
+
+    const overallRating =
+      Number(data?.overallRating ?? data?.averageRating) ||
+      (reviews.length
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0);
+
+    const dist: any[] = Array.isArray(data?.ratingDistribution)
+      ? data.ratingDistribution
+      : [];
+    const ratings = [5, 4, 3, 2, 1].map((star) => {
+      const entry = dist.find((d) => Number(d?.rating) === star);
+      const count =
+        entry != null
+          ? Number(entry.count) || 0
+          : reviews.filter((r) => Math.round(r.rating) === star).length;
+      const percentage = Number(
+        entry?.percentage ?? (totalReviewers ? (count / totalReviewers) * 100 : 0)
+      );
+      return { stars: `${star} star`, count, percentage };
+    });
+
+    return {
+      overallRating: Number(overallRating.toFixed(1)),
+      totalReviewers,
+      ratings,
+      reviews,
+      reviewerAvatars: reviews
+        .map((r) => r.user.avatar)
+        .filter(Boolean)
+        .slice(0, 4),
+    };
+  } catch (error) {
+    console.error("Error fetching seller reviews:", error);
+    return EMPTY_REVIEWS;
+  }
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Like a review
 export const likeReview = async (reviewId: string): Promise<unknown> => {

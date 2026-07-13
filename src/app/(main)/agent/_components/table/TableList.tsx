@@ -82,27 +82,25 @@ export const TableList = <T extends BaseData>({
     }
   }, [dataType, fetchData, initialData]);
 
+  // These are fallbacks for when a caller does not pass a handler. They log and
+  // close the menu, matching the other defaults below — never a native alert().
   const defaultHandleEdit = (id: string) => {
     console.log(`Default handleEdit called for id: ${id}`);
-    alert(`Edit ${dataType} with ID: ${id}`);
     setActiveMenu(null);
   };
 
   const defaultHandleView = (id: string) => {
     console.log(`Default handleView called for id: ${id}`);
-    alert(`View ${dataType} with ID: ${id}`);
     setActiveMenu(null);
   };
 
   const defaultHandleReport = (id: string) => {
     console.log(`Default handleReport called for id: ${id}`);
-    alert(`Report ${dataType} with ID: ${id}`);
     setActiveMenu(null);
   };
 
   const defaultHandleViewBidders = (id: string) => {
     console.log(`Default handleViewBidders called for id: ${id}`);
-    alert(`View bidders for ${dataType} with ID: ${id}`);
     setActiveMenu(null);
   };
 

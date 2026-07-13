@@ -17,6 +17,7 @@ import {
   userRemoveIcon,
   UserTickIcons,
   userMinusIcon,
+  SettingIcon,
 } from "@/app/(main)/admin/_components/icons/AdminIcons";
 import { Admin_ProfileDropDownMobile } from "@/components/Profile_dropdowns/AdminProfile_dropdown/Admin_ProfileDropDownMobile";
 
@@ -180,6 +181,7 @@ export const AdminAsideNavMobile = ({
           onClick: toggleModal, // Toggle modal on click
           hasDot: true,
         },
+        { href: "/admin/settings", icon: SettingIcon, label: "Settings" },
       ],
     },
   ];
