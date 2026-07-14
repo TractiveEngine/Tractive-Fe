@@ -8,6 +8,7 @@ import { TruckShowCase } from "../../_components/BookingTransport/TruckShowCase"
 import { useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { useGetTruckById } from "@/hooks/queries/useTransporterQueries";
+import { useGetSeller } from "@/hooks/queries/useSellerQueries";
 
 const BookingTransport: React.FC = () => {
   const router = useRouter();
@@ -24,6 +25,16 @@ const BookingTransport: React.FC = () => {
     (state) => state.pendingTransport.orderIds
   );
   const { data: apiTruck, isLoading } = useGetTruckById(truckId);
+
+  // The truck carries its owner as a bare id (`transporter: "<id>"`). The truck
+  // payload has no rating or owner name, so we resolve both from the seller
+  // record behind that id — it's the same profile the store page renders.
+  const transporterRef = apiTruck?.transporter;
+  const transporterId =
+    (typeof transporterRef === "string"
+      ? transporterRef
+      : transporterRef?._id ?? transporterRef?.id) ?? "";
+  const { data: ownerSeller } = useGetSeller(transporterId);
 
   if (isLoading) {
     return (
@@ -47,60 +58,56 @@ const BookingTransport: React.FC = () => {
     );
   }
 
-  // Build a merged TruckItem for components that still expect it
-  const effectiveTruckItem = truckItem || {
-    id: apiTruck!._id,
-    image: apiTruck!.image || "",
-    images: apiTruck!.images,
-    rating: apiTruck!.rating || "0.0",
-    truckName: apiTruck!.fleetName,
-    amountPerKg: `₦${apiTruck!.pricePerKgEquivalent}`,
-    fullLoad: apiTruck!.capacity,
-    spaceRemaining: apiTruck!.remainingCapacityDisplay,
-    locationFrom: apiTruck!.locationFrom || "",
-    locationTo: apiTruck!.locationTo || "",
-    fleetDescription: apiTruck!.fleetDescription,
-    model: apiTruck!.model,
-    size: apiTruck!.size,
-    plateNumber: apiTruck!.plateNumber,
-    capacityKg: apiTruck!.capacityKg,
-    capacity: apiTruck!.capacityKg,
-    remainingCapacityKg: apiTruck!.remainingCapacityKg,
-    pricePerKg: apiTruck!.pricePerKgEquivalent,
-    totalPrice: apiTruck!.price,
-  };
+  // The truck's rating lives on its owner, not on the truck.
+  const ownerRating = ownerSeller?.averageRating;
 
-  const allImages = effectiveTruckItem.images && effectiveTruckItem.images.length > 0
-    ? effectiveTruckItem.images
-    : [effectiveTruckItem.image];
+  // The API response is the source of truth. `truckItem` (put in redux by the
+  // list page) is only a placeholder so navigating list → detail doesn't flash;
+  // once the request lands, the fresh record replaces it.
+  const apiTruckItem = apiTruck
+    ? {
+        id: apiTruck._id,
+        image: apiTruck.images?.[0] ?? apiTruck.image ?? "",
+        images: apiTruck.images ?? [],
+        rating: (ownerRating ?? 0).toFixed(1),
+        truckName: apiTruck.fleetName,
+        amountPerKg: `₦${apiTruck.pricePerKgEquivalent}`,
+        fullLoad: apiTruck.capacityTonnes
+          ? `${apiTruck.capacityTonnes} tonnes`
+          : apiTruck.capacity,
+        spaceRemaining: apiTruck.remainingCapacityDisplay,
+        locationFrom: apiTruck.route?.fromState ?? apiTruck.locationFrom ?? "",
+        locationTo: apiTruck.route?.toState ?? apiTruck.locationTo ?? "",
+        fleetDescription: apiTruck.fleetDescription,
+        model: apiTruck.model,
+        size: apiTruck.size,
+        plateNumber: apiTruck.plateNumber,
+        capacityKg: apiTruck.capacityKg,
+        capacity: apiTruck.capacityKg,
+        remainingCapacityKg: apiTruck.remainingCapacityKg,
+        pricePerKg: apiTruck.pricePerKgEquivalent,
+        totalPrice: apiTruck.price,
+      }
+    : null;
+
+  const effectiveTruckItem = apiTruckItem ?? truckItem!;
+
+  const allImages =
+    effectiveTruckItem.images && effectiveTruckItem.images.length > 0
+      ? effectiveTruckItem.images
+      : [effectiveTruckItem.image];
 
   const selectedImage = allImages[selectedImageIndex] || allImages[0];
 
-  // Resolve the fleet owner (transporter) for the Follow button. The truck
-  // detail may carry it as `transporter`/`owner`/`user` — an object or a bare id
-  // — so we read it defensively.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawTruck = apiTruck as any;
-  const ownerSource =
-    rawTruck?.transporter ?? rawTruck?.owner ?? rawTruck?.user ?? null;
-  const ownerObj =
-    ownerSource && typeof ownerSource === "object" ? ownerSource : null;
-  const ownerId =
-    (typeof ownerSource === "string" ? ownerSource : ownerObj?._id ?? ownerObj?.id) ??
-    rawTruck?.transporterId ??
-    rawTruck?.ownerId ??
-    rawTruck?.userId;
-  const owner = ownerId
+  const owner = transporterId
     ? {
-        id: ownerId as string,
-        name: ownerObj?.businessName ?? ownerObj?.name,
-        image: ownerObj?.image,
-        rating:
-          ownerObj?.rating ??
-          (rawTruck?.rating ? Number(rawTruck.rating) : undefined),
-        followersCount: ownerObj?.followersCount,
-        state: ownerObj?.state ?? ownerObj?.location,
-        isFollowing: ownerObj?.isFollowing,
+        id: transporterId,
+        name: ownerSeller?.name,
+        image: ownerSeller?.image ?? undefined,
+        rating: ownerRating,
+        followersCount: ownerSeller?.followersCount,
+        state: ownerSeller?.location,
+        isFollowing: ownerSeller?.isFollowing,
       }
     : undefined;
 
@@ -150,7 +157,12 @@ const BookingTransport: React.FC = () => {
         onSelect={setSelectedImageIndex}
       />
       <div className="flex flex-col mb-4 lg:flex-row gap-4 w-full">
-        <TruckInfo item={effectiveTruckItem} apiTruck={apiTruck} />
+        <TruckInfo
+          item={effectiveTruckItem}
+          apiTruck={apiTruck}
+          rating={ownerRating}
+          reviewCount={ownerSeller?.totalReviews}
+        />
         <OwnersInfo owner={owner} />
       </div>
       <SimilarFleet />

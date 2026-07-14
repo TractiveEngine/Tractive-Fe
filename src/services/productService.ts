@@ -615,20 +615,15 @@ export const productService = {
     }
   },
 
-  // PUT /api/products/bulk/status
+  // PATCH /api/products/bulk/status
+  // The backend only registers PATCH here (PUT and POST return 405), and the id
+  // array must be keyed `productIds` — matching bulk/delete. `products` 400s.
   updateMultipleProductsStatus: async (
     ids: string[],
     status: "available" | "out_of_stock" | "discontinued",
   ): Promise<void> => {
     try {
-      console.log(
-        `🚀 Bulk updating ${ids.length} products status to: ${status}`,
-      );
-
-      // Changed to PUT as requested
-      await api.put("/api/products/bulk/status", { products: ids, status });
-
-      console.log("✅ All products status updated successfully");
+      await api.patch("/api/products/bulk/status", { productIds: ids, status });
     } catch (error) {
       return handleApiError(error, "bulk update product status");
     }

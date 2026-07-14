@@ -20,6 +20,15 @@ import {
   useUnfollowFarmer,
 } from "@/hooks/queries/useUserQueries";
 
+/** Sales figures run into the billions — abbreviate so they fit the card. */
+const compactNaira = (value?: number): string => {
+  const amount = Number(value) || 0;
+  if (amount >= 1_000_000_000) return `₦${(amount / 1_000_000_000).toFixed(1)}b`;
+  if (amount >= 1_000_000) return `₦${(amount / 1_000_000).toFixed(1)}m`;
+  if (amount >= 1_000) return `₦${(amount / 1_000).toFixed(1)}k`;
+  return `₦${amount}`;
+};
+
 export const StoreHeader = ({
   seller,
   isLoading,
@@ -84,8 +93,12 @@ export const StoreHeader = ({
     });
   }, [seller?.ratingDistribution, seller?.totalReviews]);
 
-  // Phone number data
-  const phoneNumbers = seller?.phoneNumbers?.length ? seller.phoneNumbers : ["09034145971", "09034145972"];
+  // Real numbers only — never invent contact details for a seller.
+  const phoneNumbers: string[] = seller?.phoneNumbers?.length
+    ? seller.phoneNumbers
+    : [];
+
+  const reviewCount = Number(seller?.totalReviews) || 0;
 
   // Initialize individual animation controls for each rating
   const control1 = useAnimation();
@@ -156,11 +169,11 @@ export const StoreHeader = ({
             </p>
             <div className="flex items-center gap-2">
               <Image
-                src="/images/sellerprofile.png"
-                alt="Seller Profile"
+                src={seller?.image || "/images/sellerprofile.png"}
+                alt={seller?.name ? `${seller.name} profile` : "Seller Profile"}
                 width={40}
                 height={40}
-                className="object-cover sm:w-[50px] sm:h-[50px]"
+                className="object-cover rounded-full w-[40px] h-[40px] sm:w-[50px] sm:h-[50px]"
               />
               <div className="flex flex-col gap-1 sm:gap-2">
                 <div className="flex gap-2 sm:gap-1 xl:gap-3 flex-wrap items-center w-full">
@@ -168,13 +181,15 @@ export const StoreHeader = ({
                     <p className="font-montserrat font-normal text-[12px] sm:text-[14px] text-[#2b2b2b] truncate">
                       {seller?.name || "Store Name"}
                     </p>
-                    <Image
-                      src="/images/verifiedIcon.png"
-                      alt="Verified"
-                      width={12}
-                      height={12}
-                      className="object-cover sm:w-[15px] sm:h-[15px]"
-                    />
+                    {seller?.isVerified && (
+                      <Image
+                        src="/images/verifiedIcon.png"
+                        alt="Verified"
+                        width={12}
+                        height={12}
+                        className="object-cover sm:w-[15px] sm:h-[15px]"
+                      />
+                    )}
                   </div>
                   <span className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] rounded-[100px] bg-[#2b2b2b]"></span>
                   <button
@@ -196,8 +211,13 @@ export const StoreHeader = ({
                   <div className="flex gap-1 items-center">
                     <YellowStarIcon />
                     <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                      {seller?.averageRating || 0}
+                      {(Number(seller?.averageRating) || 0).toFixed(1)}
                     </small>
+                    {seller?.rateStatus && (
+                      <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#808080] truncate">
+                        ({seller.rateStatus})
+                      </small>
+                    )}
                   </div>
                   <span className="w-[3px] h-[3px] rounded-full bg-[#8e8e8e]"></span>
                   <small className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
@@ -234,39 +254,51 @@ export const StoreHeader = ({
                     <XIcon />
                   </div>
                   <div className="flex items-start gap-2 w-full">
-                    {phoneNumbers.map((number) => (
-                      <div
-                        key={number}
-                        className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => handleCopy(number)}
-                      >
-                        {copiedStates[number] ? (
-                          <>
-                            <span className="font-montserrat font-normal text-[12px] text-[#538e53]">
-                              Copied!
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <CopyIcon />
-                            <span className="font-montserrat font-normal text-[12px] text-[#2b2b2b]">
-                              {number}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    ))}
+                    {phoneNumbers.length === 0 ? (
+                      <span className="font-montserrat font-normal text-[12px] text-[#808080] whitespace-nowrap">
+                        No phone number provided
+                      </span>
+                    ) : (
+                      phoneNumbers.map((number: string) => (
+                        <div
+                          key={number}
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => handleCopy(number)}
+                        >
+                          {copiedStates[number] ? (
+                            <>
+                              <span className="font-montserrat font-normal text-[12px] text-[#538e53]">
+                                Copied!
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <CopyIcon />
+                              <span className="font-montserrat font-normal text-[12px] text-[#2b2b2b]">
+                                {number}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </motion.div>
               )}
             </div>
-            <div className="bg-[#538e53] flex flex-col items-center sm:items-start gap-3 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] sm:w-[7.6rem] h-[100px] justify-center">
+            <div className="bg-[#538e53] flex flex-col items-center sm:items-start gap-2 p-3 rounded-[7px] shadow-[0px_4px_20px_rgba(0,0,0,0.1)] w-[100%] sm:w-[7.6rem] h-[100px] justify-center">
               <div className="flex gap-2 items-center justify-center bg-[#fefefe] w-[35px] h-[35px] p-1 rounded-[100px]">
                 <ShoppingCartIcon />
               </div>
-              <p className="font-montserrat font-normal text-center text-[10px] sm:text-[11px] text-[#fefefe]">
-                Total sales made ({seller?.productsCount || 0})
-              </p>
+              <div className="flex flex-col items-center sm:items-start">
+                <p className="font-montserrat font-semibold text-center text-[11px] sm:text-[12px] text-[#fefefe]">
+                  Total sales made {compactNaira(seller?.amountOfSales)}
+                </p>
+                <small className="font-montserrat font-normal text-center text-[9px] sm:text-[10px] text-[#e2efe2]">
+                  {seller?.productsCount || 0} product
+                  {(seller?.productsCount || 0) === 1 ? "" : "s"} listed
+                </small>
+              </div>
             </div>
           </div>
         </div>
@@ -318,38 +350,10 @@ export const StoreHeader = ({
               </div>
               <div className="flex gap-2 items-center justify-between">
                 <div className="flex items-center gap-6 sm:gap-10">
-                  <div className="relative w-[30px] h-[30px]">
-                    <Image
-                      src="/images/bidder1.png"
-                      alt="Bidder 1"
-                      width={20}
-                      height={20}
-                      className="absolute left-0 z-10 sm:w-[25px] sm:h-[25px]"
-                    />
-                    <Image
-                      src="/images/bidder2.png"
-                      alt="Bidder 2"
-                      width={20}
-                      height={20}
-                      className="absolute left-[10px] sm:left-[12px] z-20 sm:w-[25px] sm:h-[25px]"
-                    />
-                    <Image
-                      src="/images/bidder3.png"
-                      alt="Bidder 3"
-                      width={20}
-                      height={20}
-                      className="absolute left-[20px] sm:left-[28px] z-30 sm:w-[25px] sm:h-[25px]"
-                    />
-                    <Image
-                      src="/images/bidder4.png"
-                      alt="Bidder 4"
-                      width={20}
-                      height={20}
-                      className="absolute left-[30px] sm:left-[40px] z-40 sm:w-[25px] sm:h-[25px]"
-                    />
-                  </div>
                   <p className="font-montserrat font-normal text-[10px] sm:text-[11px] text-[#2b2b2b]">
-                    + {seller?.totalReviews || 0}
+                    {reviewCount === 0
+                      ? "No reviews yet"
+                      : `${reviewCount} review${reviewCount === 1 ? "" : "s"}`}
                   </p>
                 </div>
                 <div
@@ -377,7 +381,7 @@ export const StoreHeader = ({
             transition={{ duration: 0.3 }}
             className="absolute right-0 top-[7.6rem] z-60"
           >
-            <Reviews onClose={handleReviewsToggle} />
+            <Reviews sellerId={sellerId} onClose={handleReviewsToggle} />
           </motion.div>
         )}
       </div>

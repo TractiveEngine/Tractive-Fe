@@ -58,16 +58,48 @@ export interface FrontendTransaction {
   createdAt: string;
   updatedAt: string;
 
+  // Commission, as returned by the API.
+  commissionAmount?: number;
+  /** Fraction, not a percentage: 0.1 means 10%. */
+  commissionRate?: number;
+
   // Frontend-only fields for UI (derived from the first order product)
   name?: string;
   description?: string;
   image?: string;
   sold?: number;
+  /** Alias of `commissionAmount`, kept for the existing table columns. */
   commission?: number;
   date?: string;
   productCount?: number;
   checked?: boolean; // For checkbox compatibility
 }
+
+/** Used only when the API omits commission (older records). */
+const FALLBACK_COMMISSION_RATE = 0.1;
+
+/**
+ * The API may express the rate as a fraction (0.1) or a percentage (10).
+ * Normalise to a fraction so callers have one thing to reason about.
+ */
+const toRateFraction = (rate?: number): number | undefined => {
+  if (typeof rate !== "number" || !Number.isFinite(rate) || rate < 0) {
+    return undefined;
+  }
+  return rate > 1 ? rate / 100 : rate;
+};
+
+const resolveCommission = (
+  transaction: Pick<RawTransaction, "amount" | "commissionRate" | "commissionAmount">,
+): { rate: number; amount: number } => {
+  const rate = toRateFraction(transaction.commissionRate) ?? FALLBACK_COMMISSION_RATE;
+  const amount =
+    typeof transaction.commissionAmount === "number" &&
+    Number.isFinite(transaction.commissionAmount)
+      ? transaction.commissionAmount
+      : (transaction.amount ?? 0) * rate;
+  return { rate, amount };
+};
 
 // Raw transaction element as it comes off the wire (order/buyer may be an id
 // string or a populated object).
@@ -81,6 +113,8 @@ interface RawTransaction {
   updatedAt: string;
   order?: string | PopulatedOrder;
   buyer?: string | TransactionBuyer;
+  commissionRate?: number;
+  commissionAmount?: number;
 }
 
 // Backend Transaction Interface (what API expects)
@@ -244,8 +278,8 @@ export const transactionService = {
       // Transform backend data to frontend format with UI enhancements
       const transactions: FrontendTransaction[] = rawTransactions.map(
         (transaction) => {
-          // Calculate commission (10% of amount for example)
-          const commission = transaction.amount * 0.1;
+          const { rate: commissionRate, amount: commissionAmount } =
+            resolveCommission(transaction);
 
           // `order` may come back as an id string or a populated object —
           // keep the populated object so the details modal can read products.
@@ -280,12 +314,14 @@ export const transactionService = {
             approvedBy: transaction.approvedBy,
             createdAt: transaction.createdAt,
             updatedAt: transaction.updatedAt,
+            commissionAmount,
+            commissionRate,
             // Frontend-only fields for UI
             name: productName,
             description: productDescription,
             image: productImage,
             sold: transaction.amount,
-            commission: commission,
+            commission: commissionAmount,
             date: new Date(transaction.createdAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",

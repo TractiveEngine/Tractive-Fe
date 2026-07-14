@@ -158,7 +158,7 @@ export const AgentProfileNavbar = () => {
                       <span className="absolute top-0 right-[2px] h-2 w-2 rounded-full bg-[#538E53]" />
                     )}
                     {isNotificationOpen && (
-                      <div className="absolute !top-10 !-left-[15rem] w-[500px] bg-[#fefefe] border border-gray-200 rounded-[4px] shadow-lg z-10">
+                      <div className="absolute top-10 right-0 z-50 w-[92vw] max-w-[420px] overflow-hidden rounded-[8px] border border-[#e2e2e2] bg-[#fefefe] shadow-lg">
                         <ul className="py-2">
                           {hasNotifications ? (
                             <>

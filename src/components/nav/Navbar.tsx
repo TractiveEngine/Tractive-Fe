@@ -9,7 +9,7 @@ import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../Notifications";
 import ProfileDropDown from "../Profile_dropdowns/ProfileDropDown/ProfileDropDown";
-import { useNotifications } from "@/hooks/queries/useNotificationQueries";
+import { useNotificationCenter } from "@/hooks/queries/useNotificationQueries";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -19,7 +19,7 @@ export const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const { data: notificationsData } = useNotifications(isLoggedIn);
+  const { data: notificationsData } = useNotificationCenter(isLoggedIn);
   const unreadCount = notificationsData?.unreadCount ?? 0;
   const hasUnread = unreadCount > 0;
 

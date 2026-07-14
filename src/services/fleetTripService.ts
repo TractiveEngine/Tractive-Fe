@@ -158,13 +158,20 @@ export interface CreateFleetTripPayload {
   bookingIds: string[];
 }
 
-/** PATCH /fleet-trips/{id}/status — supports status, location label and lat/lng. */
+/**
+ * PATCH /fleet-trips/{id}/status — the tracking-update contract.
+ * `status` is the only required field; everything else refines the tracking card.
+ * `estDeliveryDate` must be an ISO-8601 string.
+ */
 export interface UpdateFleetTripStatusPayload {
   status: FleetTripStatus;
   note?: string;
   location?: string;
+  origin?: string;
+  destination?: string;
   lat?: number;
   lng?: number;
+  estDeliveryDate?: string;
 }
 
 const unwrap = <T>(body: unknown): T => {

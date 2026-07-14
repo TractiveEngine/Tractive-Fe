@@ -12,10 +12,42 @@ import {
 } from "@/hooks/queries/useProductQueries";
 import { toast } from "sonner";
 import { DateRangePicker } from "@/components/DateRangePicker";
+import {
+  ConfirmActionModal,
+  ConfirmActionTone,
+} from "../../../admin/_components/ConfirmActionModal";
 
 interface ProductOutOfStockProps {
   onProductsUpdate: (counts: { active: number; out_of_stock: number }) => void;
 }
+
+type BulkActionKind = "delete" | "back_in_stock";
+
+// Copy + tone for the bulk confirmation modal. `n` is the number selected.
+const BULK_COPY: Record<
+  BulkActionKind,
+  {
+    title: string;
+    description: (n: number) => string;
+    confirmLabel: (n: number) => string;
+    tone: ConfirmActionTone;
+  }
+> = {
+  delete: {
+    title: "Delete these products?",
+    description: (n) =>
+      `${n} product${n === 1 ? "" : "s"} will be permanently deleted. This cannot be undone.`,
+    confirmLabel: (n) => `Yes, delete ${n}`,
+    tone: "danger",
+  },
+  back_in_stock: {
+    title: "Mark as back in stock?",
+    description: (n) =>
+      `${n} product${n === 1 ? "" : "s"} will be moved back to the Active tab and made visible to buyers again.`,
+    confirmLabel: (n) => `Yes, restock ${n}`,
+    tone: "success",
+  },
+};
 
 export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   onProductsUpdate,
@@ -115,7 +147,12 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
   const bulkUpdateStatusMutation = useBulkUpdateStatus();
 
   // Handle bulk back in stock operation
-  const handleBulkBackInStock = async () => {
+  // Bulk actions are destructive, so they open the themed ConfirmActionModal
+  // instead of a native browser confirm(). The handlers below only stage the
+  // action; `runPendingBulkAction` performs it once the user confirms.
+  const [pendingBulk, setPendingBulk] = useState<BulkActionKind | null>(null);
+
+  const handleBulkBackInStock = () => {
     if (selectedProductIds.length === 0) {
       toast.warning("Please select products to mark as back in stock", {
         duration: 3000,
@@ -123,27 +160,10 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
       });
       return;
     }
-
-    if (
-      !confirm(
-        `Are you sure you want to mark ${selectedProductIds.length} product(s) as back in stock?`,
-      )
-    ) {
-      return;
-    }
-
-    bulkUpdateStatusMutation.mutate(
-      { ids: selectedProductIds, status: "available" },
-      {
-        onSuccess: () => {
-          setSelectedProductIds([]); // Clear selection
-        },
-      },
-    );
+    setPendingBulk("back_in_stock");
   };
 
-  // Handle bulk delete operation
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedProductIds.length === 0) {
       toast.warning("Please select products to delete", {
         duration: 3000,
@@ -151,21 +171,29 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
       });
       return;
     }
-
-    if (
-      !confirm(
-        `Are you sure you want to delete ${selectedProductIds.length} product(s)? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-
-    bulkDeleteMutation.mutate(selectedProductIds, {
-      onSuccess: () => {
-        setSelectedProductIds([]); // Clear selection
-      },
-    });
+    setPendingBulk("delete");
   };
+
+  const clearSelectionAndClose = () => {
+    setSelectedProductIds([]);
+    setPendingBulk(null);
+  };
+
+  const runPendingBulkAction = () => {
+    if (pendingBulk === "delete") {
+      bulkDeleteMutation.mutate(selectedProductIds, {
+        onSuccess: clearSelectionAndClose,
+      });
+    } else if (pendingBulk === "back_in_stock") {
+      bulkUpdateStatusMutation.mutate(
+        { ids: selectedProductIds, status: "available" },
+        { onSuccess: clearSelectionAndClose },
+      );
+    }
+  };
+
+  const isBulkSubmitting =
+    bulkDeleteMutation.isPending || bulkUpdateStatusMutation.isPending;
 
   // Handle product selection updates from ProductTable
   const handleProductSelectionUpdate = useCallback((selectedIds: string[]) => {
@@ -353,6 +381,27 @@ export const ProductOutOfStock: React.FC<ProductOutOfStockProps> = ({
           onPageChange={handlePageChange}
         />
       </div>
+
+      <ConfirmActionModal
+        isOpen={pendingBulk !== null}
+        title={pendingBulk ? BULK_COPY[pendingBulk].title : ""}
+        description={
+          pendingBulk
+            ? BULK_COPY[pendingBulk].description(selectedProductIds.length)
+            : undefined
+        }
+        confirmLabel={
+          pendingBulk
+            ? BULK_COPY[pendingBulk].confirmLabel(selectedProductIds.length)
+            : ""
+        }
+        tone={pendingBulk ? BULK_COPY[pendingBulk].tone : "danger"}
+        isSubmitting={isBulkSubmitting}
+        onCancel={() => {
+          if (!isBulkSubmitting) setPendingBulk(null);
+        }}
+        onConfirm={runPendingBulkAction}
+      />
     </div>
   );
 };

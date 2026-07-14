@@ -10,6 +10,7 @@ import { TableList } from "./TableList";
 import { ActionMenuProps } from "../ActionMenuProps";
 import { copyToClipboard } from "@/utils/Clipboard";
 import { IdCopyIcon } from "../../produce-list/_components/table/ProductRow";
+import { CustomerCareModal } from "../../pending/_components/CustomerCareModal";
 import {
   Order,
   OrderRecord,
@@ -158,6 +159,7 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Order[]>([]);
+  const [isCustomerCareOpen, setIsCustomerCareOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   // Full order-details modal — opened from the row action menu. Reuses the raw
@@ -248,8 +250,10 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
     }
   };
 
-  const handleCustomerCare = (id: string) => {
-    alert(`Contact customer care for product ID: ${id}`);
+  // Opens the themed Customer Care modal (was a native alert()).
+  // The numbers inside it are still hardcoded — see BACKEND_API_REQUIREMENTS.md §4.1.
+  const handleCustomerCare = () => {
+    setIsCustomerCareOpen(true);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -472,6 +476,11 @@ export const AgentOrderTable: React.FC<AgentOrderTableProps> = ({
         order={detailsOrder}
         isOpen={detailsOrder !== null}
         onClose={() => setDetailsOrder(null)}
+      />
+
+      <CustomerCareModal
+        isOpen={isCustomerCareOpen}
+        onClose={() => setIsCustomerCareOpen(false)}
       />
     </div>
   );

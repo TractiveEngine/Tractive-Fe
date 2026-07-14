@@ -254,8 +254,10 @@ export const useUpdateProductStatus = () => {
       toast.error("Failed to update status");
     },
     onSuccess: () => {
-      // We still invalidate to ensure ultimate consistency
-      // queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      // A status change moves the product between the Active and Out of Stock
+      // lists (two separate server queries), so the optimistic in-place edit is
+      // not enough — without this the row stays in the wrong tab until reload.
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
     },
   });
 };
@@ -301,8 +303,8 @@ export const useDeleteProduct = () => {
       toast.error("Failed to delete product");
     },
     onSuccess: () => {
-      // Ideally no refetch needed if optimistic update worked
-      // queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      // Reconcile tab counts / pagination totals with the server.
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
     },
   });
 };
@@ -342,7 +344,8 @@ export const useBulkDeleteProducts = () => {
       return { queries };
     },
     onSuccess: () => {
-      // queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      // Reconcile tab counts / pagination totals with the server.
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
     },
     onError: () => toast.error("Failed to delete products"),
   });
@@ -362,70 +365,22 @@ export const useBulkUpdateStatus = () => {
       ids: string[];
       status: "available" | "out_of_stock" | "discontinued";
     }) => productService.updateMultipleProductsStatus(ids, status),
-    onSuccess: (data, variables) => {
-      // Since we don't know exactly which items moved where without complex logic,
-      // invalidation is the safest bet for bulk actions.
-      // However, we can improve this if needed.
-      // For now, strict 'Insert into correct table' implies we should try to refresh or move.
-      // Given complexity of bulk move, refetch is safest for correctness,
-      // BUT Requirement says "❌ Do NOT refetch /api/products after mutations".
-
-      // So we must optimistically update.
-
-      const { ids, status: targetStatus } = variables;
-
-      const queries = queryClient.getQueriesData<ProductsResponse>({
-        queryKey: productKeys.lists(),
-      });
-
-      const movedProducts: ApiProduct[] = [];
-
-      // 1. Remove from all method lists & collect moved items
-      queries.forEach(([key, oldData]) => {
-        if (!oldData) return;
-
-        const found = oldData.products.filter((p) => ids.includes(p.id));
-        if (found.length > 0) {
-          // Track found items, update their status
-          found.forEach((p) => {
-            // De-duplicate if needed, though usually an item is in one list
-            if (!movedProducts.find((mp) => mp.id === p.id)) {
-              movedProducts.push({ ...p, status: targetStatus });
-            }
-          });
-
-          const newTotal = Math.max(0, oldData.total - found.length);
-
-          // Remove from list
-          queryClient.setQueryData(key, {
-            ...oldData,
-            products: oldData.products.filter((p) => !ids.includes(p.id)),
-            pagination: {
-              ...oldData.pagination,
-              total: newTotal,
-            },
-            total: newTotal,
-          });
-        }
-      });
-
-      // 2. Add to target list if exists
-      const targetKey = productKeys.list({ status: targetStatus });
-      const targetData = queryClient.getQueryData<ProductsResponse>(targetKey);
-
-      if (targetData) {
-        const newTotal = targetData.total + movedProducts.length;
-        queryClient.setQueryData(targetKey, {
-          ...targetData,
-          products: [...movedProducts, ...targetData.products],
-          pagination: {
-            ...targetData.pagination,
-            total: newTotal,
-          },
-          total: newTotal,
-        });
-      }
-
+    onSuccess: () => {
+      // A status change MOVES a product between the Active and Out of Stock
+      // lists, which are two separate server queries (/api/products and
+      // /api/products/out-of-stock) with their own tab counts.
+      //
+      // This previously hand-rolled the move in the cache, writing the moved
+      // products to `productKeys.list({ status })`. That key never matched a
+      // real query — live lists are keyed by the FULL filter object (search,
+      // page, limit, category, price…) — so the products were removed from the
+      // source list and silently never added to the destination. Combined with
+      // a 10-minute staleTime, the only way to see the product again was a full
+      // page reload.
+      //
+      // Invalidating both lists is the correct move here: the server is the
+      // authority on which list a product belongs to and what the counts are.
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       toast.success("Products updated successfully");
     },
     onError: () => toast.error("Failed to update products"),
