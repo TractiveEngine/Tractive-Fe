@@ -1,11 +1,63 @@
 # BACKEND API REQUIREMENTS — OUTSTANDING WORK ONLY
 
 **Project:** Tractive
-**Document Version:** 6.1
-**Date:** 13 July 2026 *(v6.0 — 12 July — was the full end-to-end audit)*
+**Document Version:** 6.2
+**Date:** 19 July 2026 *(v6.0 — 12 July — was the full end-to-end audit)*
 **Prepared by:** Frontend Engineering
 **For:** Backend Engineering
 **Backend audited:** `https://tractive-be.vercel.app`
+
+---
+
+## WHAT CHANGED IN v6.2 (read this if you read v6.1)
+
+This round was a **live verification pass against the deployed backend** — every
+item the v5.0 closure record marked "code-complete but unverified" was driven
+end to end with a real session, not probed in isolation.
+
+**One new backend blocker:**
+
+- 🔴 **§1.7 — `POST /api/customers/{id}/chat` rejects every customer id.**
+  Returns `400 "Invalid customer id"` for real users, for a well-formed
+  ObjectId, and for the literal string `notanid` — identical response to all
+  four, so the id is rejected before any lookup. The transporter-scoped route
+  returns **201** for the *same* customer id, which is the control that rules
+  out a data problem. The agent Support modal cannot send. This route was
+  reported as resolved; it is not.
+
+**One new contract mismatch:**
+
+- ⚠️ **§3.6 — `GET /api/transactions/{id}` omits `commissionRate` /
+  `commissionAmount`,** which the `GET /api/transactions` list includes. Not
+  currently user-visible (the modal is fed from list data), but the two shapes
+  for the same resource should agree.
+
+**Two frontend bugs found and fixed by us — both were masquerading as working
+features** (details in §6a):
+
+- 🔴 **`isFollowing` was always `false`.** `sellerApi.ts` used the bare global
+  `axios` rather than the configured instance, so every seller request went out
+  **unauthenticated**. The backend computes `isFollowing` per-requester, so an
+  already-followed seller always rendered **"Follow"**. The endpoint was fine
+  all along — we were calling it anonymously. Four sibling calls in the same
+  file had the same defect, including `likeReview`, which POSTs to a protected
+  route and could never have worked.
+- 🔴 **Buyer logout never revoked the session server-side.** The buyer navbar
+  called `signOut()` only and never hit `/api/auth/logout`, so the refresh token
+  stayed live after the UI had signed out.
+
+**Confirmed working end to end this round** (no action needed): admin
+track-orders→Agent, buyer banners + the whole admin Banners CRUD panel, truck
+detail, transporter customer chat, rating-distribution payload, order-tracking
+transporter branding, fleet statuses, agent commission, payout bank account,
+notification stream, and the admin removed-users stat.
+
+**Could not be verified from our environment:** the banner **image upload** leg —
+`api.cloudinary.com` is DNS-blocked on our network (`res.cloudinary.com` serves
+fine). Create was exercised via the API instead; Edit and Delete were driven
+through the real UI. Not a backend concern, recorded for completeness.
+
+**Still the four hard blockers from v6.1:** §1.1, §1.2, §1.3, §1.5.
 
 ---
 
@@ -90,7 +142,7 @@ Every page NOT listed here works.**
 |---|---|---|
 | `/agent` | **Restock button 404s**; sparklines hidden pending trend data | **§1.3**, §2 |
 | `/agent/reviews` | **Page is permanently, silently empty** | **§1.5**, §3.3 |
-| `/agent/customers` | **`/api/customers/{id}` 404s** (info modal); **`/api/customers` list returns a malformed envelope + is missing `state` and `image`** | **§1.2**, **§5.4** |
+| `/agent/customers` | **`/api/customers/{id}` 404s** (info modal); **`/api/customers/{id}/chat` 400s on every id — the Support modal cannot send**; **`/api/customers` list returns a malformed envelope + is missing `state` and `image`** | **§1.2**, **§1.7**, **§5.4** |
 | `/agent/produce-list` | **"Back in Stock" leaves the product in the Out of Stock list — it ends up in BOTH tabs** | **§5.5** |
 | `/agent/farmers` | farmer image silently dropped on save | §3.5 |
 | `/agent/pending` · `/agent/received` | Customer Care numbers hardcoded | §4.1 |
@@ -162,8 +214,9 @@ It must be the **total unread across all pages**, not just the first page.
 ### 1.2 🔴 `GET /api/customers/{id}` — **ROUTE DOES NOT EXIST**
 
 `GET /api/customers` (the list) works. The **detail** route does not.
-Curiously, `POST /api/customers/{id}/chat` under the same prefix *does* exist —
-so the `[id]` segment is registered but has no `route.ts` of its own.
+`POST /api/customers/{id}/chat` under the same prefix is *registered* (it 400s
+rather than 404s) but rejects every id we send — see **§1.7**. So the `[id]`
+segment exists, has no `route.ts` of its own, and its one child route is broken.
 
 **📍 Where to see it:** **`/agent/customers`** *(log in as Agent)* → click any
 customer row → the **Customer Info** modal.
@@ -304,6 +357,61 @@ PATCH /api/products/bulk/status
 and `bulk/status` now agree on `productIds`, but the 400 gave no readable validation
 message — if the error body named the offending field, we would have found this in
 seconds instead of by inference.
+
+---
+
+### 1.7 🔴 `POST /api/customers/{id}/chat` — **REJECTS EVERY CUSTOMER ID**
+
+This is the generic authenticated chat route your v5.0 update named as the one to
+use for agent-facing customer support, and confirmed as documented in Swagger.
+**It rejects every id we send**, including ids your own API returned to us.
+
+**📍 Where to see it:** **`/agent/customers`** *(log in as Agent)* → click the
+**Support / chat** action on any customer row → fill in Subject + Message →
+**Start Chat**. The request 400s and the modal cannot send.
+
+- **Called from:** [customerService.ts:175](src/services/customerService.ts#L175)
+- **Frontend status:** correct and unchanged — we call the documented path with a
+  valid agent-role bearer token. No frontend fix is possible here.
+
+**What we tested** (deployed backend, valid agent-role token, all four in the same
+session):
+
+| `{id}` sent | Source of the id | Response |
+|---|---|---|
+| `696f7f7ab3e9c64e9697d0b9` | real user from `GET /api/admin/users` | `400 Invalid customer id` |
+| `696f6c0a719a3fcdb97c3e16` | real user from `GET /api/admin/users` | `400 Invalid customer id` |
+| `000000000000000000000000` | well-formed ObjectId, no such user | `400 Invalid customer id` |
+| `notanid` | not an ObjectId at all | `400 Invalid customer id` |
+
+**The diagnostic detail:** a real user's ObjectId returns **the same error as the
+literal string `notanid`**. A working handler would distinguish "malformed id"
+from "no such customer" from "not your customer" — one response for all four
+means the id is being rejected **before any lookup happens**.
+
+**The control that rules out a data problem** — same customer id, same moment,
+transporter-scoped route with a transporter-role token:
+
+```
+POST /api/transporters/customers/696f7f7ab3e9c64e9697d0b9/chat
+→ 201 Created
+  { "success": true, "data": { "id": "...", "threadId": "...",
+    "customerId": "696f7f7ab3e9c64e9697d0b9", "subject": "...", ... } }
+```
+
+So the customer **exists**, and the transporter route resolves it fine. Only the
+generic route fails.
+
+**Not a role problem either.** We ran the generic route with `activeRole` switched
+to `agent` (via `PATCH /api/profile/switch-role`) and got the identical 400 — and a
+role failure returns `403 "…access required"` on this backend, not a 400, as the
+transporter route demonstrates when called with the wrong role.
+
+**What we need:** re-check the deployed handler's id validation on
+`POST /api/customers/{id}/chat`. Either fix it, or — if the generic route is not
+in fact meant to serve agents — tell us to point the agent Support modal at
+`/api/transporters/customers/{id}/chat` and confirm that route accepts an agent
+token. **§3.1 of the v5.0 closure record should not be treated as closed.**
 
 ---
 
@@ -516,6 +624,35 @@ default farmer avatar for everyone.
 
 We will move this to Cloudinary and send a URL. **Please accept `image?: string`**
 on farmer create and update, and return it on `GET /api/farmers`.
+
+---
+
+### 3.6 ⚠️ `GET /api/transactions/{id}` — missing the commission fields the list returns
+
+The **list** endpoint returns commission on every transaction. The **detail**
+endpoint for the same resource omits both fields.
+
+```jsonc
+// GET /api/transactions  → each item carries:
+{ "_id": "69fb7abdbc2e9fba5ac0a7ce", "commissionRate": 0.1, "commissionAmount": 5300, ... }
+
+// GET /api/transactions/69fb7abdbc2e9fba5ac0a7ce  → same resource:
+{ "_id": "69fb7abdbc2e9fba5ac0a7ce", /* commissionRate:  absent */
+                                     /* commissionAmount: absent */ ... }
+```
+
+Verified across all 14 transactions on the test account: **every one** carries
+both fields in the list response.
+
+**Impact today: none user-visible.** The Transaction Details modal is fed from the
+already-fetched list row ([TransactionDetailsModal.tsx:162](src/app/(main)/agent/_components/TransactionDetailsModal.tsx#L162)),
+so the agent commission display (v5.0 §S6) is confirmed working and shows the real
+rate rather than the old flat-10% fallback.
+
+**Why we are raising it anyway:** two different shapes for one resource is a trap
+for the next person who wires a detail view against `/{id}` and gets a silently
+undefined commission. **Please add both fields to the detail response** so the
+shapes agree. Low priority — no page is broken by it.
 
 ---
 
@@ -844,6 +981,8 @@ Pages given so you can confirm the behaviour if you hit it while testing.
 
 | Gap | Fix | 📍 Page(s) |
 |---|---|---|
+| 🔴 **Every seller request was sent unauthenticated, so `isFollowing` was always `false`.** An already-followed seller rendered **"Follow"** on load — reported as a backend gap in v5.0 (B2), but the payload was correct all along | `sellerApi.ts` used the bare global `axios` instead of the configured `@/lib/axios` instance, so the bearer token was never attached and the backend answered as if anonymous. Proved it by calling the same endpoint both ways: `isFollowing: true` with auth, `false` without. Switched all 5 calls in the file to the authenticated instance. **This also repaired `likeReview`, which POSTs to a protected route and could never have worked**, plus `getSellers`, `getSellerProducts` and `getSellerReviews` | `/buyer/sellers-list/[id]`, `/buyer` |
+| 🔴 **Buyer logout never revoked the session server-side.** The client looked signed out while the refresh token stayed live | The buyer navbar called `signOut()` alone and never hit `/api/auth/logout` — the six other nav components already did. (`useLogout` existed for exactly this but was dead code, imported nowhere.) Wired the navbar to it and pointed the hook at the authenticated instance; the route answers **401** without a token, which the old code silently swallowed. Verified: request now carries `Authorization` and returns `200 {"success":true}` | every buyer page (navbar) |
 | `/api/products/bulk/status` — wrong method **and** wrong body key | Now `PATCH` with `{ productIds, status }` (§1.6) | `/agent/produce-list` |
 | **Product lists never refetched after a status change.** A product moved out of the source tab and never appeared in the destination one — only a full page reload fixed it | The cache "move" was writing to a query key that never matched a real query. Replaced with a proper invalidation of both lists. Also fixed the same bug in the single-row status toggle, and in single + bulk delete (stale tab counts) | `/agent/produce-list` |
 | **Native browser `alert()` / `confirm()` dialogs** | Replaced with the themed confirm modal. Bulk Delete / Out-of-Stock / Back-in-Stock now confirm properly; the Customer Care alert now opens the real modal; dead `BulkActionsBar` deleted. **Zero native dialogs remain in the agent section** | `/agent/produce-list`, `/agent/new`, `/agent/packed`, `/agent/delivered` |
@@ -909,3 +1048,23 @@ just missing a resource.
 transporter sections was walked component-by-component to determine whether it is
 API-fed or hardcoded. Anything found to be working was omitted from this document
 by design.
+
+### v6.2 addendum — authenticated verification
+
+v6.0/v6.1 probed **unauthenticated**, which is a sound existence test but cannot
+see per-requester fields. v6.2 re-ran the closure items **with real sessions**
+(a buyer/agent/transporter account and an admin account), driving the actual UI
+in a headless browser and capturing every request the pages made.
+
+That distinction is what surfaced the `isFollowing` bug in §6a: the endpoint had
+been returning `200` in every prior probe, and the field it got wrong is only
+wrong when you are logged in. **Two lessons worth carrying forward:**
+
+- A `200` is not a pass. Compare the **field values** against what the UI renders.
+- When a payload looks wrong, check whether the request carried its
+  `Authorization` header before reporting it as a backend bug. Ours did not.
+
+**Method for each item:** log in through the real login form → navigate to the
+page → capture responses and rendered DOM → compare against a direct API call
+made with the same token. Where the two disagreed, we bisected with and without
+the auth header to determine which side owned the bug.
