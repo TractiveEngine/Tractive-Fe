@@ -162,9 +162,9 @@ export class CustomerService {
   /**
    * Initiate a chat with a customer
    *
-   * NOTE: only the transporter-scoped route (`/api/transporters/customers/{id}/chat`,
-   * see `transporterService.initiateCustomerChat`) is confirmed by the backend.
-   * This agent-scoped route is not in Swagger yet and may 404.
+   * POST /api/customers/{id}/chat — the generic authenticated route, used for
+   * agent-facing support flows. Transporter support uses the transporter-scoped
+   * route instead (see `transporterService.initiateCustomerChat`).
    */
   static async initiateChat(
     customerId: string,

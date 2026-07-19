@@ -129,7 +129,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-[#808080] hover:text-[#2b2b2b] text-[18px] font-montserrat transition-colors disabled:cursor-not-allowed"
+              className="cursor-pointer text-[#808080] hover:text-[#2b2b2b] text-[18px] font-montserrat transition-colors disabled:cursor-not-allowed"
               aria-label="Close modal"
             >
               ✕
@@ -232,7 +232,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
                     !subject.trim() ||
                     !message.trim()
                   }
-                  className="flex-1 bg-[#538e53] text-[#fefefe] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-[#467746] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="cursor-pointer flex-1 bg-[#538e53] text-[#fefefe] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-[#467746] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -248,7 +248,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
                 <button
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="flex-1 bg-gray-200 text-[#2b2b2b] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-gray-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer flex-1 bg-gray-200 text-[#2b2b2b] text-[13px] font-montserrat py-2.5 rounded-[6px] hover:bg-gray-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancel
                 </button>
