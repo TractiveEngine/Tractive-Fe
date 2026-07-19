@@ -1,11 +1,6 @@
-"use client";
+﻿"use client";
 import { Bag2Icon, MoneyReceive2Icon, Profile2UserIcon } from "@/icons/DashboardIcons";
 import React from "react";
-// Sparklines hidden until the backend returns a real per-metric trend series.
-// The SVG paths in SmallChart are hardcoded and identical on every tile, and the
-// green/red variant ignores the sign of deltaPercent — so the Fleets tile drew a
-// downward line even while the fleet count grew. See BACKEND_API_REQUIREMENTS.md §2.
-// import { RedSmallChart, SmallChart } from "./SmallChart";
 import { useTransporterOverview } from "@/hooks/queries/useTransporterDashboardQueries";
 import { OverviewBlock } from "@/services/transporterDashboardService";
 import { formatCurrency, formatNumber, formatDelta } from "@/lib/format";
@@ -16,7 +11,6 @@ type CardConfig = {
   format: (value: number) => string;
   icon: React.ReactNode;
   iconWrap: string;
-  // chart: React.ReactNode; // re-enable with the sparkline (§2)
 };
 
 const CARDS: CardConfig[] = [
@@ -26,7 +20,6 @@ const CARDS: CardConfig[] = [
     format: formatCurrency,
     icon: <MoneyReceive2Icon stroke="#538e53" />,
     iconWrap: "bg-[#CCE5CC4D]",
-    // chart: <SmallChart />,
   },
   {
     key: "customers",
@@ -34,7 +27,6 @@ const CARDS: CardConfig[] = [
     format: formatNumber,
     icon: <Profile2UserIcon stroke="#D77F40" />,
     iconWrap: "bg-[#F2D8C599]",
-    // chart: <SmallChart />,
   },
   {
     key: "fleets",
@@ -42,7 +34,6 @@ const CARDS: CardConfig[] = [
     format: formatNumber,
     icon: <Bag2Icon stroke="#7912FF" />,
     iconWrap: "bg-[#7912FF33]",
-    // chart: <RedSmallChart />,
   },
   {
     key: "drivers",
@@ -50,7 +41,6 @@ const CARDS: CardConfig[] = [
     format: formatNumber,
     icon: <Profile2UserIcon stroke="#D77F40" />,
     iconWrap: "bg-[#F2D8C599]",
-    // chart: <SmallChart />,
   },
 ];
 

@@ -1,10 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { EyeIcon, Profile2User } from "../../_components/icons/AdminIcons";
-// Sparklines hidden until the backend returns a real per-metric trend series.
-// The SVG paths in SmallChart are hardcoded and identical on every tile.
-// See BACKEND_API_REQUIREMENTS.md §2.
-// import { RedSmallChart, SmallChart } from "../../_components/SmallChart";
 import { adminUserService, AdminUserStats } from "@/services/adminUserService";
 
 // Safely read a numeric value from any of the given dotted paths on an unknown object.
@@ -85,7 +81,6 @@ export const AllUserOverview = () => {
         iconBg="#e2e2e2"
         iconStroke="#2b2b2b"
         iconKind="users"
-        chart="green"
         cardBg="#F5F5F5"
         border="#e2e2e2"
         valueColor="#2b2b2b"
@@ -96,7 +91,6 @@ export const AllUserOverview = () => {
         iconBg="#CCE5CC"
         iconStroke="#538e53"
         iconKind="users"
-        chart="green"
         cardBg="#EFF7EF"
         border="#CCE5CC"
         valueColor="#538e53"
@@ -107,7 +101,6 @@ export const AllUserOverview = () => {
         iconBg="#F2D8C5"
         iconStroke="#D77F40"
         iconKind="users"
-        chart="red"
         cardBg="#FCF3EC"
         border="#F2D8C5"
         valueColor="#D77F40"
@@ -118,7 +111,6 @@ export const AllUserOverview = () => {
         iconBg="#E8D5FF"
         iconStroke="#9747FF"
         iconKind="eye"
-        chart="red"
         cardBg="#F6EEFE"
         border="#E8D5FF"
         valueColor="#9747FF"
@@ -129,7 +121,6 @@ export const AllUserOverview = () => {
         iconBg="#F4E9B5"
         iconStroke="#D6B611"
         iconKind="users"
-        chart="green"
         cardBg="#FBF6DF"
         border="#F4E9B5"
         valueColor="#A78A0D"
@@ -144,7 +135,6 @@ interface StatCardProps {
   iconBg: string;
   iconStroke: string;
   iconKind: "users" | "eye";
-  chart: "green" | "red";
   cardBg: string;
   border: string;
   valueColor: string;
@@ -156,7 +146,6 @@ const StatCard: React.FC<StatCardProps> = ({
   iconBg,
   iconStroke,
   iconKind,
-  // chart, // re-enable with the sparkline (BACKEND_API_REQUIREMENTS.md §2)
   cardBg,
   border,
   valueColor,
@@ -192,7 +181,6 @@ const StatCard: React.FC<StatCardProps> = ({
       <span className="font-montserrat text-[#2b2b2b] w-[100%] text-[10px] font-normal">
         In contrast to last week
       </span>
-      {/* {chart === "green" ? <SmallChart /> : <RedSmallChart />} */}
     </div>
   </div>
 );

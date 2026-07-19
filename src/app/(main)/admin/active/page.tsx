@@ -39,6 +39,44 @@ interface TabConfig {
   colorClassFaded: string;
 }
 
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+// Safely read a numeric value from any of the given dotted paths on an unknown
+// object — /api/admin/users/stats may nest counts under `byStatus` or not.
+const readNumber = (
+  source: Record<string, unknown> | null | undefined,
+  paths: string[],
+): number | null => {
+  if (!source) return null;
+  for (const path of paths) {
+    const segments = path.split(".");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let cur: any = source;
+    for (const seg of segments) {
+      if (cur == null) {
+        cur = undefined;
+        break;
+      }
+      cur = cur[seg];
+    }
+    if (typeof cur === "number" && Number.isFinite(cur)) return cur;
+  }
+  return null;
+};
+
 const titleCase = (s: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 
@@ -74,6 +112,13 @@ export default function ActivePage() {
     Removed: 0,
   });
 
+  // Filter state lives here so it can be sent to the API (server-side filtering).
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -90,30 +135,41 @@ export default function ActivePage() {
     width: 0,
   });
 
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedState, selectedMonth, selectedYear]);
+
   const fetchForTab = useCallback(
     async (tab: SlideType, p: number, l: number) => {
       setIsLoading(true);
       try {
+        const monthNumber = selectedMonth
+          ? months.indexOf(selectedMonth) + 1
+          : undefined;
+        const filters = {
+          search: debouncedSearch || undefined,
+          state: selectedState || undefined,
+          month: monthNumber,
+          year: selectedYear || undefined,
+          page: p,
+          limit: l,
+        };
         if (tab === "Removed") {
-          const res = await adminUserService.getRemovedUsers({
-            page: p,
-            limit: l,
-          });
+          const res = await adminUserService.getRemovedUsers(filters);
           setData(res.data.map(mapToAdminControl));
-          const total = res.pagination?.total ?? res.data.length;
-          setTotalItems(total);
-          setCounts((c) => ({ ...c, Removed: total }));
+          setTotalItems(res.pagination?.total ?? res.data.length);
         } else {
           const status = tab === "Active" ? "active" : "suspended";
-          const res = await adminUserService.getUsers({
-            status,
-            page: p,
-            limit: l,
-          });
+          const res = await adminUserService.getUsers({ status, ...filters });
           setData(res.data.map(mapToAdminControl));
-          const total = res.pagination?.total ?? res.data.length;
-          setTotalItems(total);
-          setCounts((c) => ({ ...c, [tab]: total }));
+          setTotalItems(res.pagination?.total ?? res.data.length);
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load users");
@@ -123,7 +179,7 @@ export default function ActivePage() {
         setIsLoading(false);
       }
     },
-    [],
+    [debouncedSearch, selectedState, selectedMonth, selectedYear],
   );
 
   useEffect(() => {
@@ -134,25 +190,26 @@ export default function ActivePage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  // Seed counts for the inactive tabs on first mount so the badges are accurate.
-  useEffect(() => {
-    (async () => {
-      try {
-        const [active, suspended, removed] = await Promise.all([
-          adminUserService.getUsers({ status: "active", limit: 1 }),
-          adminUserService.getUsers({ status: "suspended", limit: 1 }),
-          adminUserService.getRemovedUsers({ limit: 1 }),
-        ]);
-        setCounts({
-          Active: active.pagination?.total ?? 0,
-          Suspended: suspended.pagination?.total ?? 0,
-          Removed: removed.pagination?.total ?? 0,
-        });
-      } catch {
-        // non-fatal
-      }
-    })();
+  // Tab counts come from /api/admin/users/stats — unfiltered totals per status.
+  const fetchCounts = useCallback(async () => {
+    try {
+      const stats = await adminUserService.getUserStats();
+      const source = stats as Record<string, unknown>;
+      setCounts({
+        Active: readNumber(source, ["byStatus.active", "active"]) ?? 0,
+        Suspended: readNumber(source, ["byStatus.suspended", "suspended"]) ?? 0,
+        Removed:
+          readNumber(source, ["byStatus.removed", "removed", "removedUsers"]) ??
+          0,
+      });
+    } catch {
+      // non-fatal — the tabs just show their previous counts
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   const tabs: TabConfig[] = useMemo(
     () => [
@@ -214,6 +271,7 @@ export default function ActivePage() {
       await adminUserService.updateUserStatus(id, status);
       toast.success(`User ${status}`);
       fetchForTab(activeTab, page, limit);
+      fetchCounts();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update user");
     }
@@ -227,6 +285,7 @@ export default function ActivePage() {
       await adminUserService.reactivateUser(id);
       toast.success("User reactivated");
       fetchForTab(activeTab, page, limit);
+      fetchCounts();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to reactivate user",
@@ -280,6 +339,7 @@ export default function ActivePage() {
       }
       clearSelection();
       await fetchForTab(activeTab, page, limit);
+      fetchCounts();
       setPendingBulk(null);
     } catch (err) {
       toast.error(
@@ -385,11 +445,19 @@ export default function ActivePage() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [activeTab, tabs]);
 
+  const hasActiveFilters = Boolean(
+    debouncedSearch || selectedYear || selectedMonth || selectedState,
+  );
+
   const renderContent = () => {
-    if (isLoading) {
+    // Only skeleton the very first load — refetches triggered by a filter keep
+    // the table (and the focused search input) mounted.
+    if (isLoading && data.length === 0 && !hasActiveFilters) {
       return <TableSkeleton columns={5} rows={limit > 6 ? 6 : limit} />;
     }
-    if (data.length === 0) {
+    // With filters applied the toolbar must stay on screen so they can be
+    // cleared, so the empty state is rendered by the table itself.
+    if (data.length === 0 && !hasActiveFilters) {
       return (
         <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
           No {activeTab.toLowerCase()} users found.
@@ -407,6 +475,14 @@ export default function ActivePage() {
           allChecked={allChecked}
           bulkActions={bulkActions}
           bulkDisabled={bulkDisabled}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          selectedState={selectedState}
+          onStateChange={setSelectedState}
         />
       ),
       Suspended: (
@@ -419,6 +495,14 @@ export default function ActivePage() {
           allChecked={allChecked}
           bulkActions={bulkActions}
           bulkDisabled={bulkDisabled}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          selectedState={selectedState}
+          onStateChange={setSelectedState}
         />
       ),
       Removed: (
@@ -430,6 +514,14 @@ export default function ActivePage() {
           allChecked={allChecked}
           bulkActions={bulkActions}
           bulkDisabled={bulkDisabled}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          selectedState={selectedState}
+          onStateChange={setSelectedState}
         />
       ),
     };
@@ -468,7 +560,7 @@ export default function ActivePage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}

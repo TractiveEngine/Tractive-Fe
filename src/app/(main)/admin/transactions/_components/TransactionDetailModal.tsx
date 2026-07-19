@@ -106,10 +106,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payees: any[] = Array.isArray(tx?.payees) ? tx.payees : [];
   const order = tx?.order ?? null;
-  const orderId =
-    (tx?.orderId as string) ||
-    (typeof order === "string" ? order : order?._id) ||
-    "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const orderProducts: any[] =
     order && typeof order === "object" && Array.isArray(order.products)
@@ -334,7 +330,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     </div>
                   )}
 
-                  {/* Order */}
+                  {/* Order. Raw ids (order / transaction / product) are
+                      deliberately not shown — they are internal identifiers
+                      with no meaning to an admin reading this panel. */}
                   {order && typeof order === "object" ? (
                     <div className="border-t border-gray-100 pt-4">
                       <p className="text-[10px] uppercase tracking-wide text-gray-400 font-montserrat mb-2">
@@ -353,23 +351,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                           label="Total Amount"
                           value={formatCurrency(order.totalAmount)}
                         />
-                        <DetailRow
-                          label="Order ID"
-                          value={(order._id as string) || orderId}
-                          mono
-                        />
                       </div>
                     </div>
-                  ) : orderId ? (
-                    <DetailRow label="Order ID" value={orderId} mono />
                   ) : null}
-
-                  <DetailRow
-                    label="Transaction ID"
-                    value={tx._id}
-                    className="col-span-2"
-                    mono
-                  />
                 </div>
               ) : null}
             </div>
@@ -663,12 +647,6 @@ const ProductCard: React.FC<{ item: any }> = ({ item }) => {
               value={formatCurrency(product.price)}
             />
           )}
-          <MetaRow
-            label="Product ID"
-            value={product?._id}
-            mono
-            className="col-span-2"
-          />
         </div>
 
         {/* Local transport */}

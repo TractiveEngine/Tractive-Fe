@@ -50,6 +50,8 @@ export const transporterKeys = {
     [...transporterKeys.all, "admin-fleet-payment", id] as const,
   fleetTrips: (params?: GetFleetTripsParams) =>
     [...transporterKeys.all, "fleet-trips", params] as const,
+  fleetTripsPaged: (params?: GetFleetTripsParams) =>
+    [...transporterKeys.all, "fleet-trips", "paged", params] as const,
   fleetTrip: (tripId: string) =>
     [...transporterKeys.all, "fleet-trip", tripId] as const,
   fleetTripTracking: (tripId: string) =>
@@ -274,6 +276,26 @@ export const useFleetTrips = (
     staleTime: 1000 * 60 * 2,
     // Hold the current list while a new search/status query loads, so typing in
     // the search box doesn't flash a full-screen spinner on every keystroke.
+    placeholderData: keepPreviousData,
+  });
+};
+
+/**
+ * Same list as `useFleetTrips`, but keeps the `pagination` envelope so the
+ * caller can drive server-side paging and show real totals.
+ */
+export const useFleetTripsPaged = (
+  params?: GetFleetTripsParams,
+  options?: { enabled?: boolean; refetchInterval?: number },
+) => {
+  return useQuery({
+    queryKey: transporterKeys.fleetTripsPaged(params),
+    queryFn: () => fleetTripService.getFleetTripsPaged(params),
+    enabled: options?.enabled !== false,
+    refetchInterval: options?.refetchInterval,
+    staleTime: 1000 * 60 * 2,
+    // Hold the current page while a new search/status/page query loads, so
+    // typing in the search box doesn't flash a full-screen spinner.
     placeholderData: keepPreviousData,
   });
 };

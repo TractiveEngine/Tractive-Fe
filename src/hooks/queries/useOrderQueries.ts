@@ -152,10 +152,15 @@ export const useOrderTracking = (
     enabled: !!orderId && options?.enabled !== false,
     refetchInterval: options?.refetchInterval,
     staleTime: 1000 * 30,
+    // This query polls every 30s while a package is in motion, so react-query
+    // retries are redundant: the next tick IS the retry. Retrying any HTTP
+    // error here multiplied one broken order into 3 requests per tick — a 500
+    // on this endpoint produced 9 identical console errors in ~1 minute.
+    // Only retry when there is no HTTP status at all (a genuine network blip);
+    // any answer from the server, including a 500, is left for the next poll.
     retry: (failureCount, error: { response?: { status?: number } }) => {
-      const status = error?.response?.status;
-      if (status === 401 || status === 403 || status === 404) return false;
-      return failureCount < 2;
+      if (error?.response?.status !== undefined) return false;
+      return failureCount < 1;
     },
   });
 };

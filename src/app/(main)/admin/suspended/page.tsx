@@ -39,6 +39,35 @@ interface TabConfig {
   colorClassFaded: string;
 }
 
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+// The stats endpoint may expose counts under `byStatus` or at the top level.
+const readStatusCount = (
+  stats: Record<string, unknown> | null,
+  keys: string[],
+): number => {
+  if (!stats) return 0;
+  const byStatus = (stats.byStatus as Record<string, unknown>) || {};
+  for (const key of keys) {
+    const value = stats[key] ?? byStatus[key];
+    if (typeof value === "number") return value;
+  }
+  return 0;
+};
+
 const titleCase = (s: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 
@@ -77,6 +106,13 @@ export default function SuspendedPage() {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+
   const pageSizeOptions = [5, 10, 20, 50];
   const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
@@ -90,31 +126,41 @@ export default function SuspendedPage() {
     width: 0,
   });
 
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedState, selectedMonth, selectedYear]);
+
   const fetchForTab = useCallback(
-    async (tab: SlideType, p: number, l: number) => {
+    async (tab: SlideType) => {
       setIsLoading(true);
       try {
-        if (tab === "Removed") {
-          const res = await adminUserService.getRemovedUsers({
-            page: p,
-            limit: l,
-          });
-          setData(res.data.map(mapToAdminControl));
-          const total = res.pagination?.total ?? res.data.length;
-          setTotalItems(total);
-          setCounts((c) => ({ ...c, Removed: total }));
-        } else {
-          const status = tab === "Active" ? "active" : "suspended";
-          const res = await adminUserService.getUsers({
-            status,
-            page: p,
-            limit: l,
-          });
-          setData(res.data.map(mapToAdminControl));
-          const total = res.pagination?.total ?? res.data.length;
-          setTotalItems(total);
-          setCounts((c) => ({ ...c, [tab]: total }));
-        }
+        const monthNumber = selectedMonth
+          ? months.indexOf(selectedMonth) + 1
+          : undefined;
+        const filters = {
+          search: debouncedSearch || undefined,
+          state: selectedState || undefined,
+          month: monthNumber,
+          year: selectedYear || undefined,
+          page,
+          limit,
+        };
+        const res =
+          tab === "Removed"
+            ? await adminUserService.getRemovedUsers(filters)
+            : await adminUserService.getUsers({
+                status: tab === "Active" ? "active" : "suspended",
+                ...filters,
+              });
+        setData(res.data.map(mapToAdminControl));
+        setTotalItems(res.pagination?.total ?? res.data.length);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load users");
         setData([]);
@@ -123,35 +169,40 @@ export default function SuspendedPage() {
         setIsLoading(false);
       }
     },
-    [],
+    [debouncedSearch, selectedState, selectedMonth, selectedYear, page, limit],
   );
 
   useEffect(() => {
-    fetchForTab(activeTab, page, limit);
-  }, [activeTab, page, limit, fetchForTab]);
+    fetchForTab(activeTab);
+  }, [activeTab, fetchForTab]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [active, suspended, removed] = await Promise.all([
-          adminUserService.getUsers({ status: "active", limit: 1 }),
-          adminUserService.getUsers({ status: "suspended", limit: 1 }),
-          adminUserService.getRemovedUsers({ limit: 1 }),
-        ]);
-        setCounts({
-          Active: active.pagination?.total ?? 0,
-          Suspended: suspended.pagination?.total ?? 0,
-          Removed: removed.pagination?.total ?? 0,
-        });
-      } catch {
-        // non-fatal
-      }
-    })();
+  // Tab counts come from a single stats call so they stay accurate regardless
+  // of the filters applied to the visible tab.
+  const fetchCounts = useCallback(async () => {
+    try {
+      const stats = await adminUserService.getUserStats();
+      const source = stats as Record<string, unknown>;
+      setCounts({
+        Active: readStatusCount(source, ["active", "activeUsers"]),
+        Suspended: readStatusCount(source, [
+          "suspended",
+          "inactive",
+          "suspendedUsers",
+        ]),
+        Removed: readStatusCount(source, ["removed", "removedUsers"]),
+      });
+    } catch {
+      // non-fatal
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   const tabs: TabConfig[] = useMemo(
     () => [
@@ -212,7 +263,8 @@ export default function SuspendedPage() {
     try {
       await adminUserService.updateUserStatus(id, status);
       toast.success(`User ${status}`);
-      fetchForTab(activeTab, page, limit);
+      fetchForTab(activeTab);
+      fetchCounts();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update user");
     }
@@ -225,7 +277,8 @@ export default function SuspendedPage() {
     try {
       await adminUserService.reactivateUser(id);
       toast.success("User reactivated");
-      fetchForTab(activeTab, page, limit);
+      fetchForTab(activeTab);
+      fetchCounts();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to reactivate user",
@@ -278,7 +331,8 @@ export default function SuspendedPage() {
         );
       }
       clearSelection();
-      await fetchForTab(activeTab, page, limit);
+      await fetchForTab(activeTab);
+      fetchCounts();
       setPendingBulk(null);
     } catch (err) {
       toast.error(
@@ -385,19 +439,26 @@ export default function SuspendedPage() {
   }, [activeTab, tabs]);
 
   const renderContent = () => {
-    if (isLoading) {
+    // Only take over the whole panel on the initial load — once rows exist the
+    // filter bar must stay mounted so the search input keeps focus while
+    // refetching.
+    if (isLoading && data.length === 0) {
       return <TableSkeleton columns={5} rows={limit > 6 ? 6 : limit} />;
     }
-    if (data.length === 0) {
-      return (
-        <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
-          No {activeTab.toLowerCase()} users found.
-        </div>
-      );
-    }
+    const filterProps = {
+      searchTerm,
+      onSearchChange: setSearchTerm,
+      selectedYear,
+      onYearChange: setSelectedYear,
+      selectedMonth,
+      onMonthChange: setSelectedMonth,
+      selectedState,
+      onStateChange: setSelectedState,
+    };
     const componentMap: Record<SlideType, React.ReactNode> = {
       Active: (
         <ActiveTable
+          {...filterProps}
           data={data}
           handleAdminSuspended={handleAdminSuspended}
           handleAdminRemoved={handleAdminRemoved}
@@ -410,6 +471,7 @@ export default function SuspendedPage() {
       ),
       Suspended: (
         <SuspendedTable
+          {...filterProps}
           data={data}
           handleReactivate={handleReactivate}
           handleAdminRemoved={handleAdminRemoved}
@@ -422,6 +484,7 @@ export default function SuspendedPage() {
       ),
       Removed: (
         <RemovedTable
+          {...filterProps}
           data={data}
           handleAdminOnboarding={handleAdminOnboarding}
           handleCheckboxChange={handleCheckboxChange}
@@ -432,7 +495,16 @@ export default function SuspendedPage() {
         />
       ),
     };
-    return componentMap[activeTab];
+    return (
+      <>
+        {componentMap[activeTab]}
+        {!isLoading && data.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No {activeTab.toLowerCase()} users found.
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
@@ -467,7 +539,7 @@ export default function SuspendedPage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ReviewService,
+  CreateReviewPayload,
   ReplyToReviewPayload,
 } from "@/services/reviewService";
 import { toast } from "sonner";
@@ -37,6 +38,40 @@ export const useReviewsSummary = () => {
     queryKey: reviewKeys.summary(),
     queryFn: () => ReviewService.getReviewsSummary(),
     staleTime: 1000 * 60 * 3,
+  });
+};
+
+/**
+ * Create a review for an agent (buyer surface). `ReviewService.createReview`
+ * existed but had no caller — buyers had no way to leave a review at all.
+ * Invalidates both the list and the summary so the new rating is reflected
+ * in the distribution as well as the feed.
+ */
+export const useCreateReview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateReviewPayload) =>
+      ReviewService.createReview(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: reviewKeys.list() });
+      queryClient.invalidateQueries({ queryKey: reviewKeys.summary() });
+      toast.success("Review submitted", {
+        duration: 3000,
+        position: "top-center",
+      });
+    },
+    onError: (error: {
+      response?: { data?: { message?: string } };
+      message?: string;
+    }) => {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to submit review. Please try again.",
+        { duration: 4000, position: "top-center" },
+      );
+    },
   });
 };
 

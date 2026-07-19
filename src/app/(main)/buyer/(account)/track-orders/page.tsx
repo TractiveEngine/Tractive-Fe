@@ -6,6 +6,7 @@ import { XIcon } from "@/icons/Icon1";
 import { OrderListCard } from "./_components/OrderListCard";
 import { OrderTrackingMap } from "./_components/OrderTrackingMap";
 import { ConfirmReceiptButton } from "./_components/ConfirmReceiptButton";
+import { LeaveReviewButton } from "./_components/LeaveReviewButton";
 import { TransporterInfoPanel } from "./_components/TransporterInfoPanel";
 import { PackagesPanel } from "./_components/PackagesPanel";
 import {
@@ -245,6 +246,13 @@ export default function BuyerTrackOrdersPage() {
                 alreadyConfirmed={selectedOrder.receiptConfirmed}
               />
             )}
+            {selectedOrder.status === "delivered" && selectedOrder.agentId && (
+              <LeaveReviewButton
+                key={selectedOrder.id}
+                agentId={selectedOrder.agentId}
+                agentName={selectedOrder.agentName}
+              />
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TransporterInfoPanel order={selectedOrder} />
               <PackagesPanel order={selectedOrder} />
@@ -304,6 +312,14 @@ export default function BuyerTrackOrdersPage() {
                   alreadyConfirmed={selectedOrder.receiptConfirmed}
                 />
               )}
+              {selectedOrder.status === "delivered" &&
+                selectedOrder.agentId && (
+                  <LeaveReviewButton
+                    key={selectedOrder.id}
+                    agentId={selectedOrder.agentId}
+                    agentName={selectedOrder.agentName}
+                  />
+                )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <TransporterInfoPanel order={selectedOrder} />
                 <PackagesPanel order={selectedOrder} />

@@ -2,8 +2,8 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   adminTrackOrderService,
   AgentTrackParams,
+  AgentTrackResponse,
 } from "@/services/adminTrackOrderService";
-import { OrderData } from "@/utils/TrackAgentData";
 
 /**
  * Query hook for the admin "Track Orders → Agent" list (A7 in
@@ -19,7 +19,7 @@ export const adminTrackOrderKeys = {
 };
 
 export const useAgentTrackOrders = (params: AgentTrackParams = {}) =>
-  useQuery<OrderData[]>({
+  useQuery<AgentTrackResponse>({
     queryKey: adminTrackOrderKeys.agentList(params),
     queryFn: () => adminTrackOrderService.getAgentTrackOrders(params),
     placeholderData: keepPreviousData,

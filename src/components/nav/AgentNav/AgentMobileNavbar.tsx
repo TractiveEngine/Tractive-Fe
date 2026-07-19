@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useNotificationCenter } from "@/hooks/queries/useNotificationQueries";
 import { MenuIcon, NotificationIcon, SearchIcon } from "../../../icons/Icons";
 import { Notifications } from "../../Notifications";
 
@@ -11,8 +12,11 @@ export const ATMobileNavbar = () => {
   const pathname = usePathname();
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
+
+  const { data: notificationsData } = useNotificationCenter(isLoggedIn);
+  const unreadCount = notificationsData?.unreadCount ?? 0;
+  const hasNotifications = unreadCount > 0;
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
 
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -24,23 +28,6 @@ export const ATMobileNavbar = () => {
     { href: "/about-us", label: "About Us" },
     { href: "/contact-us", label: "Contact Us" },
   ];
-
-  useEffect(() => {
-    const fetchNotificationsAndBids = async () => {
-      // Mock API call for notifications
-      const mockNotifications = [
-        { id: 1, message: "You have a new message" },
-        { id: 2, message: "Order #456" },
-      ];
-
-      // Update states based on mock data
-      setHasNotifications(mockNotifications.length > 0);
-    };
-
-    if (isLoggedIn) {
-      fetchNotificationsAndBids();
-    }
-  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

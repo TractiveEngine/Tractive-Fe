@@ -9,6 +9,7 @@ import { PaymentMethod } from "./PaymentMethod";
 import { PaymentSuccessModal } from "./PaymentSuccessModal";
 import { useCreateOrder } from "@/hooks/queries/useOrderQueries";
 import { useCreateTransaction } from "@/hooks/queries/useTransactionQueries";
+import { useProfile } from "@/hooks/queries/useUserQueries";
 import { BidResponse } from "@/services/bidService";
 import { paymentMethodMap } from "@/utils/paymentMethods";
 import { toast } from "sonner";
@@ -85,6 +86,7 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
 
   const createOrderMutation = useCreateOrder();
   const createTransactionMutation = useCreateTransaction();
+  const { data: profile } = useProfile();
 
   const handleCheckoutClick = () => {
     if (!hasSelection) return;
@@ -100,17 +102,18 @@ export const BidsCheckout: React.FC<BidsCheckoutProps> = ({
 
     const bidIds = selectedBids.map((bid) => bid._id);
 
-    let address = "";
-    let phone = "";
-    try {
-      const onboardingData = localStorage.getItem("onboarding-data");
-      if (onboardingData) {
-        const parsed = JSON.parse(onboardingData);
-        address = parsed.address || "";
-        phone = parsed.mobile || "";
-      }
-    } catch {
-      // ignore parse errors
+    // Delivery details come from the user's saved profile (GET /api/profile).
+    // This previously read localStorage["onboarding-data"], a key that is never
+    // written — onboarding saves under `onboarding-data-${role}` — so every
+    // order was created with an empty address and phone.
+    const address = (profile?.address as string) || "";
+    const phone = (profile?.phone as string) || "";
+
+    if (!address || !phone) {
+      toast.error(
+        "Add a delivery address and phone number to your profile before checking out.",
+      );
+      return;
     }
 
     createOrderMutation.mutate(

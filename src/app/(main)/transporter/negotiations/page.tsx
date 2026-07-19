@@ -6,7 +6,12 @@ import { CalenderIcon } from "@/icons/DashboardIcons";
 import { NegotiationProps } from "@/utils/Negotiation";
 import { TableList } from "../_components/table/TableList";
 import { NegotiationActionMenu } from "./_components/NegotiationActionMenu";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { NegotiationService } from "@/services/negotiationService";
 import Image from "next/image";
@@ -77,6 +82,9 @@ const NegotiationListPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [negotiated, setNegotiated] = useState<NegotiationProps[]>([]);
@@ -98,6 +106,17 @@ const NegotiationListPage: React.FC = () => {
     "Nov",
     "Dec",
   ];
+
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedMonth, selectedYear]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -129,10 +148,25 @@ const NegotiationListPage: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const monthNumber = selectedMonth ? months.indexOf(selectedMonth) + 1 : undefined;
+
   const { data: fetchNegotiations, isLoading } = useQuery({
-    queryKey: ["negotiations"],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queryFn: () => NegotiationService.getNegotiations<any[]>(),
+    queryKey: [
+      "negotiations",
+      debouncedSearch,
+      selectedYear,
+      monthNumber,
+      page,
+    ],
+    queryFn: () =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      NegotiationService.getNegotiations<any[]>({
+        search: debouncedSearch || undefined,
+        month: monthNumber,
+        year: selectedYear || undefined,
+        page,
+      }),
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -226,6 +260,15 @@ const NegotiationListPage: React.FC = () => {
   };
 
   const hasSelectedItems = negotiated.some((p) => p.checked);
+  const hasActiveFilters = Boolean(
+    debouncedSearch || selectedYear || selectedMonth
+  );
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedYear("");
+    setSelectedMonth("");
+  };
 
   return (
     <div className="w-full">
@@ -242,6 +285,8 @@ const NegotiationListPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-8 py-2 border border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                   aria-label="Search negotiations"
                 />
@@ -448,11 +493,24 @@ const NegotiationListPage: React.FC = () => {
                         className="opacity-70 object-contain rounded-full bg-[#f1f1f1] w-20 h-20"
                       />
                       <h3 className="text-[16px] font-medium font-montserrat text-[#2b2b2b]">
-                        No Negotiations Available
+                        {hasActiveFilters
+                          ? "No Matching Negotiations"
+                          : "No Negotiations Available"}
                       </h3>
                       <p className="text-[13px] font-montserrat text-[#808080]">
-                        You currently have no pending negotiations
+                        {hasActiveFilters
+                          ? "No negotiations match your search or filters"
+                          : "You currently have no pending negotiations"}
                       </p>
+                      {hasActiveFilters && (
+                        <button
+                          onClick={handleClearFilters}
+                          className="cursor-pointer mt-1 px-4 py-2 border border-[#538e53] text-[#538e53] text-[12px] sm:text-[13px] font-normal rounded-[4px] transition-colors hover:bg-[#538e53] hover:text-[#fefefe]"
+                          aria-label="Clear all filters"
+                        >
+                          Clear filters
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

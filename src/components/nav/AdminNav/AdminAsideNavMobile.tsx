@@ -8,9 +8,6 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   OverviewIcon,
   UserIcon,
-  MessageQuestionIcon,
-  MessageIcon,
-  MessagesIcon,
   Bag2Icon,
   Profile2User,
   moneyChange,
@@ -154,26 +151,11 @@ export const AdminAsideNavMobile = ({
         },
       ],
     },
-    {
-      title: "Reports",
-      items: [
-        {
-          href: "/admin/query",
-          icon: MessageQuestionIcon,
-          label: "Customers",
-        },
-        { href: "/admin/live-chat", icon: MessageIcon, label: "Live Chat" },
-      ],
-    },
+    // "Reports" (/admin/query, /admin/live-chat) removed, and /admin/chat
+    // dropped from "Others": none of those routes exist, so every link 404'd.
     {
       title: "Others",
       items: [
-        {
-          href: "/admin/chat",
-          icon: MessagesIcon,
-          label: "Chat",
-          hasDot: true,
-        },
         { href: "/admin/track-orders", icon: Bag2Icon, label: "Track Orders" },
         {
           icon: Bag2Icon, // Example icon, replace with appropriate icon

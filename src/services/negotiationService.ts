@@ -56,13 +56,35 @@ export interface CreateDirectFleetPaymentPayload {
   note?: string;
 }
 
+export interface NegotiationQueryParams {
+  search?: string;
+  page?: number;
+  limit?: number;
+  // `month` is 1–12, `year` is a 4-digit year.
+  month?: number;
+  year?: string;
+}
+
 export class NegotiationService {
   /**
    * List transporter negotiations
    * GET /api/transporters/negotiations
+   *
+   * Search/year/month are applied server-side; the page previously filtered
+   * nothing at all (the inputs were inert).
    */
-  static async getNegotiations<T>(): Promise<T> {
-    const response = await api.get("/api/transporters/negotiations");
+  static async getNegotiations<T>(
+    params: NegotiationQueryParams = {},
+  ): Promise<T> {
+    const response = await api.get("/api/transporters/negotiations", {
+      params: {
+        ...(params.search ? { search: params.search } : {}),
+        ...(params.month ? { month: params.month } : {}),
+        ...(params.year ? { year: params.year } : {}),
+        ...(params.page ? { page: params.page } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+      },
+    });
     return response.data.data;
   }
 

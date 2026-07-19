@@ -10,7 +10,10 @@ import {
 } from "./_components/TrackAgentInfoModal";
 import { OrderData } from "@/utils/TrackAgentData";
 import { useAgentTrackOrders } from "@/hooks/queries/useAdminTrackOrderQueries";
-import { AgentTrackStatus } from "@/services/adminTrackOrderService";
+import {
+  adminTrackOrderService,
+  AgentTrackStatus,
+} from "@/services/adminTrackOrderService";
 import { TableSkeleton } from "../../_components/TableSkeleton";
 
 // Define types for slide switching
@@ -20,6 +23,21 @@ const TAB_TO_STATUS: Record<SlideType, AgentTrackStatus> = {
   Paid: "paid",
   Delivered: "delivered",
 };
+
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 // Interface for tab indicator styles
 interface IndicatorStyle {
@@ -43,18 +61,54 @@ export default function TrackAgentPage() {
   // State to track the currently active tab (Paid, Delivered)
   const [activeTab, setActiveTab] = useState<SlideType>("Paid");
 
+  // Filters live here, not in the table components, so they reach the API.
+  // Previously each table filtered only the rows already on screen.
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const pageSizeOptions = [5, 10, 20, 50];
+
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters or the tab change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedYear, selectedMonth, activeTab]);
+
   // Fetch real track orders for the active tab's status (A7).
-  const { data: ordersRaw, isLoading } = useAgentTrackOrders({
+  const { data: ordersResponse, isLoading } = useAgentTrackOrders({
     status: TAB_TO_STATUS[activeTab],
+    search: debouncedSearch || undefined,
+    year: selectedYear || undefined,
+    month: selectedMonth
+      ? String(months.indexOf(selectedMonth) + 1)
+      : undefined,
+    page,
+    limit,
   });
+
+  const totalItems = ordersResponse?.pagination?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
   // State to manage order data with checkbox status
   const [orderData, setOrderData] = useState<OrderData[]>([]);
 
   // Sync API data into local state (so checkbox toggles work).
   useEffect(() => {
-    setOrderData(Array.isArray(ordersRaw) ? ordersRaw : []);
-  }, [ordersRaw]);
+    setOrderData(ordersResponse?.data ?? []);
+  }, [ordersResponse]);
 
   // Lookup row → known name, so the info popups can show a name immediately
   // while the detail endpoint resolves.
@@ -85,14 +139,51 @@ export default function TrackAgentPage() {
     width: 0,
   });
 
-  // Calculate counts for each tab
-  const counts = useMemo(
-    () => ({
-      Paid: orderData.length, // Adjust logic if filtering by status is needed
-      Delivered: orderData.length, // Adjust logic if filtering by status is needed
-    }),
-    [orderData]
-  );
+  // Real per-status totals. These used to be `orderData.length` for BOTH tabs,
+  // so the inactive tab echoed the active tab's count — and even the active
+  // one was a page size, not a total. One cheap `limit: 1` probe per status
+  // gives the true `pagination.total`; re-probed when the filters change so
+  // the badges agree with what a tab would actually show.
+  const [counts, setCounts] = useState<Record<SlideType, number>>({
+    Paid: 0,
+    Delivered: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    const filters = {
+      search: debouncedSearch || undefined,
+      year: selectedYear || undefined,
+      month: selectedMonth
+        ? String(months.indexOf(selectedMonth) + 1)
+        : undefined,
+      limit: 1,
+    };
+    (async () => {
+      try {
+        const [paid, delivered] = await Promise.all([
+          adminTrackOrderService.getAgentTrackOrders({
+            ...filters,
+            status: "paid",
+          }),
+          adminTrackOrderService.getAgentTrackOrders({
+            ...filters,
+            status: "delivered",
+          }),
+        ]);
+        if (cancelled) return;
+        setCounts({
+          Paid: paid.pagination?.total ?? 0,
+          Delivered: delivered.pagination?.total ?? 0,
+        });
+      } catch {
+        // non-fatal — the badges just stay at their last known value
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, selectedYear, selectedMonth]);
 
   // Define tab configuration
   const tabs: TabConfig[] = useMemo(
@@ -174,11 +265,24 @@ export default function TrackAgentPage() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [activeTab, tabs]);
 
-  // Render the appropriate component based on activeTab
+  // Render the appropriate component based on activeTab.
+  //
+  // Only the FIRST load takes over the panel. The search input lives inside the
+  // table component, so swapping in a skeleton on every debounced refetch would
+  // unmount it and drop focus mid-keystroke. Subsequent loads keep the previous
+  // rows on screen (react-query's keepPreviousData) while the next page arrives.
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && orderData.length === 0) {
       return <TableSkeleton columns={6} rows={6} />;
     }
+    const filterProps = {
+      searchTerm,
+      onSearchChange: setSearchTerm,
+      selectedYear,
+      onYearChange: setSelectedYear,
+      selectedMonth,
+      onMonthChange: setSelectedMonth,
+    };
     const componentMap: Record<SlideType, React.ReactNode> = {
       Paid: (
         <PaidedTrack
@@ -188,6 +292,7 @@ export default function TrackAgentPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          {...filterProps}
         />
       ),
       Delivered: (
@@ -198,6 +303,7 @@ export default function TrackAgentPage() {
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
+          {...filterProps}
         />
       ),
     };
@@ -240,7 +346,7 @@ export default function TrackAgentPage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}
@@ -267,6 +373,52 @@ export default function TrackAgentPage() {
       >
         {renderContent()}
       </div>
+
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+            <span>Rows per page</span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="ml-3 text-gray-500">
+              Showing {(page - 1) * limit + 1}–
+              {Math.min(page * limit, totalItems)} of {totalItems}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="text-xs font-montserrat text-gray-600 px-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {infoModal && (
         <TrackAgentInfoModal

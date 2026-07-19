@@ -1,6 +1,7 @@
 // services/ordersApi.ts
 
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 
 export interface Order {
@@ -527,15 +528,30 @@ export class OrdersApiService {
 
       return response.data;
     } catch (error) {
-      console.error(`Error updating order ${id} status:`, error);
-      if (
-        error instanceof Error &&
-        !error.message.includes("Unauthorized") &&
-        !error.message.includes("Forbidden") &&
-        !error.message.includes("not found")
-      ) {
-        toast.error("Failed to update order status. Please try again.");
-      }
+      // Axios puts the server's explanation on `error.response.data`, while
+      // `error.message` is only ever "Request failed with status code 4xx".
+      // Reading `.message` alone (as this used to) discarded the one piece of
+      // information that says WHY the transition was refused, and the
+      // Unauthorized/Forbidden/not-found checks below never matched anything
+      // because that string never contains those words.
+      const serverMessage = axios.isAxiosError(error)
+        ? (error.response?.data as { message?: string; error?: string })
+            ?.message ??
+          (error.response?.data as { message?: string; error?: string })
+            ?.error ??
+          undefined
+        : undefined;
+
+      console.error(
+        `Error updating order ${id} status → "${toApiOrderStatus(status)}":`,
+        {
+          status: error && axios.isAxiosError(error) ? error.response?.status : undefined,
+          serverMessage,
+          responseBody: axios.isAxiosError(error) ? error.response?.data : undefined,
+        },
+      );
+
+      toast.error(serverMessage || "Failed to update order status. Please try again.");
       throw error;
     }
   }

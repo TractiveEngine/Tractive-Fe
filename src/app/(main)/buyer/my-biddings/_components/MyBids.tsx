@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import { YellowStarIcon } from "@/icons/Icons";
 
 interface BidItem {
   id: string;
@@ -158,13 +157,10 @@ export const MyBids: React.FC<MyBidsProps> = ({
                         Seller:{" "}
                         <span className="text-[#2b2b2b]">{item.seller}</span>
                       </p>
-                      <div className="flex items-center gap-1">
-                        <YellowStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                        <YellowStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                        <YellowStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                        <YellowStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                        <YellowStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                      </div>
+                      {/* Seller rating intentionally omitted: the won-bids
+                          payload carries no rating for the agent, so a star row
+                          here would be fabricated. Restore once the API returns
+                          one. */}
                     </div>
                   </div>
                   <p className="font-montserrat font-normal text-xs sm:text-sm md:text-[14px] text-[#2b2b2b]">

@@ -33,6 +33,14 @@ export interface orderDataProps {
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
+  // Filters are controlled by the page so they reach the API instead of only
+  // filtering the rows already on screen.
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedYear: string;
+  onYearChange: (value: string) => void;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
 }
 
 export const TrackAgentData: OrderData[] = [

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   PackedIcon,
   MoneyReceiveIcon,
-  MessagesIcon,
 } from "@/icons/DashboardIcons";
 
 interface NavItem {
@@ -17,7 +16,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Track orders", href: "/buyer/track-orders", icon: PackedIcon },
   { label: "Transactions", href: "/buyer/transactions", icon: MoneyReceiveIcon },
-  { label: "Chats", href: "/buyer/chats", icon: MessagesIcon },
+  // "Chats" (/buyer/chats) removed: the route does not exist, so it 404'd.
 ];
 
 export const AccountSidebar: React.FC = () => {

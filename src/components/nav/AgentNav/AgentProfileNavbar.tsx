@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { useNotificationCenter } from "@/hooks/queries/useNotificationQueries";
 import api from "@/lib/axios";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
 import { Notifications } from "../../Notifications";
@@ -17,9 +18,12 @@ export const AgentProfileNavbar = () => {
   const user = session?.user || null;
   const isLoggedIn = !!session;
 
+  const { data: notificationsData } = useNotificationCenter(isLoggedIn);
+  const unreadCount = notificationsData?.unreadCount ?? 0;
+  const hasNotifications = unreadCount > 0;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(false); // Placeholder for notification status
 
   const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -30,25 +34,6 @@ export const AgentProfileNavbar = () => {
     { href: "/contact-us", label: "Contact Us" },
   ];
 
-  useEffect(() => {
-    // Login check handled by useSession
-
-    const fetchNotificationsAndBids = async () => {
-      // Mock API call for notifications and bids
-      const mockNotifications = [
-        { id: 1, message: "You have a new message" },
-        { id: 2, message: "Order #456 updated" },
-      ];
-
-      // Update states based on mock data
-      setHasNotifications(mockNotifications.length > 0);
-    };
-
-    // checkLoginStatus();
-    if (isLoggedIn) {
-      fetchNotificationsAndBids();
-    }
-  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,7 +78,6 @@ export const AgentProfileNavbar = () => {
 
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
-    setHasNotifications(false);
   };
 
   const handleNotificationClick = () => {

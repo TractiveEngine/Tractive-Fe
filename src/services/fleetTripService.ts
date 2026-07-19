@@ -149,8 +149,23 @@ export interface GetFleetTripsParams {
   status?: FleetTripStatus;
   fleetId?: string;
   search?: string;
+  /** Four-digit year, e.g. "2025". Filters on the trip's creation date. */
+  year?: string;
+  /** 1-12. Filters on the trip's creation date. */
+  month?: number;
   page?: number;
   limit?: number;
+}
+
+export interface FleetTripPagination {
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface FleetTripListResponse {
+  trips: FleetTripSummary[];
+  pagination: FleetTripPagination;
 }
 
 export interface CreateFleetTripPayload {
@@ -189,15 +204,52 @@ export const fleetTripService = {
   getFleetTrips: async (
     params?: GetFleetTripsParams,
   ): Promise<FleetTripSummary[]> => {
+    const { trips } = await fleetTripService.getFleetTripsPaged(params);
+    return trips;
+  },
+
+  /**
+   * GET /api/transporters/fleet-trips
+   * Same endpoint as `getFleetTrips`, but keeps the `pagination` envelope so
+   * callers can render page controls and real tab totals instead of counting
+   * the rows on the current page.
+   */
+  getFleetTripsPaged: async (
+    params: GetFleetTripsParams = {},
+  ): Promise<FleetTripListResponse> => {
     try {
-      const response = await api.get("/api/transporters/fleet-trips", { params });
+      const response = await api.get("/api/transporters/fleet-trips", {
+        params: {
+          ...(params.status ? { status: params.status } : {}),
+          ...(params.fleetId ? { fleetId: params.fleetId } : {}),
+          ...(params.search ? { search: params.search } : {}),
+          ...(params.month ? { month: params.month } : {}),
+          ...(params.year ? { year: params.year } : {}),
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+        },
+      });
       const payload = unwrap<unknown>(response.data);
-      if (Array.isArray(payload)) return payload as FleetTripSummary[];
-      if (payload && typeof payload === "object") {
+      let trips: FleetTripSummary[] = [];
+      if (Array.isArray(payload)) {
+        trips = payload as FleetTripSummary[];
+      } else if (payload && typeof payload === "object") {
         const maybe = payload as { trips?: FleetTripSummary[] };
-        if (Array.isArray(maybe.trips)) return maybe.trips;
+        if (Array.isArray(maybe.trips)) trips = maybe.trips;
       }
-      return [];
+      // The envelope may carry pagination alongside `data`, or nested inside it.
+      const nested = (payload && typeof payload === "object"
+        ? (payload as { pagination?: Partial<FleetTripPagination> }).pagination
+        : undefined);
+      const raw = response.data?.pagination ?? nested;
+      return {
+        trips,
+        pagination: {
+          page: raw?.page ?? params.page ?? 1,
+          limit: raw?.limit ?? params.limit ?? 10,
+          total: raw?.total ?? trips.length,
+        },
+      };
     } catch (error) {
       console.error("[FleetTripService] getFleetTrips error:", error);
       throw error;

@@ -2,7 +2,8 @@ import { ReviewIcon, XIcon } from "@/icons/Icon1";
 import { LikeIcon, ReplyIcon, StarIcon, YellowStarIcon } from "@/icons/Icons";
 import { useAnimation, motion } from "framer-motion";
 import Image from "next/image";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useReplyToReview } from "@/hooks/queries/useReviewQueries";
 
 // Define TypeScript interfaces for the data structure
 interface User {
@@ -67,6 +68,31 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
   const isLoading = sellerId ? sellerQuery.isLoading : transporterQuery.isLoading;
 
   const likeMutation = useLikeReview();
+
+  // Reply composer. The Reply control used to be an inert <div> that only
+  // showed a count — POST /api/reviews/{id}/reply was never called from here.
+  const replyToReview = useReplyToReview();
+  const [openReplyId, setOpenReplyId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState("");
+
+  const toggleReply = (reviewId: string) => {
+    setOpenReplyId((current) => (current === reviewId ? null : reviewId));
+    setReplyDraft("");
+  };
+
+  const handleSubmitReply = (reviewId: string) => {
+    const message = replyDraft.trim();
+    if (!message) return;
+    replyToReview.mutate(
+      { reviewId, payload: { message } },
+      {
+        onSuccess: () => {
+          setOpenReplyId(null);
+          setReplyDraft("");
+        },
+      },
+    );
+  };
 
   // Render only what the API returns. A seller with no reviews gets a genuine
   // empty state — never invented reviewers, ratings or counts.
@@ -318,12 +344,17 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
                   />
                 )}
                 <div className="flex items-center gap-[46px] truncate">
-                  <div className="flex items-center gap-[6px]">
+                  <button
+                    type="button"
+                    onClick={() => toggleReply(String(review.id))}
+                    className="flex items-center gap-[6px] cursor-pointer hover:opacity-80 transition-opacity"
+                    aria-expanded={openReplyId === String(review.id)}
+                  >
                     <ReplyIcon />
                     <span className="font-montserrat font-normal text-[11px] text-[#2b2b2b]">
                       {review.replies} replies
                     </span>
-                  </div>
+                  </button>
                   <div
                     className={`flex items-center gap-[6px] cursor-pointer hover:opacity-80 transition-opacity ${likeMutation.isPending && likeMutation.variables === String(review.id) ? "opacity-50 pointer-events-none" : ""}`}
                     onClick={() => likeMutation.mutate(String(review.id))}
@@ -334,6 +365,37 @@ export const Reviews: React.FC<ReviewsProps> = ({ sellerId, transporterId, onClo
                     </span>
                   </div>
                 </div>
+
+                {openReplyId === String(review.id) && (
+                  <div className="flex flex-col gap-2 w-full">
+                    <textarea
+                      value={replyDraft}
+                      onChange={(e) => setReplyDraft(e.target.value)}
+                      placeholder="Write a reply…"
+                      rows={2}
+                      className="w-full rounded-[4px] border border-[#e2e2e2] px-3 py-2 font-montserrat text-[11px] text-[#2b2b2b] outline-none focus:border-[#538e53]"
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSubmitReply(String(review.id))}
+                        disabled={
+                          !replyDraft.trim() || replyToReview.isPending
+                        }
+                        className="rounded-[4px] bg-[#538e53] px-3 py-1.5 font-montserrat text-[11px] text-[#fefefe] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {replyToReview.isPending ? "Posting…" : "Post reply"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleReply(String(review.id))}
+                        className="rounded-[4px] border border-[#e2e2e2] px-3 py-1.5 font-montserrat text-[11px] text-[#2b2b2b] cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))

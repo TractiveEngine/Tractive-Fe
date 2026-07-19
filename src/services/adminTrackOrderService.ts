@@ -140,11 +140,34 @@ const mapPartyInfo = (raw: unknown): OrderPartyInfo => {
   };
 };
 
+export interface AgentTrackResponse {
+  data: OrderData[];
+  pagination: { page: number; limit: number; total: number };
+}
+
+// The list envelope carries `pagination` alongside `data`; `unwrap` drills past
+// it, so read it off whichever level actually has it.
+const readPagination = (
+  payload: unknown,
+  fallback: { page: number; limit: number; total: number },
+) => {
+  const root = payload as { pagination?: unknown; data?: { pagination?: unknown } };
+  const found = (root?.pagination ?? root?.data?.pagination) as
+    | { page?: number; limit?: number; total?: number }
+    | undefined;
+  if (!found) return fallback;
+  return {
+    page: found.page ?? fallback.page,
+    limit: found.limit ?? fallback.limit,
+    total: found.total ?? fallback.total,
+  };
+};
+
 export const adminTrackOrderService = {
   // GET /api/admin/orders/track/agent
   getAgentTrackOrders: async (
     params: AgentTrackParams = {},
-  ): Promise<OrderData[]> => {
+  ): Promise<AgentTrackResponse> => {
     try {
       const res = await api.get("/api/admin/orders/track/agent", {
         params: {
@@ -156,7 +179,15 @@ export const adminTrackOrderService = {
           limit: params.limit ?? 20,
         },
       });
-      return toArray(unwrap(res.data)).map(mapTrackOrder);
+      const data = toArray(unwrap(res.data)).map(mapTrackOrder);
+      return {
+        data,
+        pagination: readPagination(res.data, {
+          page: params.page ?? 1,
+          limit: params.limit ?? 20,
+          total: data.length,
+        }),
+      };
     } catch (error) {
       return handleApiError(error, "fetch agent track orders");
     }

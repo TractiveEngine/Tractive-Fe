@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "../../../../../../icons/Icons";
 import { CalenderIcon } from "../../../../../../icons/DashboardIcons";
@@ -119,7 +119,20 @@ const columns: ColumnConfig<AdminControl>[] = [
   },
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
-export const RemovedTable: React.FC<AdminMethodProps> = ({
+// Filter values are owned by the page (server-side filtering); this table only
+// renders the controls and reports changes upward.
+interface RemovedTableProps extends AdminMethodProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedYear: string;
+  onYearChange: (value: string) => void;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
+  selectedState: string;
+  onStateChange: (value: string) => void;
+}
+
+export const RemovedTable: React.FC<RemovedTableProps> = ({
   data,
   handleAdminOnboarding,
   handleCheckboxChange,
@@ -127,11 +140,15 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
   allChecked,
   bulkActions = [],
   bulkDisabled,
+  searchTerm,
+  onSearchChange,
+  selectedYear,
+  onYearChange,
+  selectedMonth,
+  onMonthChange,
+  selectedState,
+  onStateChange,
 }) => {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
@@ -141,64 +158,6 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-
-  // Filter transactions based on status, year, month, and search term
-  const filteredASRControl = useMemo(() => {
-    return data.filter((control) => {
-      const matchesStatus = control.status === "Removed";
-      const matchesYear = selectedYear
-        ? control.date.includes(selectedYear)
-        : true;
-      const matchesMonth = selectedMonth
-        ? control.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`
-          )
-        : true;
-      const matchesState = selectedState
-        ? control.location.toLowerCase() === selectedState.toLowerCase()
-        : true;
-      const matchesSearch = searchTerm
-        ? control.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          control.email.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      return (
-        matchesStatus &&
-        matchesYear &&
-        matchesMonth &&
-        matchesState &&
-        matchesSearch
-      );
-    });
-  }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
-
-  // Client-side pagination over the filtered rows.
-  const PAGE_SIZE = 10;
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredASRControl.length / PAGE_SIZE),
-  );
-
-  // Reset to the first page whenever the filters change.
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedYear, selectedMonth, selectedState, searchTerm]);
-
-  // Keep the page in range if the result set shrinks (e.g. after removal).
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [currentPage, totalPages]);
-
-  const paginatedASRControl = useMemo(
-    () =>
-      filteredASRControl.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      ),
-    [filteredASRControl, currentPage],
-  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -257,7 +216,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                 type="text"
                 placeholder="Search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search all transactions"
                 aria-describedby="search-description"
@@ -314,7 +273,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedYear("");
+                            onYearChange("");
                             setIsYearOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -329,7 +288,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                           <div
                             key={year}
                             onClick={() => {
-                              setSelectedYear(year.toString());
+                              onYearChange(year.toString());
                               setIsYearOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -385,7 +344,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedMonth("");
+                            onMonthChange("");
                             setIsMonthOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -400,7 +359,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                           <div
                             key={month}
                             onClick={() => {
-                              setSelectedMonth(month);
+                              onMonthChange(month);
                               setIsMonthOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -455,7 +414,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedState("");
+                          onStateChange("");
                           setIsStateOpen(false);
                         }}
                         className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -470,7 +429,7 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
                         <div
                           key={state}
                           onClick={() => {
-                            setSelectedState(state);
+                            onStateChange(state);
                             setIsStateOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -495,53 +454,19 @@ export const RemovedTable: React.FC<AdminMethodProps> = ({
         <AdminTable<AdminControl>
           dataType="ASRDataControl"
           columns={columns}
-          initialData={paginatedASRControl}
+          initialData={data}
           ActionMenuComponent={RemovedActionMenu}
           handleAdminOnboarding={handleAdminOnboarding}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
         />
-      </div>
-
-      {filteredASRControl.length > PAGE_SIZE && (
-        <div className="flex items-center justify-between gap-4 px-6 py-4 flex-wrap">
-          <span className="text-[12px] font-montserrat text-[#666666]">
-            Showing {(currentPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(currentPage * PAGE_SIZE, filteredASRControl.length)} of{" "}
-            {filteredASRControl.length}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 text-[12px] font-montserrat rounded-[4px] border border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setCurrentPage(p)}
-                className={`px-3 py-1 text-[12px] font-montserrat rounded-[4px] border cursor-pointer ${
-                  p === currentPage
-                    ? "bg-[#538e53] text-white border-[#538e53]"
-                    : "border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 text-[12px] font-montserrat rounded-[4px] border border-gray-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Next
-            </button>
+        {data.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No users match the current filters.
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

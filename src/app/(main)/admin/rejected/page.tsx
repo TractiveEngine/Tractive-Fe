@@ -120,7 +120,12 @@ export default function RejectedPage() {
   );
   const [agentsLoading, setAgentsLoading] = useState<boolean>(true);
   const [transportersLoading, setTransportersLoading] = useState<boolean>(true);
+  const [agentsTotal, setAgentsTotal] = useState<number>(0);
+  const [transportersTotal, setTransportersTotal] = useState<number>(0);
   const [allChecked, setAllChecked] = useState<boolean>(false);
+
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
 
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pendingKind, setPendingKind] = useState<"agent" | "transporter">(
@@ -147,35 +152,44 @@ export default function RejectedPage() {
     width: 0,
   });
 
+  const pageSizeOptions = [5, 10, 20, 50];
+  const totalItems = activeTab === "Agents" ? agentsTotal : transportersTotal;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const isLoading =
+    activeTab === "Agents" ? agentsLoading : transportersLoading;
+
   const fetchRejectedAgents = useCallback(async () => {
     setAgentsLoading(true);
     try {
-      const { data } = await approvalService.getPendingAgents({
+      const { data, pagination } = await approvalService.getPendingAgents({
         status: "rejected",
-        limit: 10,
+        page,
+        limit,
       });
       setAgents(data.map(mapAgentToRow));
       setAgentsRaw(data);
+      setAgentsTotal(pagination?.total ?? data.length);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to load rejected agents",
       );
       setAgents([]);
       setAgentsRaw([]);
+      setAgentsTotal(0);
     } finally {
       setAgentsLoading(false);
     }
-  }, []);
+  }, [page, limit]);
 
   const fetchRejectedTransporters = useCallback(async () => {
     setTransportersLoading(true);
     try {
-      const { data } = await approvalService.getPendingTransporters({
-        status: "rejected",
-        limit: 10,
-      });
+      const { data, pagination } = await approvalService.getPendingTransporters(
+        { status: "rejected", page, limit },
+      );
       setTransporters(data.map(mapTransporterToRow));
       setTransportersRaw(data);
+      setTransportersTotal(pagination?.total ?? data.length);
     } catch (err) {
       toast.error(
         err instanceof Error
@@ -184,22 +198,27 @@ export default function RejectedPage() {
       );
       setTransporters([]);
       setTransportersRaw([]);
+      setTransportersTotal(0);
     } finally {
       setTransportersLoading(false);
     }
-  }, []);
+  }, [page, limit]);
 
   useEffect(() => {
     fetchRejectedAgents();
     fetchRejectedTransporters();
   }, [fetchRejectedAgents, fetchRejectedTransporters]);
 
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
   const counts = useMemo(
     () => ({
-      Agents: agents.length,
-      Transporters: transporters.length,
+      Agents: agentsTotal,
+      Transporters: transportersTotal,
     }),
-    [agents, transporters],
+    [agentsTotal, transportersTotal],
   );
 
   const tabs: TabConfig[] = useMemo(
@@ -227,6 +246,7 @@ export default function RejectedPage() {
   const handleSwitchTab = (tab: SlideType) => {
     setActiveTab(tab);
     setAllChecked(false);
+    setPage(1);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -497,7 +517,7 @@ export default function RejectedPage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}
@@ -565,6 +585,52 @@ export default function RejectedPage() {
         onCancel={cancelPendingBulk}
         onConfirm={confirmPendingBulk}
       />
+
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+            <span>Rows per page</span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="ml-3 text-gray-500">
+              Showing {(page - 1) * limit + 1}–
+              {Math.min(page * limit, totalItems)} of {totalItems}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="text-xs font-montserrat text-gray-600 px-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
