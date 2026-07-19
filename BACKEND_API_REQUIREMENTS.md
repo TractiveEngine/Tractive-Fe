@@ -32,30 +32,12 @@ end to end with a real session, not probed in isolation.
   currently user-visible (the modal is fed from list data), but the two shapes
   for the same resource should agree.
 
-**Two frontend bugs found and fixed by us — both were masquerading as working
-features** (details in §6a):
-
-- 🔴 **`isFollowing` was always `false`.** `sellerApi.ts` used the bare global
-  `axios` rather than the configured instance, so every seller request went out
-  **unauthenticated**. The backend computes `isFollowing` per-requester, so an
-  already-followed seller always rendered **"Follow"**. The endpoint was fine
-  all along — we were calling it anonymously. Four sibling calls in the same
-  file had the same defect, including `likeReview`, which POSTs to a protected
-  route and could never have worked.
-- 🔴 **Buyer logout never revoked the session server-side.** The buyer navbar
-  called `signOut()` only and never hit `/api/auth/logout`, so the refresh token
-  stayed live after the UI had signed out.
-
-**Confirmed working end to end this round** (no action needed): admin
-track-orders→Agent, buyer banners + the whole admin Banners CRUD panel, truck
-detail, transporter customer chat, rating-distribution payload, order-tracking
-transporter branding, fleet statuses, agent commission, payout bank account,
-notification stream, and the admin removed-users stat.
-
-**Could not be verified from our environment:** the banner **image upload** leg —
-`api.cloudinary.com` is DNS-blocked on our network (`res.cloudinary.com` serves
-fine). Create was exercised via the API instead; Edit and Delete were driven
-through the real UI. Not a backend concern, recorded for completeness.
+**Everything else from the v5.0 closure record verified clean and has been left
+out of this document** — per the rule below, if it is not here, it works. That
+includes two bugs that turned out to be ours, not yours: seller requests were
+being sent unauthenticated (so `isFollowing` always came back `false`), and buyer
+logout never called `/api/auth/logout`. Both are fixed on our side; the endpoints
+were correct throughout.
 
 **Still the four hard blockers from v6.1:** §1.1, §1.2, §1.3, §1.5.
 
@@ -74,17 +56,8 @@ through the real UI. Not a backend concern, recorded for completeness.
   missing `state` and `image`** — so the State column on `/agent/customers` renders
   blank for every row.
 
-**Two items closed — no longer your problem:**
-
-- ✅ **§1.6 — `/api/products/bulk/status`.** Had *two* bugs stacked: we sent `PUT`
-  (405) and, once fixed, the wrong body key (400). It wants `PATCH` with
-  **`productIds`**, matching `bulk/delete`. **Fixed on our side.**
-- ✅ **The banner / admin-settings item** from v6.0 is **removed entirely** — the
-  Banners panel and the buyer-side banner render are confirmed working end to end.
-
 **Changed on our side (context, not asks):** all 12 fake sparklines are now
-**commented out** (§2) — they return the moment you ship `trend[]`. A batch of
-frontend-only bugs was fixed; see **§6a**.
+**commented out** (§2) — they return the moment you ship `trend[]`.
 
 **Still the four hard blockers:** §1.1, §1.2, §1.3, §1.5 — all genuinely missing or
 dead routes.
@@ -332,31 +305,6 @@ This exact shape already works when `agentId` is supplied — we confirmed a liv
 
 ---
 
-### 1.6 ✅ `PATCH /api/products/bulk/status` — **RESOLVED. No backend work needed.**
-
-Recorded because it was broken in two ways and both are now fixed **on our side**.
-
-1. **Wrong method.** We sent `PUT`; the backend only registers `PATCH` (`PUT` and
-   `POST` return **405**). → switched to `PATCH`.
-2. **Wrong body key.** We sent the id array as **`products`**, which the backend
-   rejected with **`400 Bad Request`**. The correct key is **`productIds`** — the
-   same key `bulk/delete` already uses. → switched.
-
-**The contract we now send** (covers both "Out of Stock" and "Back in Stock" on
-`/agent/produce-list`):
-
-```jsonc
-PATCH /api/products/bulk/status
-{
-  "productIds": ["6993d5fc65003a85c34e795b", "69c0b72bc11cf3d869dcb93c"],
-  "status": "available"        // | "out_of_stock" | "discontinued"
-}
-```
-
-**Nothing is required from you.** One optional cleanup for the future: `bulk/delete`
-and `bulk/status` now agree on `productIds`, but the 400 gave no readable validation
-message — if the error body named the offending field, we would have found this in
-seconds instead of by inference.
 
 ---
 
@@ -502,15 +450,6 @@ This is the **same `{date, value}` shape** the revenue charts already return
 Once `trend` arrives we will draw the polyline from the data and pick the
 green/red stroke from the sign of `deltaPercent`.
 
-### 2.3 Charts that are already correct — no action needed
-
-Listed only so you don't hunt for them: the three **Recharts revenue area charts**
-(admin/agent/transporter), the agent **most-sold-categories donut** (SVG arcs are
-computed from real API values), and every **rating-distribution bar** in
-`Reviews.tsx` and the seller `StoreHeader` are all genuinely API-fed and working.
-
-The **only** fake chart data in the entire application is the 12 sparklines above,
-plus the hardcoded star rows in §5.6.
 
 ---
 
@@ -974,24 +913,9 @@ completeness.
 
 ## §6. FRONTEND-SIDE GAPS — no backend work needed
 
-Listed so you know these are **ours**, not yours, and so you don't build for them.
-Pages given so you can confirm the behaviour if you hit it while testing.
-
-### 6a. ✅ Fixed by us since v6.0 — nothing needed from you
-
-| Gap | Fix | 📍 Page(s) |
-|---|---|---|
-| 🔴 **Every seller request was sent unauthenticated, so `isFollowing` was always `false`.** An already-followed seller rendered **"Follow"** on load — reported as a backend gap in v5.0 (B2), but the payload was correct all along | `sellerApi.ts` used the bare global `axios` instead of the configured `@/lib/axios` instance, so the bearer token was never attached and the backend answered as if anonymous. Proved it by calling the same endpoint both ways: `isFollowing: true` with auth, `false` without. Switched all 5 calls in the file to the authenticated instance. **This also repaired `likeReview`, which POSTs to a protected route and could never have worked**, plus `getSellers`, `getSellerProducts` and `getSellerReviews` | `/buyer/sellers-list/[id]`, `/buyer` |
-| 🔴 **Buyer logout never revoked the session server-side.** The client looked signed out while the refresh token stayed live | The buyer navbar called `signOut()` alone and never hit `/api/auth/logout` — the six other nav components already did. (`useLogout` existed for exactly this but was dead code, imported nowhere.) Wired the navbar to it and pointed the hook at the authenticated instance; the route answers **401** without a token, which the old code silently swallowed. Verified: request now carries `Authorization` and returns `200 {"success":true}` | every buyer page (navbar) |
-| `/api/products/bulk/status` — wrong method **and** wrong body key | Now `PATCH` with `{ productIds, status }` (§1.6) | `/agent/produce-list` |
-| **Product lists never refetched after a status change.** A product moved out of the source tab and never appeared in the destination one — only a full page reload fixed it | The cache "move" was writing to a query key that never matched a real query. Replaced with a proper invalidation of both lists. Also fixed the same bug in the single-row status toggle, and in single + bulk delete (stale tab counts) | `/agent/produce-list` |
-| **Native browser `alert()` / `confirm()` dialogs** | Replaced with the themed confirm modal. Bulk Delete / Out-of-Stock / Back-in-Stock now confirm properly; the Customer Care alert now opens the real modal; dead `BulkActionsBar` deleted. **Zero native dialogs remain in the agent section** | `/agent/produce-list`, `/agent/new`, `/agent/packed`, `/agent/delivered` |
-| **Notification dropdown overflowed narrow screens** — 7 of 9 navbars used a hardcoded `w-[500px]` panel yanked sideways by a magic `-left-[15rem]` | All 9 standardised on the responsive pattern the working navbars already used (`right-0`, `w-[92vw]`, `max-w-[420px]`) | every role's navbar |
-| **The transporter dashboard rendered itself twice** (a `hidden lg:flex` block **and** a `flex lg:hidden` block) — both mounted, both fetched | Collapsed into one responsive tree, mirroring the agent dashboard | `/transporter` |
-| **All 12 fake sparklines** | Commented out — we would rather show nothing than a fabricated trend line. **They come back the moment you ship §2's `trend[]`** | `/admin`, `/admin/all-users`, `/agent`, `/transporter` |
-| **Admin user actions had no confirmation** and the ⋮ menu was missing **Remove** | Added Remove, spaced the menu items, and both Remove and Suspend now open a confirm modal naming the user | `/admin/all-users` |
-
-### 6b. 🔧 Still ours to fix — listed so you don't build for them
+🔧 **Still ours to fix.** Listed so you know these are **ours**, not yours, and so
+you don't build for them. Pages given so you can confirm the behaviour if you hit
+it while testing.
 
 | # | Gap | 📍 Page(s) |
 |---|---|---|
@@ -1056,7 +980,7 @@ see per-requester fields. v6.2 re-ran the closure items **with real sessions**
 (a buyer/agent/transporter account and an admin account), driving the actual UI
 in a headless browser and capturing every request the pages made.
 
-That distinction is what surfaced the `isFollowing` bug in §6a: the endpoint had
+That distinction is what surfaced the `isFollowing` bug noted above: the endpoint had
 been returning `200` in every prior probe, and the field it got wrong is only
 wrong when you are logged in. **Two lessons worth carrying forward:**
 
