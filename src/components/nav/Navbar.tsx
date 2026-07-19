@@ -3,7 +3,8 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useLogout } from "@/hooks/useLogout";
 
 import { MobileNavbar } from "./MobileNavbar";
 import { NotificationIcon, SearchIcon } from "@/icons/Icons";
@@ -15,6 +16,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const { performLogout } = useLogout();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -56,7 +58,9 @@ export const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" });
+    // Goes through useLogout so the backend revokes the refresh token; calling
+    // signOut() alone clears the client session but leaves it live server-side.
+    await performLogout();
     setIsDropdownOpen(false);
   };
 
