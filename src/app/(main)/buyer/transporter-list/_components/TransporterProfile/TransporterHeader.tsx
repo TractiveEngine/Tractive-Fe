@@ -327,7 +327,7 @@ export const TransporterHeader = ({ transporterId }: { transporterId: string }) 
             transition={{ duration: 0.3 }}
             className="absolute right-0 top-[7.6rem] z-60"
           >
-            <Reviews sellerId={transporterId} onClose={handleReviewsToggle} />
+            <Reviews transporterId={transporterId} onClose={handleReviewsToggle} />
           </motion.div>
         )}
       </div>

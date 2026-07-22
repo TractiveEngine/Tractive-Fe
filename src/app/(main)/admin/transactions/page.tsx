@@ -366,6 +366,8 @@ export default function TransactionPage() {
           transactions={transactions}
           handleApprove={handleApprove}
           handleDecline={handleDecline}
+          handleRefund={handleRefund}
+          handleViewProfile={handleViewProfile}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}

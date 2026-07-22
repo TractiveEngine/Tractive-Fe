@@ -10,9 +10,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   OverviewIcon,
   UserIcon,
-  MessageQuestionIcon,
-  MessageIcon,
-  MessagesIcon,
   Bag2Icon,
   LogoutIcon,
   Profile2User,
@@ -115,28 +112,8 @@ export const AdminAsideNav = () => {
         },
       ],
     },
-    {
-      title: "Reports",
-      items: [
-        {
-          href: "/admin/query",
-          icon: MessageQuestionIcon,
-          label: "Query",
-        },
-        { href: "/admin/live-chat", icon: MessageIcon, label: "Live Chat" },
-      ],
-    },
-    {
-      title: "Others",
-      items: [
-        {
-          href: "/admin/chat",
-          icon: MessagesIcon,
-          label: "Chat",
-          hasDot: true,
-        },
-      ],
-    },
+    // "Reports" (/admin/query, /admin/live-chat) and "Others" (/admin/chat)
+    // removed: none of those routes exist, so every link 404'd.
   ];
 
   return (

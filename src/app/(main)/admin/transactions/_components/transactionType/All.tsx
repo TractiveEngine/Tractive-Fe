@@ -6,7 +6,7 @@ import AdminTable, {
   ColumnConfig,
 } from "../../../_components/table/AdminTableList";
 import { Transaction } from "@/utils/TransactionDataTypes";
-import { TransactionActionMenu } from "../TransactionActionMenu";
+import { AllTransactionActionMenu } from "../AllTransactionActionMenu";
 
 const statusPill = (item: Transaction) => {
   const s = (item.status || "").toLowerCase();
@@ -105,6 +105,10 @@ interface AllProps {
   transactions: Transaction[];
   handleApprove: (id: string) => void;
   handleDecline: (id: string) => void;
+  // The All tab mixes every status, so its rows need the refund and profile
+  // actions the per-status tabs each own individually.
+  handleRefund?: (id: string) => void;
+  handleViewProfile?: (id: string) => void;
   handleCheckboxChange: (id: string) => void;
   handleSelectAll: () => void;
   allChecked: boolean;
@@ -115,6 +119,8 @@ export const All: React.FC<AllProps> = ({
   transactions,
   handleApprove,
   handleDecline,
+  handleRefund,
+  handleViewProfile,
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
@@ -156,9 +162,11 @@ export const All: React.FC<AllProps> = ({
           dataType="TransactionalData"
           columns={columns}
           initialData={filteredTransactions}
-          ActionMenuComponent={TransactionActionMenu}
+          ActionMenuComponent={AllTransactionActionMenu}
           handleApprove={handleApprove}
           handleDecline={handleDecline}
+          handleRefund={handleRefund}
+          handleViewProfile={handleViewProfile}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}

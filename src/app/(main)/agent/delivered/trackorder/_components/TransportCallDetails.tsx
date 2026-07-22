@@ -65,11 +65,13 @@ export const TransportCallDetails = ({
 
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-1">
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <YellowStarIcon />
-                <StarIcon />
+                {Array.from({ length: 5 }).map((_, i) =>
+                  i < Math.round(Number(rating) || 0) ? (
+                    <YellowStarIcon key={i} />
+                  ) : (
+                    <StarIcon key={i} />
+                  ),
+                )}
               </div>
               <span className="font-montserrat font-medium text-[12px] text-[#2b2b2b]">
                 {rating}

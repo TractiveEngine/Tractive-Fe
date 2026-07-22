@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "@/icons/Icons";
 import { CalenderIcon } from "@/icons/DashboardIcons";
@@ -64,10 +64,16 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
   handleCheckboxChange,
   handleSelectAll,
   allChecked,
+  searchTerm,
+  onSearchChange,
+  selectedYear,
+  onYearChange,
+  selectedMonth,
+  onMonthChange,
 }) => {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  // Only the open/closed state of the dropdowns is local now — the selected
+  // values are owned by the page so they reach the API. `order` therefore
+  // arrives already filtered server-side.
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
@@ -75,28 +81,6 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-
-  // Filter data based on year, month, state, and search term
-  const filteredTrackedData = useMemo(() => {
-    return order.filter((order) => {
-      const matchesYear = selectedYear
-        ? order.date.includes(selectedYear)
-        : true;
-      const matchesMonth = selectedMonth
-        ? order.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`
-          )
-        : true;
-      const matchesSearch = searchTerm
-        ? order.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.sellerName.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      return matchesYear && matchesMonth && matchesSearch;
-    });
-  }, [order, selectedYear, selectedMonth, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -148,7 +132,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
                 type="text"
                 placeholder="Search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search all transactions"
                 aria-describedby="search-description"
@@ -207,7 +191,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedYear("");
+                          onYearChange("");
                           setIsYearOpen(false);
                         }}
                         className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -222,7 +206,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
                         <div
                           key={year}
                           onClick={() => {
-                            setSelectedYear(year.toString());
+                            onYearChange(year.toString());
                             setIsYearOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -278,7 +262,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedMonth("");
+                          onMonthChange("");
                           setIsMonthOpen(false);
                         }}
                         className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -293,7 +277,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
                         <div
                           key={month}
                           onClick={() => {
-                            setSelectedMonth(month);
+                            onMonthChange(month);
                             setIsMonthOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -317,7 +301,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
         <AdminTable<OrderData>
           dataType="TrackAgentData"
           columns={columns}
-          initialData={filteredTrackedData}
+          initialData={order}
           ActionMenuComponent={TrackAgentActionMenu}
           handleBuyerInfo={handleBuyerInfo}
           handleSellerInfo={handleSellerInfo}
@@ -325,7 +309,7 @@ export const DeliveredTrack: React.FC<orderDataProps> = ({
           handleSelectAll={handleSelectAll}
           allChecked={allChecked}
         />
-        {filteredTrackedData.length === 0 && (
+        {order.length === 0 && (
           <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
             No delivered orders found.
           </div>

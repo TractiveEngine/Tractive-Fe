@@ -39,6 +39,35 @@ interface TabConfig {
   colorClassFaded: string;
 }
 
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+// The stats endpoint may expose counts under `byStatus` or at the top level.
+const readStatusCount = (
+  stats: Record<string, unknown> | null,
+  keys: string[],
+): number => {
+  if (!stats) return 0;
+  const byStatus = (stats.byStatus as Record<string, unknown>) || {};
+  for (const key of keys) {
+    const value = stats[key] ?? byStatus[key];
+    if (typeof value === "number") return value;
+  }
+  return 0;
+};
+
 const titleCase = (s: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 
@@ -77,6 +106,12 @@ export default function ActivePage() {
     Removed: 0,
   });
 
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState<IndicatorStyle>({
@@ -87,22 +122,41 @@ export default function ActivePage() {
   const [pendingBulk, setPendingBulk] = useState<PendingBulk | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedState, selectedMonth, selectedYear]);
+
   const fetchForTab = useCallback(
     async (tab: SlideType) => {
       setIsLoading(true);
       try {
+        const monthNumber = selectedMonth
+          ? months.indexOf(selectedMonth) + 1
+          : undefined;
+        const filters = {
+          search: debouncedSearch || undefined,
+          state: selectedState || undefined,
+          month: monthNumber,
+          year: selectedYear || undefined,
+          page,
+          limit,
+        };
         const res =
           tab === "Removed"
-            ? await adminUserService.getRemovedUsers({ page, limit })
+            ? await adminUserService.getRemovedUsers(filters)
             : await adminUserService.getUsers({
                 status: tab === "Active" ? "active" : "suspended",
-                page,
-                limit,
+                ...filters,
               });
-        const total = res.pagination?.total ?? res.data.length;
         setData(res.data.map(mapToAdminControl));
-        setTotalItems(total);
-        setCounts((c) => ({ ...c, [tab]: total }));
+        setTotalItems(res.pagination?.total ?? res.data.length);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load users");
         setData([]);
@@ -111,7 +165,7 @@ export default function ActivePage() {
         setIsLoading(false);
       }
     },
-    [page, limit],
+    [debouncedSearch, selectedState, selectedMonth, selectedYear, page, limit],
   );
 
   useEffect(() => {
@@ -125,25 +179,29 @@ export default function ActivePage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  // Fetch counts for the inactive tabs too (so badges are accurate) — fire-and-forget
-  useEffect(() => {
-    (async () => {
-      try {
-        const [active, suspended, removed] = await Promise.all([
-          adminUserService.getUsers({ status: "active", limit: 1 }),
-          adminUserService.getUsers({ status: "suspended", limit: 1 }),
-          adminUserService.getRemovedUsers({ limit: 1 }),
-        ]);
-        setCounts({
-          Active: active.pagination?.total ?? 0,
-          Suspended: suspended.pagination?.total ?? 0,
-          Removed: removed.pagination?.total ?? 0,
-        });
-      } catch {
-        // non-fatal
-      }
-    })();
+  // Tab counts come from a single stats call so they stay accurate regardless
+  // of the filters applied to the visible tab.
+  const fetchCounts = useCallback(async () => {
+    try {
+      const stats = await adminUserService.getUserStats();
+      const source = stats as Record<string, unknown>;
+      setCounts({
+        Active: readStatusCount(source, ["active", "activeUsers"]),
+        Suspended: readStatusCount(source, [
+          "suspended",
+          "inactive",
+          "suspendedUsers",
+        ]),
+        Removed: readStatusCount(source, ["removed", "removedUsers"]),
+      });
+    } catch {
+      // non-fatal
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   const tabs: TabConfig[] = useMemo(
     () => [
@@ -204,6 +262,7 @@ export default function ActivePage() {
       await adminUserService.updateUserStatus(id, status);
       toast.success(`User ${status}`);
       fetchForTab(activeTab);
+      fetchCounts();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update user");
     }
@@ -217,6 +276,7 @@ export default function ActivePage() {
       await adminUserService.reactivateUser(id);
       toast.success("User reactivated");
       fetchForTab(activeTab);
+      fetchCounts();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to reactivate user",
@@ -271,6 +331,7 @@ export default function ActivePage() {
       }
       clearSelection();
       await fetchForTab(activeTab);
+      fetchCounts();
       setPendingBulk(null);
     } catch (err) {
       toast.error(
@@ -377,19 +438,26 @@ export default function ActivePage() {
   }, [activeTab, tabs]);
 
   const renderContent = () => {
-    if (isLoading) {
+    // Only take over the whole panel on the initial load — once rows exist the
+    // filter bar must stay mounted so the search input keeps focus while
+    // refetching.
+    if (isLoading && data.length === 0) {
       return <TableSkeleton columns={5} rows={6} />;
     }
-    if (data.length === 0) {
-      return (
-        <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
-          No {activeTab.toLowerCase()} users found.
-        </div>
-      );
-    }
+    const filterProps = {
+      searchTerm,
+      onSearchChange: setSearchTerm,
+      selectedYear,
+      onYearChange: setSelectedYear,
+      selectedMonth,
+      onMonthChange: setSelectedMonth,
+      selectedState,
+      onStateChange: setSelectedState,
+    };
     const componentMap: Record<SlideType, React.ReactNode> = {
       Active: (
         <ActiveTable
+          {...filterProps}
           data={data}
           handleAdminSuspended={handleAdminSuspended}
           handleAdminRemoved={handleAdminRemoved}
@@ -402,6 +470,7 @@ export default function ActivePage() {
       ),
       Suspended: (
         <SuspendedTable
+          {...filterProps}
           data={data}
           handleReactivate={handleReactivate}
           handleAdminRemoved={handleAdminRemoved}
@@ -414,6 +483,7 @@ export default function ActivePage() {
       ),
       Removed: (
         <RemovedTable
+          {...filterProps}
           data={data}
           handleAdminOnboarding={handleAdminOnboarding}
           handleCheckboxChange={handleCheckboxChange}
@@ -424,7 +494,16 @@ export default function ActivePage() {
         />
       ),
     };
-    return componentMap[activeTab];
+    return (
+      <>
+        {componentMap[activeTab]}
+        {!isLoading && data.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
+            No {activeTab.toLowerCase()} users found.
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
@@ -459,7 +538,7 @@ export default function ActivePage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}

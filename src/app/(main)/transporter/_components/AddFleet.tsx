@@ -212,12 +212,11 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
     }
 
     try {
-      const payload: Partial<FleetPayload> = editFleetData 
+      const payload: Partial<FleetPayload> = editFleetData
         ? {
             model: formData.model,
             capacity: formData.size,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any
+          }
         : {
             fleetName: formData.fleetName,
             fleetNumber: formData.fleetNumber,
@@ -233,8 +232,7 @@ export const AddFleet: React.FC<AddFleetProps> = ({ isOpen, onClose, editFleetDa
               fromState: formData.fromState || "Kaduna",
               toState: formData.toState || "Lagos",
             },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any;
+          };
 
       if (editFleetData) {
         updateFleet({ id: editFleetData.id, data: payload }, {

@@ -2,7 +2,7 @@ import {
   AgentsProps,
   ApprovalsAgentsProps,
 } from "@/utils/Approvals";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminTable, {
   ColumnConfig,
@@ -102,7 +102,21 @@ const columns: ColumnConfig<AgentsProps>[] = [
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 
-export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
+// Filters are controlled by the page so they can be forwarded to the API.
+interface ControlledFilterProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedYear: string;
+  onYearChange: (value: string) => void;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
+  selectedState: string;
+  onStateChange: (value: string) => void;
+}
+
+export const ApprovalsAgents: React.FC<
+  ApprovalsAgentsProps & ControlledFilterProps
+> = ({
   data,
   isLoading = false,
   handleAgentApprove,
@@ -113,11 +127,15 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
   onRowClick,
   bulkActions = [],
   bulkDisabled,
+  searchTerm,
+  onSearchChange,
+  selectedYear,
+  onYearChange,
+  selectedMonth,
+  onMonthChange,
+  selectedState,
+  onStateChange,
 }) => {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
@@ -127,29 +145,6 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
 
   // Generate years from 2019 to 2025
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-
-  const filteredAgents = useMemo(() => {
-    return data.filter((agent) => {
-      const matchesYear = selectedYear
-        ? agent.date.includes(selectedYear)
-        : true;
-      const matchesMonth = selectedMonth
-        ? agent.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`
-          )
-        : true;
-      const matchesState = selectedState
-        ? agent.location.toLowerCase() === selectedState.toLowerCase()
-        : true;
-      const matchesSearch = searchTerm
-        ? agent.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          agent.email.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      return matchesYear && matchesMonth && matchesState && matchesSearch;
-    });
-  }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -208,7 +203,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                 type="text"
                 placeholder="Search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search all transactions"
                 aria-describedby="search-description"
@@ -265,7 +260,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedYear("");
+                            onYearChange("");
                             setIsYearOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -280,7 +275,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                           <div
                             key={year}
                             onClick={() => {
-                              setSelectedYear(year.toString());
+                              onYearChange(year.toString());
                               setIsYearOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -336,7 +331,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedMonth("");
+                            onMonthChange("");
                             setIsMonthOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -351,7 +346,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                           <div
                             key={month}
                             onClick={() => {
-                              setSelectedMonth(month);
+                              onMonthChange(month);
                               setIsMonthOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -406,7 +401,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedState("");
+                          onStateChange("");
                           setIsStateOpen(false);
                         }}
                         className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -421,7 +416,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
                         <div
                           key={state}
                           onClick={() => {
-                            setSelectedState(state);
+                            onStateChange(state);
                             setIsStateOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -450,7 +445,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
             <AdminTable<AgentsProps>
               dataType="AgentsData"
               columns={columns}
-              initialData={filteredAgents}
+              initialData={data}
               ActionMenuComponent={AgentActionMenu}
               handleAgentApprove={handleAgentApprove}
               handleAgentDecline={handleAgentDecline}
@@ -459,7 +454,7 @@ export const ApprovalsAgents: React.FC<ApprovalsAgentsProps> = ({
               allChecked={allChecked}
               onRowClick={onRowClick}
             />
-            {filteredAgents.length === 0 && (
+            {data.length === 0 && (
               <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
                 No agents pending approval.
               </div>

@@ -34,6 +34,12 @@ export interface TrackOrder {
     id: string;
     image: string;
   };
+  // The agent who owns the ordered product — products are agent-owned, so the
+  // populated `product.owner` is the agent user. Empty string when the backend
+  // returns `owner` as a bare id (or omits it), in which case the review entry
+  // point stays hidden rather than posting against a guessed id.
+  agentId: string;
+  agentName: string;
   status: TrackOrderStatus;
   pickedAt: string;
   onTransitAt: string;
@@ -204,6 +210,8 @@ export const orderToTrackOrder = (raw: OrderRecord): TrackOrder => {
       id: asString(firstProduct._id ?? firstProduct.id),
       image: asString(productImages[0], "/images/foodTracked.png"),
     },
+    agentId: asString(owner._id ?? owner.id, ""),
+    agentName: firstString(owner.businessName, owner.name, "the agent"),
     status,
     pickedAt,
     onTransitAt,

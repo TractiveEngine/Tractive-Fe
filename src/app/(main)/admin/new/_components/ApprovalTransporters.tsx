@@ -2,7 +2,7 @@ import {
   TransportersProps,
   ApprovalsTransportersProps,
 } from "@/utils/Approvals";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminTable, {
   ColumnConfig,
@@ -101,7 +101,21 @@ const columns: ColumnConfig<TransportersProps>[] = [
   { key: "date", header: "Date", minWidth: "min-w-[100px]" },
 ];
 
-export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
+// Filters are controlled by the page so they can be forwarded to the API.
+interface ControlledFilterProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedYear: string;
+  onYearChange: (value: string) => void;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
+  selectedState: string;
+  onStateChange: (value: string) => void;
+}
+
+export const ApprovalTransporters: React.FC<
+  ApprovalsTransportersProps & ControlledFilterProps
+> = ({
   data,
   isLoading = false,
   handleTransporterApprove,
@@ -112,11 +126,15 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
   onRowClick,
   bulkActions = [],
   bulkDisabled,
+  searchTerm,
+  onSearchChange,
+  selectedYear,
+  onYearChange,
+  selectedMonth,
+  onMonthChange,
+  selectedState,
+  onStateChange,
 }) => {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isYearOpen, setIsYearOpen] = useState<boolean>(false);
   const [isMonthOpen, setIsMonthOpen] = useState<boolean>(false);
   const [isStateOpen, setIsStateOpen] = useState<boolean>(false);
@@ -125,27 +143,6 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
   const stateDropdownRef = useRef<HTMLDivElement>(null);
 
   const years = Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i);
-
-  const filteredTransporters = useMemo(() => {
-    return data.filter((t) => {
-      const matchesYear = selectedYear ? t.date.includes(selectedYear) : true;
-      const matchesMonth = selectedMonth
-        ? t.date.startsWith(
-            `${months.indexOf(selectedMonth) + 1 < 10 ? "0" : ""}${
-              months.indexOf(selectedMonth) + 1
-            }`,
-          )
-        : true;
-      const matchesState = selectedState
-        ? t.location.toLowerCase() === selectedState.toLowerCase()
-        : true;
-      const matchesSearch = searchTerm
-        ? t.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          t.email.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      return matchesYear && matchesMonth && matchesState && matchesSearch;
-    });
-  }, [data, selectedYear, selectedMonth, selectedState, searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -199,7 +196,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                 type="text"
                 placeholder="Search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-8 py-2 border-[1px] border-gray-300 rounded-[4px] text-sm sm:text-base focus:outline-none focus:ring-[#538e53] placeholder:text-[#808080] placeholder:text-sm sm:placeholder:text-base placeholder:font-montserrat placeholder:font-medium"
                 aria-label="Search all transporters"
                 aria-describedby="search-description"
@@ -255,7 +252,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedYear("");
+                            onYearChange("");
                             setIsYearOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -270,7 +267,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                           <div
                             key={year}
                             onClick={() => {
-                              setSelectedYear(year.toString());
+                              onYearChange(year.toString());
                               setIsYearOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -325,7 +322,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                       >
                         <div
                           onClick={() => {
-                            setSelectedMonth("");
+                            onMonthChange("");
                             setIsMonthOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -340,7 +337,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                           <div
                             key={month}
                             onClick={() => {
-                              setSelectedMonth(month);
+                              onMonthChange(month);
                               setIsMonthOpen(false);
                             }}
                             className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -394,7 +391,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                     >
                       <div
                         onClick={() => {
-                          setSelectedState("");
+                          onStateChange("");
                           setIsStateOpen(false);
                         }}
                         className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -409,7 +406,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
                         <div
                           key={state}
                           onClick={() => {
-                            setSelectedState(state);
+                            onStateChange(state);
                             setIsStateOpen(false);
                           }}
                           className={`px-3 py-1 text-[12px] cursor-pointer font-montserrat hover:bg-gray-100 ${
@@ -438,7 +435,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
             <AdminTable<TransportersProps>
               dataType="TransportersData"
               columns={columns}
-              initialData={filteredTransporters}
+              initialData={data}
               ActionMenuComponent={TransporterActionMenu}
               handleTransporterApprove={handleTransporterApprove}
               handleTransporterDecline={handleTransporterDecline}
@@ -447,7 +444,7 @@ export const ApprovalTransporters: React.FC<ApprovalsTransportersProps> = ({
               allChecked={allChecked}
               onRowClick={onRowClick}
             />
-            {filteredTransporters.length === 0 && (
+            {data.length === 0 && (
               <div className="text-center py-10 text-gray-400 text-sm font-montserrat">
                 No transporters pending approval.
               </div>

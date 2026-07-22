@@ -3,15 +3,13 @@ import { TruckItem } from "@/utils/TruckData";
 import Image from "next/image";
 import { Button } from "@/components/Button";
 import { DisplayProduct } from "./TruckDetailsAndShipProduct";
+import { useProfile } from "@/hooks/queries/useUserQueries";
 
-interface OnboardingData {
+interface DeliveryDetails {
   state: string;
-  CAC: string;
   address: string;
   mobile: string;
-  alternativeMobile: string;
   businessName: string;
-  interests: string[];
 }
 
 interface DeliveryDetailsAndPaymentMethodProps {
@@ -42,16 +40,20 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
 
-  // Fetch onboarding data from local storage
-  const onboardingData: OnboardingData | null = (() => {
-    try {
-      const data = localStorage.getItem("onboarding-data");
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Error parsing onboarding-Data:", error);
-      return null;
-    }
-  })();
+  // Delivery details come from the saved profile (GET /api/profile). This used
+  // to read localStorage["onboarding-data"], a key nothing ever writes —
+  // onboarding saves under `onboarding-data-${role}` — so the panel was always
+  // empty and orders went out with a blank address and phone.
+  const { data: profile } = useProfile();
+
+  const onboardingData: DeliveryDetails | null = profile
+    ? {
+        state: (profile.state as string) || "",
+        address: (profile.address as string) || "",
+        mobile: (profile.phone as string) || "",
+        businessName: (profile.name as string) || "",
+      }
+    : null;
 
   // Calculate total weight of selected products
   const selectedItems = allProducts.filter((p) => selectedProducts.includes(p.id));
@@ -129,12 +131,6 @@ export const DeliveryDetailsAndPaymentMethod: React.FC<
               <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
                 Mobile:{" "}
                 <span className="text-[#2b2b2b]">{onboardingData.mobile}</span>
-              </p>
-              <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">
-                Alternative:{" "}
-                <span className="text-[#2b2b2b]">
-                  {onboardingData.alternativeMobile}
-                </span>
               </p>
             </div>
             <p className="font-montserrat text-[11px] sm:text-[12px] text-[#808080] font-normal">

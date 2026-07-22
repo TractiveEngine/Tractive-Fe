@@ -284,7 +284,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
 }) => {
   const router = useRouter();
   const [admins, setAdmins] = useState<User[]>([]);
-  const [adminsRaw, setAdminsRaw] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -353,7 +352,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
         ? data.filter((u) => professionArray(u).includes(lockedProfession))
         : data;
       setAdmins(scoped.map((u) => mapToUiUser(u, lockedProfession)));
-      setAdminsRaw(scoped);
       setTotalItems(pagination?.total ?? scoped.length);
     } catch (error) {
       console.error("Failed to fetch users", error);
@@ -361,7 +359,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
         error instanceof Error ? error.message : "Failed to fetch users",
       );
       setAdmins([]);
-      setAdminsRaw([]);
       setTotalItems(0);
     } finally {
       setIsLoading(false);
@@ -442,26 +439,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
     openDetail(id);
   };
 
-  // Resolve the API profession value for a given user id from the current list
-  const professionForId = (id: string): AdminProfession | undefined => {
-    const raw = adminsRaw.find((u) => (u._id as string) === id);
-    if (!raw) return undefined;
-    const candidate = (
-      (raw.activeRole as string) ||
-      (Array.isArray(raw.profession) ? (raw.profession as string[])[0] : "") ||
-      ""
-    ).toLowerCase();
-    if (
-      candidate === "buyer" ||
-      candidate === "agent" ||
-      candidate === "transporter" ||
-      candidate === "admin"
-    ) {
-      return candidate as AdminProfession;
-    }
-    return undefined;
-  };
-
   // Remove and Suspend are destructive, so neither fires straight from the menu.
   // Both handlers only stage a pending action; the mutation runs in
   // `runPendingAction` once the admin confirms in the modal.
@@ -507,13 +484,6 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
       return;
     }
 
-    const profession = professionForId(id);
-    if (!profession) {
-      toast.error("Cannot determine user profession for this action");
-      setPendingAction(null);
-      return;
-    }
-
     const nextStatus: AdminUserStatus =
       kind === "remove"
         ? "removed"
@@ -523,10 +493,9 @@ export const AllUserType: React.FC<AllUserTypeProps> = ({
 
     setIsActionSubmitting(true);
     try {
-      await adminUserService.updateUser(id, {
-        status: nextStatus,
-        profession,
-      });
+      // `profession` is not required by the backend — sending `{ status }`
+      // alone returns 200. Deriving it used to abort the action outright.
+      await adminUserService.updateUserStatus(id, nextStatus);
       toast.success(`User ${nextStatus}`);
       setPendingAction(null);
       fetchUsers();

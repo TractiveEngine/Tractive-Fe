@@ -1,14 +1,21 @@
 "use client";
 
 // Import necessary React hooks and libraries
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { motion } from "framer-motion"; // Adjust the import path as needed
 import { TrackPicked } from "./_components/TrackPicked";
 import { TrackOnTransit } from "./_components/TrackOnTransit";
 import { TrackDelivered } from "./_components/TrackDelivered";
 import { TransporterData } from "@/utils/TrackTransporterData";
-import { useFleetTrips } from "@/hooks/queries/useTransporterQueries";
+import { useFleetTripsPaged } from "@/hooks/queries/useTransporterQueries";
 import {
+  fleetTripService,
   FleetTripStatus,
   FleetTripSummary,
 } from "@/services/fleetTripService";
@@ -36,6 +43,22 @@ const TAB_TO_STATUS: Record<SlideType, FleetTripStatus> = {
   OnTransit: "on_transit",
   Delivered: "delivered",
 };
+
+// Must match the labels rendered by the month dropdown in the tab components.
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 const formatDate = (iso?: string) => {
   if (!iso) return "—";
@@ -84,10 +107,41 @@ export default function TrackTransporterPage() {
   // State to track the currently active tab (Picked, OnTransit, Delivered)
   const [activeTab, setActiveTab] = useState<SlideType>("Picked");
 
+  // Filters live here (not in the tab components) because they are sent to the
+  // API — the list is filtered server-side, not page-locally.
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+
+  const pageSizeOptions = [5, 10, 20, 50];
+
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever the tab or a filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, debouncedSearch, selectedMonth, selectedYear]);
+
   // Fetch real fleet trips for the active tab's status
-  const { data: tripsRaw, isLoading } = useFleetTrips({
+  const { data: tripsPage, isLoading } = useFleetTripsPaged({
     status: TAB_TO_STATUS[activeTab],
+    search: debouncedSearch || undefined,
+    year: selectedYear || undefined,
+    month: selectedMonth ? months.indexOf(selectedMonth) + 1 : undefined,
+    page,
+    limit,
   });
+
+  const tripsRaw = tripsPage?.trips;
+  const totalItems = tripsPage?.pagination?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
   // State to manage order data with checkbox status
   const [transporterData, setTransporterData] = useState<TransporterData[]>([]);
@@ -97,6 +151,10 @@ export default function TrackTransporterPage() {
     const list: FleetTripSummary[] = Array.isArray(tripsRaw) ? tripsRaw : [];
     setTransporterData(list.map(tripToTransporterData));
   }, [tripsRaw]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
   // Lookup from trip id → raw trip summary, so the action-menu handlers can
   // resolve the full buyer/transporter/fleet data behind a row.
@@ -134,15 +192,34 @@ export default function TrackTransporterPage() {
     width: 0,
   });
 
-  // Count for the current tab (the others are unknown until that tab is opened)
-  const counts = useMemo(
-    () => ({
-      Picked: activeTab === "Picked" ? transporterData.length : 0,
-      OnTransit: activeTab === "OnTransit" ? transporterData.length : 0,
-      Delivered: activeTab === "Delivered" ? transporterData.length : 0,
-    }),
-    [activeTab, transporterData]
-  );
+  // Real totals per status. A `limit: 1` probe per tab reads `pagination.total`,
+  // so the badges reflect the whole result set — not just the loaded page.
+  const [counts, setCounts] = useState<Record<SlideType, number>>({
+    Picked: 0,
+    OnTransit: 0,
+    Delivered: 0,
+  });
+
+  const refreshCounts = useCallback(async () => {
+    try {
+      const [picked, onTransit, delivered] = await Promise.all([
+        fleetTripService.getFleetTripsPaged({ status: "picked", limit: 1 }),
+        fleetTripService.getFleetTripsPaged({ status: "on_transit", limit: 1 }),
+        fleetTripService.getFleetTripsPaged({ status: "delivered", limit: 1 }),
+      ]);
+      setCounts({
+        Picked: picked.pagination?.total ?? 0,
+        OnTransit: onTransit.pagination?.total ?? 0,
+        Delivered: delivered.pagination?.total ?? 0,
+      });
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshCounts();
+  }, [refreshCounts]);
 
   // Define tab configuration
   const tabs: TabConfig[] = useMemo(
@@ -251,14 +328,29 @@ export default function TrackTransporterPage() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [activeTab, tabs]);
 
-  // Render the appropriate component based on activeTab
+  // Render the appropriate component based on activeTab.
+  //
+  // Only the FIRST load takes over the panel. The filter bar lives inside the
+  // tab component, so swapping in a skeleton on every debounced refetch would
+  // unmount the search input and drop focus mid-keystroke.
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && transporterData.length === 0) {
       return <TableSkeleton columns={6} rows={6} />;
     }
+    // Every tab renders the same controlled filter bar; the values live on the
+    // page so they can be pushed into the API query.
+    const filterProps = {
+      searchTerm,
+      onSearchChange: setSearchTerm,
+      selectedYear,
+      onYearChange: setSelectedYear,
+      selectedMonth,
+      onMonthChange: setSelectedMonth,
+    };
     const componentMap: Record<SlideType, React.ReactNode> = {
       Picked: (
         <TrackPicked
+          {...filterProps}
           transport={transporterData}
           handleTBuyerInfo={handleTBuyerInfo}
           handleTransporterInfo={handleTransporterInfo}
@@ -271,6 +363,7 @@ export default function TrackTransporterPage() {
       ),
       OnTransit: (
         <TrackOnTransit
+          {...filterProps}
           transport={transporterData}
           handleTBuyerInfo={handleTBuyerInfo}
           handleTransporterInfo={handleTransporterInfo}
@@ -283,6 +376,7 @@ export default function TrackTransporterPage() {
       ),
       Delivered: (
         <TrackDelivered
+          {...filterProps}
           transport={transporterData}
           handleTBuyerInfo={handleTBuyerInfo}
           handleTransporterInfo={handleTransporterInfo}
@@ -333,7 +427,7 @@ export default function TrackTransporterPage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}
@@ -361,11 +455,61 @@ export default function TrackTransporterPage() {
         {renderContent()}
       </div>
 
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+            <span>Rows per page</span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="ml-3 text-gray-500">
+              Showing {(page - 1) * limit + 1}–
+              {Math.min(page * limit, totalItems)} of {totalItems}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="text-xs font-montserrat text-gray-600 px-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
       {trackTripId && (
         <TripDetailsModal
           tripId={trackTripId}
           summary={tripById.get(trackTripId)}
-          onClose={() => setTrackTripId(null)}
+          onClose={() => {
+            setTrackTripId(null);
+            // The tracking dialog can move a trip between statuses.
+            refreshCounts();
+          }}
         />
       )}
 

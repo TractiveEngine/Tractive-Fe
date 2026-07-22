@@ -10,7 +10,13 @@ export interface FleetPayload {
   fleetNumber: string;
   iot: string;
   model: string;
-  size: string;
+  /**
+   * Tonnage, e.g. "20 tons". The backend reads `capacity` and derives
+   * `capacityKg` from it; sending it is required for flat-rate whole-truck
+   * fleets. Previously declared as `size`, which forced `as any` casts at the
+   * call sites — verified 19 Jul 2026 that `capacity` is the stored field.
+   */
+  capacity: string;
   price: number;
   priceNegotiation: boolean;
   images: string[];
@@ -25,7 +31,8 @@ export interface FleetResponse extends FleetPayload {
   status: string; // Assuming there's a status field
   createdAt: string;
   updatedAt: string;
-  capacity?: string;
+  /** Derived by the backend from `capacity`, e.g. "20 tons" -> 20000. */
+  capacityKg?: number;
   plateNumber?: string;
 }
 

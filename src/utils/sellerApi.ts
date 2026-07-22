@@ -1,6 +1,5 @@
-import axios from "axios";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/lib/config";
+import api from "@/lib/axios";
 
 /** One bar of the 5★→1★ breakdown. `percentage` is sent by the API but the UI
  * recomputes it from `count`/`totalReviews` when absent. */
@@ -60,10 +59,7 @@ export interface GetSellersParams {
 
 export const getSellers = async (params?: GetSellersParams): Promise<SellersResponse> => {
   try {
-    const response = await axios.get<SellersResponse>(
-      `${API_BASE_URL}/api/sellers`,
-      { params }
-    );
+    const response = await api.get<SellersResponse>(`/api/sellers`, { params });
 
     if (response.data.success) {
       return response.data;
@@ -86,8 +82,8 @@ export const getSellers = async (params?: GetSellersParams): Promise<SellersResp
  */
 export const getSellerById = async (id: string): Promise<Seller | null> => {
   try {
-    const response = await axios.get<{ success: boolean; data: Seller }>(
-      `${API_BASE_URL}/api/sellers/${id}`
+    const response = await api.get<{ success: boolean; data: Seller }>(
+      `/api/sellers/${id}`
     );
     if (response.data.success) {
       return response.data.data;
@@ -116,8 +112,8 @@ export interface GetSellerProductsParams {
 
 export const getSellerProducts = async (id: string, params?: GetSellerProductsParams): Promise<unknown[]> => {
     try {
-        const response = await axios.get<{ success: boolean; data: unknown[] }>(
-            `${API_BASE_URL}/api/sellers/${id}/products`,
+        const response = await api.get<{ success: boolean; data: unknown[] }>(
+            `/api/sellers/${id}/products`,
             { params }
         );
         if (response.data.success) {
@@ -191,7 +187,7 @@ export const getSellerReviews = async (
   id: string
 ): Promise<SellerReviewsResult> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/sellers/${id}/reviews`);
+    const response = await api.get(`/api/sellers/${id}/reviews`);
     const body: any = response.data;
     const data = body?.data ?? body;
 
@@ -245,9 +241,7 @@ export const getSellerReviews = async (
 // Like a review
 export const likeReview = async (reviewId: string): Promise<unknown> => {
     try {
-        const response = await axios.post(
-            `${API_BASE_URL}/api/reviews/${reviewId}/like`
-        );
+        const response = await api.post(`/api/reviews/${reviewId}/like`);
         return response.data;
     } catch (error) {
         console.error("Error liking review:", error);

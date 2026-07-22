@@ -66,7 +66,7 @@ export const AllTransit: React.FC = () => {
     checked: false,
     fleetNumber: fleet.fleetNumber,
     model: fleet.model,
-    size: fleet.size || fleet.capacity,
+    size: fleet.capacity,
     priceNegotiation: fleet.priceNegotiation,
     fleetDescription: fleet.fleetDescription,
     images: fleet.images,

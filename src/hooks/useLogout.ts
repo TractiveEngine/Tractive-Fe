@@ -1,29 +1,25 @@
 import { signOut } from "next-auth/react";
 import { useDispatch } from "react-redux";
-import axios from "axios";
 import { toast } from "sonner";
 import { logout } from "@/lib/features/auth/authSlice";
 import { tokenManager } from "@/lib/tokenManager";
-import { API_BASE_URL } from "@/lib/config";
+import api from "@/lib/axios";
 
 export const useLogout = () => {
   const dispatch = useDispatch();
 
   const performLogout = async () => {
     try {
-      // 1. Call Backend Logout (to revoke refresh token/cookies)
-      // We use the raw axios instance or fetch to avoid interceptor loops if needed,
-      // but using the standard one is fine as long as we handle errors.
-      await axios.post(
-        `${API_BASE_URL}/api/auth/logout`,
-        {},
-        {
-          withCredentials: true,
-        },
-      );
+      // 1. Revoke the refresh token server-side.
+      //
+      // Must go through `@/lib/axios` so the bearer token is attached — this
+      // route answers 401 without it, leaving the session alive server-side
+      // even though the client looks logged out.
+      await api.post("/api/auth/logout");
     } catch (error) {
+      // Client-side logout continues regardless: a failed revocation must not
+      // strand the user in a signed-in UI.
       console.error("Logout API failed", error);
-      // We continue to client-side logout anyway
     }
 
     // 2. Clear Client State

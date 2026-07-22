@@ -44,6 +44,21 @@ interface PendingBulk {
   decision: ApprovalDecision;
 }
 
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export default function ApprovalPage() {
   const [activeTab, setActiveTab] = useState<SlideType>("Agents");
 
@@ -51,6 +66,18 @@ export default function ApprovalPage() {
   const [transporters, setTransporters] = useState<TransportersProps[]>([]);
   const [agentsLoading, setAgentsLoading] = useState<boolean>(true);
   const [transportersLoading, setTransportersLoading] = useState<boolean>(true);
+  const [agentsTotal, setAgentsTotal] = useState<number>(0);
+  const [transportersTotal, setTransportersTotal] = useState<number>(0);
+
+  // Filter state lives here so it can be forwarded to the API.
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
 
   const [allChecked, setAllChecked] = useState<boolean>(false);
 
@@ -72,43 +99,84 @@ export default function ApprovalPage() {
     width: 0,
   });
 
+  const pageSizeOptions = [5, 10, 20, 50];
+  const totalItems = activeTab === "Agents" ? agentsTotal : transportersTotal;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const isLoading =
+    activeTab === "Agents" ? agentsLoading : transportersLoading;
+
+  // Debounce search input (400ms) to avoid firing an API call on every keystroke
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedState, selectedMonth, selectedYear]);
+
+  const queryParams = useMemo(
+    () => ({
+      search: debouncedSearch || undefined,
+      state: selectedState || undefined,
+      year: selectedYear || undefined,
+      month: selectedMonth
+        ? String(months.indexOf(selectedMonth) + 1)
+        : undefined,
+    }),
+    [debouncedSearch, selectedState, selectedYear, selectedMonth],
+  );
+
   const fetchAgents = useCallback(async () => {
     setAgentsLoading(true);
     try {
-      const { data } = await approvalService.getPendingAgents({ limit: 10 });
+      const { data, pagination } = await approvalService.getPendingAgents({
+        ...queryParams,
+        page,
+        limit,
+      });
       setAgents(data.map((a) => ({ ...a, checked: false })));
+      setAgentsTotal(pagination?.total ?? data.length);
     } catch {
       setAgents([]);
+      setAgentsTotal(0);
     } finally {
       setAgentsLoading(false);
     }
-  }, []);
+  }, [queryParams, page, limit]);
 
   const fetchTransporters = useCallback(async () => {
     setTransportersLoading(true);
     try {
-      const { data } = await approvalService.getPendingTransporters({
-        limit: 10,
-      });
+      const { data, pagination } = await approvalService.getPendingTransporters(
+        { ...queryParams, page, limit },
+      );
       setTransporters(data.map((t) => ({ ...t, checked: false })));
+      setTransportersTotal(pagination?.total ?? data.length);
     } catch {
       setTransporters([]);
+      setTransportersTotal(0);
     } finally {
       setTransportersLoading(false);
     }
-  }, []);
+  }, [queryParams, page, limit]);
 
   useEffect(() => {
     fetchAgents();
     fetchTransporters();
   }, [fetchAgents, fetchTransporters]);
 
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
   const counts = useMemo(
     () => ({
-      Agents: agents.length,
-      Transporters: transporters.length,
+      Agents: agentsTotal,
+      Transporters: transportersTotal,
     }),
-    [agents, transporters],
+    [agentsTotal, transportersTotal],
   );
 
   const tabs: TabConfig[] = useMemo(
@@ -138,6 +206,7 @@ export default function ApprovalPage() {
   const handleSwitchTab = (tab: SlideType) => {
     setActiveTab(tab);
     setAllChecked(false);
+    setPage(1);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -383,6 +452,14 @@ export default function ApprovalPage() {
           onRowClick={handleAgentRowClick}
           bulkActions={bulkActions}
           bulkDisabled={bulkDisabled}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          selectedState={selectedState}
+          onStateChange={setSelectedState}
         />
       ),
       Transporters: (
@@ -397,6 +474,14 @@ export default function ApprovalPage() {
           onRowClick={handleTransporterRowClick}
           bulkActions={bulkActions}
           bulkDisabled={bulkDisabled}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          selectedState={selectedState}
+          onStateChange={setSelectedState}
         />
       ),
     };
@@ -439,7 +524,7 @@ export default function ApprovalPage() {
                 aria-selected={activeTab === tab.label}
                 aria-controls={`${tab.label.toLowerCase()}-panel`}
               >
-                {tab.displayLabel}
+                {tab.displayLabel} ({tab.count})
               </button>
             </div>
           ))}
@@ -516,6 +601,52 @@ export default function ApprovalPage() {
         onCancel={cancelPendingBulk}
         onConfirm={confirmPendingBulk}
       />
+
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 text-xs font-montserrat text-gray-600">
+            <span>Rows per page</span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs font-montserrat bg-white focus:outline-none focus:border-[#538e53] cursor-pointer"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="ml-3 text-gray-500">
+              Showing {(page - 1) * limit + 1}–
+              {Math.min(page * limit, totalItems)} of {totalItems}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="text-xs font-montserrat text-gray-600 px-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 text-xs font-montserrat text-gray-600 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

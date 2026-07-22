@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { AdminActionMenuProps } from "../../_components/AdminActionMenuProps";
 import { ThreeDotIcon } from "@/app/(main)/agent/produce-list/_components/table/ActionMenu";
+import { ContactCustomerCareModal } from "./ContactCustomerCareModal";
 
 export const RefundedActionMenu: React.FC<AdminActionMenuProps> = ({
   userTypeId,
@@ -12,6 +12,9 @@ export const RefundedActionMenu: React.FC<AdminActionMenuProps> = ({
   status,
 }) => {
   const [isActive, setIsActive] = useState(false);
+  // Owned locally: AdminTable renders this menu with a fixed prop set, so the
+  // contact-customer-care flow is self-contained rather than plumbed from the page.
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export const RefundedActionMenu: React.FC<AdminActionMenuProps> = ({
       <AnimatePresence>
         {isActive && status === "Refunded" && (
           <motion.div
-            className="absolute min-w-[110px] right-11 -top-3 bg-[#fefefe] rounded-[7px] shadow-lg z-[100]"
+            className="absolute min-w-[170px] right-11 -top-3 bg-[#fefefe] rounded-[7px] shadow-lg z-[100]"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -60,17 +63,25 @@ export const RefundedActionMenu: React.FC<AdminActionMenuProps> = ({
                 Profile
               </button>
             )}
-            <Link href="/admin/chat">
-              <button
-                className="w-full text-left px-2 py-1 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
-                onClick={() => setIsActive(false)}
-              >
-                Chat
-              </button>
-            </Link>
+            <button
+              onClick={() => {
+                setIsContactOpen(true);
+                setIsActive(false);
+              }}
+              className="w-full text-left px-2 py-1 text-[13px] font-montserrat text-[#2b2b2b] cursor-pointer rounded-[4px] hover:bg-gray-100"
+            >
+              Contact customer care
+            </button>
+            {/* "Chat" (/admin/chat) removed: the route does not exist. */}
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ContactCustomerCareModal
+        isOpen={isContactOpen}
+        transactionId={userTypeId}
+        onClose={() => setIsContactOpen(false)}
+      />
     </div>
   );
 };

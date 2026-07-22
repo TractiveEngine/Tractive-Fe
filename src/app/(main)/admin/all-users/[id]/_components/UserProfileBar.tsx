@@ -6,7 +6,6 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   adminUserService,
-  AdminProfession,
   AdminUserStatus,
   AdminUserSummary,
 } from "@/services/adminUserService";
@@ -64,21 +63,6 @@ const approvalBadge = (label: string, value?: string) => {
   );
 };
 
-const pickProfession = (u: AdminUserSummary): AdminProfession | undefined => {
-  const active = (u.activeRole as string) || "";
-  const list = Array.isArray(u.profession) ? (u.profession as string[]) : [];
-  const candidate = (active || list[0] || (u.profession as string) || "").toLowerCase();
-  if (
-    candidate === "buyer" ||
-    candidate === "agent" ||
-    candidate === "transporter" ||
-    candidate === "admin"
-  ) {
-    return candidate as AdminProfession;
-  }
-  return undefined;
-};
-
 export const UserProfileBar: React.FC<UserProfileBarProps> = ({
   user,
   onUpdated,
@@ -96,17 +80,11 @@ export const UserProfileBar: React.FC<UserProfileBarProps> = ({
     action: "suspend" | "remove",
     nextStatus: AdminUserStatus,
   ) => {
-    const profession = pickProfession(user);
-    if (!profession) {
-      toast.error("Cannot determine user profession for this action");
-      return;
-    }
     setPendingAction(action);
     try {
-      await adminUserService.updateUser(userId, {
-        status: nextStatus,
-        profession,
-      });
+      // `profession` is not required by the backend — sending `{ status }`
+      // alone returns 200. Deriving it used to abort the action outright.
+      await adminUserService.updateUserStatus(userId, nextStatus);
       toast.success(action === "suspend" ? "User suspended" : "User removed");
       onUpdated();
     } catch (err) {

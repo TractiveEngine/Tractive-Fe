@@ -237,15 +237,25 @@ export const adminUserService = {
     }
   },
 
-  // PATCH /api/admin/users/{id}/status
+  /**
+   * Update a user's status.
+   *
+   * Routed to `PATCH /api/admin/users/{id}` — NOT `/api/admin/users/{id}/status`.
+   * The `/status` variant is registered but its handler rejects every id it is
+   * given, returning `400 "Invalid user ID"` for a real user, a well-formed
+   * unused ObjectId, and a malformed string alike (verified 19 Jul 2026). The
+   * base route handles the same write correctly.
+   *
+   * `profession` is deliberately not sent: the base route accepts `{ status }`
+   * alone and returns 200. Deriving it client-side used to abort the action
+   * whenever it could not be resolved.
+   */
   updateUserStatus: async (
     id: string,
     status: AdminUserStatus,
   ): Promise<AdminUser> => {
     try {
-      const response = await api.patch(`/api/admin/users/${id}/status`, {
-        status,
-      });
+      const response = await api.patch(`/api/admin/users/${id}`, { status });
       return response.data?.data ?? response.data;
     } catch (error) {
       return handleApiError(error, "update user status");
@@ -306,6 +316,9 @@ export const adminUserService = {
         params: {
           ...(params.profession ? { profession: params.profession } : {}),
           ...(params.search ? { search: params.search } : {}),
+          ...(params.state ? { state: params.state } : {}),
+          ...(params.month ? { month: params.month } : {}),
+          ...(params.year ? { year: params.year } : {}),
           page: params.page ?? 1,
           limit: params.limit ?? 10,
         },

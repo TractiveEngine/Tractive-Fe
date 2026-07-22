@@ -12,27 +12,14 @@ import React from "react";
 import { ProfilePicture } from "../../../app/(profiles)/transporter-profile/_components/ProfilePicture";
 // import { ProfilePicture } from "./app/(profiles)/agent-profile/_components/ProfilePicture";
 
-interface OnboardingData {
-  state: string;
-  CAC: string;
-  address: string;
-  mobile: string;
-  alternativeMobile: string;
-  businessName: string;
-  interests: string[];
-}
+import { useProfile } from "@/hooks/queries/useUserQueries";
 
 export const TransporterProfile_AsideNav = () => {
   const pathname = usePathname();
-  const onboardingData: OnboardingData | null = (() => {
-    try {
-      const data = localStorage.getItem("onboarding-data");
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Error parsing onboarding-Data:", error);
-      return null;
-    }
-  })();
+  // Reads the saved profile. This used to read localStorage["onboarding-data"],
+  // a key nothing ever writes — onboarding saves under `onboarding-data-${role}`
+  // — so the name and phone were always blank.
+  const { data: profile } = useProfile();
 
   return (
     <div className="flex flex-col justify-center gap-4 w-[100%] pt-12 pb-4 bg-[#fefefe] shadow-none md:shadow-md rounded-md">
@@ -40,23 +27,16 @@ export const TransporterProfile_AsideNav = () => {
         <ProfilePicture />
         <div className="flex flex-col items-center justify-center gap-2">
           <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            {onboardingData?.businessName}
+            {(profile?.name as string) || ""}
           </span>
           <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-            oyinjoe23@gmail.com
+            {(profile?.email as string) || ""}
           </span>
           <div className="flex items-center justify-center gap-4">
             <div className="flex items-center justify-center gap-2">
               <CallOutlineIcon />
               <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.mobile}
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <CallOutlineIcon />
-
-              <span className="font-montserrat font-normal text-[13px] text-[#2b2b2b]">
-                {onboardingData?.alternativeMobile}
+                {(profile?.phone as string) || ""}
               </span>
             </div>
           </div>
