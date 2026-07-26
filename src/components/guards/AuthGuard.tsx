@@ -8,10 +8,29 @@ interface AuthGuardProps {
     children: React.ReactNode;
 }
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/forget-password", "/reset-password"];
+// Only these route trees require authentication. Everything else is public —
+// the entire (Marketing) site (/, /about-us, /faqs, /cookies, /privacy-policy,
+// /report and their sub-pages) plus the public auth pages (/login, /signup,
+// /forget-password, /reset-password) render for everyone, no login required.
+//
+// This is an allowlist of PROTECTED prefixes (not public ones): the site root
+// "/" is a marketing page, so a public-allowlist can't express "everything
+// except the app areas" — hence the inversion.
+const PROTECTED_PREFIXES = [
+    "/admin",
+    "/agent", // also covers /agent-profile
+    "/transporter", // also covers /transporter-profile
+    "/buyer", // also covers /buyer-profile
+    "/account",
+    "/register-as",
+    "/onboarding",
+    "/add-role",
+    "/account-verification",
+    "/email-confirmation",
+];
 
-function isPublicRoute(pathname: string) {
-    return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+function isProtectedRoute(pathname: string) {
+    return PROTECTED_PREFIXES.some((route) => pathname.startsWith(route));
 }
 
 export default function AuthGuard({ children }: AuthGuardProps) {
@@ -21,11 +40,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     const pathname = usePathname();
 
     const currentPath = pathname || "";
-    const isPublic = isPublicRoute(currentPath);
-    const isLoading = status === "loading" || (!isPublic && isProfileLoading);
+    const isProtected = isProtectedRoute(currentPath);
+    const isLoading = status === "loading" || (isProtected && isProfileLoading);
     const isAuthenticated = status === "authenticated";
 
     useEffect(() => {
+        // Public routes (marketing + auth pages) are never gated.
+        if (!isProtected) return;
+
         // 1. Wait for everything to load (session & profile)
         if (isLoading) return;
 
@@ -79,10 +101,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         // If user has active role, ensure they are not on limited pages unexpectedly
         // (This part is often handled by specific layout guards, but global guard can enforce basics)
 
-    }, [isLoading, isAuthenticated, session, userProfile, router, pathname]);
+    }, [isProtected, isLoading, isAuthenticated, session, userProfile, router, pathname]);
 
-    // Always render public routes immediately
-    if (isPublic) return <>{children}</>;
+    // Always render public routes (marketing, auth pages) immediately.
+    if (!isProtected) return <>{children}</>;
 
     if (isLoading) {
         return (

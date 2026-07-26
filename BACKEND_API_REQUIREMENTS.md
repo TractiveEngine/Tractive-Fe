@@ -1,12 +1,16 @@
 # BACKEND API REQUIREMENTS
 
-**Project:** Tractive · **Version:** 7.0 · **Date:** 19 July 2026
+**Project:** Tractive · **Version:** 7.1 · **Date:** 19 July 2026
 **From:** Frontend Engineering · **To:** Backend Engineering
 **Backend audited:** `https://tractive-be.vercel.app`
 
 **Every item in this document was verified on 19 July with real authenticated sessions** — an admin account and a multi-role buyer/agent/transporter account — including **write tests** (fleets created and deleted, both admin status routes exercised, bids submitted). Nothing here is inferred from an unauthenticated probe.
 
 **Closed since v6.2 — thank you:** `GET /api/reviews` + `/summary` now scope to the bearer token without `agentId` (was a blocker), and the fleet `capacity`/`size` question is answered — you read `capacity`, no data was ever lost.
+
+**New in v7.1 — five additions, no removals.** We moved the admin list filtering server-side and built the buyer review + contact-customer-care flows, and that work surfaced: **§3.9** (`POST /api/reviews` can only review agents, so the seller/transporter review lists we already render can never be written to), **§3.10** (the `month`/`year` format we now actually send is unconfirmed on six endpoints), **§3.11** (track-order rows have no product detail or image), and **§3.12** (`/api/orders/{id}/tracking` 500s, and it is polled every 30s). §2 was trimmed to its one live question now that the sparkline code is deleted on our side.
+
+To be clear about why this document is not shrinking: **frontend fixes do not close backend items.** We wired `contact-customer-care` this cycle, but that does not create the missing `/api/support/contacts` in §4.1. Everything below still needs you.
 
 ---
 
@@ -168,15 +172,11 @@ Your v5.0 update named this as the route for agent-facing customer support. It r
 
 ---
 
-## §2. Dashboard overview — sparklines dropped, one question remains
+## §2. Dashboard overview — every delta is `0`
 
-> **✅ No `trend[]` work needed — please ignore any earlier request for it.**
-> We have **cut the sparklines from the design entirely.** Previous versions of this
-> document asked you to add a 7-point `trend` array to all three overview
-> endpoints; that ask is **withdrawn.** The dashboard tiles now show the number and
-> the delta chip only. Nothing is pending on your side for the charts.
+> **✅ The `trend[]` ask is withdrawn** — sparklines are cut from the design, and the dead code is now deleted on our side. Nothing is pending on your side for the charts.
 
-**The one thing still worth a reply — every delta is `0`.** With the sparklines gone, the delta chip is now the *only* comparative element on the tile, so it matters more than it did:
+**The one thing still worth a reply — every delta is `0`.** With the sparklines gone, the delta chip is the *only* comparative element on the tile, so it matters more than it did:
 
 ```jsonc
 // GET /api/agents/dashboard/overview — actual response today
@@ -254,6 +254,10 @@ We previously told you "the rating data is already in your response." That was w
 
 **Needed:** a seller `rating` (and ideally `reviewsCount`) on the bid's agent object.
 
+### 3.8 Fleet-trip payload — no `amount`
+
+The Amount column on `/admin/track-orders/track-transporter` is hardcoded `"—"` because the fleet-trip payload carries no amount. **If an amount exists on the trip, please add it — otherwise say so and we'll drop the column.**
+
 ### 3.9 🔴 `POST /api/reviews` — only reviews **agents**, so sellers and transporters can't be reviewed
 
 We just built the buyer-facing review submission UI against the existing contract:
@@ -301,14 +305,6 @@ on `/api/admin/users`, `/api/admin/users/removed`, `/api/admin/approvals/agents`
 
 Worth knowing why we're asking: the client-side month filter we just deleted was comparing `date.startsWith("MM")` against a `YYYY-MM-DD` string, so **it had never matched anything** — month filtering has been silently broken in the UI, not merely page-scoped. We have no working reference behaviour to compare against.
 
-### 3.12 🔴 `GET /api/orders/{id}/tracking` — 500s
-
-Observed repeatedly on order `69fb1310ef7cd7ab52b7cbd5` from `/buyer/transporter-list`. Returns **500**, not a 4xx, so this is a handler fault rather than a bad request on our side.
-
-This endpoint is **polled every 30 seconds** while a package is in motion (buyer track-orders map and the agent trackorder view both use it), so one broken order generates sustained error traffic for as long as the page is open. We have reduced our side of the amplification — retries on this query are now disabled, since the next poll is the natural retry — but the underlying 500 needs fixing.
-
-**Please check what this handler does when tracking/GPS data does not exist for an order yet.** If the answer is "throws", it should return `200` with a null/empty position instead — "no GPS fix yet" is a normal state for an order that hasn't been picked up, not an error. We already render that case gracefully.
-
 ### 3.11 🔴 `/admin/track-orders` rows carry no product detail or image
 
 Both track-order lists — `GET /api/admin/orders/track/agent` and the fleet-trip feed behind `/admin/track-orders/track-transporter` — return enough to identify an order but not enough to *recognise* one. The Produce column renders a name and a thumbnail, and today both are guesswork: we fall back through `raw.title → raw.name → product.name`, and through `raw.image → product.image → images[0] → /images/noData.png`. Most rows land on the placeholder image.
@@ -330,9 +326,13 @@ Orders spanning multiple products should return the full line array rather than 
 
 Same shape as the transaction detail panel already returns for `order.products[].product` would be ideal — that one is populated correctly, so this is likely a `.populate()` missing on the track-order queries rather than new work.
 
-### 3.8 Fleet-trip payload — no `amount`
+### 3.12 🔴 `GET /api/orders/{id}/tracking` — 500s
 
-The Amount column on `/admin/track-orders/track-transporter` is hardcoded `"—"` because the fleet-trip payload carries no amount. **If an amount exists on the trip, please add it — otherwise say so and we'll drop the column.**
+Observed repeatedly on order `69fb1310ef7cd7ab52b7cbd5` from `/buyer/transporter-list`. Returns **500**, not a 4xx, so this is a handler fault rather than a bad request on our side.
+
+This endpoint is **polled every 30 seconds** while a package is in motion (buyer track-orders map and the agent trackorder view both use it), so one broken order generates sustained error traffic for as long as the page is open. We have reduced our side of the amplification — retries on this query are now disabled, since the next poll is the natural retry — but the underlying 500 needs fixing.
+
+**Please check what this handler does when tracking/GPS data does not exist for an order yet.** If the answer is "throws", it should return `200` with a null/empty position instead — "no GPS fix yet" is a normal state for an order that hasn't been picked up, not an error. We already render that case gracefully.
 
 ---
 
